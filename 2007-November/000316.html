@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] asset_database=&quot;grid&quot; failures
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20asset_database%3D%22grid%22%20failures&In-Reply-To=%3CBAY108-W41041853B727CDBC1AFA5DD58E0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000314.html">
+   <LINK REL="Next"  HREF="000318.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] asset_database=&quot;grid&quot; failures</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20asset_database%3D%22grid%22%20failures&In-Reply-To=%3CBAY108-W41041853B727CDBC1AFA5DD58E0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] asset_database=&quot;grid&quot; failures">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sat Nov  3 10:27:44 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000314.html">[Opensim-dev] asset_database=&quot;grid&quot; failures
+</A></li>
+        <LI>Next message: <A HREF="000318.html">[Opensim-dev] asset_database=&quot;grid&quot; failures
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#316">[ date ]</a>
+              <a href="thread.html#316">[ thread ]</a>
+              <a href="subject.html#316">[ subject ]</a>
+              <a href="author.html#316">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>First of all, is there anything we can do explicitly in the code to circumvent this; I know for example that I can be a bit lazy with doing explicit close on streams (I do try to introduce using{} clauses where it seems fit though) and that somethimes, when you've wrapped a steam in a reader in a reader on a stringbuilder things can get a bit confusing.
+ 
+If we _do_ reinvent the wheel and take the hit of having to maintain low-level protocol code because of a bug that we can't wait for the patch for, I strongly suggest we implement something with the exact same interface, so that switching back will be easy when the patch(es) is out.
+ 
+(Preferrably, I'd want that class to be substitutable so I could keep using the .net HttpListener in my environment)
+ 
+/Stefan
+ 
+
+
+Date: Sat, 3 Nov 2007 09:21:41 +0100From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tleiades at gmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: Re: [Opensim-dev] asset_database=&quot;grid&quot; failures
+
+Bingo, exactly what I found after further debugging.  I'll fling it overto the mono lists next week to see if this is something well known or if we are doing something wrong.Thank you for partially restoring my belief in my own insanity.I did a little investigation in the mono bug database, and found 3 which I think is interesting/relevant. [2.0] CompressedStack causes continuous slowdown / excessive memory <A HREF="usagehttps://bugzilla.novell.com/show_bug.cgi?id=321047">usagehttps://bugzilla.novell.com/show_bug.cgi?id=321047</A> This one isn't marked as fixed, but it will probably come back to hurt us. HttpListenerRequest.InputStream.Read blocks <A HREF="indefinitivelyhttps://bugzilla.novell.com/show_bug.cgi?id=321824This">indefinitivelyhttps://bugzilla.novell.com/show_bug.cgi?id=321824This</A> one is marked as fixed as per 2007-09-15, which means it isn't part of any distribution yet. I know this isn't POST related, but most code dealing POST's needs to read the request input stream. System.Net.HttpListener hangs reading past end of a non-chunked <A HREF="responsehttps://bugzilla.novell.com/show_bug.cgi?id=320218I">responsehttps://bugzilla.novell.com/show_bug.cgi?id=320218I</A> don't think we will be hurt by this one, it is marked as fixed, but isn't part of a released distribution yet. These bugs raises the question, can we use HTTP and REST as the foundation for comms protocols? do we need to give up the HttpListener implementation in Mono, and implement our own?Do we change to XMPP?/tleiades
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071103/76f91beb/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071103/76f91beb/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000314.html">[Opensim-dev] asset_database=&quot;grid&quot; failures
+</A></li>
+	<LI>Next message: <A HREF="000318.html">[Opensim-dev] asset_database=&quot;grid&quot; failures
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#316">[ date ]</a>
+              <a href="thread.html#316">[ thread ]</a>
+              <a href="subject.html#316">[ subject ]</a>
+              <a href="author.html#316">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

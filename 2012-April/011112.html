@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Remove check for IsGod in some OSSL functions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Remove%20check%20for%20IsGod%20in%20some%20OSSL%20functions&In-Reply-To=%3C4F882EC4.9010107%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011109.html">
+   <LINK REL="Next"  HREF="011115.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Remove check for IsGod in some OSSL functions</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Remove%20check%20for%20IsGod%20in%20some%20OSSL%20functions&In-Reply-To=%3C4F882EC4.9010107%40t-data.com%3E"
+       TITLE="[Opensim-dev] Remove check for IsGod in some OSSL functions">melanie at t-data.com
+       </A><BR>
+    <I>Fri Apr 13 15:48:52 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011109.html">[Opensim-dev] Remove check for IsGod in some OSSL functions
+</A></li>
+        <LI>Next message: <A HREF="011115.html">[Opensim-dev] Remove check for IsGod in some OSSL functions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11112">[ date ]</a>
+              <a href="thread.html#11112">[ thread ]</a>
+              <a href="subject.html#11112">[ subject ]</a>
+              <a href="author.html#11112">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Not so. ESTATE_MANAGER MEANS estate MANAGER. This is intentional. I
+reread the code and found that it already allows a comma separated
+list notation, so you can use ESTATE_OWNER,ESTATE_MANAGER.
+
+This allows for finer grained control. Please understand that estate
+owners may be significantly different from estate managers, for
+instance in the case of a mainland. This division is useful and,
+again, making changes could cause privilege escalation in some
+grids. So, -1. What you want to achieve can already be achieved.
+
+Same, btw, goes for parcels, you can specify
+PARCEL_OWNER,PARCEL_GROUP_MEMBER to get the behavior you're looking
+for, and/or add the estate management as well.
+
+I would propose to add &quot;GODS&quot; to the list of keywords, since they
+can't currently be allowed as a class.
+
+Melanie
+
+On 13/04/2012 15:36, Oren Hurvitz wrote:
+&gt;<i> About gods: ok. I don't allow any users to be gods for security reasons,
+</I>&gt;<i> but I had assumed that if someone *does* have god permissions then they
+</I>&gt;<i> should be able to do anything. Since that is not the case, I won't be
+</I>&gt;<i> making any changes related to gods.
+</I>&gt;<i> 
+</I>&gt;<i> I assume by &quot;-1 on changing existing functions&quot; you mean not to change
+</I>&gt;<i> IsAdministrator(). Ok, but that means we still have two methods that do the
+</I>&gt;<i> same thing: IsGod() and IsAdministrator(). This doesn't affect what I'm
+</I>&gt;<i> doing so I have no reason to push for this change, but it looks like a
+</I>&gt;<i> longstanding bug. If anyone is interested in pursuing this, Godspeed :)
+</I>&gt;<i> 
+</I>&gt;<i> Regarding whether ESTATE_MANAGER includes the estate owner: it doesn't,
+</I>&gt;<i> because of this code: &quot;World.RegionInfo.EstateSettings.EstateOwner !=
+</I>&gt;<i> ownerID&quot;. It explicitly disallows the estate owner, while allowing all the
+</I>&gt;<i> other estate managers. That's the code that should be removed.
+</I>&gt;<i> 
+</I>&gt;<i> Oren
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> On Fri, Apr 13, 2012 at 3:56 PM, Melanie-2 [via opensim-dev] &lt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ml-node+s2196679n7462585h49 at n2.nabble.com</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> First, HARD -1 on allowing gods all of OSSL. I run a grid where
+</I>&gt;&gt;<i> certain functions just CANNOT be allowed to run, no way, no how.
+</I>&gt;&gt;<i> There must be a way to achieve that, you can't force the
+</I>&gt;&gt;<i> availability of OSSL for gods on grids.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Also, HARD -1 on changing existing functions, it will break things
+</I>&gt;&gt;<i> in too many ways for established users.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The check for estate managers already allows estate owners.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> OpenSim/Region/ScriptEngine/Shared/Api/Implementation/OSSL_Api.cs:377
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> //Only Estate Managers may use the function
+</I>&gt;&gt;<i> if(m_FunctionPerms[function].AllowedOwnerClasses.Contains(&quot;ESTATE_MANAGER&quot;))
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> {
+</I>&gt;&gt;<i>     //Only Estate Managers may use the function
+</I>&gt;&gt;<i>     if (World.RegionInfo.EstateSettings.IsEstateManager(ownerID) &amp;&amp;
+</I>&gt;&gt;<i> World.RegionInfo.EstateSettings.EstateOwner != ownerID)
+</I>&gt;&gt;<i>     {
+</I>&gt;&gt;<i>         return;
+</I>&gt;&gt;<i>     }
+</I>&gt;&gt;<i> }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> A god check _could_ be added in the parcel owner, parcel group,
+</I>&gt;&gt;<i> estate manager and estate owner clauses as it can be assumed that if
+</I>&gt;&gt;<i> anyone is allowed to run the function gods should be allowed to run
+</I>&gt;&gt;<i> it, too. However, if a function is indeed disabled it must be
+</I>&gt;&gt;<i> disabled for gods as well.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> --
+</I>&gt;<i> View this message in context: <A HREF="http://opensim-dev.2196679.n2.nabble.com/Remove-check-for-IsGod-in-some-OSSL-functions-tp7462127p7462694.html">http://opensim-dev.2196679.n2.nabble.com/Remove-check-for-IsGod-in-some-OSSL-functions-tp7462127p7462694.html</A>
+</I>&gt;<i> Sent from the opensim-dev mailing list archive at Nabble.com.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I></PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011109.html">[Opensim-dev] Remove check for IsGod in some OSSL functions
+</A></li>
+	<LI>Next message: <A HREF="011115.html">[Opensim-dev] Remove check for IsGod in some OSSL functions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11112">[ date ]</a>
+              <a href="thread.html#11112">[ thread ]</a>
+              <a href="subject.html#11112">[ subject ]</a>
+              <a href="author.html#11112">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

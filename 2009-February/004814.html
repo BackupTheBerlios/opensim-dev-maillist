@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-users] hypergrid teleports and	non-hypergrid simulators
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-users%5D%20hypergrid%20teleports%0A%20and%09non-hypergrid%20simulators&In-Reply-To=%3C49859BEF.9020608%40pseudospace.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004813.html">
+   <LINK REL="Next"  HREF="004869.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-users] hypergrid teleports and	non-hypergrid simulators</H1>
+    <B>John Sheridan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-users%5D%20hypergrid%20teleports%0A%20and%09non-hypergrid%20simulators&In-Reply-To=%3C49859BEF.9020608%40pseudospace.net%3E"
+       TITLE="[Opensim-dev] [Opensim-users] hypergrid teleports and	non-hypergrid simulators">john at pseudospace.net
+       </A><BR>
+    <I>Sun Feb  1 13:56:15 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004813.html">[Opensim-dev] [Opensim-users] hypergrid teleports and	non-hypergrid simulators
+</A></li>
+        <LI>Next message: <A HREF="004869.html">[Opensim-dev] [Opensim-users] hypergrid teleports	andnon-hypergrid simulators
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4814">[ date ]</a>
+              <a href="thread.html#4814">[ thread ]</a>
+              <a href="subject.html#4814">[ subject ]</a>
+              <a href="author.html#4814">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Just a bit of a day dream here, but for the sake of preventing users 
+from becoming stranded on foreign grids / sims I wonder if it would be a 
+good idea to make non-hypergrid sims accept and hold a hypergrid user's 
+profile cache.  That way as a user explores and pops around on a foreign 
+grid / sim their home grid and other data would still follow them.  
+Non-hypergrid sims would simply hold and pass this data on to the next 
+teleport while doing nothing else with it.  For example this is sort of 
+the data flow I'm thinking of:
+
+1 - Orion logs into Pseudospace at Ellis Island then teleports over to 
+the UCI Gateway on OSgrid
+    * - Ellis Island on Pseudospace passes his HG profile over to UCI 
+Gateway via HG allowing him to return home and access inventory
+2 - Orion pops over from UCI Gateway over to Wright Plaza (non-HG).
+    * - UCI Gateway sends Orion's normal and HG profile over to Wright 
+Plaza  using normal TP - WP simply holds both profiles and does nothing 
+with them - no access to home servers.
+3 - Orion then pops over from WP to Bade Plaza (non-HG)
+    * - Wp sends Orion's HG and normal profile to Bade using normal TP, 
+Bade holds onto it but does nothing with it - still no access to home 
+servers.
+4 - Orion realizes he left his oven on at his loft back on Ravenport 
+(Pseudospace) then decides to go home.  Teleports from Bade back to UCI 
+Gateway.
+    * - Bade sends Orion's HG and normal profile back to UCI  using 
+normal TP, UCI recognizes him as an HG user and allows him inventory and 
+tp home access.
+5 - Orion poofs from UCI Gateway back to Ellis Island (Pseudospace's HG 
+gateway)
+    * - UCI Gateway sends Orion's HG and normal profile back to Ellis 
+using HG - Ellis picks him up as a home user then continues normal 
+operation.
+6 - Orion pops over to Ravenport (non-HG) from Ellis to turn his oven 
+off before his loft burns down.
+    * - Ellis sends Orion and his profiles over using the normal 
+teleport mechanism - HG profile is stored but ignored.
+
+Thanks, :)
+ - John / Orion Pseudo
+
+Cristina Videira Lopes wrote:
+&gt;<i> Mic Bowman wrote:
+</I>&gt;<i>   
+</I>&gt;&gt;<i> we have two simulators with one region each running with hypergrid
+</I>&gt;&gt;<i> turned on. we want &quot;foreign&quot; users to go through one of the gateways
+</I>&gt;&gt;<i> to get into our grid. i know that the users can freely teleport around
+</I>&gt;&gt;<i> our grid once they have hypergrid teleported to a gateway region. what
+</I>&gt;&gt;<i> are the *expected* capabilities for that kind of users once the leave
+</I>&gt;&gt;<i> the hypergrid enabled region and move around the rest of our grid?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   
+</I>&gt;&gt;<i>     
+</I>&gt;<i> [Sorry, moving this again to -dev, because I can't access my outgoing 
+</I>&gt;<i> server on the other account while I'm traveling]
+</I>&gt;<i>
+</I>&gt;<i> Here's what happens. Foreign users carry around information about their 
+</I>&gt;<i> servers (user, inventory, home region, etc) that is stored on their 
+</I>&gt;<i> run-time profile cached in the regions. When they go from an HG region 
+</I>&gt;<i> to another HG region, that information is passed on via the message 
+</I>&gt;<i> expect_hg_user, which only HG regions understand. When they go from an 
+</I>&gt;<i> HG region to a non-HG region, the receiving region doesn't understand 
+</I>&gt;<i> that message, so it knows nothing about those servers for the foreign 
+</I>&gt;<i> user. If the TP is far enough away, the profile is removed from the 
+</I>&gt;<i> departing HG region (as normal for all TPs), so the user's servers info 
+</I>&gt;<i> is permanently lost for the rest of the session. Even if the user comes 
+</I>&gt;<i> back to the HG region, the information has been lost.
+</I>&gt;<i>
+</I>&gt;<i> Without that information the foreign user cannot: access inventory 
+</I>&gt;<i> (except for the items that are cached in the viewer), go back home, etc...
+</I>&gt;<i>
+</I>&gt;<i> So jumping from an HG region to a non-HG region on the same grid is ok, 
+</I>&gt;<i> in the sense that it doesn't crash anything, and that the user's agent 
+</I>&gt;<i> is is able to interact with the world, but that user becomes impaired in 
+</I>&gt;<i> many ways. The user is still able to chat, build &amp; move things (if 
+</I>&gt;<i> allowed), TP around, etc. It's just the interaction with his/her home 
+</I>&gt;<i> servers that is impaired.
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004813.html">[Opensim-dev] [Opensim-users] hypergrid teleports and	non-hypergrid simulators
+</A></li>
+	<LI>Next message: <A HREF="004869.html">[Opensim-dev] [Opensim-users] hypergrid teleports	andnon-hypergrid simulators
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4814">[ date ]</a>
+              <a href="thread.html#4814">[ thread ]</a>
+              <a href="subject.html#4814">[ subject ]</a>
+              <a href="author.html#4814">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

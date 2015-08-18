@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] IRegisterInterface for extending scene entities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IRegisterInterface%20for%20extending%20scene%20entities&In-Reply-To=%3CAAE09D093609C24B8163782ABA2A418225B122ED%40FMSMSX102.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011557.html">
+   <LINK REL="Next"  HREF="011567.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] IRegisterInterface for extending scene entities</H1>
+    <B>Adams, Robert</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IRegisterInterface%20for%20extending%20scene%20entities&In-Reply-To=%3CAAE09D093609C24B8163782ABA2A418225B122ED%40FMSMSX102.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] IRegisterInterface for extending scene entities">robert.adams at intel.com
+       </A><BR>
+    <I>Fri Dec 28 08:38:37 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011557.html">[Opensim-dev] BulletSim missive re ApplyImpulse and Buoyancy
+</A></li>
+        <LI>Next message: <A HREF="011567.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11566">[ date ]</a>
+              <a href="thread.html#11566">[ thread ]</a>
+              <a href="subject.html#11566">[ subject ]</a>
+              <a href="author.html#11566">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The discussion about the implementation of the llKeyframeMotion function hinted at a need for region modules to be able to add data and functions to existing scene items. Here is a modest proposal for discussion[1].
+
+Define a general module/interface registration interface to add to EntityBase (and thus to SceneObjectGroup and ScenePresence).
+
+IRegisterInterface
+               Void RegisterInterface&lt;T&gt;(T iface);
+               Bool TryGet&lt;T&gt;(out T iface);
+               T Get&lt;T&gt;();
+               Void ClearRegisteredInterfaces();
+
+Any class that implements the IRegisterInterface interface would contain a:
+               Private Dictionary&lt;Type, object&gt; m_registeredInterfaces = new Dictionary&lt;Type, object&gt;();
+
+'Scene' already has a RegisterModule interface which has a bunch of neat features (like being able to register multiple instances of the same interface type) but I'm not sure that is needed here (discussion?) Particularly industrious changing could merge this proposed interface and the existing 'Scene' functions.
+
+So, something like a llKeyframeMotion implementing region module could register a KeyframeMotionState type structure on the SOG to save information about the keyframe for that SOG. Other uses could be a uniform way for adding classes of functionality to scene objects (&quot;get me the interface for extracting the physical mesh for this SOG&quot;) or just adding limpet like code to a scene entity.
+
+Not sure of the nuances of serialization. I believe that the registered interfaces would just be serialized with the SOG (thus saving and restoring the values in the registered interface instances) but I can't be totally sure of that.
+
+Anyway, run your sword through this strawman.
+
+-- ra
+
+[1] This is similar to other interfaced proposed in the past (particularly one by Adam Frizby).
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20121228/d401623d/attachment-0001.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20121228/d401623d/attachment-0001.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011557.html">[Opensim-dev] BulletSim missive re ApplyImpulse and Buoyancy
+</A></li>
+	<LI>Next message: <A HREF="011567.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11566">[ date ]</a>
+              <a href="thread.html#11566">[ thread ]</a>
+              <a href="subject.html#11566">[ subject ]</a>
+              <a href="author.html#11566">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

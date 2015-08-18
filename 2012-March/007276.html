@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> No subject
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.58.1331736388.7835.opensim-dev%40lists.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007248.html">
+   <LINK REL="Next"  HREF="007478.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>No subject</H1>
+    <B></B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.58.1331736388.7835.opensim-dev%40lists.berlios.de%3E"
+       TITLE="No subject">
+       </A><BR>
+    <I>Wed Mar 14 15:44:31 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007248.html">No subject
+</A></li>
+        <LI>Next message: <A HREF="007478.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7276">[ date ]</a>
+              <a href="thread.html#7276">[ thread ]</a>
+              <a href="subject.html#7276">[ subject ]</a>
+              <a href="author.html#7276">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>undreds of threads severely limits scaling the number of concurrent clients=
+. UDP packets all come in on a single port and are put into incoming queues=
+ for each client view. The client view UPD threads (1 per client) then dequ=
+eue that packet and make the appropriate calls into scene. When the scene h=
+as updates, it puts them into the outbound queue for every client view and =
+finally the client view thread comes around and sends the packets out to cl=
+ients. Inbound processing on the scene happens on the individual client vie=
+w thread, but often this work is small and most of the time is spent switch=
+ing threads in and out.=20
+
+I tested a change where I eliminated the outbound queue and had the main th=
+read call directly into the send packet routing. As the number of active ag=
+ents increases, outbound traffic grows exponentially compared to inbound. T=
+his change alone allowed me to scale the number of active viewers on a sing=
+le region using TestClient up to more than 200. I also tried eliminating th=
+e inbound queues and instead making the calls to scene directly. This behav=
+ior, as Tom pointed out, causes a single client to stop up the entire packe=
+t processing thread when a complex operation comes along.=20
+
+I think that it would be ideal, as I believe Mojito described, if there wer=
+e a small number of threads handling outbound client packet sending and the=
+y blocked on their packet queue to get work. For inbound traffic, simple op=
+erations should be called directly on the scene and the more complex operat=
+ions put into a queue for a set of slower processing threads. Having 300 th=
+reads (1 per client) is too many, but 1 was not enough. We could certainly =
+start with 1 thread for outbound UDP for all clients and grow as the number=
+ of clients grows. Something on the order of 1 outbound thread per 50 clien=
+ts and 1 inbound thread per 5 or 10 clients would be about ideal in my esti=
+mation.=20
+
+Dan lake
+Software Engineer
+Visual Applications Research
+Intel Labs
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at list</A>=
+s.berlios.de] On Behalf Of Mojito Sorbet
+Sent: Friday, July 31, 2009 9:05 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Threads, threads, threads and more threads
+
+If it was me starting from scratch (and I do have experience building
+fast servers that handle hundreds of simultaneous client connections in
+limited resources), I would have one thread per blocking resource,
+driven by work queues.  What the viewer might see as a single operation
+turns into a &quot;workflow&quot; along a series of these queues, each thread
+doing its part like an assembly line.  The only thing that blocks is a
+hardware interface.
+
+So for example, there only needs to be one listening thread per UDP
+port, not one per viewer.  A network interface can only deliver one
+packet at a time.  The sending IP address on the packet keys you to the
+correct user context to match it up with.  A disk interface on the other
+hand works better with multiple requests outstanding at once, so that
+the kernel seek optimization has something to work on;  you would have
+perhaps 5 threads to round-robin handle disk I/O.
+
+The per-user context is where you keep track of the state of all the
+things that the viewer is doing at once, rather than spreading this
+information all over the call stacks of threads.
+
+As soon as the processing of an input packet needs to do something that
+might block, the request is put on the input queue of another thread
+that handles the blocking operation.
+
+It takes a bit to get used to programming like this, but I can report
+that the performance results are quite amazing regarding scalability.
+It also reduces the need for locks, since it is mostly just the work
+queues that are touched by more than one thread.
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007248.html">No subject
+</A></li>
+	<LI>Next message: <A HREF="007478.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7276">[ date ]</a>
+              <a href="thread.html#7276">[ thread ]</a>
+              <a href="subject.html#7276">[ subject ]</a>
+              <a href="author.html#7276">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

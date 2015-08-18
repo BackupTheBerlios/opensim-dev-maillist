@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] defintion of terms
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20defintion%20of%20terms&In-Reply-To=%3C20071019142419.GA29856%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000222.html">
+   <LINK REL="Next"  HREF="000223.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] defintion of terms</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20defintion%20of%20terms&In-Reply-To=%3C20071019142419.GA29856%40dague.net%3E"
+       TITLE="[Opensim-dev] defintion of terms">sean at dague.net
+       </A><BR>
+    <I>Fri Oct 19 16:24:19 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000222.html">[Opensim-dev] defintion of terms
+</A></li>
+        <LI>Next message: <A HREF="000223.html">[Opensim-dev] Globally avaibability of config options (?)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#228">[ date ]</a>
+              <a href="thread.html#228">[ thread ]</a>
+              <a href="subject.html#228">[ subject ]</a>
+              <a href="author.html#228">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Thu, Oct 18, 2007 at 09:48:14PM +0100, Michael Wright wrote:
+&gt;<i> Just wanted to make a few remarks about the definitions on wiki, thought it was best to make them here rather than change things on wiki, so that we can all try to get agreement on the terms.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Definition of some common terms: 
+</I>&gt;<i> Scene
+</I>&gt;<i> A scene is part of a region, currently there is a one to one
+</I>&gt;<i> relationship, i.e. one region has one scene. A scene contains all the
+</I>&gt;<i> 3d objects, called Entities, entities can either be ScenePresences or
+</I>&gt;<i> SceneObjectGroups. 
+</I>
+Is there any sensible way that this ends up not being a 1-to-1
+relationship?
+
+&gt;<i> A ScenePresence can be represented by an avatar, if it is a root scene
+</I>&gt;<i> presence. SceneObjectGroups consists of a number of SceneObjectParts.
+</I>
+&gt;<i> Although it might not really be implemented fully at the moment,
+</I>&gt;<i> ScenePresence is meant to be able to &quot;HAVE&quot; a avatar. If its a what
+</I>&gt;<i> I'm taking that we are calling a  &quot;root Scene Presence&quot; , then it
+</I>&gt;<i> should have a avatar, if not then it should be thought of as a ghost
+</I>&gt;<i> scene presence...it can see the region but others in the region can't
+</I>&gt;<i> see it.
+</I>
+So would this allow for anon avatars?  i.e. some ghostly black and white
+things floating around?
+
+&gt;<i> Avatar/ScenePresence
+</I>&gt;<i> Each viewer is represented by one or more avatars. The Root avatar or
+</I>&gt;<i> ScenePresense functions as a kind of cursor, into the grid. Where the
+</I>&gt;<i> region will keep the viewer updated on the state of the simulation,
+</I>&gt;<i> taking place in the scene. Besides the root presence, a number of
+</I>&gt;<i> child presences will exist in the neighboring regions, enabling the
+</I>&gt;<i> viewer to know what is going on in the neighboring regions.
+</I>
+Is this based on horizon calculations?  Can you dive into that a little
+bit more?  (It's very interesting to me).  Also, are child presences in
+the code right now?
+
+&gt;<i> A viewer should only ever have one Avatar, here is where due to some
+</I>&gt;<i> of the names that we have in use in opensim that things get confusing
+</I>&gt;<i> I think. 
+</I>&gt;<i>
+</I>&gt;<i> I believe the best way to think of things, is that a view has multiple
+</I>&gt;<i> agents. A &quot;agent&quot; is really a connection to a region. so it has a main
+</I>&gt;<i> agent to the region that its avatar will be in, then child agents to
+</I>&gt;<i> the neighbouring regions. 
+</I>&gt;<i> 
+</I>&gt;<i> A agent (connection) has a scene presence inside the scene of that
+</I>&gt;<i> region. With the main agent, it's scene presence has a avatar , that
+</I>&gt;<i> the other users see. But with child agents, there scene presence have
+</I>&gt;<i> no avatar so are in effect ghosts in that region. 
+</I>&gt;<i> 
+</I>&gt;<i> As said, we kind of in opensim use the same terms for multiple things,
+</I>&gt;<i> like agents is used for a few different things, where I personally
+</I>&gt;<i> think the correct usage of it would be for a connection to a
+</I>&gt;<i> region. So the flow from viewer to region is something like:  viewer
+</I>&gt;<i> &lt;-circuit -&gt; ClientStack (although we must likely need to look at
+</I>&gt;<i> changes in the stack as thats mostly old code ) &lt;---&gt;Region Agent
+</I>&gt;<i> &lt;---&gt; ScenePresence (which may or maybe not have a Avatar)
+</I>
+Do all ScenePresences have location?  What do the scene presences on
+neighboring regions have for location.
+
+&gt;<i> At the moment we don't really have any thing like this Agent, but I do
+</I>&gt;<i> think as part of the refactoring of the OpenSim.Region.Enviroment ,
+</I>&gt;<i> that a lot of the things currently in Scene should be moved out to a
+</I>&gt;<i> outter layer (most likely called RegionService/manager), and most
+</I>&gt;<i> likely have a Agent class in this layer for each connected client, so
+</I>&gt;<i> that not everything goes into the scene layer, and some client
+</I>&gt;<i> requests are dealt with in this region layer. 
+</I>
+&gt;<i> 
+</I>&gt;<i> *****
+</I>&gt;<i> Viewer
+</I>&gt;<i> An application which is used to view the state of the
+</I>&gt;<i> simulation. Currently only three different viewers are known: the LL
+</I>&gt;<i> viewer, the OpenSL test client and AjaxLife.
+</I>&gt;<i> ****
+</I>&gt;<i> Isn't OpenSL dead? or do we mean a libsl test client?
+</I>&gt;<i> *****
+</I>&gt;<i> Session
+</I>&gt;<i>  Each connection between a viewer and an region, regardless if the
+</I>&gt;<i> avatar is the root or a child, is a session.
+</I>&gt;<i> ****
+</I>&gt;<i> I think a session is a login session, so a single session covers all
+</I>&gt;<i> agents, scenepresences etc. A viewer should only have one session at a
+</I>&gt;<i> time.
+</I>
+All makes sense to me there.
+
+Hopefully some of my questions help clarify things.  This would be great
+to get converted to a Glossary on the wiki.
+
+    -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071019/359afad7/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071019/359afad7/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000222.html">[Opensim-dev] defintion of terms
+</A></li>
+	<LI>Next message: <A HREF="000223.html">[Opensim-dev] Globally avaibability of config options (?)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#228">[ date ]</a>
+              <a href="thread.html#228">[ thread ]</a>
+              <a href="subject.html#228">[ subject ]</a>
+              <a href="author.html#228">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

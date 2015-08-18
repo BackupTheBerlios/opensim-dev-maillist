@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Splitting IUserService
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Splitting%20IUserService&In-Reply-To=%3C1215075270.2783.29.camel%40localhost.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002226.html">
+   <LINK REL="Next"  HREF="002221.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Splitting IUserService</H1>
+    <B>Ryan McDougall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Splitting%20IUserService&In-Reply-To=%3C1215075270.2783.29.camel%40localhost.localdomain%3E"
+       TITLE="[Opensim-dev] Splitting IUserService">sempuki1 at gmail.com
+       </A><BR>
+    <I>Thu Jul  3 10:54:30 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002226.html">[Opensim-dev] Splitting IUserService
+</A></li>
+        <LI>Next message: <A HREF="002221.html">[Opensim-dev] Warning: IGridPlugin interface change
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2227">[ date ]</a>
+              <a href="thread.html#2227">[ thread ]</a>
+              <a href="subject.html#2227">[ subject ]</a>
+              <a href="author.html#2227">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm still not clear on all the architecture of it, but there appears to
+be some cruft that could be cleared up and make my job easier depending
+on where you intend to make changes.
+
+What do you think you would be touching? If its just interfaces, it
+might be a touch awkward, but relatively easy to work around.
+
+But if you intend to reorganize internal structure, I think it could
+only help me...
+
+Cheers,
+
+On Thu, 2008-07-03 at 09:36 +0100, Michael Wright wrote:
+&gt;<i> Well my initial focus was more from the region side, so that we could
+</I>&gt;<i> have it using a different server if someone wanted (like we do for our
+</I>&gt;<i> apps). But yeah I guess server side the db handling should/could be
+</I>&gt;<i> separated. 
+</I>&gt;<i> 
+</I>&gt;<i> Although I think we most likely should hold of until Ryan has finished
+</I>&gt;<i> his plugin changes, else whatever is done would need changing once
+</I>&gt;<i> that is done. 
+</I>&gt;<i> 
+</I>&gt;<i> liu xiaolu &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lulurun at gmail.com</A>&gt; wrote:
+</I>&gt;<i>         Then should we add &quot;IAvatarData&quot; ?
+</I>&gt;<i>         
+</I>&gt;<i>         2008/6/28 Michael Wright &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt;:
+</I>&gt;<i>                 Does anyone have any objections to splitting the
+</I>&gt;<i>                 IUserService interface, so that the Avatar Appearance
+</I>&gt;<i>                 and attachments are in their own interface
+</I>&gt;<i>                 IAvatarService ?
+</I>&gt;<i>                 
+</I>&gt;<i>                 I really don't think we should be coupling things like
+</I>&gt;<i>                 we are. I'm not saying that these functions have to
+</I>&gt;<i>                 move off the User Server. Just on the region side, we
+</I>&gt;<i>                 move them into their own interface, so that if someone
+</I>&gt;<i>                 wants those functions to be on a different server,
+</I>&gt;<i>                 they can change the url of the server to be different
+</I>&gt;<i>                 to the user server with minor code changes. 
+</I>&gt;<i>                 
+</I>&gt;<i>                 When I think about the various Servers, I generally
+</I>&gt;<i>                 think of the User server as holding account
+</I>&gt;<i>                 infomation. The Grid Server as being the general
+</I>&gt;<i>                 manager of the &quot;grid&quot;. And the Inventory and Asset
+</I>&gt;<i>                 servers as the general datastores. 
+</I>&gt;<i>                 
+</I>&gt;<i>                 So to fit in with my view, the avatar appearance data
+</I>&gt;<i>                 would fit better on the Inventory server or even a
+</I>&gt;<i>                 separate server that was part of the datastore group.
+</I>&gt;<i>                 This is so that we could have one central User Server,
+</I>&gt;<i>                 but a number of Inventory and Asset servers. Each
+</I>&gt;<i>                 user's in-world data could be on a different set of
+</I>&gt;<i>                 those.
+</I>&gt;<i>                 
+</I>&gt;<i>                 As I've said before, I really think we should have a
+</I>&gt;<i>                 system that allows the various backend functions to be
+</I>&gt;<i>                 where ever a grid admin thinks is best. But thats
+</I>&gt;<i>                 still a dream. 
+</I>&gt;<i>                 
+</I>&gt;<i>                 But we can do a small change that would allow a
+</I>&gt;<i>                 different url to be set for the Avatar services, if a
+</I>&gt;<i>                 application required it.
+</I>&gt;<i>                 
+</I>&gt;<i>                 So what I'm suggesting is we add a new interface to
+</I>&gt;<i>                 the CommunicationsManager, like:
+</I>&gt;<i>                 
+</I>&gt;<i>                 public Interface IAvatarService
+</I>&gt;<i>                 {
+</I>&gt;<i>                         AvatarAppearance GetUserAppearance(LLUUID
+</I>&gt;<i>                 user);
+</I>&gt;<i>                 
+</I>&gt;<i>                         void UpdateUserAppearance(LLUUID user,
+</I>&gt;<i>                 AvatarAppearance appearance);
+</I>&gt;<i>                 
+</I>&gt;<i>                         void AddAttachment(LLUUID user, LLUUID
+</I>&gt;<i>                 attach);
+</I>&gt;<i>                 
+</I>&gt;<i>                         void RemoveAttachment(LLUUID user, LLUUID
+</I>&gt;<i>                 attach);
+</I>&gt;<i>                 
+</I>&gt;<i>                         List&lt;LLUUID&gt; GetAttachments(LLUUID user);
+</I>&gt;<i>                 }
+</I>&gt;<i>                 
+</I>&gt;<i>                 The OSGrid implementation could be exactly like it is
+</I>&gt;<i>                 now, and send the requests to the user server. I'm not
+</I>&gt;<i>                 even talking about adding a new setting to the ini
+</I>&gt;<i>                 file, but just leaving the code so it uses the
+</I>&gt;<i>                 UserServer url.
+</I>&gt;<i>                 
+</I>&gt;<i>                 So its really a minor change, but does decouple these
+</I>&gt;<i>                 functions from the more general user account
+</I>&gt;<i>                 functions. 
+</I>&gt;<i>                 
+</I>&gt;<i>                 
+</I>&gt;<i>                 ______________________________________________________
+</I>&gt;<i>                 Not happy with your email address? 
+</I>&gt;<i>                 Get the one you really want - millions of new email
+</I>&gt;<i>                 addresses available now at Yahoo!
+</I>&gt;<i>                 
+</I>&gt;<i>                 _______________________________________________
+</I>&gt;<i>                 Opensim-dev mailing list
+</I>&gt;<i>                 <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>                 <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>                 
+</I>&gt;<i>         
+</I>&gt;<i>         
+</I>&gt;<i>         
+</I>&gt;<i>         -- 
+</I>&gt;<i>         Lulurun _______________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ______________________________________________________________________
+</I>&gt;<i> Not happy with your email address? 
+</I>&gt;<i> Get the one you really want - millions of new email addresses
+</I>&gt;<i> available now at Yahoo!
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002226.html">[Opensim-dev] Splitting IUserService
+</A></li>
+	<LI>Next message: <A HREF="002221.html">[Opensim-dev] Warning: IGridPlugin interface change
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2227">[ date ]</a>
+              <a href="thread.html#2227">[ thread ]</a>
+              <a href="subject.html#2227">[ subject ]</a>
+              <a href="author.html#2227">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

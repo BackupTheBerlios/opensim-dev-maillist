@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Decoupling Was: [Opensim-users] Blender Exporter	for OpenSim
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Decoupling%20Was%3A%20%5BOpensim-users%5D%20Blender%20Exporter%0A%09for%20OpenSim&In-Reply-To=%3C8779be340812050021x331972b2g4b62506c753e553a%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003789.html">
+   <LINK REL="Next"  HREF="003801.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Decoupling Was: [Opensim-users] Blender Exporter	for OpenSim</H1>
+    <B>Rhian</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Decoupling%20Was%3A%20%5BOpensim-users%5D%20Blender%20Exporter%0A%09for%20OpenSim&In-Reply-To=%3C8779be340812050021x331972b2g4b62506c753e553a%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Decoupling Was: [Opensim-users] Blender Exporter	for OpenSim">dutchy.rhian at gmail.com
+       </A><BR>
+    <I>Fri Dec  5 09:21:19 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003789.html">[Opensim-dev] Decoupling Was: [Opensim-users] Blender Exporter for	OpenSim
+</A></li>
+        <LI>Next message: <A HREF="003801.html">[Opensim-dev] Decoupling Was: [Opensim-users] Blender Exporter	for OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3790">[ date ]</a>
+              <a href="thread.html#3790">[ thread ]</a>
+              <a href="subject.html#3790">[ subject ]</a>
+              <a href="author.html#3790">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi John, and everyone else,
+
+I have looked at it with great interest, but I don't quite understand
+the whole issue fully.
+The proposal as I see it, seems to unload the traffic from the
+simulator. I think that it is not that the simulator can't handle the
+traffic/requests, but the asset server/asset storage. After all when
+40 agents are retrieving the data of a region in the current
+situation, the region hands out the cached data before retrieving the
+rest from the asset server. In the proposed situation I can only see
+the traffic lessening on the region server, but increasing on the
+asset server (unless it caches for hundreds of regions which is
+unrealistic). I think this will be increasing a bottleneck where we
+don't want one.
+
+At first I thought that a distributed asset server would put the
+assets of an instance on an asset server which is coupled with that
+instance. (Is that what you mean by the FrontEnd extension? It is the
+first time I read about that, if so I'd like to know more.) Sort of
+like the cache but more permanent, which unloads the network of the
+current bandwidth needed to retrieve data from the asset server. In
+that case the only traffic going to the asset server is the data for
+the avatar visiting that region. Or when the agent rezzes something
+from inventory. The local asset instance will be functioning initially
+as a pass-through to retrieve the data, then stores it until the
+object has been removed.
+
+When a new asset is generated the UUID could be retrieved from the
+asset server, then stored in both local and server instance. I'm not
+knowledgeable enough of the inner workings and I don't know enough C#
+to understand the code (I did try though), so I could be saying
+something impossible. (On a side note, any recommendations to start
+learning C#?)
+
+Again apologies in case I ask what you're already saying in a way, but
+I'm trying to understand and think along.
+
+I just noticed that Stefan asked a similar question about the OpenSimFrontend...
+
+Rhian
+
+On Thu, Dec 4, 2008 at 11:52 PM, Hurliman, John &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">john.hurliman at intel.com</A>&gt; wrote:
+&gt;<i> Take a look at the flow diagrams for the distributed asset server at <A HREF="http://opensimulator.org/wiki/AssetServerProposal/ClientDocs">http://opensimulator.org/wiki/AssetServerProposal/ClientDocs</A>
+</I>&gt;<i>
+</I>&gt;<i> The only thing left out of that diagram is that the distributed asset server is also compatible with the OpenSim protocol today by running with the OpensimFrontend extension, acting as a replacement for the current asset server. But instead of a single monolithic service, you can run as many as you want (in your diagram the region asset cache could be an asset server running local to the region) and the data can be sourced from anywhere (such as the AmazonS3+CloudFront extension in SVN).
+</I>&gt;<i>
+</I>&gt;<i> John
+</I>&gt;<i>
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Stefan Andersson
+</I>&gt;&gt;<i> Sent: Thursday, December 04, 2008 12:57 PM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: [Opensim-dev] Decoupling Was: [Opensim-users] Blender
+</I>&gt;&gt;<i> Exporter for OpenSim
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Ok, so this has been rotting in my draft folder for so long, I'm just
+</I>&gt;&gt;<i> going to send it. Consider it just kicking mental box-walls.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> One of the biggest (but not necessarily hardest) changes to opensim
+</I>&gt;&gt;<i> that would really get some balls rolling, would be to change how we
+</I>&gt;&gt;<i> think of assets from server-centric to region-centric. And, with that,
+</I>&gt;&gt;<i> introduce urls as the 'real' assetId.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The assetId of today is, at its core, a thing between the region and
+</I>&gt;&gt;<i> its connected clients.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Today, the region already fetches the assets with an http call.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So, if we had a model
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> client &lt;-- assetId --&gt; Region Asset Cache &lt;-- assetUrl --&gt; binary
+</I>&gt;&gt;<i> asset http resource
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> we could still use the 'old' assetService by just fabricating a
+</I>&gt;&gt;<i> standard url, just like we do today
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> BUT
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> we would also be able to refer to asset resources by url... web style.
+</I>&gt;&gt;<i> In practice, killing off the need of the monolithic asset server as it
+</I>&gt;&gt;<i> stands today (being all synchronous and stuff)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> this would not be any problem with libomv, as the protocol would still
+</I>&gt;&gt;<i> be the same; the difference would be that some entity, quite possibly
+</I>&gt;&gt;<i> even the clientview/clientmanager would have to keep track of what
+</I>&gt;&gt;<i> asset url is connected to what assetId.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It's SUCH an low hanging fruit, it would be really cool if somebody
+</I>&gt;&gt;<i> would just play around with that asset/url substitution and see where
+</I>&gt;&gt;<i> the actual problems show up.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Best regards,
+</I>&gt;&gt;<i> Stefan Andersson
+</I>&gt;&gt;<i> Tribal Media AB
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ________________________________
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Date: Mon, 22 Sep 2008 11:42:36 +0530
+</I>&gt;&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">shreekumar at hp.com</A>
+</I>&gt;&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-users at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> Subject: Re: [Opensim-users] Blender Exporter for OpenSim
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Diva Canto wrote:
+</I>&gt;&gt;&gt;&gt;<i> If possible, it would be better if the objects would be exported to
+</I>&gt;&gt;&gt;&gt;<i> an external representation, instead of the MySql DB. Ideally, the
+</I>&gt;&gt;&gt;&gt;<i> external representation would refer to the textures by URL
+</I>&gt;&gt;&gt;&gt;<i> (including the local file system), and the right thing would happen
+</I>&gt;&gt;&gt;&gt;<i> when OpenSim would parse that. So no cryptic info.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> +1. That's a downside of my exporter : it writes directly to the
+</I>&gt;&gt;&gt;<i> database. Not pretty.
+</I>&gt;&gt;&gt;<i> Issue is that I need to restart my opensim instance every time I
+</I>&gt;&gt;&gt;<i> export the scene.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> The &quot;load-xml2&quot; command doesn't seem to fit these requirements too.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -- Shree
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-users mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-users at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-users">https://lists.berlios.de/mailman/listinfo/opensim-users</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003789.html">[Opensim-dev] Decoupling Was: [Opensim-users] Blender Exporter for	OpenSim
+</A></li>
+	<LI>Next message: <A HREF="003801.html">[Opensim-dev] Decoupling Was: [Opensim-users] Blender Exporter	for OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3790">[ date ]</a>
+              <a href="thread.html#3790">[ thread ]</a>
+              <a href="subject.html#3790">[ subject ]</a>
+              <a href="author.html#3790">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] some useful SQL statements (mysql)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20some%20useful%20SQL%20statements%20%28mysql%29&In-Reply-To=%3C7e8b2c180804050921m15e112cfud8fcb34e40bf8b4a%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001355.html">
+   <LINK REL="Next"  HREF="001356.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] some useful SQL statements (mysql)</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20some%20useful%20SQL%20statements%20%28mysql%29&In-Reply-To=%3C7e8b2c180804050921m15e112cfud8fcb34e40bf8b4a%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] some useful SQL statements (mysql)">cmickeyb at gmail.com
+       </A><BR>
+    <I>Sat Apr  5 18:21:56 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001355.html">[Opensim-dev] [opensim 0000888]: MSSQL Grid Server [4104]	broken - Unable to Cast Object Type MSSQL.. to ILogD
+</A></li>
+        <LI>Next message: <A HREF="001356.html">[Opensim-dev] DataSnapshot patch in Mantis
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1354">[ date ]</a>
+              <a href="thread.html#1354">[ thread ]</a>
+              <a href="subject.html#1354">[ subject ]</a>
+              <a href="author.html#1354">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>over the last couple months i've accumulated a few useful SQL
+statements for finding (and occasionally cleaning up) my MySQL
+database. Some of the complexity comes from the various formats of
+UUID that are used (binary, ascii, ascii with '-' separators) and
+character sets (see the list below).
+
+Find all prims that are outside region boundaries
+SELECT * FROM opensim.prims where GroupPositionX&lt;0 or
+GroupPositionX&gt;=256 or GroupPositionY&lt;0 or GroupPositionY&gt;=256 or
+GroupPositionZ&lt;0;
+
+Finds all the prim inventory items that are contained in prims that no
+longer exist
+	SELECT * FROM opensim.primitems where replace(primID,'-','') not in
+(select UUID from opensim.prims);
+
+Find all the prim shapes entries for which the prims no longer exist
+	SELECT * FROM opensim.primshapes where UUID not in (select UUID from
+opensim.prims);
+
+Find all the inventory items in trash folders
+	SELECT assetID FROM opensim.inventoryitems where parentFolderID in
+(select folderID FROM opensim.inventoryfolders where
+folderName='Trash');
+
+Find all assets currently in the trash folders
+	SELECT hex(id) FROM opensim.assets where hex(id) in (SELECT
+replace(assetID,'-','') FROM opensim.inventoryitems where
+parentFolderID in (select folderID FROM opensim.inventoryfolders where
+folderName='Trash'));
+
+Find all inventory items for which folders no longer exist
+	SELECT * from opensim.inventoryitems where parentFolderID not in
+(select folderID from opensim.inventoryfolders);
+
+Find prim assets that are not referenced in inventory or prims
+	SELECT hex(id) from opensim.assets where invType=6 and hex(id) not in
+(select hex(unhex(replace(assetID,'-',''))) from
+opensim.inventoryitems union select hex(unhex(UUID)) from
+opensim.prims);
+
+Here's a dump of the character sets used in each of the tables:
+opensim.agents -- utf8
+opensim.assets -- utf8
+opensim.inventoryfolders -- utf8
+opensim.inventoryitems -- utf8
+opensim.land -- latin1
+opensim.landaccesslist -- latin1
+opensim.logs --
+opensim.primitems -- latin1
+opensim.prims -- latin1
+opensim.primshapes -- latin1
+opensim.regions -- utf8
+opensim.terrain -- latin1
+opensim.userfriends -- utf8
+opensim.users -- utf8
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001355.html">[Opensim-dev] [opensim 0000888]: MSSQL Grid Server [4104]	broken - Unable to Cast Object Type MSSQL.. to ILogD
+</A></li>
+	<LI>Next message: <A HREF="001356.html">[Opensim-dev] DataSnapshot patch in Mantis
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1354">[ date ]</a>
+              <a href="thread.html#1354">[ thread ]</a>
+              <a href="subject.html#1354">[ subject ]</a>
+              <a href="author.html#1354">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] clients, agents, avatars, ODE
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20clients%2C%20agents%2C%20avatars%2C%20ODE&In-Reply-To=%3CBAY108-W3492AE329D950D6AED4D1CD5BA0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000026.html">
+   <LINK REL="Next"  HREF="000028.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] clients, agents, avatars, ODE</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20clients%2C%20agents%2C%20avatars%2C%20ODE&In-Reply-To=%3CBAY108-W3492AE329D950D6AED4D1CD5BA0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] clients, agents, avatars, ODE">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Sep 20 06:23:55 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000026.html">[Opensim-dev] clients, agents, avatars, ODE
+</A></li>
+        <LI>Next message: <A HREF="000028.html">[Opensim-dev] clients, agents, avatars, ODE
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#27">[ date ]</a>
+              <a href="thread.html#27">[ thread ]</a>
+              <a href="subject.html#27">[ subject ]</a>
+              <a href="author.html#27">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Of course that sounds reasonable, I was just reflecting over the fact that PhysicalScene.AddAvatar( pos ) creates a _new_ physActor everytime; but PhysicalScene.RemoveAvatar( physActor ) just detaches it.
+ 
+On one hand, I don't think you have to 'know the inner works' but on the other hand, you shouldn't be afraid to 'follow the code' and muck about in the core;
+ 
+we will have very slap-on physics if you don't, which would be bad. The Physics interaction and wireup is one of the big white spots on the chart, and a very important such.
+ 
+But in the end, you do what you think is fun/worthwile. :-D
+ 
+/Stefan
+
+
+
+&gt;<i> Date: Wed, 19 Sep 2007 15:17:38 -0700&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">danbmil99 at yahoo.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] clients, agents, avatars, ODE&gt; &gt; from my narrow POV as physics guy, what should happen is this:&gt; &gt; when a client *really* enters a region, thru logon or across a border,&gt; AddAvatar() should be called, so the avatar can interact with the&gt; environment (walk on terrain, bump into prims/other avs...)&gt; &gt; when the client leaves the region, RemoveAvatar() is called to remove it&gt; from the physics for that region.&gt; &gt; How the code got into the state it's in, I have no idea. Some of this was&gt; inherited from pre-sugilite days, when things were mighty different.&gt; &gt; I'm willing to get into the logistics of the rest of the codebase to some&gt; degree, but frankly I think my energies are better spent staying focused on&gt; physics issues. While not ideal, the physics engine plugin API is a&gt; reasonable first pass, and is a good point of interaction between physics&gt; and the rest of the project.&gt; &gt; What I think might be helpful would be for me to add debug messages along&gt; the lines of:&gt; &gt; [PHYSICS] AddAvatar called; avatar count for this scene is now X&gt; [PHYSICS] RemoveAvatar called; avatar count for this scene is now X&gt; &gt; or something along those lines. Then you geniuses can mull over the code&gt; and mangle it into something that makes sense from the physics angle.&gt; &gt; Does this sound reasonable?&gt; &gt; -dan&gt; &gt; &gt; --- Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:&gt; &gt; &gt; I guess you noticed by now, but I have done extensive restructuring in&gt; &gt; these areas yesterday and today; still, I suspect there is something odd&gt; &gt; (from looking at the code) with the chain of events. Also, we're&gt; &gt; re-creating physActors everytime we move into a region, but we just detach&gt; &gt; it from the physScene, we don't explicitly destroy (close) the old one&gt; &gt; when we leave; which I would suspect a native-wrapper would very much like&gt; &gt; us to.&gt; &gt; &gt; &gt; /Stefan&gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; Date: Tue, 18 Sep 2007 23:00:53 -0700&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">danbmil99 at yahoo.com</A>&gt; To:&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] clients, agents,&gt; &gt; avatars, ODE&gt; &gt; followup to chat with lbsa71:&gt; &gt; in ClientView.cs, we&gt; &gt; have:&gt; &gt; this.m_scene.AddNewClient(this, false);&gt; &gt; so it's always passing&gt; &gt; child=false. But InitNewClient is called by&gt; AuthUser, which is spawned as&gt; &gt; a thread by ClientView, and... climbing up the&gt; stack of calls, we get&gt; &gt; OnReceivedData creating a new client thread when it&gt; gets a&gt; &gt; UseCircuitCode. This seems to happen once for each region, and I&gt; have no&gt; &gt; idea how to tell what is a child and what is the 'real' client, to&gt;&gt; &gt; hopefully pass it down the call stack or something of that nature.&gt; &gt;&gt; &gt; -dan&gt; &gt; &gt; _______________________________________________&gt; Opensim-dev&gt; &gt; mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20070920/a9c759ba/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20070920/a9c759ba/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000026.html">[Opensim-dev] clients, agents, avatars, ODE
+</A></li>
+	<LI>Next message: <A HREF="000028.html">[Opensim-dev] clients, agents, avatars, ODE
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#27">[ date ]</a>
+              <a href="thread.html#27">[ thread ]</a>
+              <a href="subject.html#27">[ subject ]</a>
+              <a href="author.html#27">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

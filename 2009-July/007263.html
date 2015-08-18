@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Threads, threads, threads and more threads
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Threads%2C%20threads%2C%20threads%20and%20more%20threads&In-Reply-To=%3C34cc66250907301935v47f3c582pc1c9b05a83250c0c%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007257.html">
+   <LINK REL="Next"  HREF="007264.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Threads, threads, threads and more threads</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Threads%2C%20threads%2C%20threads%20and%20more%20threads&In-Reply-To=%3C34cc66250907301935v47f3c582pc1c9b05a83250c0c%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Threads, threads, threads and more threads">teravus at gmail.com
+       </A><BR>
+    <I>Fri Jul 31 04:35:35 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007257.html">[Opensim-dev] Very Good Git Book
+</A></li>
+        <LI>Next message: <A HREF="007264.html">[Opensim-dev] Threads, threads, threads and more threads
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7263">[ date ]</a>
+              <a href="thread.html#7263">[ thread ]</a>
+              <a href="subject.html#7263">[ subject ]</a>
+              <a href="author.html#7263">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hey there
+
+I was just thinking..    does the child agent of an avatar actually
+/need/ a full thread?    I ask this because we're running up against
+the default thread limits of mono in situations where an instance is
+servicing your root agent and 8 additional child regions.     The
+LongPoll fix took the number of threads down by almost half, but,
+we've still got a lot more work to do to make it reasonable.     Would
+anyone object to having child agent worker threads that process more
+then one client on the LLUDP side?     This would reduce thread usage
+by at least 1/3rd over top of the savings that we already have from
+the long poll fix.    I also note that textures are always served from
+the region the avatar is a root agent in..  including textures in
+neighbor regions that the avatar sees into.
+
+A Scenario:
+
+An instance serves a 9 gridspace set of regions.  The avatar logs into
+the middle one and creates 1 root agent and 8 child agents on the
+instance.
+--------
+Before the LongPoll fix:
+
+Each avatar created 9 threads for LLUDP processing, 9 threads stuck in
+eventqueue processing, and several timer/threadpool threads.   This
+added up 'really' fast.
+For example..     at 14 users, there were 252 threads(14 root, 112
+child, and 126 in eventqueue) in use processing the udp stack and the
+eventqueue of the users.
+
+-----------
+After the LongPoll fix:
+
+Each avatar creates 9 threads for LLUDP processing.  There are a total
+of 4 threads dedicated to eventqueue processing total.
+For example..   at 14 users, there are 130 threads(14 root, 112 child,
+4 in eventqueue) in use processing the udp stack and the eventqueue of
+the users.
+
+------------
+If we set up worker threads for child agents:
+
+Each avatar creates 1 thread for LLUDP processing, There are a total
+of 4 threads dedicated to eventqueue processing.  And, there are (for
+this example, we'll say 2 threads per region to process child agents),
+18 threads to process child agents.
+For example..   at 14 users, that's 36 threads in use processing the
+udp stack and the eventqueue of the users.
+----------
+
+Can anyone think of issues with doing this?     I would /really/ love
+to reduce the thread usage down to 'reasonable' levels here.   36
+threads is WAY less then 252 threads!
+
+Regards
+
+Teravus
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007257.html">[Opensim-dev] Very Good Git Book
+</A></li>
+	<LI>Next message: <A HREF="007264.html">[Opensim-dev] Threads, threads, threads and more threads
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7263">[ date ]</a>
+              <a href="thread.html#7263">[ thread ]</a>
+              <a href="subject.html#7263">[ subject ]</a>
+              <a href="author.html#7263">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] .net serialization of SOGs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.net%20serialization%20of%20SOGs&In-Reply-To=%3C4CB2500A.6000405%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009634.html">
+   <LINK REL="Next"  HREF="009637.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] .net serialization of SOGs</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.net%20serialization%20of%20SOGs&In-Reply-To=%3C4CB2500A.6000405%40googlemail.com%3E"
+       TITLE="[Opensim-dev] .net serialization of SOGs">jjustincc at googlemail.com
+       </A><BR>
+    <I>Mon Oct 11 01:45:14 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009634.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+        <LI>Next message: <A HREF="009637.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9636">[ date ]</a>
+              <a href="thread.html#9636">[ thread ]</a>
+              <a href="subject.html#9636">[ subject ]</a>
+              <a href="author.html#9636">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 09/10/10 19:05, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+&gt;<i> Dear devs,
+</I>&gt;<i>
+</I>&gt;<i> I'm pulling my hair here with the serialization of scene objects. This
+</I>&gt;<i> is horrible! Using .Net serialization for something as important as this
+</I>&gt;<i> is the worst idea ever. We're completely frozen. I'm trying to add an
+</I>&gt;<i> additional field for the creator info, and I'm stuck in all sorts of
+</I>&gt;<i> ways: I can't compute the value of that field at serialization-time, and
+</I>&gt;<i> then there are the issues of compatibility with previous versions of the
+</I>&gt;<i> SOP class.
+</I>&gt;<i>
+</I>&gt;<i> I'd like to understand all the implications of doing an entirely
+</I>&gt;<i> different serialization procedure, one that does not use reflection, and
+</I>&gt;<i> that allows for processing-during-serialization. What will break, and
+</I>&gt;<i> therefore needs fixing?
+</I>
+Grovelling back through the archives, I found the e-mail where I proposed this very thing back in June 2009!
+
+<A HREF="https://lists.berlios.de/pipermail/opensim-dev/2009-June/006805.html">https://lists.berlios.de/pipermail/opensim-dev/2009-June/006805.html</A>
+
+And here's the old patch which partially implemented write.
+
+<A HREF="https://lists.berlios.de/pipermail/opensim-dev/2009-July/006954.html">https://lists.berlios.de/pipermail/opensim-dev/2009-July/006954.html</A>
+
+As you wrote later, some equivalent code was later put in libOMV, though I would test it carefully (at the time I 
+vaguely recall thinking that it didn't deal with some serialization cases, but this may well have been addressed).
+
+I'm not excited about whether this code remains in libOMV or is placed in OpenSim if it's going to act as a legacy 
+format in some way.
+
+As far as I recall, there are no implications of doing this manually as long as the XML ends up being the same.
+
+&gt;<i>
+</I>&gt;<i> I understand all archiving related to previous versions will break, so
+</I>&gt;<i> we need to keep supporting the existing serialization 'disease' for the
+</I>&gt;<i> foreseeable future. I also understand that TPs/crossings between sims
+</I>&gt;<i> that talk different SOG serializations will break, but that's not so bad.
+</I>
+If the SOG serialization is going to change in an incompatible manner, I absolutely need to bump the OAR/IAR version 
+numbers at the same time in order to maintain confidence in the archiving.  I also need to write the code to stop old 
+OpenSims trying to load these new versions.
+
+Please can we co-ordinate this in a branch?
+
+&gt;<i>
+</I>&gt;<i> Anything else I should be aware of before I go off and redo this?
+</I>
+Although .net auto-serialization is fatal if you want to make type changes to existing fields, it has been very 
+convenient for adding new fields, since extraneous xml elements are simply ignored on deserialization.  I think it's 
+almost essential that a new format behave in the same way.
+
+Also, are you going to put version numbers in the new serializations so that any future incompatible can be dealt with 
+in some manner?
+
+Is it worth considering whether other virtual environments might store completely different object serializations?
+
+For any new format, I agree with Dahlia in that something OSD-like may be worth looking at, perhaps just a simple map as 
+I was considering for the 'dynamic attributes' in SOP.  In fact, this could allow that to fit in nicely.
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009634.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+	<LI>Next message: <A HREF="009637.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9636">[ date ]</a>
+              <a href="thread.html#9636">[ thread ]</a>
+              <a href="subject.html#9636">[ subject ]</a>
+              <a href="author.html#9636">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

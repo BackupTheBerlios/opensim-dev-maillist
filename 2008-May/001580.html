@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] REST and OpenSim
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20REST%20and%20OpenSim&In-Reply-To=%3C48312EEB.8070503%40xyzzyxyzzy.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001576.html">
+   <LINK REL="Next"  HREF="001581.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] REST and OpenSim</H1>
+    <B>Dr Scofield</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20REST%20and%20OpenSim&In-Reply-To=%3C48312EEB.8070503%40xyzzyxyzzy.net%3E"
+       TITLE="[Opensim-dev] REST and OpenSim">DrScofield at xyzzyxyzzy.net
+       </A><BR>
+    <I>Mon May 19 09:40:27 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001576.html">[Opensim-dev] REST and OpenSim
+</A></li>
+        <LI>Next message: <A HREF="001581.html">[Opensim-dev] REST and OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1580">[ date ]</a>
+              <a href="thread.html#1580">[ thread ]</a>
+              <a href="subject.html#1580">[ subject ]</a>
+              <a href="author.html#1580">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Frisby, Adam wrote:
+&gt;<i>
+</I>&gt;<i> I've been evaluating replacing BaseHttpServer completely with a new 
+</I>&gt;<i> class based on the C# Webserver (HttpServer.dll) I committed a few 
+</I>&gt;<i> revisions back.
+</I>&gt;<i>
+</I>is that the one from  <A HREF="http://www.codeplex.com/webserver?">http://www.codeplex.com/webserver?</A>
+
+    cheers,
+    dr scofield/dirk
+&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> The reasoning being that BaseHttpServer requires Administrative rights 
+</I>&gt;<i> under Windows, and is the only component of OpenSim that does so -- 
+</I>&gt;<i> this severely restricts our ability to secure windows systems running 
+</I>&gt;<i> OpenSim. The secondary reason is that we cannot programmatically use 
+</I>&gt;<i> SSL certificates via BaseHttpServer -- something the revised one 
+</I>&gt;<i> supports. It also gives us a good deal more control over the output 
+</I>&gt;<i> than we currently have.
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> Regards,
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> Adam
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> *From:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> 
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] *On Behalf Of *Alan M Webb
+</I>&gt;<i> *Sent:* Friday, 16 May 2008 11:44 AM
+</I>&gt;<i> *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> *Subject:* [Opensim-dev] REST and OpenSim
+</I>&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> This is not intended to imply anything about the long-term strategy 
+</I>&gt;<i> for BaseHttpServer, rather it offers a tactical solution that 
+</I>&gt;<i> addresses a specific need that those of us trying to implement REST 
+</I>&gt;<i> interfaces have today.
+</I>&gt;<i>
+</I>&gt;<i> As REST becomes more prevalent, there is a growing need to accommodate 
+</I>&gt;<i> it, and its special requirements, in BaseHttpServer. I'd like to 
+</I>&gt;<i> suggest that we do so by incorporating the notion of a User-Agent 
+</I>&gt;<i> sensitive handler. The handler is registered using the name of the 
+</I>&gt;<i> User-Agent it intends to support. This handler receives both request 
+</I>&gt;<i> and response objects and returns nothing (to BaseHttpServer), i.e. it 
+</I>&gt;<i> is wholly responsible for header management and everything else, as is 
+</I>&gt;<i> the nature of REST. Along the way we might want to implement some 
+</I>&gt;<i> generic REST support to make implementing handlers easier, but it is 
+</I>&gt;<i> not required. A generic handler might take care of &quot;hiding&quot; the 
+</I>&gt;<i> request and response packets in the way that Stefan has suggested.
+</I>&gt;<i>
+</I>&gt;<i> I have a version of BaseHttpServer which incorporates these ideas 
+</I>&gt;<i> without affecting any traffic not associated with the specific user 
+</I>&gt;<i> agents being targeted. Note that the idea here is not to provide agent 
+</I>&gt;<i> handlers for common agents such as Firefox, but rather to insulate 
+</I>&gt;<i> traffic from a functionally specific agent from conflicts with other 
+</I>&gt;<i> generic flows; REST is just one beneficiary.
+</I>&gt;<i>
+</I>&gt;<i> I have attached a patch that illustrates the changes I'm talking about.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Thoughts? You can incorporate the change without affecting the way 
+</I>&gt;<i> that OpenSim works today, and only if you add and agent for a specific 
+</I>&gt;<i> client, does anything change. The client dictionary uses its keys to 
+</I>&gt;<i> detect duplicate entries, but the actual matching can be arbitrarily 
+</I>&gt;<i> complex. In fact, what if we allowed an agent to match based upon an 
+</I>&gt;<i> arbitrary examination of the request headers?
+</I>&gt;<i>
+</I>&gt;<i> Best regards
+</I>&gt;<i> Alan
+</I>&gt;<i> -------------------
+</I>&gt;<i> T.J. Watson Research Center, Hawthorne, NY
+</I>&gt;<i> 1-914-784-7286
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+
+-- 
+dr dirk husemann ---- virtual worlds research ---- ibm zurich research lab
+SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080519/d696daba/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080519/d696daba/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001576.html">[Opensim-dev] REST and OpenSim
+</A></li>
+	<LI>Next message: <A HREF="001581.html">[Opensim-dev] REST and OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1580">[ date ]</a>
+              <a href="thread.html#1580">[ thread ]</a>
+              <a href="subject.html#1580">[ subject ]</a>
+              <a href="author.html#1580">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

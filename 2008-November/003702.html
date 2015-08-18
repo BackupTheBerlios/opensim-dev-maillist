@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Lockless Lists?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3C492ACFE9.5060908%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003701.html">
+   <LINK REL="Next"  HREF="003704.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Lockless Lists?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3C492ACFE9.5060908%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Lockless Lists?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Mon Nov 24 17:01:45 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003701.html">[Opensim-dev] Lockless Lists?
+</A></li>
+        <LI>Next message: <A HREF="003704.html">[Opensim-dev] Lockless Lists?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3702">[ date ]</a>
+              <a href="thread.html#3702">[ thread ]</a>
+              <a href="subject.html#3702">[ subject ]</a>
+              <a href="author.html#3702">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Frisby, Adam wrote:
+&gt;<i> I&#8217;ve managed to get the majority of my goals solved here without 
+</I>&gt;<i> removing the locks &#8211; but by making a new EntityManager to deal with 
+</I>&gt;<i> those locks.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Code has been checked in tonight as it doesn&#8217;t look like it should cause 
+</I>&gt;<i> any new issues. May improve performance during login/logout &#8211; but 
+</I>&gt;<i> ScenePresences (which I haven&#8217;t touched yet) is probably the real 
+</I>&gt;<i> culprit there.
+</I>
+To be honest, I suspect the real issue on login/logout performance is the fact that mono does not yet implement thread 
+prioritization - you can see it but properties such as Thread.Priority are merely stubs.
+
+So when a login/logout comes along it's not currently possible to give existing clients or threads such as the scene 
+update execution priority.  So I'm thinking that the significant cpu spike on login/logout slows the whole system down.
+
+I looked at login recently and I don't believe that the periods of lock holding are significant enough to be causing the 
+delay.
+
+No actual proper performance analysis was carried out so I could be wrong.
+
+&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> *From:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> 
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] *On Behalf Of *Lc
+</I>&gt;<i> *Sent:* Monday, 24 November 2008 2:39 AM
+</I>&gt;<i> *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> *Subject:* Re: [Opensim-dev] Lockless Lists?
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> fine but could we tag a &quot;stable&quot; release before ?
+</I>&gt;<i> SM
+</I>&gt;<i> 
+</I>&gt;<i> On Mon, Nov 24, 2008 at 11:23 AM, Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A> 
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;<i> I've recently discovered (and perhaps I should have known this earlier) 
+</I>&gt;<i> it's possible to create a reasonably high performance lock-free 
+</I>&gt;<i> list/dictionary/stack/queue structure under C#.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Julian Bucknall has posted the sourcecode to a bunch of these here: 
+</I>&gt;<i> <A HREF="http://www.boyet.com/articles/lockfreestack.html">http://www.boyet.com/articles/lockfreestack.html</A>
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> One of the big performance issues with OpenSim is our overreliance on 
+</I>&gt;<i> locking data structures, which can cause issues when those locks don't 
+</I>&gt;<i> release in a timely manner. If we switched to lockless structures &#8211; we 
+</I>&gt;<i> could effectively eliminate those issues. (and probably create new ones.)
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Does anyone have any opposition if we try to replace some of the core 
+</I>&gt;<i> structures with lock-free versions, and then removing the locks on them? 
+</I>&gt;<i> I'm thinking Scene.Entities, Scene.Presences would be two good targets 
+</I>&gt;<i> for the first lot, then maybe we can attack some deeper bits later.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003701.html">[Opensim-dev] Lockless Lists?
+</A></li>
+	<LI>Next message: <A HREF="003704.html">[Opensim-dev] Lockless Lists?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3702">[ date ]</a>
+              <a href="thread.html#3702">[ thread ]</a>
+              <a href="subject.html#3702">[ subject ]</a>
+              <a href="author.html#3702">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

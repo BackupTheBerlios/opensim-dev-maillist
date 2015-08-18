@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] terrain texture blend weight painting
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20terrain%20texture%20blend%20weight%20painting&In-Reply-To=%3C20101115141850.17035paiekeum7fu%40webmail.netplaza.fi%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009758.html">
+   <LINK REL="Next"  HREF="009760.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] terrain texture blend weight painting</H1>
+    <B>Toni Alatalo</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20terrain%20texture%20blend%20weight%20painting&In-Reply-To=%3C20101115141850.17035paiekeum7fu%40webmail.netplaza.fi%3E"
+       TITLE="[Opensim-dev] terrain texture blend weight painting">antont at kyperjokki.fi
+       </A><BR>
+    <I>Mon Nov 15 13:18:50 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009758.html">[Opensim-dev] How much does Mono -&gt; libgdi etc need to drag in?	(Mac)
+</A></li>
+        <LI>Next message: <A HREF="009760.html">[Opensim-dev] appearance update
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9759">[ date ]</a>
+              <a href="thread.html#9759">[ thread ]</a>
+              <a href="subject.html#9759">[ subject ]</a>
+              <a href="author.html#9759">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+we've had a first implementation of terrain texture blend weight  
+painting in Naali for some weeks now. Am posting to ask for insight  
+about how to go about integrating it to Opensim, or at least to give a  
+little heads-up of what is going on with rex dev, also related to the  
+generic scene entity-component work.
+
+An ugly but hopefully informative screenshot:  
+<A HREF="http://wiki.realxtend.org/images/2/27/Terraintexturepaint2_scaled.png">http://wiki.realxtend.org/images/2/27/Terraintexturepaint2_scaled.png</A>  
+(from the public sandbox on world.realxtend.org:9000 -- that has auth  
+off).
+
+What you see there is two terrains: 1) below a Linden style terrain  
+received from Opensim with the lludp terrain messages, using the  
+height-based texture mapping. The brick tile is used underwater, and  
+the dirt above the water level. 2) above there is another terrain,  
+using the same textures, but so that a weigtmap is used to specify  
+where each texture is used, instead of determining it from the height.  
+So with this you can e.g. paint where roads go for traffic sims or  
+racing games. This works using the previous Naali (0.3.3) release and  
+any version of opensim+modrex, for example the previous Taiga release.  
+It currently just uses a local file to save the weights though, so  
+doesn't work for real use now, but works for testing how it looks etc.  
+currently.
+
+Now the question is: are there people out there interested in using  
+this? Perhaps to help with integrating it to Opensim? Or at least with  
+insight to how it should be integrated?
+
+Currently in that test Opensim doesn't know anything about that  
+terrain. For Opensim it is just a prim, and the generic  
+entity-component storage mechanism in ModRex is used to store and  
+replicate it to clients. So Opensim doesn't do any collisions with it  
+or anything.
+
+There are two ways to go about integrating:
+
+a) Add something to the Linden terrain protocol to communicate what  
+technique is used to define the texture usage on a terrain. I.e. keep  
+using the single hardcoded terrain otherwise as is, but just add the  
+option to paint the texture blend weights. This I suppose would be  
+quite simple to hack somehow?
+
+b) Work towards having a generic entity-component mechanism, and  
+implement terrain as a component that can support different features  
+depending on the type of the terrain, but integrate with the physics  
+etc. elsewhere in Opensim.
+
+We are currently using the b) approach in the so-called Tundra  
+experiment, where use Naali itself as a server (we've added a simple  
+server module to Naali for that, but the scene code etc. is the same  
+as when using as a client). This has been the simplest way to get to  
+test how using the generic EC-model works for making features ..  
+there's nothing hardcoded about the world, it starts as completely  
+empty by default, but you can then add an Environment entity with a  
+WaterPlane component, and any number of scene entities with the  
+Terrain component etc. if you want. And the terrain component feeds  
+the physics info for the physics module (we've also added physics with  
+bullet to Naali). So far it still seems like this would be the good  
+way for Opensim too. Tundra is very much w.i.p. yet and there is no  
+release of it, is in a branch of Naali on github, but we'll make some  
+sort of preview release soon (in 1-2 weeks I think) for those who want  
+to test.
+
+But to get this feature to work properly with Opensim quickly I  
+suppose some simple hack to do a) would be it. We'll be using this now  
+with Tundra at least 'cause need it in some projects already now, but  
+if there's interest in devving / using this with Opensim as well I  
+think that'd be cool (and also the folks using it with Tundra now may  
+need it some day in a project where need Opensim feats).
+
+~Toni
+
+
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009758.html">[Opensim-dev] How much does Mono -&gt; libgdi etc need to drag in?	(Mac)
+</A></li>
+	<LI>Next message: <A HREF="009760.html">[Opensim-dev] appearance update
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9759">[ date ]</a>
+              <a href="thread.html#9759">[ thread ]</a>
+              <a href="subject.html#9759">[ subject ]</a>
+              <a href="author.html#9759">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

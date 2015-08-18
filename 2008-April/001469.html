@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; messages
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20removing%20%22ERROR%3A%20There%20was%20an%20error%0A%20while%20scanning%20assembly%3A%22%20messages&In-Reply-To=%3C4808FF5B.1060903%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001468.html">
+   <LINK REL="Next"  HREF="001470.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; messages</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20removing%20%22ERROR%3A%20There%20was%20an%20error%0A%20while%20scanning%20assembly%3A%22%20messages&In-Reply-To=%3C4808FF5B.1060903%40t-data.com%3E"
+       TITLE="[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; messages">melanie at t-data.com
+       </A><BR>
+    <I>Fri Apr 18 22:06:51 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001468.html">[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; messages
+</A></li>
+        <LI>Next message: <A HREF="001470.html">[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; message
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1469">[ date ]</a>
+              <a href="thread.html#1469">[ thread ]</a>
+              <a href="subject.html#1469">[ subject ]</a>
+              <a href="author.html#1469">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+if you are looking into shell scripts, please consider that your 
+normal Linux admin will run OpenSim as a separate user. The 
+MONO_PATH can easily be set in that users .profile, making 
+cumbersome shell scripts totally unnecessary.
+So, if you do provide any shell scripting, please provide it as an 
+_additional_ way to start the programs, don't go renaming programs.
+
+Melanie
+
+
+Justin Clark-Casey wrote:
+&gt;<i> Hello,
+</I>&gt;<i> 
+</I>&gt;<i> This is a technical post but I'm copying it to users for information.  
+</I>&gt;<i> You may (or may not) want to stop reading quickly :-)
+</I>&gt;<i> 
+</I>&gt;<i> So, some of you may have noticed that the latest OpenSim revisions now 
+</I>&gt;<i> have many more of the subject error messages on the console.  The cause 
+</I>&gt;<i> is the Mono Addins manager we're using, which writes these errors to the 
+</I>&gt;<i> console if the dll doesn't contain the configuration data it's expecting.
+</I>&gt;<i> 
+</I>&gt;<i> So today I looked at removing these errors.  I had to follow several 
+</I>&gt;<i> lines of investigation.
+</I>&gt;<i> 
+</I>&gt;<i> 1.  My initial thought was to move all the external libraries which are 
+</I>&gt;<i> causing the problem to a separate $OPENSIM_ROOT/lib/ext directory.  
+</I>&gt;<i> However, this means changes to make sure that the dlls can be found in 
+</I>&gt;<i> the new directory.  For a cross platform application, it's hard.  On 
+</I>&gt;<i> Microsoft's CLR we can simply use &lt;Probing&gt; in config files.  However, 
+</I>&gt;<i> Mono does appear to support this, at least according to
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://www.mono-project.com/Assemblies_and_the_GAC">http://www.mono-project.com/Assemblies_and_the_GAC</A>
+</I>&gt;<i> 
+</I>&gt;<i> I tried it anyway, without success.  Instead, the only option on Mono is 
+</I>&gt;<i> to either set the MONO_PATH or put the assemblies in the Global Assembly 
+</I>&gt;<i> Cache.
+</I>&gt;<i> 
+</I>&gt;<i> 2.  This makes things awkward, so instead I looked at moving the plugin 
+</I>&gt;<i> dlls.  Same problem.
+</I>&gt;<i> 
+</I>&gt;<i> 3.  So instead I looked at simply suppressing the messages.  
+</I>&gt;<i> Unfortunately, the Mono addins code writes these messages out to the 
+</I>&gt;<i> console.  Although in theory you could give it an IProgressMonitor and 
+</I>&gt;<i> stop this, all the classes for this (and the interface) are internal and 
+</I>&gt;<i> hence not accessible.  Later versions of mono-addins than the one we are 
+</I>&gt;<i> using would appear to have the same problem.
+</I>&gt;<i> 
+</I>&gt;<i> So although we could hack the code in 3. to remove the message (or even 
+</I>&gt;<i> replace or code our own plugin solution), the fact is that we really 
+</I>&gt;<i> need to have dlls in different directories eventually anyway - bin/ is 
+</I>&gt;<i> already overloaded.  This means I'm forced to come back to suggestion 
+</I>&gt;<i> 1.  Putting things in the GAC is unrealistic at this stage I think, so 
+</I>&gt;<i> I'm proposing that we move all the external libraries to 
+</I>&gt;<i> $OPENSIM_ROOT/lib/ext and set the MONO_PATH environmental variable to 
+</I>&gt;<i> point to this directory.  Under Windows, we would instead put &lt;Probing&gt; 
+</I>&gt;<i> entries in the executable's config files.
+</I>&gt;<i> 
+</I>&gt;<i> I tried setting MONO_PATH programatically in OpenSimMain.cs, but the set 
+</I>&gt;<i> doesn't look like it is exported so the load fails.  The same path works 
+</I>&gt;<i> fine when exported from the command line.
+</I>&gt;<i> 
+</I>&gt;<i> If we go the MONO_PATH route, then I think we could provide shell 
+</I>&gt;<i> scripts for all the executables to set the path and then launch the 
+</I>&gt;<i> program, even though this is a little messy.  The executable itself 
+</I>&gt;<i> would complain loudly if it is not on Windows and MONO_PATH is unset 
+</I>&gt;<i> (which would be inconvenient for Windows mono users, though there may 
+</I>&gt;<i> not be that many of them).
+</I>&gt;<i> 
+</I>&gt;<i> I'm open to constructive suggestions on this, particularly from core 
+</I>&gt;<i> developers.
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001468.html">[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; messages
+</A></li>
+	<LI>Next message: <A HREF="001470.html">[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; message
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1469">[ date ]</a>
+              <a href="thread.html#1469">[ thread ]</a>
+              <a href="subject.html#1469">[ subject ]</a>
+              <a href="author.html#1469">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

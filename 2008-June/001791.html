@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] On Mantis #1370 (avatar persistence)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3C484F623C.5050501%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001790.html">
+   <LINK REL="Next"  HREF="001773.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] On Mantis #1370 (avatar persistence)</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3C484F623C.5050501%40t-data.com%3E"
+       TITLE="[Opensim-dev] On Mantis #1370 (avatar persistence)">melanie at t-data.com
+       </A><BR>
+    <I>Wed Jun 11 07:27:24 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001790.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+        <LI>Next message: <A HREF="001773.html">[Opensim-dev] Two sets of LSL function implementation files.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1791">[ date ]</a>
+              <a href="thread.html#1791">[ thread ]</a>
+              <a href="subject.html#1791">[ subject ]</a>
+              <a href="author.html#1791">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+Well, from what I recall of the discussion, this is because if we 
+store or use asset IDs, and someone changes the item itself, we 
+would miss that. Of we were to store 13 wearable assets and the 
+complete set of visual params, and then someone would go and edit 
+something they're wearing, we'd not apply the edit to the 
+appearance. So, the inventory is checked at login time to pick up 
+changes. That was the general idea.
+
+Of course, if we changed things so that wearables were updated right 
+after leaving the appearance editor, then we could trust that data 
+on startup. Also, getting the visual params earlier would stop 
+everyone appearing as anti ruth during login.
+
+Melanie
+
+
+liu xiaolu wrote:
+&gt;<i> To JustinCC
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i>     Yeah, there is a mechanism in the inventory code that other functions
+</I>&gt;<i>     use to complete execution only when the inventory is received (such as
+</I>&gt;<i>     opening a folder, at least under UDP rather than CAPS).  The appearance
+</I>&gt;<i>     mechanism should probably use that.   Probably everything should be
+</I>&gt;<i>     using that mechanism (rather than just checking if RootFolder != null
+</I>&gt;<i>     which I suspect is what is currently being done).
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> What you said is correct, but making request synchronous is not the main 
+</I>&gt;<i> point
+</I>&gt;<i> of this problem. (Even though it LOOKs like that appearance persistence 
+</I>&gt;<i> works if the
+</I>&gt;<i> &quot;getinventory&quot; is synchronous)
+</I>&gt;<i> 
+</I>&gt;<i> I think the main problem is:
+</I>&gt;<i> we are using(in function TryGetAvatarAppearance) the data(wearable 
+</I>&gt;<i> uuids) which we
+</I>&gt;<i> don't trust(in function SetAppearanceAsset).
+</I>&gt;<i> 
+</I>&gt;<i> we have to do some work to let us feel safe to use our data.
+</I>&gt;<i> the &quot;check&quot; should be done when the data is updated(inserted), not after 
+</I>&gt;<i> selected.
+</I>&gt;<i> 
+</I>&gt;<i> and another sub-problem is:
+</I>&gt;<i> appearance and inventory has close relationship, but they are stored in 
+</I>&gt;<i> separated
+</I>&gt;<i> servers.
+</I>&gt;<i> 
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; *NOTE*: as I tested, in windows there is no timing problem, Line19:
+</I>&gt;<i>      &gt; &quot;getinventory&quot; in windows is SYNC.  :@
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; ---------------------------------------
+</I>&gt;<i>      &gt;  1| 20:20:13 - [CONNECTION DEBUGGING]: Expect User called, starting
+</I>&gt;<i>      &gt; agent setup ...
+</I>&gt;<i>      &gt;  2| 20:20:13 - [CONNECTION DEBUGGING]: Main agent detected
+</I>&gt;<i>      &gt;  3| 20:20:13 - [CONNECTION DEBUGGING]: Triggering welcome for
+</I>&gt;<i>      &gt; e8738a41-d260-4030-9b54-31688164b260 into 10996215791947776
+</I>&gt;<i>      &gt;  4| 20:20:13 - [CAPS]: Setting up CAPS handler for root agent
+</I>&gt;<i>      &gt; e8738a41-d260-4030-9b54-31688164b260 in WolfDrawer
+</I>&gt;<i>      &gt;  5| 20:20:13 - [CONNECTION DEBUGGING]: Creating new circuit code
+</I>&gt;<i>      &gt; (1590320709) for avatar e8738a41-d260-4030-9b54-31688164b260 at
+</I>&gt;<i>     WolfDrawer
+</I>&gt;<i>      &gt;  6| 20:20:13 - [OGS1 GRID SERVICES]: Welcoming new user...
+</I>&gt;<i>      &gt;  7| 20:20:15 - [CAPS]: Seed Caps Request in region: WolfDrawer
+</I>&gt;<i>      &gt;  8| 20:20:15 - [UDPSERVER]: Adding New Client
+</I>&gt;<i>      &gt;  9| 20:20:15 - [CLIENT]: Started up new client thread to handle
+</I>&gt;<i>     incoming
+</I>&gt;<i>      &gt; request
+</I>&gt;<i>      &gt; 10| 20:20:15 - [CLIENT]: Got authenticated connection from
+</I>&gt;<i>      &gt; 219.106.248.145:62864 &lt;<A HREF="http://219.106.248.145:62864">http://219.106.248.145:62864</A>&gt;
+</I>&gt;<i>     &lt;<A HREF="http://219.106.248.145:62864">http://219.106.248.145:62864</A>&gt;
+</I>&gt;<i>      &gt; 11| 20:20:15 - [CLIENT]: Adding viewer agent to scene
+</I>&gt;<i>      &gt; 12| 20:20:15 - [CONNECTION DEBUGGING]: Creating new client for
+</I>&gt;<i>      &gt; e8738a41-d260-4030-9b54-31688164b260 at WolfDrawer
+</I>&gt;<i>      &gt; 13| 20:20:15 - [REGION]: Add New Scene Presence
+</I>&gt;<i>      &gt; 14| 20:20:15 - [APPEARANCE]: appearance not found for
+</I>&gt;<i>      &gt; e8738a41-d260-4030-9b54-31688164b260, creating default
+</I>&gt;<i>      &gt; 15| 20:20:15 - [APPEARANCE]: Appearance not found, creating default
+</I>&gt;<i>      &gt; 16| 20:20:15 - [SCENE]:WolfDrawer: Creating new child agent.
+</I>&gt;<i>      &gt; 17| 20:20:16 - [GROUP]: Adding lulu run to OpenSimulator Testing
+</I>&gt;<i>      &gt; 18| 20:20:17 - [CLIENT]: Entered loop
+</I>&gt;<i>      &gt; 19| 20:20:17 - [OGS1 INVENTORY SERVICE]: Requesting inventory from
+</I>&gt;<i>      &gt; <A HREF="http://osgrid.org:8004/GetInventory/">http://osgrid.org:8004/GetInventory/</A> for user
+</I>&gt;<i>      &gt; e8738a41-d260-4030-9b54-31688164b260
+</I>&gt;<i>      &gt; 20| 20:20:17 - [SUN]: Initial update for new client
+</I>&gt;<i>      &gt; 21| 20:20:17 - [FRIEND]: Claiming lulu run in
+</I>&gt;<i>     region:10996215791947776.
+</I>&gt;<i>      &gt; 22| 20:20:17 - [CAPS]: Setting up CAPS handler for root agent
+</I>&gt;<i>      &gt; e8738a41-d260-4030-9b54-31688164b260 in WolfDrawer
+</I>&gt;<i>      &gt; 23| 20:20:18 - [OSG1 USER SERVICES]: Successfully updated user record
+</I>&gt;<i>      &gt; 24| 20:20:18 - [APPEARANCE]: appearance not found for
+</I>&gt;<i>      &gt; e8738a41-d260-4030-9b54-31688164b260, creating default
+</I>&gt;<i>      &gt; 25| 20:20:18 - [APPEARANCE]: Appearance not found, creating default
+</I>&gt;<i>      &gt; 26| 20:20:19 - [OGS1 INVENTORY SERVICE]: Received inventory
+</I>&gt;<i>     response for
+</I>&gt;<i>      &gt; user e8738a41-d260-4030-9b54-31688164b260 containing 15 folders
+</I>&gt;<i>     and 4 items
+</I>&gt;<i>      &gt; 27| 20:20:21 - [INTERGRID]: Starting to inform client about
+</I>&gt;<i>     neighbours
+</I>&gt;<i>      &gt; 28| 20:20:21 - [INTERGRID]: Starting to inform client about
+</I>&gt;<i>     neighbours
+</I>&gt;<i>      &gt; 29| 20:20:21 - [INTERGRID]: Starting to inform client about
+</I>&gt;<i>     neighbours
+</I>&gt;<i>      &gt; 30| 20:20:21 - [INTERGRID]: Starting to inform client about
+</I>&gt;<i>     neighbours
+</I>&gt;<i>      &gt; 31| 20:20:21 - [INTERGRID]: Starting to inform client about
+</I>&gt;<i>     neighbours
+</I>&gt;<i>      &gt; 32| 20:20:21 - [INTERGRID]: Starting to inform client about
+</I>&gt;<i>     neighbours
+</I>&gt;<i>      &gt; 33| 20:20:21 - [INTERGRID]: Starting to inform client about
+</I>&gt;<i>     neighbours
+</I>&gt;<i>      &gt; 34| 20:20:21 - [INTERGRID]: Starting to inform client about
+</I>&gt;<i>     neighbours
+</I>&gt;<i>      &gt; 35| 20:20:21 - [APPEARANCE]: Sending Appearance to All Other Agents
+</I>&gt;<i>      &gt; 36| 20:20:21 - [CLIENT]: unhandled AgentHeightWidth packet
+</I>&gt;<i>      &gt; 37| 20:20:21 - [CLIENT]: unhandled MuteListRequest packet
+</I>&gt;<i>      &gt; 38| 20:20:22 - [CLIENT]: unhandled AgentHeightWidth packet
+</I>&gt;<i>      &gt; 39| 20:20:22 - [APPEARANCE]: Sending Own Appearance
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; --
+</I>&gt;<i>      &gt; Liu Xiaolu
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>     ------------------------------------------------------------------------
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; _______________________________________________
+</I>&gt;<i>      &gt; Opensim-dev mailing list
+</I>&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>     --
+</I>&gt;<i>     justincc
+</I>&gt;<i>     Justin Clark-Casey
+</I>&gt;<i>     <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> -- 
+</I>&gt;<i> Liu Xiaolu
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001790.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+	<LI>Next message: <A HREF="001773.html">[Opensim-dev] Two sets of LSL function implementation files.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1791">[ date ]</a>
+              <a href="thread.html#1791">[ thread ]</a>
+              <a href="subject.html#1791">[ subject ]</a>
+              <a href="author.html#1791">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Comms Manager
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3CBLU134-W11BE6CC878577DB2A2F60AD5AC0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005411.html">
+   <LINK REL="Next"  HREF="005417.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Comms Manager</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3CBLU134-W11BE6CC878577DB2A2F60AD5AC0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Comms Manager">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Feb 25 22:38:17 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005411.html">[Opensim-dev] Comms Manager
+</A></li>
+        <LI>Next message: <A HREF="005417.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5413">[ date ]</a>
+              <a href="thread.html#5413">[ thread ]</a>
+              <a href="subject.html#5413">[ subject ]</a>
+              <a href="author.html#5413">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Wonderful, marvellous, exactly what I always dreamed and prayed about. You are my hero et c et c.
+
+
+That gridservice registry will, in effect, be somehting like the 'shared module' registry we've discussed before, so +1 on that fo sho.
+
+ 
+
+On the topic of which plugins, and what specific class if many defined in same assembly, I refer to an earlier post, where I said:
+
+ 
+
+I don't know how mono.addins does it, but in the rest of the .net world, you specify assembly and class separated by ', ' thus: plugin=&quot;System.Framework.dll, System.Framework.PluginClass&quot;
+
+
+So that bit should be fairly simple, given mono addins handles it, which I would be surprised and disappointed if it didn't.
+
+
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+
+
+ 
+
+
+Date: Wed, 25 Feb 2009 20:43:10 +0000
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: [Opensim-dev] Comms Manager
+
+
+
+
+
+More and more of the Region to UGAIM comms and Region to Region comms, is being moved out of the Comms Manager and into region modules. Is this a process we should continue and move everything out of there and into Region modules? 
+
+I'm a bit torn on that issue, and I think a few other people are too. We all know the current comms manager system is not the best :)  And its a real pain to customise. 
+
+One issue with having it all in region modules, is that everything has to go through regions to be able to use those interfaces. Making it harder for app plugins to do any comms related work. 
+
+So if we decide to stick with a separate comms system (rather than moving it to region modules), how can we improve it?
+
+I think the first two tasks are:
+* to improve the interfaces/make it easier to extend.
+* and to make it so its loaded from plugins/dlls. 
+
+One simple way of allowing plugins to create and setup the Comms Manager would be making some small changes to the IApplicationPlugin interface:
+
+* Add a PostInitialise method to that interface. 
+* Then changing the LoadRegionsPlugin so that it created the regions in the IApplicationPlugin.PostInitialise call. 
+* Which would allow us to create some SetupCommsManagerPlugins which could do its work in the IApplicationPlugin.Initialise() call.
+
+[Note that brings up another issue that I want to deal with in another email soon... of how do we define which plugins are loaded. And also if there are multiple plugins, of the same type, in a single dll, how do we make some of them get loaded but not others?]
+
+The next task would be to improve the interfaces of the Comms Manager and allow it to be expanded easier.
+
+The current set of interfaces in the Comms manager are:
+
+public class CommunicationsManager
+{
+        public IUserService UserService
+        public IMessagingService MessageService;
+        public IGridServices GridService
+        public UserProfileCacheService UserProfileCacheService
+        public IAvatarService AvatarService
+        public IAssetCache AssetCache
+        public NetworkServersInfo NetworkServersInfo     
+        public IUserAdminService UserAdminService'   
+        public BaseHttpServer HttpServer;
+}
+
+I propose making it so the CommsManager also implements the IGridServiceCore interface which I've added to the User/Grid/Messaging servers, as part of the process of modulising them.
+
+public interface IGridServiceCore
+ {
+        T Get&lt;T&gt;();
+        void RegisterInterface&lt;T&gt;(T iface);
+        bool TryGet&lt;T&gt;(out T iface);
+        BaseHttpServer GetHttpServer();
+ }
+
+Then the components of the CommsManager can register themselves with that, and request other interfaces/Components. At the moment it would still need the old interfaces to be assigned, as external code use them. But over time, we should then change the external code so they use the TryGet&lt;T&gt;(out T iface) call when they want one of the interfaces/Components. 
+
+So eventually the CommsManager will basically just be that interface and a set of &quot;modules&quot; loaded and registered with it. 
+
+This brings the CommsManager more in line with the Region module system and the IClientCore and soon to be in use UGM servers system. We could even make it so it could load the same modules as the UGM servers use if we wanted to. 
+
+So thoughts, comments, bad fruit being thrown wanted.
+      
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090225/60178fb8/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090225/60178fb8/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005411.html">[Opensim-dev] Comms Manager
+</A></li>
+	<LI>Next message: <A HREF="005417.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5413">[ date ]</a>
+              <a href="thread.html#5413">[ thread ]</a>
+              <a href="subject.html#5413">[ subject ]</a>
+              <a href="author.html#5413">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

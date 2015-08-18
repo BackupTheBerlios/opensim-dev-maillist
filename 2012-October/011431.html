@@ -1,0 +1,250 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Update for group module &amp; flotsam
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3C5075C044.4070903%40archimuh.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011425.html">
+   <LINK REL="Next"  HREF="011430.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Update for group module &amp; flotsam</H1>
+    <B>Michelle Argus</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3C5075C044.4070903%40archimuh.de%3E"
+       TITLE="[Opensim-dev] Update for group module &amp; flotsam">argus at archimuh.de
+       </A><BR>
+    <I>Wed Oct 10 20:36:52 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011425.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+        <LI>Next message: <A HREF="011430.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11431">[ date ]</a>
+              <a href="thread.html#11431">[ thread ]</a>
+              <a href="subject.html#11431">[ subject ]</a>
+              <a href="author.html#11431">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes, in the long run we will need a major overhaul of the groups module 
+which also should include possible security issues. It will however 
+break the simiangrid grou module which is also in core. My approach was 
+more to get a simple implementation which then gives us time for a full 
+scale overhaul...
+
+Anyway, my overhaul thoughts...
+
+1)Online status
+
+  Requesting the online status via the gridservices only is not a good 
+solution, as that takes more time than sending IMs to every groupmember 
+(my first approach for a quickfix). It would also require each simulator 
+to request online status for each groupmember which means lots of trafic 
+between group server and then lots of trafic to the gridservices. This 
+also applies if someone is just viewing the groupmember were we want to 
+see all groupmembers nomatter if they are online or offline.
+
+  We thus need to keep track of the online members in the database of 
+the group server. When sending a chat/notice each simulator then 
+receives a short list of online members. When listing all groupmembers 
+we get all online/offline status.
+
+  The same applies for the last loggin time which needs to be saved in 
+the group server database aswell. In combination with a cache one then 
+could run a query on who has logged in since the last IM/notice sent. 
+One then would receive a very very short list of new members to add to 
+already known online agent list.
+
+
+  Updating the online and last login data would best be done by the 
+gridservices instead of the local simulators. No matter who updates the 
+online status, it becomes tricky in open grids were some simulators have 
+their own group server running instead of using the grids default. This 
+would be a case were tracking the online status from the gridservices 
+via the simulator would make sence.
+
+2) Database
+
+  I would suggest that we add a field to the osgroupmembership table 
+which shows who may receive IMs and notices. This way we just need the 
+osgent and osgroupmembership tables when requesting the groupmembers 
+that will receive IMs/notices without to many joins. When group role 
+changes are done, then these fields would need to be updated depending 
+on the permissions set.
+
+  Then we also need many more specialized quaries. I think for each 
+group tag we will need other data instead of always sending everything. 
+One should not limit GetGroupMembers to just IM, Notices  and 
+everything, each Grouptab requires diffrent data. (list all members, 
+role members, role member permissions, IM members, notice members etc.)
+
+3) Cache
+
+  The cache should be shareable by multiple simulators running on 1 
+server. Even with a cache we should check the current online users for 
+members which have come online since the last IM that was sent.
+
+4) Security
+
+  The group module has some security issues because it is open to 
+everyone who has the ini settings. I am taking advantage of this to 
+manage my entire support groups via web without running a simulator. The 
+danger here is, that anyone can manage all groups, which includes adding 
+members, removing members, changing role permissions etc etc.
+
+  Here one could use the online/offline status again to make sure that 
+the agent is online as these changes actualy should be done via a 
+viewer. Maybe also a unique session ID should be added. If the session 
+ID and online status do not match, then no  changes are made. If the 
+group server receives the data from the gridservices instead of the 
+simulator it would be more difficult to manipulate.
+
+As we do love the openess of opensim, one could add an extra password to 
+each group which allows external applications to gain full control over 
+that specific group. This could be done by an OSSL function which 
+enables setting the password by a groupowner that is online. A  external 
+application would then send that password in its quary. Actually, even 
+OSSL function like osInviteToGroup &amp; osEjectFromGroup should have 
+aditional security measures implemented.
+
+  5) Other unimplemeted goodies
+
+  If the group module gets a total overhaul, we should also have a list 
+of unimplemented things which might affect any changes done or any 
+changes which additionaly will have an impact.
+
+Currebtly unimplemented are:
+- Attachments in group notices
+- donated Tier, eg. settable via new ossl
+- pruning of Archive, could optionaly be a ossl function for group owners
+- proposals
+- land and money (Land could use the search module which already stores 
+the neccessary parcel information)
+
+Michelle
+
+Am 05.10.2012 18:35, schrieb Kevin Cozens:
+&gt;<i> On 12-10-03 12:00 PM, Michelle Argus wrote:
+</I>&gt;&gt;<i> - added agents online status to flotsam
+</I>&gt;&gt;<i> - added agents last login data to flotsam
+</I>&gt;&gt;<i> - displaying the online/last login data in the groupmembers list 
+</I>&gt;&gt;<i> viewerside
+</I>&gt;&gt;<i> - added optional filter to get a memberlist of online members only 
+</I>&gt;&gt;<i> instead
+</I>&gt;&gt;<i> of allways receiving all groupmembers
+</I>&gt;&gt;<i> - send groupchat IMs only to online members.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The changes can be found in the 2 gits here: 
+</I>&gt;&gt;<i> <A HREF="https://github.com/MAReantals">https://github.com/MAReantals</A>
+</I>&gt;<i>
+</I>&gt;<i> Nice to see some missing functionality added. Sending group messages 
+</I>&gt;<i> to avatars that are not on line was clearly a bug that needed fixing.
+</I>&gt;<i>
+</I>&gt;<i> The proposed changes started me thinking about the groups code and 
+</I>&gt;<i> wondering if there were other areas of the code that could be written 
+</I>&gt;<i> differently to minimize chat lag. What I have seen so far makes me 
+</I>&gt;<i> realize there are a number of ways the overall groups code can be 
+</I>&gt;<i> improved. I'll start with some comments about online status in groups 
+</I>&gt;<i> before I get to the main areas where improvements can be made.
+</I>&gt;<i>
+</I>&gt;<i> Having an online status in the groups database raises the question as 
+</I>&gt;<i> to whether it might get out of sync with an avatars real online status 
+</I>&gt;<i> but this may not be much of a problem. A status of online could be 
+</I>&gt;<i> forced when an avatar opens a group chat window. Offline status could 
+</I>&gt;<i> be set on a failure to send a group chat message fails (and determines 
+</I>&gt;<i> user is offline?).
+</I>&gt;<i>
+</I>&gt;<i> The updated group code adds OnClientClosed handler to check and update 
+</I>&gt;<i> an avatars online status. Does OnClientClosed get called on TP to a 
+</I>&gt;<i> different region or on sim boundary crossings? If it is called at 
+</I>&gt;<i> times other than during login/logout it should check if the avatars 
+</I>&gt;<i> status has changed before issuing the database update call as that is 
+</I>&gt;<i> an &quot;expensive&quot; call involving an external web server to update the 
+</I>&gt;<i> group database.
+</I>&gt;<i>
+</I>&gt;<i> The preceeding items are minor issues. Now for the bigger issues.
+</I>&gt;<i>
+</I>&gt;<i> I was surprised (almost shocked) to find that a call is made to 
+</I>&gt;<i> GetGroupMembers() for *every* chat message that is to be sent. [It is 
+</I>&gt;<i> also called when sending group notices.]
+</I>&gt;<i>
+</I>&gt;<i> If that doesn't sound bad enough it gets worse when you realize what 
+</I>&gt;<i> is involved. The C# code invokes a PHP script on a webserver to query 
+</I>&gt;<i> a database to get the list of members. The PHP code uses a complex SQL 
+</I>&gt;<i> query that contains 3 JOIN's and one LEFT JOIN. To top it all off, 
+</I>&gt;<i> once it has the list of members the PHP code then runs another query 
+</I>&gt;<i> to get group permissions for each member.
+</I>&gt;<i>
+</I>&gt;<i> The SQL query with the JOIN's makes one question the design of the 
+</I>&gt;<i> group database tables. I think it is more likely that it is trying to 
+</I>&gt;<i> return more data than is required when determining which avatars 
+</I>&gt;<i> should receive a group chat message or notice.
+</I>&gt;<i>
+</I>&gt;<i> I think the first thing to do is create a new function to get online 
+</I>&gt;<i> group members that returns the minimum amount of data required to send 
+</I>&gt;<i> chat and notices. I don't think that should involve more than two 
+</I>&gt;<i> tables versus the three currently used. It could be done with one but 
+</I>&gt;<i> the second table is needed to see if the member is online. If there is 
+</I>&gt;<i> a simpler/faster way for the group .cs code to check if a user is 
+</I>&gt;<i> online given an avatar UUID that doesn't require an external database 
+</I>&gt;<i> check that would be better. The online status wouldn't be needed in 
+</I>&gt;<i> the groups database, the list of members could be filtered in the .cs 
+</I>&gt;<i> code so only online members get chat/notices.
+</I>&gt;<i>
+</I>&gt;<i> The next(?) step would be to do the SQL queries from inside the C# 
+</I>&gt;<i> code and eliminate the need for the use of a webserver and the PHP code.
+</I>&gt;<i>
+</I>&gt;<i> A more complex solution to reducing overhead and lag in group chat is 
+</I>&gt;<i> to set up a cache to hold the online group member data to avoid 
+</I>&gt;<i> multiple requests to an external webserver on each message.
+</I>&gt;<i>
+</I>&gt;<i> The other question to be asked is if the group code is in anyway 
+</I>&gt;<i> threaded? Can it handle multiple chat messages at the same time or is 
+</I>&gt;<i> it sequential and processing only one message at at time? Is the group 
+</I>&gt;<i> module a bottle neck when people are chatting in several groups at the 
+</I>&gt;<i> same time?
+</I>&gt;<i>
+</I>&gt;<i> One last issue remains. How do we test changes to the group chat code? 
+</I>&gt;<i> A test bed is needed to allow simulation of a large number of people 
+</I>&gt;<i> chatting in several groups at the same time.
+</I>&gt;<i>
+</I>&gt;<i> I have suggested working on the group module as a possible first 
+</I>&gt;<i> project for the #metaversity people. It is self-contained enough to be 
+</I>&gt;<i> a good first project as it doesn't need a lot of broad knowledge of 
+</I>&gt;<i> the overall code base, not to mention the amount of &quot;bang for the 
+</I>&gt;<i> buck&quot; as it is of benefit to anyone using group chat.
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011425.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+	<LI>Next message: <A HREF="011430.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11431">[ date ]</a>
+              <a href="thread.html#11431">[ thread ]</a>
+              <a href="subject.html#11431">[ subject ]</a>
+              <a href="author.html#11431">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

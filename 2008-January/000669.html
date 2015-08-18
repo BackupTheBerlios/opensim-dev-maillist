@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] further db thoughts
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20further%20db%20thoughts&In-Reply-To=%3CBLU134-W3755B57E45736C831CB0E7D5450%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000668.html">
+   <LINK REL="Next"  HREF="000671.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] further db thoughts</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20further%20db%20thoughts&In-Reply-To=%3CBLU134-W3755B57E45736C831CB0E7D5450%40phx.gbl%3E"
+       TITLE="[Opensim-dev] further db thoughts">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sun Jan 13 20:42:54 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000668.html">[Opensim-dev] further db thoughts
+</A></li>
+        <LI>Next message: <A HREF="000671.html">[Opensim-dev] further db thoughts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#669">[ date ]</a>
+              <a href="thread.html#669">[ thread ]</a>
+              <a href="subject.html#669">[ subject ]</a>
+              <a href="author.html#669">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ok, I just committed /OpenSim/ThirdParty/Tribal/TribalMedia.Framework.Data
+ 
+This should be specialized into OpenSim.Framework.Data, which should do the following:
+* Specialize the FieldMapper ExpandField, GetValue and ConvertToDbType to accomodate LLVector3, LLQuaternion and LLUUID
+* Provide a set of TableMappers for all supported object types (I will try to commit primitivebaseshape, part and group soonish, but I'm a bit pressed for time at the mo)
+* DatabaseProviders for all supported database engines, ie OpenSim.Framework.Data.MySQL should subclass and extend the DatabaseMapper
+ 
+Alas, the code as it is committed five minutes ago, is kinda forcefully ripped out of its context, but I guess it's a work in progress.
+ 
+(For example, the DatabaseMapper is both connectionpool and querybuilder, which might not be ideal.)
+ 
+Ideally, basing our db layer on something like this should mean we never again should get out of synch on this or that database.
+ 
+Eagerly awaiting peer review and comments,
+/Stefan
+ 
+
+
+
+&gt;<i> Date: Sat, 12 Jan 2008 09:39:20 -0500&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] further db thoughts&gt; &gt; On Fri, Jan 11, 2008 at 09:46:21PM +0100, Stefan Andersson wrote:&gt; &gt; Sean,&gt; &gt; &gt; &gt; I know you're going to hate me for this, but before I post code, I just wanted to explain whats here 'on my own hard-disk' to see if it's anything like what you want to do:&gt; &gt; &gt; &gt; * I have a DbConnectionPool that acts as a programmatic manager of connections (Subclassed into MySqlDbConnectionPool)&gt; &gt; * this is passed to a TableMapper which exposes it as a protected method WithConnection(delegate) for subclasses to access; they never access the connectionpool directly; the delegate approach lets the TableMapper lock, allocate, pre- and postprocess the connection securely and encapsulated. (kind of like a using clause)&gt; &gt; * The TableMapper is subclassed into a TableMapper&lt;TRowMapper&gt; that implements a CRUD interface by creating dynamic sql queries (the param prefix is pulled from the ConnectionPool) and populating them from a 'Schema'&gt; &gt; * A 'Schema' is a collection of FieldMapper&lt;T&gt;&gt; &gt; * FieldMapper&lt;TField&gt; is initialized with a field/param name (same for laziness sake), TField is the RowMapper field value type, a get delegate and a set delegate for the TField type object. It also does all the db/field type casting as well as expands things like Vector and Quaternion into several db fields.&gt; &gt; * The delegate approach keeps everything field related together, as opposed to a FromReader/ToReader method approach, which helps dodge inconsistencies.* The TRowMapper is mostly of type RowMapper&lt;TRowObject&gt; which just creates a class that has a member of TRowObject; this lets you subclass TRowMapper&lt;TRowObject&gt; and add db-specific extra-fields to it in order to manage hierarchies.&gt; &gt; * Upon operations, you create your rowmapper object (or just a plain object if there is no aux data) and either do FillObject( Schema, rowObject) or extract stuff by overrifing the FromReader(rowObject, DbReader) - the latter I use to populate a group from a part table (the select on the key field returns multiple rows, so i just PartMapper.FromReader() on each one to build the group.&gt; &gt; &gt; &gt; - it does NOT auto-create tables, as I'm not interested in that approach as you know, but you already have the code for it and the data in the 'Schema' so it should be a piece of pie.&gt; &gt; &gt; &gt; All in all, everything is explicit and compile-time; no cacheing, synchronization or double-buffering, no reflected and emitted code, but it works, and is quite efficient. It takes a while to get into the flow of how the various components work together, but after that I feel it's very conveniens and trustworthy.&gt; &gt; &gt; &gt; Of course, it needs more work to get it going on all different database interfaces, but it's created from the start to be subclassed into differing databases.&gt; &gt; &gt; &gt; If this sounds like something we'd want, I'd be happy to make it&gt; &gt; available as a third-party BSD Licence lib within the project, my only&gt; &gt; demand is that it is called TribalMedia.Framework.Data and that the&gt; &gt; BSD header remains intact.&gt; &gt; I think it is definitely a promissing approach. If you wanted to check&gt; it in under TribalMedia/Framework/Data I'll definitely check it out. If&gt; it turns out to not work out, we can just remove it down the road.&gt; &gt; -Sean&gt; &gt; -- &gt; __________________________________________________________________&gt; &gt; Sean Dague Mid-Hudson Valley&gt; sean at dague dot net Linux Users Group&gt; <A HREF="http://dague.net">http://dague.net</A> <A HREF="http://mhvlug.org">http://mhvlug.org</A>&gt; &gt; There is no silver bullet. Plus, werewolves make better neighbors&gt; than zombies, and they tend to keep the vampire population down.&gt; __________________________________________________________________
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080113/fa53c661/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080113/fa53c661/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000668.html">[Opensim-dev] further db thoughts
+</A></li>
+	<LI>Next message: <A HREF="000671.html">[Opensim-dev] further db thoughts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#669">[ date ]</a>
+              <a href="thread.html#669">[ thread ]</a>
+              <a href="subject.html#669">[ subject ]</a>
+              <a href="author.html#669">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

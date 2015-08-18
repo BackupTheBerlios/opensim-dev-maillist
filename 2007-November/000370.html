@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Asset Server Rest Interface Roundup
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Asset%20Server%20Rest%20Interface%20Roundup&In-Reply-To=%3C589064de0711052150p61dfab53t7cc97259df262d99%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000371.html">
+   <LINK REL="Next"  HREF="000373.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Asset Server Rest Interface Roundup</H1>
+    <B>Tleiades Hax</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Asset%20Server%20Rest%20Interface%20Roundup&In-Reply-To=%3C589064de0711052150p61dfab53t7cc97259df262d99%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Asset Server Rest Interface Roundup">tleiades at gmail.com
+       </A><BR>
+    <I>Tue Nov  6 06:50:43 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000371.html">[Opensim-dev] Asset Server Rest Interface Roundup
+</A></li>
+        <LI>Next message: <A HREF="000373.html">[Opensim-dev] Updated libsecondlife to version 0.3 1476
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#370">[ date ]</a>
+              <a href="thread.html#370">[ thread ]</a>
+              <a href="subject.html#370">[ subject ]</a>
+              <a href="author.html#370">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i>
+</I>&gt;<i> &gt; will import/export of multiple formats be embedded in the mime
+</I>&gt;<i> &gt; encoding of the incoming asset creation request?
+</I>&gt;<i>
+</I>&gt;<i> That's a good question.  I think that until we firm up on at least one
+</I>&gt;<i> official format (which is probably post 0.5) the question is sort of
+</I>&gt;<i> moot.  I think it's a good thing to think about though.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>Currently we don't use MIME, and I have not seen an example of a REST web
+service using mime. Of course that doesn't prevent us from using MIME, I
+would not advocate using MIME as a transport format.
+
+Currently the assets server ships all data as &quot;application/xml&quot;, and the
+binary information is converted to base 64 encoding. I would suggest we stay
+with this format, with but a few modifications. The primary change I would
+suggest is to handle the fact that base 64 is a pretty inefficient format to
+use when transporting binary information, especially considering that HTTP
+is a 8 bit per byte protocol. I would suggets that when assets exceeds a
+certain size - which needs to be determined experimentally - we gzip the xml
+data, and transmit raw binary information in the HTTP body.
+
+I.e. when assets size is less  than some cutoff we ship &quot;application/xml&quot;,
+otherwise we ship &quot;application/gzip+xml&quot;.
+
+Unfortunately the mono implementation of GZipStream is buggy, so we cannot
+use that, the only other native implementation of GZip I have found is GPL
+with a pretty confusing FLOSS exception (Adam doesn't like it). This means
+that this compression feature must wait until we either:
+
+a) Find a better gzip implentation
+b) The mono GZipStream patch gets into common usage
+c) we implement our own gzip stream.
+
+/tleiades
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071106/708159cf/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071106/708159cf/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000371.html">[Opensim-dev] Asset Server Rest Interface Roundup
+</A></li>
+	<LI>Next message: <A HREF="000373.html">[Opensim-dev] Updated libsecondlife to version 0.3 1476
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#370">[ date ]</a>
+              <a href="thread.html#370">[ thread ]</a>
+              <a href="subject.html#370">[ subject ]</a>
+              <a href="author.html#370">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20Moving%20default%20inventory%20creation%20from%0A%20InventoryService%20to%20UserAccountService%20for%20viewer%202%20initial%20appearance%20code&In-Reply-To=%3C4D437349.70103%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009935.html">
+   <LINK REL="Next"  HREF="009937.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20Moving%20default%20inventory%20creation%20from%0A%20InventoryService%20to%20UserAccountService%20for%20viewer%202%20initial%20appearance%20code&In-Reply-To=%3C4D437349.70103%40t-data.com%3E"
+       TITLE="[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code">melanie at t-data.com
+       </A><BR>
+    <I>Sat Jan 29 02:54:17 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009935.html">[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code
+</A></li>
+        <LI>Next message: <A HREF="009937.html">[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9936">[ date ]</a>
+              <a href="thread.html#9936">[ thread ]</a>
+              <a href="subject.html#9936">[ subject ]</a>
+              <a href="author.html#9936">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Please don't ignore the case where no default appearance is desired.
+Also, the UserAccount service should not directly access the
+inventory database. That would severely break the
+compartmentalization ROBUST is built on.
+
+The correct way is to have the inventory created by the inventory
+module, as it is now.
+
+The inventory module has no business populating that, and neither
+does the account service. This should be done by an external
+service, since it is only done on account creation.
+
+A meta service, like the LLLoginService, which takes the interfaces
+of both the inventory and avatar services and creates the inventory
+AND appearance and stores it in both would be the correct solution
+to this problem. It would be wrong (and get a -1) to shoehorn this
+into the existing services.
+
+ROBUST services are designed the Unix way. Do one thing, and do it
+well. The inventory service is not meant to access appearance, the
+user account service is not meant to access inventory, and so on.
+
+Such a meta service can then be loaded by the user server, a
+standalone or a web service like Wifi. And, obviously, it's
+configurable, so people who don't want to have a default appearance
+created, because they for instance have already working PHP code
+that would be messed up by preexisting data could just not configure
+it and see no change to current behavior.
+
+Melanie
+
+Justin Clark-Casey wrote:
+&gt;<i> Hi there,
+</I>&gt;<i> 
+</I>&gt;<i> Today, I had an opportunity to do some more work on setting up default clothing/body parts for viewer 2 (this is in the 
+</I>&gt;<i> &quot;viewer-2-initial-appearance&quot; git branch).
+</I>&gt;<i> 
+</I>&gt;<i> I've come to the realization (obvious in retrospect) that giving these items the default item IDs that the viewer wants 
+</I>&gt;<i> in the absence of any other appearance data is not going to work.  This is for the simple reason that item IDs are 
+</I>&gt;<i> primary keys and cannot be shared between avatars.
+</I>&gt;<i> 
+</I>&gt;<i> Therefore, I will need to use a random item ID and use this to set up a default appearance at the same time as the 
+</I>&gt;<i> inventory items are created (currently, the appearance is only generated when the avatar first logs in).
+</I>&gt;<i> 
+</I>&gt;<i> The user account service co-ordinates user account creation.  It seems that the sensible thing is to move default 
+</I>&gt;<i> inventory creation from the inventory service into the user account service.  Folder and item creation would take place 
+</I>&gt;<i> through existing add calls.
+</I>&gt;<i> 
+</I>&gt;<i> The IInventoryService.CreateUserInventory() method would still be called but would only set up the very bare minimum 
+</I>&gt;<i> structure.  In the SL case, this is just the user's root &quot;My Inventory&quot; folder.
+</I>&gt;<i> 
+</I>&gt;<i> The copy/pasted code for setting up estate managers in Scene.SetModuleInterfaces() also has to move.  The sensible thing 
+</I>&gt;<i> seems to be to expose a IUserAccountService.CreateUserAccount() call which is only available to standalones (as is 
+</I>&gt;<i> effectively currently the case).
+</I>&gt;<i> 
+</I>&gt;<i> Commit 50254bf3 on this branch contains a rough version of this change.  The code to set up a default appearance with 
+</I>&gt;<i> random item IDs for default clothing/body parts has not yet been done.
+</I>&gt;<i> 
+</I>&gt;<i> Comments?
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009935.html">[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code
+</A></li>
+	<LI>Next message: <A HREF="009937.html">[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9936">[ date ]</a>
+              <a href="thread.html#9936">[ thread ]</a>
+              <a href="subject.html#9936">[ subject ]</a>
+              <a href="author.html#9936">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

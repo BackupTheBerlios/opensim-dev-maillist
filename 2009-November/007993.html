@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Trust &amp; distributed grids
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Trust%20%26%20distributed%20grids&In-Reply-To=%3Cc5851bcf0911251007r2efc15b0o2a96dc07437dc066%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007992.html">
+   <LINK REL="Next"  HREF="007925.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Trust &amp; distributed grids</H1>
+    <B>Impalah Shenzhou</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Trust%20%26%20distributed%20grids&In-Reply-To=%3Cc5851bcf0911251007r2efc15b0o2a96dc07437dc066%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Trust &amp; distributed grids">impalah at gmail.com
+       </A><BR>
+    <I>Wed Nov 25 19:07:17 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007992.html">[Opensim-dev] Trust &amp; distributed grids
+</A></li>
+        <LI>Next message: <A HREF="007925.html">[Opensim-dev] Leaving Project
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7993">[ date ]</a>
+              <a href="thread.html#7993">[ thread ]</a>
+              <a href="subject.html#7993">[ subject ]</a>
+              <a href="author.html#7993">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Correct me if I'm wrong, please.
+
+X.509 is based on Certificates (and Certification Authorities, and so on),
+so instead of having central servers for authentication, will be created a
+&quot;ring of trust&quot;: I have a certificate from a trusted authority, I can use
+some services from the &quot;trusted domain&quot;...
+
+OAuth is quite similar, so the concepts are &quot;trusted domains&quot; and
+&quot;certification authorities&quot;, isn't it?
+
+Anyway, it's just another way of authentication: I send a certificate
+instead of an user/password pair. The &quot;central servers&quot; (users, inventories,
+grid...) won't dissappear, only the way they talk each other for sharing
+&quot;services&quot;, I think
+
+
+Greetings
+
+
+
+2009/11/25 Infinity Linden (Meadhbh Hamrick) &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">infinity at lindenlab.com</A>&gt;
+
+&gt;<i> this is what we're thinking we're going to do in VWRAP.
+</I>&gt;<i>
+</I>&gt;<i> we're going to define an authentication service that's run by the agent
+</I>&gt;<i> domain. (for peeps new to VWRAP, a &quot;domain&quot; is a collection of network hosts
+</I>&gt;<i> with the same &quot;administrative authority.&quot; the &quot;agent domain&quot; is a domain
+</I>&gt;<i> that provides mostly &quot;agent related&quot; services, including the authentication
+</I>&gt;<i> service.)
+</I>&gt;<i>
+</I>&gt;<i> individual users will authenticate against this authentication service.
+</I>&gt;<i> then some magic happens and the user's avatar is placed in a region in a
+</I>&gt;<i> region domain.
+</I>&gt;<i>
+</I>&gt;<i> the &quot;magic&quot; that happens after user authentication and before the user's
+</I>&gt;<i> avatar gets placed is that the agent domain has to figure out the service
+</I>&gt;<i> URL of the region to place the avatar, and that region has to figure out if
+</I>&gt;<i> it trusts that agent domain.
+</I>&gt;<i>
+</I>&gt;<i> so the current expectation is that we'll probably have a couple large agent
+</I>&gt;<i> domains like secondlife, OSGrid, etc. and maybe even a few managed by large
+</I>&gt;<i> companies for the benefit of their employees. once the user's client
+</I>&gt;<i> application is authenticated to the agent domain, the client application may
+</I>&gt;<i> request that the agent domain place the user's avatar in a region. (note!
+</I>&gt;<i> with VWRAP, you can be authenticated to an agent domain for the purpose of
+</I>&gt;<i> participating in group chat or inventory manipulation without being rezzed
+</I>&gt;<i> in world.)
+</I>&gt;<i>
+</I>&gt;<i> and here's where it gets mildly funky. the agent domain and the region
+</I>&gt;<i> domain need to have _some_ level of trust with each other, or they have to
+</I>&gt;<i> be explicit about the fact that they trust everyone. agent domain
+</I>&gt;<i> authorities may not want to rez an avatar in an untrusted region. the
+</I>&gt;<i> canonical example of this is second life not wanting to rez an avatar and
+</I>&gt;<i> all it's attachments in the &quot;pirate bay&quot; region. some regions may not trust
+</I>&gt;<i> all agent domains. consider a series of regions administered by IBM, for the
+</I>&gt;<i> purpose of transacting IBM business. i'm not an IBM employee, but it seems
+</I>&gt;<i> reasonable they would like to know who's rezzing in their regions, so they
+</I>&gt;<i> may establish a policy of only allowing people with accounts on IBM's agent
+</I>&gt;<i> domain to be able to rez in their region domain.
+</I>&gt;<i>
+</I>&gt;<i> there are currently two proposals for managing this trust. the first
+</I>&gt;<i> utilizes PKIX (which is a subset of X.509) to define semantics for
+</I>&gt;<i> interpreting the subject name of client side certificates in transactions
+</I>&gt;<i> carried over HTTPS. the other is the use of OAuth for one domain to
+</I>&gt;<i> explicitly grant access to another domain's systems for a particular
+</I>&gt;<i> purpose. both systems look like they're going to be fully specified, giving
+</I>&gt;<i> deployers a choice as to which auth scheme they want to use.
+</I>&gt;<i>
+</I>&gt;<i> -cheers
+</I>&gt;<i> -meadhbh
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i>   infinity linden (aka meadhbh hamrick)  *  it's pronounced &quot;maeve&quot;
+</I>&gt;<i>         <A HREF="http://wiki.secondlife.com/wiki/User:Infinity_Linden">http://wiki.secondlife.com/wiki/User:Infinity_Linden</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Tue, Nov 24, 2009 at 06:59, Impalah Shenzhou &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Ok, maybe it's a misunderstood. I will try to explain what I wanted to
+</I>&gt;&gt;<i> know:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Imagine 100000 region servers pretending to be a grid.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> What I understood from Morgaine comment:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             Opensim needs decentralized / distributed mechanisms for *
+</I>&gt;&gt;<i> identity,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> * was
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;I have entered that grid, my authentication was managed by one region
+</I>&gt;&gt;<i> server. When I try to jump to another region in the same grid I have to
+</I>&gt;&gt;<i> authenticate again in the region server and that region server must contain
+</I>&gt;&gt;<i> my data to authenticate me again&quot;.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Nowadays is like: Enter in a grid, being authenticated by a common user
+</I>&gt;&gt;<i> server, when I want to jump to another region in the grid, I don't need to
+</I>&gt;&gt;<i> authenticate me again.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> What I understand with &quot;descentralized&quot; is: each opensim servers has the
+</I>&gt;&gt;<i> mechanisms to authenticate an user even when it is part of a grid.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> And that is what I don't understand: why? why not to surrogate the
+</I>&gt;&gt;<i> authentications to specialized and centralized servers.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> And that was the reason for my question about OpenID, maybe this is a
+</I>&gt;&gt;<i> system considered &quot;decentralized&quot;.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Anyway I can't see anything bad on centralized servers. If anyone wants to
+</I>&gt;&gt;<i> enter in my server he/she have to follow my rules; if I have 1000 servers, I
+</I>&gt;&gt;<i> provide you with a common auth mechanism for accessing all of them.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Or maybe I am completelly wrong.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Greetings
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 2009/11/24 Robert A. Knop Jr. &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">rknop at pobox.com</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I don't know that this really *is* offtopic, unless it's already a
+</I>&gt;&gt;&gt;<i> settled issue amongs the OpenSim devs.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On Tue, Nov 24, 2009 at 02:19:20PM +0100, Impalah Shenzhou wrote:
+</I>&gt;&gt;&gt;<i> &gt; I could trust in you, but you need to tell me &quot;you are really you&quot; with
+</I>&gt;&gt;&gt;<i> a
+</I>&gt;&gt;&gt;<i> &gt; local login (i.e. email headers can be altered to impersonate as
+</I>&gt;&gt;&gt;<i> another
+</I>&gt;&gt;&gt;<i> &gt; person) or someone I trust should tell it to me (i.e. OpenID).
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Do you have any personal web pages anywhere?  Do you run any CGI or any
+</I>&gt;&gt;&gt;<i> PHP there?  Do you identify everybody who comes there?  That's the
+</I>&gt;&gt;&gt;<i> analogy we should think about.  Yes, we need a secure infrastructure so
+</I>&gt;&gt;&gt;<i> that only the small number of people you *really* trust can do scary
+</I>&gt;&gt;&gt;<i> things.  But at the level of running regions -- well, you may be using a
+</I>&gt;&gt;&gt;<i> hosting provider, or you may be hosting yourself, but you don't need
+</I>&gt;&gt;&gt;<i> full and complete trust that everybody is who they claim to be just to
+</I>&gt;&gt;&gt;<i> connect to the world.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --
+</I>&gt;&gt;&gt;<i> --Rob Knop
+</I>&gt;&gt;&gt;<i>  E-mail:    <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">rknop at pobox.com</A>
+</I>&gt;&gt;&gt;<i>  Home Page: <A HREF="http://www.pobox.com/~rknop/&lt;http://www.pobox.com/%7Erknop/">http://www.pobox.com/~rknop/&lt;http://www.pobox.com/%7Erknop/</A>&gt;
+</I>&gt;&gt;&gt;<i>  Blog:      <A HREF="http://www.sonic.net/~rknop/blog/&lt;http://www.sonic.net/%7Erknop/blog/">http://www.sonic.net/~rknop/blog/&lt;http://www.sonic.net/%7Erknop/blog/</A>&gt;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -----BEGIN PGP SIGNATURE-----
+</I>&gt;&gt;&gt;<i> Version: GnuPG v1.4.9 (GNU/Linux)
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> iD8DBQFLC+pcfEn1oMJSrdsRApVqAKCGz8o5gt7vEqvl3HJK07jftpLi5wCg56g+
+</I>&gt;&gt;&gt;<i> oq1mcfGvljoH5K0Y6X/WX9M=
+</I>&gt;&gt;&gt;<i> =bh/M
+</I>&gt;&gt;&gt;<i> -----END PGP SIGNATURE-----
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20091125/8bb894cd/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20091125/8bb894cd/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007992.html">[Opensim-dev] Trust &amp; distributed grids
+</A></li>
+	<LI>Next message: <A HREF="007925.html">[Opensim-dev] Leaving Project
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7993">[ date ]</a>
+              <a href="thread.html#7993">[ thread ]</a>
+              <a href="subject.html#7993">[ subject ]</a>
+              <a href="author.html#7993">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

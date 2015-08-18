@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Dynamic attributes
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Dynamic%20attributes&In-Reply-To=%3C51130D5D.4060504%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011702.html">
+   <LINK REL="Next"  HREF="011696.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Dynamic attributes</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Dynamic%20attributes&In-Reply-To=%3C51130D5D.4060504%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Dynamic attributes">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Feb  7 03:11:41 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011702.html">[Opensim-dev] Dynamic attributes
+</A></li>
+        <LI>Next message: <A HREF="011696.html">[Opensim-dev] Dynamic attributes
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11695">[ date ]</a>
+              <a href="thread.html#11695">[ thread ]</a>
+              <a href="subject.html#11695">[ subject ]</a>
+              <a href="author.html#11695">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 06/02/13 23:00, Mic Bowman wrote:
+&gt;<i> one more thing... is there a strong reason for XML serialization as opposed to json? (I assume the primary reason is for
+</I>&gt;<i> consistency with other properties.) the OSDMap data structure corresponds fairly closely to JSON. serializing works fine
+</I>&gt;<i> for either format though it is easy to provide an xml document that will not deserialize into an OSDMap.
+</I>
+Your assumption is exactly right.  Embedding dynamic attributes as JSON with the rest of the SOP serialization being XML 
+was a new depth of OpenSimulator inconsistency that I couldn't quite stomach.
+
+&gt;<i>
+</I>&gt;<i> --mic
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Feb 6, 2013 at 1:58 PM, Mic Bowman &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     Justin,
+</I>&gt;<i>
+</I>&gt;<i>     I took a look at the DAMap data structure &amp; have some questions. What's the value of explicit methods for the top
+</I>&gt;<i>     level of the structure? It is still possible to have name space collisions since there is nothing that prevents one
+</I>&gt;<i>     module from writing into another module's &quot;name space&quot;. Also, whats your expectation for locking? The top level
+</I>&gt;<i>     accessor locks the structure, but modules that share the rest of the structure will have to do their own locking
+</I>&gt;<i>     anyway. I guess one value of controlling the top level is that *IF* modules are making exclusive access to the
+</I>&gt;<i>     structure, the locking is minimized. Hard to control that, though.
+</I>&gt;<i>
+</I>&gt;<i>     Did you get a chance to look at the JsonStore structure? The path-based accessors are very different than providing
+</I>&gt;<i>     immediate access to the OSDMap. As we discussed, I made that decision to support the synchronization operations
+</I>&gt;<i>     (take &amp; read) and it removes the exposed OSDMap so that the data structure can be replaced. I think the path-based
+</I>&gt;<i>     accessor is probably too heavyweight for DAMap... well... maybe... given that we dont have any examples yet its hard
+</I>&gt;<i>     to tell. :-)
+</I>&gt;<i>
+</I>&gt;<i>     --mic
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     On Mon, Feb 4, 2013 at 5:09 PM, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>         Okay, I have now merged this branch (dynamic-attributes2) to master.  Please report any problems (or fix them :)
+</I>&gt;<i>
+</I>&gt;<i>         As this is experimental functionality, if necessary it can be changed/bug-fixed without any attempt to preserve
+</I>&gt;<i>         existing data.  Any code using it should handle the 'expected data not found' case anyway.
+</I>&gt;<i>
+</I>&gt;<i>         On 26/01/13 19:52, Adams, Robert wrote:
+</I>&gt;<i>
+</I>&gt;<i>             This implementation will work for physics. The physics engine cannot reference Scene (circular reference
+</I>&gt;<i>             madness) so, on creation of the scene's physics instance, I will pass in the instance of DAMap (since it is
+</I>&gt;<i>             defined in OpenSim.Framework) much the same way the asset request method instance is passed in.
+</I>&gt;<i>
+</I>&gt;<i>             I am +2 on this branch's inclusion into master.
+</I>&gt;<i>
+</I>&gt;<i>             -- ra
+</I>&gt;<i>
+</I>&gt;<i>             -----Original Message-----
+</I>&gt;<i>             From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.__berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;
+</I>&gt;<i>             [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at __lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;] On Behalf Of
+</I>&gt;<i>             Justin Clark-Casey
+</I>&gt;<i>             Sent: Friday, January 25, 2013 5:14 PM
+</I>&gt;<i>             To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>             Subject: Re: [Opensim-dev] Dynamic attributes
+</I>&gt;<i>
+</I>&gt;<i>             On 25/01/13 08:40, Oren Hurvitz wrote:
+</I>&gt;<i>
+</I>&gt;<i>                 Ok, great. I hope all goes well and this will be added to master soon.
+</I>&gt;<i>
+</I>&gt;<i>                 What do you mean by &quot;put the code in for MSSQL&quot;? The code already
+</I>&gt;<i>                 supports MySQL, MSSQL and SQLite.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>             Apologies - my brain stored the assumption that only MySQL had been added since that's the only one I
+</I>&gt;<i>             remembered seeing in the commit summaries but I see that the MSSQL code is there.
+</I>&gt;<i>
+</I>&gt;<i>             --
+</I>&gt;<i>             Justin Clark-Casey (justincc)
+</I>&gt;<i>             OSVW Consulting
+</I>&gt;<i>             <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i>             <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>             _________________________________________________
+</I>&gt;<i>             Opensim-dev mailing list
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>             _________________________________________________
+</I>&gt;<i>             Opensim-dev mailing list
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         --
+</I>&gt;<i>         Justin Clark-Casey (justincc)
+</I>&gt;<i>         OSVW Consulting
+</I>&gt;<i>         <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i>         <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>         _________________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011702.html">[Opensim-dev] Dynamic attributes
+</A></li>
+	<LI>Next message: <A HREF="011696.html">[Opensim-dev] Dynamic attributes
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11695">[ date ]</a>
+              <a href="thread.html#11695">[ thread ]</a>
+              <a href="subject.html#11695">[ subject ]</a>
+              <a href="author.html#11695">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

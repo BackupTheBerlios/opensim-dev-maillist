@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-commits] r2309 -	trunk/OpenSim/Region/ClientStack
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r2309%20-%0A%09trunk/OpenSim/Region/ClientStack&In-Reply-To=%3C20071109123649.GL29566%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000401.html">
+   <LINK REL="Next"  HREF="000408.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-commits] r2309 -	trunk/OpenSim/Region/ClientStack</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r2309%20-%0A%09trunk/OpenSim/Region/ClientStack&In-Reply-To=%3C20071109123649.GL29566%40dague.net%3E"
+       TITLE="[Opensim-dev] [Opensim-commits] r2309 -	trunk/OpenSim/Region/ClientStack">sean at dague.net
+       </A><BR>
+    <I>Fri Nov  9 13:36:49 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000401.html">[Opensim-dev] [Opensim-commits] r2309	-	trunk/OpenSim/Region/ClientStack
+</A></li>
+        <LI>Next message: <A HREF="000408.html">[Opensim-dev] [Opensim-commits] r2309 -	trunk/OpenSim/Region/ClientStack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#402">[ date ]</a>
+              <a href="thread.html#402">[ thread ]</a>
+              <a href="subject.html#402">[ subject ]</a>
+              <a href="author.html#402">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Fri, Nov 09, 2007 at 10:30:20AM +0800, Adam Frisby wrote:
+&gt;<i> Alright,
+</I>&gt;<i> 
+</I>&gt;<i> I've implemented a throttling scheme a little, here's how it works:
+</I>&gt;<i> 
+</I>&gt;<i> * In the central ClientLoop() in the UDP clientview it now checks to see 
+</I>&gt;<i> if the user is over a specified throttle limit, if it is, it will 
+</I>&gt;<i> requeue the outbound packet (I'm assuming PacketQueue is FILO)
+</I>
+I'm not sure that this is going to help all that much, those packets
+still need to get out.
+
+&gt;<i> * If we queued the last packet, and we are processing something like 
+</I>&gt;<i> that again, sleep 100ms to prevent a infinite spinlock.
+</I>
+If we only have 1 packet to send, why wouldn't we send it?  I think this
+is going to make the situation worse.  Based on what I saw yesterday, I
+think this would have made the situation fall down much worse.
+
+&gt;<i> In theory this should help out a little during high transfer periods.
+</I>
+I think this is the wrong place to optimize right now.  What we really
+need to do is to figure out how to send less packets.
+
+Yesterday we had a nice test of the system.  Dual 3.6 Ghz box, 4 GB of
+RAM.  With ODE enabled we were able to get about 20 AVs before it was
+running &gt; 100% CPU.  (I'll have to figure out how many physical prims we
+actually had there.)
+
+Once we were at 130% utilization there was at least a 2 second lag in
+movement updates, new users couldn't connect, and chat was laggy like it
+does on the main grid.
+
+If we are going after perf issues, let's not do subtle hackes on the
+packet queue, but actually figure out where we don't really need packets
+being generated in the first place.
+
+     -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071109/6a684f22/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071109/6a684f22/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000401.html">[Opensim-dev] [Opensim-commits] r2309	-	trunk/OpenSim/Region/ClientStack
+</A></li>
+	<LI>Next message: <A HREF="000408.html">[Opensim-dev] [Opensim-commits] r2309 -	trunk/OpenSim/Region/ClientStack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#402">[ date ]</a>
+              <a href="thread.html#402">[ thread ]</a>
+              <a href="subject.html#402">[ subject ]</a>
+              <a href="author.html#402">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] ScriptEvents Module
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20ScriptEvents%20Module&In-Reply-To=%3C50A98B43.6070904%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011499.html">
+   <LINK REL="Next"  HREF="011490.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] ScriptEvents Module</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20ScriptEvents%20Module&In-Reply-To=%3C50A98B43.6070904%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] ScriptEvents Module">diva at metaverseink.com
+       </A><BR>
+    <I>Mon Nov 19 02:28:35 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011499.html">[Opensim-dev] Webrequest to presence service or other robust services.
+</A></li>
+        <LI>Next message: <A HREF="011490.html">[Opensim-dev] ScriptEvents Module
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11489">[ date ]</a>
+              <a href="thread.html#11489">[ thread ]</a>
+              <a href="subject.html#11489">[ subject ]</a>
+              <a href="author.html#11489">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I am working on a module that passes interesting scene events up to the 
+scripts in a manner that's very easy to act upon. An example is attached 
+at the end of this message.
+
+Question: What other events would people like to grab? The idea is to 
+have the module do all the complicated logic, and pass only simple facts 
+to the scripts.
+
+
+     state_entry()
+     {
+         llSay(0, &quot;Script running&quot;);
+         modSendCommand(&quot;Script Events&quot;, &quot;subscribe|AvatarArrived&quot;, 
+llGetKey());
+         modSendCommand(&quot;Script Events&quot;, &quot;subscribe|LastAvatarLeft&quot;, 
+llGetKey());
+     }
+
+     link_message(integer sender_num, integer num, string message, key id)
+     {
+         list parts = llParseString2List(message, [&quot;|&quot;], []);
+         if (llGetListLength(parts) &gt;= 2) {
+             if (llList2String(parts, 1) == &quot;AvatarArrived&quot;) {
+                 // message is: event|AvatarArrived|True or False &lt;-- 
+LocalTeleport or HG Teleport
+                 if (llGetListLength(parts) &gt;= 3) {
+                     if (llList2String(parts, 2) == &quot;True&quot;) {
+                         llInstantMessage(id, &quot;Welcome to the Gateway! 
+Choose your destination by walking into one of the teleporters.&quot;);
+                         llRegionSay(region_channel, &quot;ports foreign&quot;);
+                     } else {
+                         llInstantMessage(id, &quot;Welcome to the Virtual 
+Lab's Gateway! Choose your local destination by walking into one of the 
+teleporters.&quot;);
+                         llRegionSay(region_channel, &quot;ports local&quot;);
+                     }
+                 } else {
+                     llSay(0, &quot;Malformed message &quot; + message + &quot; &quot; + 
+(string)llGetListLength(parts));
+                 }
+                 play_music();
+             } else if (llList2String(parts, 1) == &quot;LastAvatarLeft&quot;) {
+                 // message is: event|LastAvatarLeft
+                 llRegionSay(region_channel, &quot;ports reset&quot;);
+             }
+         }
+     }
+
+</PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011499.html">[Opensim-dev] Webrequest to presence service or other robust services.
+</A></li>
+	<LI>Next message: <A HREF="011490.html">[Opensim-dev] ScriptEvents Module
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11489">[ date ]</a>
+              <a href="thread.html#11489">[ thread ]</a>
+              <a href="subject.html#11489">[ subject ]</a>
+              <a href="author.html#11489">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

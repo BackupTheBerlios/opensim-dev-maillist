@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] VERY STRANGE, BUT EXCITING!!
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20VERY%20STRANGE%2C%20BUT%20EXCITING%21%21&In-Reply-To=%3C4857CA27.8080708%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001842.html">
+   <LINK REL="Next"  HREF="001854.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] VERY STRANGE, BUT EXCITING!!</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20VERY%20STRANGE%2C%20BUT%20EXCITING%21%21&In-Reply-To=%3C4857CA27.8080708%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] VERY STRANGE, BUT EXCITING!!">diva at metaverseink.com
+       </A><BR>
+    <I>Tue Jun 17 16:28:55 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001842.html">[Opensim-dev] VERY STRANGE, BUT EXCITING!!
+</A></li>
+        <LI>Next message: <A HREF="001854.html">[Opensim-dev] VERY STRANGE, BUT EXCITING!!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1853">[ date ]</a>
+              <a href="thread.html#1853">[ thread ]</a>
+              <a href="subject.html#1853">[ subject ]</a>
+              <a href="author.html#1853">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>As far as I can tell,  the teleport code already has a lot of the 
+machinery to TP between any two OpenSims on the internet. Its interface, 
+however, is the limiting factor: instead of being given IP addresses, or 
+some other form of global name, it's given region handles. The code uses 
+the region handle to get at the IP address and port.
+
+(Scenes/SceneCommunicationService.cs)
+
+        public virtual void RequestTeleportToLocation(ScenePresence 
+avatar, ulong regionHandle, LLVector3 position,
+                                                      LLVector3 lookAt, 
+uint flags)
+
+In Terry's case, both DBs shared the region handles and all other 
+identifiers, that's why it worked.
+
+OpenSim is *this* close to supporting interoperability. It &quot;just&quot; needs 
+a bunch of small, but very important, changes in lots of places. And, of 
+course, conceptual clarification of everything related to 
+authentication, trust, and access control, which stand a level above of 
+the intrerop mechanism itself.
+
+Diva / Crista
+
+Stefan Andersson wrote:
+&gt;<i> Terry,
+</I>&gt;<i>  
+</I>&gt;<i> Congratulations to your exciting find. :D
+</I>&gt;<i>  
+</I>&gt;<i> If your database contains information about regions on both grids 
+</I>&gt;<i> (which the dump obviously did) then you will have all regions on the 
+</I>&gt;<i> map - there is nothing filtering regions on grid id.
+</I>&gt;<i>  
+</I>&gt;<i> Now, if the database dump contains valid info about those 
+</I>&gt;<i> external regions, a teleport will succeed, as your internal region 
+</I>&gt;<i> will tell the grid services to tell the external region to expect you. 
+</I>&gt;<i> I guess you have copied the user and authentication data as well?
+</I>&gt;<i>  
+</I>&gt;<i> (There is probably a big gaping security hole here...)
+</I>&gt;<i>  
+</I>&gt;<i> We at Tribal Media have actually contemplated using something like 
+</I>&gt;<i> that to genreate a map including both local and external regions in an 
+</I>&gt;<i> intra/extranet scenario.
+</I>&gt;<i>  
+</I>&gt;<i> The problem is the other way, teleporting back into a local region 
+</I>&gt;<i> from an external region (the external region can't refer to local ip's)
+</I>&gt;<i>  
+</I>&gt;<i> but yeah, there are some interesting inter-grid scenarios with the SL 
+</I>&gt;<i> protocol.
+</I>&gt;<i>  
+</I>&gt;<i> Something for all of you to ponder: The 'Map' is actually a function 
+</I>&gt;<i> of the REGION, so every time you bring the map up, it's the region 
+</I>&gt;<i> you're ON that decides what goes where on the map - NOT the grid.
+</I>&gt;<i>  
+</I>&gt;<i> This allows us to think of the map as a 'link map' with exit points 
+</I>&gt;<i> out of a region, somewhat like hyperlinks or a web sitemap. (The 
+</I>&gt;<i> notion of a region as a 'web page' is a darling of mine)
+</I>&gt;<i>
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Stefan Andersson
+</I>&gt;<i> Tribal Media AB
+</I>&gt;<i>  
+</I>&gt;<i> Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> &gt; Date: Mon, 16 Jun 2008 22:23:42 -0400
+</I>&gt;<i> &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">terry at usfastweb.com</A>
+</I>&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; Subject: [Opensim-dev] VERY STRANGE, BUT EXCITING!!
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Hi all,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I'm not sure how I've done this... but I think I may have stumbled onto
+</I>&gt;<i> &gt; something, although I'm not sure if it is a good thing or a bad thing
+</I>&gt;<i> &gt; but I am excited!
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I have &quot;ACCIDENTALLY&quot; teleported from one grid to another.
+</I>&gt;<i> &gt; Has anyone made any recent changes to move the code towards this
+</I>&gt;<i> &gt; possibility?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I have a grid setup on my local network which is configured with only
+</I>&gt;<i> &gt; &quot;LOCAL&quot; ip addresses &quot;AND&quot; I have a completely separate grid which is
+</I>&gt;<i> &gt; accessible via the internet.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I use the &quot;Local&quot; grid for testing while the internet based grid is for
+</I>&gt;<i> &gt; the public.
+</I>&gt;<i> &gt; These setups are completely isolated from each other.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The only things the &quot;Local&quot; grid shares with the Internet based grid is:
+</I>&gt;<i> &gt; - &quot;SOME&quot; of the region files but these have been changed to reflect
+</I>&gt;<i> &gt; only local ip addresses
+</I>&gt;<i> &gt; - Database info (a dump from the internet based grid was uploaded to a
+</I>&gt;<i> &gt; local machine)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; After starting up each &quot;LOCAL&quot; console and manually configuring each 
+</I>&gt;<i> for
+</I>&gt;<i> &gt; use on the local grid (local MySQL and local ip addresses only) I 
+</I>&gt;<i> logged
+</I>&gt;<i> &gt; in but noticed that the map was showing some of the regions which I had
+</I>&gt;<i> &gt; intentionally omitted from my local setup.
+</I>&gt;<i> &gt; I thought this must be because the region info, etc from my &quot;Internet
+</I>&gt;<i> &gt; DUMP&quot; which I uploaded to my local database was still showing.
+</I>&gt;<i> &gt; Just to see what would happen... I double clicked on one of the 
+</I>&gt;<i> omitted,
+</I>&gt;<i> &gt; but still visible regions and to my surprise... I arrived in that 
+</I>&gt;<i> region
+</I>&gt;<i> &gt; with a message saying that this simulator was running a diff. version.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Confused... wondering how I was in a region that did not exist 
+</I>&gt;<i> locally I
+</I>&gt;<i> &gt; started to investigate.
+</I>&gt;<i> &gt; I was on my Internet based grid!!
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; How in the world did that happen?? It was a smooth teleport ... maybe a
+</I>&gt;<i> &gt; second or 2 longer than I expected but I was on my internet based grid
+</I>&gt;<i> &gt; now instead of my local grid.
+</I>&gt;<i> &gt; To prove to myself this is what happened, I logged into my internet
+</I>&gt;<i> &gt; based grid with another av and sure enough there I was!!
+</I>&gt;<i> &gt; I logged out of the &quot;NET&quot; based grid and logged into my local grid with
+</I>&gt;<i> &gt; the other av.... where my first av was no where to be found.
+</I>&gt;<i> &gt; I checked the map.... seen the &quot;GHOST&quot; regions... double-clicked on one
+</I>&gt;<i> &gt; of them and &quot;POOF&quot; I was on the &quot;NET&quot; based grid with my other av!
+</I>&gt;<i> &gt; Both grids have their own UGAIM servers, but I apparently &quot;SNUCK&quot; right
+</I>&gt;<i> &gt; through them!
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Not sure if this is significant, but it was rather amusing, confusing,
+</I>&gt;<i> &gt; and exciting all at the same time!
+</I>&gt;<i> &gt; I will try to find out if this will work &quot;NET&quot; grid to &quot;NET&quot; grid next!
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; -Terry
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080617/afb28675/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080617/afb28675/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001842.html">[Opensim-dev] VERY STRANGE, BUT EXCITING!!
+</A></li>
+	<LI>Next message: <A HREF="001854.html">[Opensim-dev] VERY STRANGE, BUT EXCITING!!
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1853">[ date ]</a>
+              <a href="thread.html#1853">[ thread ]</a>
+              <a href="subject.html#1853">[ subject ]</a>
+              <a href="author.html#1853">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

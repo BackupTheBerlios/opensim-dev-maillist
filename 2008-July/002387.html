@@ -1,0 +1,384 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] new idea about simcrossing (maybe)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20new%20idea%20about%20simcrossing%20%28maybe%29&In-Reply-To=%3Caf5e8e660807212248h7fb466f9jfe7e821959ee3cc8%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002404.html">
+   <LINK REL="Next"  HREF="002388.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] new idea about simcrossing (maybe)</H1>
+    <B>Lc</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20new%20idea%20about%20simcrossing%20%28maybe%29&In-Reply-To=%3Caf5e8e660807212248h7fb466f9jfe7e821959ee3cc8%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] new idea about simcrossing (maybe)">lcc1967 at gmail.com
+       </A><BR>
+    <I>Tue Jul 22 07:48:21 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002404.html">[Opensim-dev] Startup warnings and messages for 21-Jul-2008 build 5559 opensim.be nightly build
+</A></li>
+        <LI>Next message: <A HREF="002388.html">[Opensim-dev] new idea about simcrossing (maybe)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2387">[ date ]</a>
+              <a href="thread.html#2387">[ thread ]</a>
+              <a href="subject.html#2387">[ subject ]</a>
+              <a href="author.html#2387">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I was borered recently at the office and try to see how we can have a smooth
+simcrossing.
+I don't know how actual simcrossing works, but here is my tough :
+
+
+The idea is using the concept used in GSM cellphone to handle handover
+between two cells without droping the communication.
+
+Concept:
+
+The SimCrossing (SC) is based one several messages exchanged between the
+object (Object), the actual sim (OriginSim) and the next sim (TargetSim).
+The main exchange are located in the HandOverArea (HOarea) located on the
+OriginSim. This area is computed by the viewer for each TargetSim (maximum 4
+).
+
+
+
+ Definition
+
+Name
+
+Description
+
+Comment
+
+Object (OBJ)
+
+Any prims/avt rezzed InWorld that could trigged a SIMCROSSING event
+
+
+   OriginSim (ORIGSIM)
+
+Actual simulator where the object stand BEFORE simcrossing
+
+
+   TargetSim (TARGET)
+
+Simulator where the OBJECT could go
+
+
+   ActiveSet
+
+List containing all the neighborhoods sims and their data (location,ping&#8230;)
+
+
+   HOarea
+
+Logical area defined on the object level where all the messages exchange
+should occured
+
+See figure 1 for more details
+
+
+
+ Definition HOArea
+
+In order to have a smooth transition, we need to determine an HandOver area
+where all the simcrossing messages exchange should happens. This area is
+computed on the object level regarding the ping latency between the Target
+and the object velocity. This area contains a RedZone area where all the
+Simcrossing conditions should be satisfied, otherwise the simcrossing won't
+happen.
+
+
+
+
+
+Phase 1 : Login or rezzing
+
+During the login phase, the object asks the surrounding sims list to its
+actual simulator. We can call this list the ActiveSet .  The ActiveSet
+contains the sim data and their &quot;ping&quot; time.
+
+The object compute the SimCrossing boundaries and determine an &quot;HandOver&quot;
+area with a Redzone area based on the timers (ping + delta). Normaly the
+Handover should be ready before entering the Redzone.
+
+*From*
+
+*To*
+
+*Message*
+
+*Comment*
+
+*Object*
+
+Simulator
+
+SCGetActiveSetReq
+
+Ask the OrigSim a list containing all the neighborhood sims and their
+coordinate, status&#8230;
+
+*OrigSim*
+
+Object
+
+SCGetActiveSetSent
+
+The Sim send all the data to the object
+
+Once the ActiveSet received, the object start pinging all the TargetSims and
+compute its own HOarea based on its velocity and the ping results. This
+action should be performed on regular basis to update the ActiveSet.
+
+
+
+ Phase 2:  Object logged and alive entering in the HandOver Area
+
+On periodic basis, the object send a ping to each simulator on its activeset
+and update their status  accordingly in order to keep an up to date
+neighbored simulator list.
+
+When the object enter in the HandOver area, a message &quot;SimCrossing Request&quot;
+is sent to the Source simulator.  The simulator will relay the message to
+the next Simulator (Target Sim) and will start downloading the object
+context. Those data should include all the running code, the values of the
+code's variables like a memory dump (heap,stack and such).
+
+Case without problem in the HOarea
+
+*From*
+
+*To*
+
+*Message*
+
+*Comment*
+
+*Object*
+
+OrigSim
+
+SCRequest
+
+Contains the TargetSim Id.
+
+*OrigSim*
+
+TargetSim
+
+SCObjReq
+
+Send a simcrossing request to the target sim with all the credentials,
+number of script running&#8230;
+
+*TargetSim*
+
+OrigSim
+
+SCObjAck
+
+If all the credentials and data are ok, the TargetSim sent that message.
+
+*OrigSim*
+
+Object
+
+SCObjAck
+
+The OrigSim send an ACK to the object.
+
+*OrigSim*
+
+TargetSim
+
+SCObjDataSend
+
+The OrigSim start sending the object's data to the TargetSim
+
+*TargetSim*
+
+OrigSim
+
+SCObjDataACK
+
+The TargetSim acknowledge the data and give a sim crossing clearance.
+
+*TargetSim*
+
+OrigSim
+
+SCHoReady
+
+Give the final clearance once the context is ready on the target sim.
+
+
+
+ Case with problem
+
+*From*
+
+*To*
+
+*Message*
+
+*Comment*
+
+*Object*
+
+OrigSim
+
+SCRequest
+
+Contains the TargetSim Id.
+
+*OrigSim*
+
+TargetSim
+
+SCObjReq
+
+Send a simcrossing request to the target sim with all the credentials,
+number of script running&#8230;
+
+*TargetSim*
+
+OrigSim
+
+SCObjReqNAK
+
+The TargetSim reject the request due to xxx reason.
+
+*OrigSim*
+
+Object
+
+SCRequestNAK
+
+The OrigSim sent a rejection message and the object can't perform the sim
+crossing.
+
+
+
+ In any case :
+
+If the object reach the RedZone area before receiving *SCObjDataAck*, a
+velocity slowdown should be trigged to allow the end of the data download.
+We can eventually trigged an LSL state change (tbd).
+
+If the object reach the end of the RedZone before receiving *SCHoReady* the
+object stop the sim crossing and a major failure is trigged. This case
+shouldn't happened.
+
+
+
+ Case when the object didn't want to simcross
+
+If the object leave the HOarea, a message is trigged to release all the data
+on the TargetSim.
+
+*From*
+
+*To*
+
+*Message*
+
+*comment*
+
+*Object*
+
+OrigSim
+
+SCabort
+
+Send an abort message to the OrigSim
+
+*OrigSim*
+
+TargetSim
+
+SCobjAbort
+
+The OrigSim send this message to the TargetSim. The Targetsim clear the
+previous object request data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+ Sim Crossing
+
+When the object reach the simcrossing limit, the viewer switch to the Target
+Sim and the TargetSim send an HandoverCompleted message to the SourceSim.
+
+The SourceSim release the object context.
+
+*From*
+
+*To*
+
+*Message*
+
+*comment*
+
+*OrigSim*
+
+TargetSim
+
+SCperforming
+
+The OrigSim send the last actualized dump from the object to the target sim
+
+*TargetSim*
+
+OrigSim
+
+SCperformed
+
+Acknowledge the sim crossing. The simulator clear the object. The Ho is
+completed
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080722/ea47f295/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080722/ea47f295/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002404.html">[Opensim-dev] Startup warnings and messages for 21-Jul-2008 build 5559 opensim.be nightly build
+</A></li>
+	<LI>Next message: <A HREF="002388.html">[Opensim-dev] new idea about simcrossing (maybe)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2387">[ date ]</a>
+              <a href="thread.html#2387">[ thread ]</a>
+              <a href="subject.html#2387">[ subject ]</a>
+              <a href="author.html#2387">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

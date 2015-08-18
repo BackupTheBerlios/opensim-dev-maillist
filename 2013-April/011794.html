@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] AddRegion() not triggered
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20AddRegion%28%29%20not%20triggered&In-Reply-To=%3C516EA3EB.5090701%40foto50.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011792.html">
+   <LINK REL="Next"  HREF="011799.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] AddRegion() not triggered</H1>
+    <B>FoTo50</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20AddRegion%28%29%20not%20triggered&In-Reply-To=%3C516EA3EB.5090701%40foto50.com%3E"
+       TITLE="[Opensim-dev] AddRegion() not triggered">info at foto50.com
+       </A><BR>
+    <I>Wed Apr 17 15:30:19 CEST 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011792.html">[Opensim-dev] AddRegion() not triggered
+</A></li>
+        <LI>Next message: <A HREF="011799.html">[Opensim-dev] AddRegion() not triggered
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11794">[ date ]</a>
+              <a href="thread.html#11794">[ thread ]</a>
+              <a href="subject.html#11794">[ subject ]</a>
+              <a href="author.html#11794">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Justin
+
+My other 2 modules (search and profile) do not run into this issue, 
+allthough they are more or less structured the same way. The money 
+module is like all my others a shared module. When I add debug lines to 
+the log, I can see it running through &quot;Initialise(IConfigSource source)&quot; 
+and then never hear/read anything of it anymore. Not AddRegion() or 
+RegionLoaded() or anything else ... and it either receives AddRegion for 
+all regions or for none. When I check with &quot;show modules&quot; it tells me 
+that it is not even loaded (running here 0.7.5 stable btw), allthough 
+some custom console commands of the module are working.
+
+Thanks for the hint with the log level of 
+&quot;RegionModulesControllerPlugin&quot;. Turning this to &quot;DEBUG&quot; I get sometimes 
+a line (when it loads correctly) like:
+
+DEBUG - 
+OpenSim.ApplicationPlugins.RegionModulesController.RegionModulesControllerPlugin 
+[REGIONMODULE]: Deferred load of jOpenSimMoneyModule
+and a bit later then
+DEBUG - 
+OpenSim.ApplicationPlugins.RegionModulesController.RegionModulesControllerPlugin 
+[REGIONMODULE]: Adding scene testregion to shared module 
+jOpenSimMoneyModule (deferred)
+
+... but when it fails, it writes only the first one and then later it 
+adds the BetaGridLikeMoneyModule instead, allthough this should be 
+disabled by configuration in OpenSim.ini:
+
+[Startup]
+...
+economymodule = jOpenSimMoneyModule
+...
+
+Also something &quot;interesting&quot;: once it failed to startup correct, it will 
+fail to startup correct most of time later at restart. Renaming the 
+containing folder helps sometimes ?!?!?
+
+Greetz
+Georg
+
+
+
+Am 16.04.2013 22:37, schrieb Justin Clark-Casey:
+&gt;<i> I'm not sure what would cause this behaviour, since AddRegion() should 
+</I>&gt;<i> always be triggered on startup and if there was a general problem then 
+</I>&gt;<i> there would be many problems with core modules.
+</I>&gt;<i>
+</I>&gt;<i> Do any other modules suffer this issue?  Is this a shared or 
+</I>&gt;<i> non-shared module?  Does the module receive AddRegion for other 
+</I>&gt;<i> regions?  Does the module receive other events?
+</I>&gt;<i>
+</I>&gt;<i> You can see more information on module startup if you change the 
+</I>&gt;<i> RegionModulesControllerPlugin log level in OpenSim.exe.config.  In 
+</I>&gt;<i> fairly recent dev versions of OpenSimulator there is also a &quot;show 
+</I>&gt;<i> modules&quot; command which will show loaded modules.
+</I>&gt;<i>
+</I>&gt;<i> On 16/04/13 16:01, FoTo50 wrote:
+</I>&gt;&gt;<i> Hi
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Developing a third party (currency) module I run into some strange 
+</I>&gt;&gt;<i> behaviour. Sometimes AddRegion() is triggered at
+</I>&gt;&gt;<i> startup, sometimes it is not triggered. Does somebody know what could 
+</I>&gt;&gt;<i> cause this behaviour? (running on several
+</I>&gt;&gt;<i> plattforms, but mostly under linux/mono 2.10.8.1)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Greetz
+</I>&gt;&gt;<i> FoTo50 alias Georg
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20130417/d714da13/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20130417/d714da13/attachment.html</A>&gt;
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011792.html">[Opensim-dev] AddRegion() not triggered
+</A></li>
+	<LI>Next message: <A HREF="011799.html">[Opensim-dev] AddRegion() not triggered
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11794">[ date ]</a>
+              <a href="thread.html#11794">[ thread ]</a>
+              <a href="subject.html#11794">[ subject ]</a>
+              <a href="author.html#11794">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

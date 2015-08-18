@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3C4F5ABF47.707%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010957.html">
+   <LINK REL="Next"  HREF="010977.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3C4F5ABF47.707%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sat Mar 10 03:41:11 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010957.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+        <LI>Next message: <A HREF="010977.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10975">[ date ]</a>
+              <a href="thread.html#10975">[ thread ]</a>
+              <a href="subject.html#10975">[ subject ]</a>
+              <a href="author.html#10975">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I already have a working de-duplicating ROBUST asset service using hashing.  It was not at all hard to do (largely 
+because SRAS had already demonstrated how it could be done) so complexity on this end is not an issue.
+
+I have read many articles on filesystem vs blob storage.  There are pros and cons either way.  From what I've read, the 
+performance difference is actually quite small.
+
+As this service is for light to medium use, in my opinion the simplicity of managing just a database wins out over the 
+advantages of a filesystem approach.  Anybody wanting filesystem storage right now can use SRAS [1], which is a third 
+party project developed externally from opensim-core that provides this and other extra features or you can roll your 
+own, which would not be difficult for anybody moderately competent in PHP to do.
+
+If you're running a large grid this is always going to entail extra work and co-ordination of components, just like 
+running a large website.
+
+[1] <A HREF="https://github.com/coyled/sras">https://github.com/coyled/sras</A>
+
+On 09/03/12 04:06, Wade Schuette wrote:
+&gt;<i> Justin,
+</I>&gt;<i>
+</I>&gt;<i> I have to respectfully agree with Cory.
+</I>&gt;<i>
+</I>&gt;<i> Wouldn't something like the following address your valid concerns about complexity and reducing total load as well as
+</I>&gt;<i> perceived system response time to both filing and retrieving assets?
+</I>&gt;<i>
+</I>&gt;<i> First, if you use event-driven processes, there's no reason to rescan the entire database, and by separating the
+</I>&gt;<i> processes into distinct streams, they are decoupled which is actually a good thing and simplifies both sides. There's no
+</I>&gt;<i> reason I can see they need to be coupled, and separating them allows them to be optimized and tested separately, which
+</I>&gt;<i> is a good thing.
+</I>&gt;<i>
+</I>&gt;<i> In fact, the entire deduplication process could run overnight at a low-load time, which is even better, or have multiple
+</I>&gt;<i> &quot;worker&quot; processes assisgned to it, if it's taking too long. Seems very flexible.
+</I>&gt;<i>
+</I>&gt;<i> I'm assuming that a hash-code isn't unique, but just specifies the bucket into which this item can be categorized.
+</I>&gt;<i>
+</I>&gt;<i> When a new asset arrives, if the hash-code already exists, put the unique-ID in a pipe and finish filing it and move on.
+</I>&gt;<i> If the hash-code doesn't already exist, just file it and move on.
+</I>&gt;<i>
+</I>&gt;<i> At the other end of the pipe, this wakes up a process that can, as time allows, check in the background to see if not
+</I>&gt;<i> only the hash-code is the same, but the entire item is the same, and if so, change the handle to point to the existing
+</I>&gt;<i> copy. ( For all I know, this can be done in one step if CRC codes are sufficiently unique, but computing such a code is
+</I>&gt;<i> cpu intensive unless you can do it in hardware.)
+</I>&gt;<i>
+</I>&gt;<i> Of course, now the question arises of what happens when the original person DELETES the shared item. If you have solid
+</I>&gt;<i> database integrity, you only need to know how many pointers to it exist, and if someone deletes &quot;their copy&quot;, you
+</I>&gt;<i> decrease the count by one, and when the count gets to one, the next delete can actually delete the entry.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Wade
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 3/8/12 7:41 PM, Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> On 08/03/12 22:00, Rory Slegtenhorst wrote:
+</I>&gt;&gt;&gt;<i> @Justin
+</I>&gt;&gt;&gt;<i> Can't we do the data de-duplication on a database level? Eg find the duplicates and just get rid of them on a regular
+</I>&gt;&gt;&gt;<i> interval (cron)?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> This would be enormously intricate. Not only would you have to keep rescanning the entire asset db but it adds another
+</I>&gt;&gt;<i> moving part to an already complex system.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010957.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+	<LI>Next message: <A HREF="010977.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10975">[ date ]</a>
+              <a href="thread.html#10975">[ thread ]</a>
+              <a href="subject.html#10975">[ subject ]</a>
+              <a href="author.html#10975">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] varregion and map teleporting improvements
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2014-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20varregion%20and%20map%20teleporting%20improvements&In-Reply-To=%3C52E7B421.20005%40magalaxie.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="012149.html">
+   <LINK REL="Next"  HREF="012151.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] varregion and map teleporting improvements</H1>
+    <B>GarminKawaguichi</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20varregion%20and%20map%20teleporting%20improvements&In-Reply-To=%3C52E7B421.20005%40magalaxie.com%3E"
+       TITLE="[Opensim-dev] varregion and map teleporting improvements">garmin.kawaguichi at magalaxie.com
+       </A><BR>
+    <I>Tue Jan 28 14:44:01 CET 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="012149.html">[Opensim-dev] varregion and map teleporting improvements
+</A></li>
+        <LI>Next message: <A HREF="012151.html">[Opensim-dev] varregion and map teleporting improvements
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12150">[ date ]</a>
+              <a href="thread.html#12150">[ thread ]</a>
+              <a href="subject.html#12150">[ subject ]</a>
+              <a href="author.html#12150">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Le 27/01/2014 17:57, Mister Blue a &#233;crit :
+&gt;<i> Some new commits to the 'varregion' branch in the OpenSimulator source 
+</I>&gt;<i> repository have added better map display and teleporting for large 
+</I>&gt;<i> varregions -- you can now click on a large region in the map and 
+</I>&gt;<i> teleport to that location.
+</I>&gt;<i>
+</I>In the same vein, teleport by &quot;Double Click&quot; within the VarRegion did 
+not work with the version of 2014_01_21;with the latest version, there 
+is an improvement but half the time the teleport goesfailsor sometimes 
+in the wrong place.
+
+With version 2014_01_21 we had a workaround which gave good results 
+(within the VarRegion) :
+
+OpenSim\Region\ClientStack\Linden\UDP\LLClientView.cs
+
+in        private bool HandleTeleportLocationRequest(IClientAPI sender, 
+Packet Pack)
+Ln 8945 before handlerTeleportLocationRequest(this,......
+
+                 //Check if the regionhandle is inside the varRegion
+                 //If true :: change regionhandle &amp; position X Y
+                 uint locx = 0, locy = 0;
+Util.RegionHandleToWorldLoc(tpLocReq.Info.RegionHandle, out locx, out locy);
+                 if ((locx &gt;= m_scene.RegionInfo.WorldLocX) &amp;&amp; (locx &lt;= 
+(m_scene.RegionInfo.WorldLocX + m_scene.RegionInfo.RegionSizeX))
+                     &amp;&amp; (locy &gt;= m_scene.RegionInfo.WorldLocY) &amp;&amp; (locy 
+&lt;= (m_scene.RegionInfo.WorldLocY + m_scene.RegionInfo.RegionSizeY)))
+                 {
+                     tpLocReq.Info.RegionHandle = 
+m_scene.RegionInfo.RegionHandle;
+                     tpLocReq.Info.Position.X += (locx - 
+m_scene.RegionInfo.WorldLocX);
+                     tpLocReq.Info.Position.Y += (locy - 
+m_scene.RegionInfo.WorldLocY);
+                 }
+
+Tested with the last commit (2014_01_28) the results are acceptable.
+Windows 7 and Net4
+VarRegion 1024 x 1024 standalone
+FireStorm and Singularity
+
+If it can inspire you ...
+MML
+
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="012149.html">[Opensim-dev] varregion and map teleporting improvements
+</A></li>
+	<LI>Next message: <A HREF="012151.html">[Opensim-dev] varregion and map teleporting improvements
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12150">[ date ]</a>
+              <a href="thread.html#12150">[ thread ]</a>
+              <a href="subject.html#12150">[ subject ]</a>
+              <a href="author.html#12150">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

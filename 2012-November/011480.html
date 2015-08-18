@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Robust dynamic connector plugins...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Robust%20dynamic%20connector%20plugins...&In-Reply-To=%3C509DEA9E.40104%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011472.html">
+   <LINK REL="Next"  HREF="011484.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Robust dynamic connector plugins...</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Robust%20dynamic%20connector%20plugins...&In-Reply-To=%3C509DEA9E.40104%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Robust dynamic connector plugins...">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sat Nov 10 06:48:14 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011472.html">[Opensim-dev] partially functional	llSetKeyframedMotion	implementation
+</A></li>
+        <LI>Next message: <A HREF="011484.html">[Opensim-dev] Robust dynamic connector plugins...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11480">[ date ]</a>
+              <a href="thread.html#11480">[ thread ]</a>
+              <a href="subject.html#11480">[ subject ]</a>
+              <a href="author.html#11480">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi James.  Sorry it's taken so long for me to reply, various work pressures and other stuff.
+
+Yeah, personally I'm happy going with Mono.Addins.  As you say, we're already using it and going with the MEF would mean 
+rolling a repository system.  Also, I see some talk that Mono.Addins could just use the MEF as it's underlying basis in 
+the future anyway.
+
+Now some other points.
+
+* IRobustConnector appears to assume that all ROBUST plugins implement HTTP handlers.  However, some plugins may just 
+provide extra debug console commands (some such region plugins exist already) or extend other plugins (and thus don't 
+implement their own handlers).  How would these work?  This would also be a problem with IRobustConnector.Configure() 
+passing back a number for the listening port.
+
+* Why provide the option to pull down a bootstrap.ini?  This seems overcomplicated to me but perhaps an example would 
+make it clearer.  And writing this data to an existing ini file makes me a bit nervous, esp. on windows since, for 
+instance, the write could fail if the user also has the file open.
+
+* I think IRobustConnector would be better named IRobustServerInConnector or similar to match XInventoryInConnector, 
+GridInfoServerInConnector, etc. in OpenSim.Server.Handlers.  I like the *InConnnector because this better distinguishes 
+the inbound ROBUST handlers from the simulator outbound requests (which are also called connectors and are, as we know, 
+in OpenSim.Service.Connectors.
+
+In fact, I would personally prefer to see the *InConnectors called something different to make the difference with the 
+outbound connectors much clearer in the code.  However, nothing springs to mind - perhaps InConnector is good enough.
+
+Of course, this isn't helped by the inconsistency in OpenSim.Server.Handlers naming (where most are just named 
+ServerConnector).  Or the fact that these extend ServiceConnector (which implements IServiceConnector) but yet are in a 
+file named ServerConnector.cs.
+
+* From your previous e-mail, I think it would be better to start off with the specific interface for dynamic plugins and 
+then look at modifying IServiceConnector once the code is in core and the implications are understood.
+
+* I certainly think it would be good to extend such a system to region modules.  But I think there are various issues 
+there which I'd prefer to discuss at a later point rather than extend this e-mail.
+
+I also took the liberty of updating <A HREF="http://opensimulator.org/wiki/Feature_Proposals/PluginManager">http://opensimulator.org/wiki/Feature_Proposals/PluginManager</A> with instructions, etc.
+
+Best,
+
+Justin
+
+On 27/10/12 04:11, James Hughes wrote:
+&gt;<i> Fortis used it and it didn't seem a lot different than the way we have been using mono-addins in OpenSim.exe to this
+</I>&gt;<i> point. MEF uses attributes to define, as does most of addins. Some things in mono-addins still need to be defined in the
+</I>&gt;<i> xml manafest files, but most things can be done by attributes. MEF supports management of local assemblies and it
+</I>&gt;<i> doesn't provide tools for repositories and assemblies like mono-addins. Using MEF would require the additional
+</I>&gt;<i> development of those tools. So, the feature set of mono-addins is more complete for this type of work. We already use
+</I>&gt;<i> mono-addins extensively in the region server and it has served us well. It seems that some miss-steps were made in the
+</I>&gt;<i> implementation and need some refactoring (possibly newer versions have resolved issues that caused us to have these
+</I>&gt;<i> workarounds?). But, all in all we have had good results and have a great deal of the work toward managing remote
+</I>&gt;<i> repositories and plugins in the region server done as well. Even if we were just dealing with local assemblies I would
+</I>&gt;<i> see no real technical advantage to using MEF over mono-addins.
+</I>&gt;<i>
+</I>&gt;<i> The mono-addins project is part of the mono git-hub code and has been headed up by Llouis Sanchez, one of the lead Mono
+</I>&gt;<i> developers with Xamarin. And it is used in Monodevelop that is the IDE of their commercial products. So, its heritage is
+</I>&gt;<i> OK and it is actively developed.
+</I>&gt;<i>
+</I>&gt;<i> Thanks
+</I>&gt;<i> BlueWall
+</I>&gt;<i>
+</I>&gt;<i> On 10/26/2012 07:32 PM, Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> My first question is, what do you think of the alternatives to
+</I>&gt;&gt;<i> Mono.Addins, chiefly MEF (Managed Extensibility Framework)? How do they
+</I>&gt;&gt;<i> compare?
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011472.html">[Opensim-dev] partially functional	llSetKeyframedMotion	implementation
+</A></li>
+	<LI>Next message: <A HREF="011484.html">[Opensim-dev] Robust dynamic connector plugins...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11480">[ date ]</a>
+              <a href="thread.html#11480">[ thread ]</a>
+              <a href="subject.html#11480">[ subject ]</a>
+              <a href="author.html#11480">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

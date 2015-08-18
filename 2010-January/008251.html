@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] some scalability tests...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20some%20scalability%20tests...&In-Reply-To=%3Cc5851bcf1001220327o2115bf82w9429552e0440f7f7%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008250.html">
+   <LINK REL="Next"  HREF="008254.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] some scalability tests...</H1>
+    <B>Impalah Shenzhou</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20some%20scalability%20tests...&In-Reply-To=%3Cc5851bcf1001220327o2115bf82w9429552e0440f7f7%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] some scalability tests...">impalah at gmail.com
+       </A><BR>
+    <I>Fri Jan 22 12:27:19 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008250.html">[Opensim-dev] some scalability tests...
+</A></li>
+        <LI>Next message: <A HREF="008254.html">[Opensim-dev] some scalability tests...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8251">[ date ]</a>
+              <a href="thread.html#8251">[ thread ]</a>
+              <a href="subject.html#8251">[ subject ]</a>
+              <a href="author.html#8251">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Just a stupid silly question: standalone or grid mode? If grid: where were
+the ugaim servers? Same machine?
+
+And a comment: 1024 regions? 8 hours for booting? Weird!
+
+
+2010/1/22 Mic Bowman &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A>&gt;
+
+&gt;<i> this is just fyi... and a very positive comment about how far opensim has
+</I>&gt;<i> come in recent months!
+</I>&gt;<i>
+</I>&gt;<i> as part of sizing the hw requirements for a mirror world project we're
+</I>&gt;<i> exploring... we wanted to do some scalability tests on the capacity of
+</I>&gt;<i> individual simulators in terms of the total number of regions. we wanted
+</I>&gt;<i> baseline numbers that focus on just the most simple region configuration: a
+</I>&gt;<i> completely empty region with default terrain. that is... this is JUST
+</I>&gt;<i> simulator overhead.
+</I>&gt;<i>
+</I>&gt;<i> all tests are done on one of our blades... dual proc, quad core with 16G
+</I>&gt;<i> ram running 64bit ubuntu. mono 2.6. and the tests are hosting 1024 regions
+</I>&gt;<i> in a 32x32 grid. the simulator configuration was our standard sciencesim
+</I>&gt;<i> config (XEngine, ODE, groups, wind, sun, etc).
+</I>&gt;<i>
+</I>&gt;<i> the first configuration ran all 1024 regions in *one* simulator. i honestly
+</I>&gt;<i> figured this would crash quickly. it didn't. we managed to get all 1024
+</I>&gt;<i> regions created and running well enough to walk around. it did take almost 8
+</I>&gt;<i> hours to start. the first couple regions were created in 1-2 seconds each.
+</I>&gt;<i> by the end, it was taking 4-5 minutes per region. clearly there is something
+</I>&gt;<i> quadratic in there (stop using linear lists, they are evil! :-). but it
+</I>&gt;<i> could have been the mono garbage collector. who knows... not sure its worth
+</I>&gt;<i> too much investigation because i can't imagine ever running a config like
+</I>&gt;<i> this for real. the simulator did crash when we opened the map in the viewer.
+</I>&gt;<i> the crash was caused because we ran out of sockets. while it was running,
+</I>&gt;<i> the simulator used just over 10G of ram and was running at about 700% CPU
+</I>&gt;<i> utilization (kind of scary to see load averages in the 900 range!).
+</I>&gt;<i>
+</I>&gt;<i> the second configuration ran 16 simulators each with 64 regions. startup
+</I>&gt;<i> took about 30 minutes (each of the 16 simulators avoided the quadratic
+</I>&gt;<i> &quot;knee&quot; we hit with the one big simulator). consumed about 11G of memory and
+</I>&gt;<i> was again consuming essentially all cycles on the machine (completely idle
+</I>&gt;<i> regions aren't very idle). all 16 simulators died just after startup with a
+</I>&gt;<i> &quot;too many open files&quot; error. not sure what caused it, but all of them died
+</I>&gt;<i> loading the same terrain dll as part of some wildcard function looking for
+</I>&gt;<i> dlls. that one is an interesting bug.
+</I>&gt;<i>
+</I>&gt;<i> the final configuration and the one we're shooting for in the short term
+</I>&gt;<i> runs 16 simulators, each with an 8x8 megaregion. again startup was around 40
+</I>&gt;<i> minutes. we might be able to cut that time down by starting all 16
+</I>&gt;<i> simulators simultaneously rather than 4 at a time. i really just wanted to
+</I>&gt;<i> make sure that some of the spikes we see in startup didn't cause failures
+</I>&gt;<i> (some race condition causes all threads to consume maximum processor cycles
+</I>&gt;<i> randomly on startup right now). and, well... it just worked. i figured the
+</I>&gt;<i> viewer would die horribly (it can't handle 250K &quot;real&quot; prims very well) but
+</I>&gt;<i> it survived just fine. turn off far clip with 8x8 megaregions providing
+</I>&gt;<i> neighbors and you are &quot;capable&quot; of contacting simulators in a 24x24 region
+</I>&gt;<i> range!. the view is pretty cool though it seems to not go beyond 12x12. :-)
+</I>&gt;<i> there are a bunch of problems (like you can't see the terrain in the region
+</I>&gt;<i> you're standing in)... but there are a LOT of little humps of terrain in
+</I>&gt;<i> view. oh... and it takes a lot of patience to get everything loaded.
+</I>&gt;<i>
+</I>&gt;<i> so... the conclusion... this opensim thing is pretty amazing! good work
+</I>&gt;<i> everyone.
+</I>&gt;<i>
+</I>&gt;<i> --mic
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20100122/a18834db/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20100122/a18834db/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008250.html">[Opensim-dev] some scalability tests...
+</A></li>
+	<LI>Next message: <A HREF="008254.html">[Opensim-dev] some scalability tests...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8251">[ date ]</a>
+              <a href="thread.html#8251">[ thread ]</a>
+              <a href="subject.html#8251">[ subject ]</a>
+              <a href="author.html#8251">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

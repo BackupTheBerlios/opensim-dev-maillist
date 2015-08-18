@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Needing Mono.Security.dll on Windows at PostgreSQL module
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Needing%20Mono.Security.dll%20on%20Windows%20at%0A%20PostgreSQL%20module&In-Reply-To=%3C525EC037.9060209%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011986.html">
+   <LINK REL="Next"  HREF="011991.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Needing Mono.Security.dll on Windows at PostgreSQL module</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Needing%20Mono.Security.dll%20on%20Windows%20at%0A%20PostgreSQL%20module&In-Reply-To=%3C525EC037.9060209%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Needing Mono.Security.dll on Windows at PostgreSQL module">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed Oct 16 18:35:03 CEST 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011986.html">[Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module
+</A></li>
+        <LI>Next message: <A HREF="011991.html">[Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11990">[ date ]</a>
+              <a href="thread.html#11990">[ thread ]</a>
+              <a href="subject.html#11990">[ subject ]</a>
+              <a href="author.html#11990">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>A small point - can this be in the directory bin/lib/.NET/ rather than Windows/?  This makes it clear that it's a 
+library directory and only required under .NET (since you can theoretically run Mono in Windows, though admittedly 
+probably pretty much nobody does this).
+
+On 16/10/13 12:49, Fernando Francisco de Oliveira wrote:
+&gt;<i> Yesterday I tested my code, and already patched it to load the Mono.Security.dll from bin/windows folder only when the
+</I>&gt;<i> program was running on windows.
+</I>&gt;<i>
+</I>&gt;<i> It was put at first attempt to load it from PGSQL module. and it worked fine at windows. I didn't tested on linux yet.
+</I>&gt;<i> and still need to test also on Robust.
+</I>&gt;<i>
+</I>&gt;<i> The implementation was exacly what Sean described, an event that is fired when any assembly isnt found at default
+</I>&gt;<i> directories, then I verify if it is running Mono environment and only use Assembly.Load when it's not. The librarie is
+</I>&gt;<i> stored at bin/windows folder, so the program don't load it unless for this code.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Fernando Oliveira
+</I>&gt;<i> <A HREF="http://oliveira.eti.br">http://oliveira.eti.br</A>
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="http://twitter.com/oliveira_lands">http://twitter.com/oliveira_lands</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> 2013/10/16 Latif Khalifa &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">latifer at streamgrid.net</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">latifer at streamgrid.net</A>&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>     We used to ship  Mono.Security.dll with libopenmetaverse. It caused
+</I>&gt;<i>     all sorts of trouble for Linux users, because mono on startup will
+</I>&gt;<i>     load the one from cwd preferably. So shipping it in bin/windows that
+</I>&gt;<i>     mono will not know about is the only way to go.
+</I>&gt;<i>
+</I>&gt;<i>     I wish we thought of this approach back then ;)
+</I>&gt;<i>
+</I>&gt;<i>     On Wed, Oct 16, 2013 at 5:08 AM, Fernando Francisco de Oliveira
+</I>&gt;<i>     &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">fernando at oliveira.eti.br</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">fernando at oliveira.eti.br</A>&gt;&gt; wrote:
+</I>&gt;<i>      &gt; Hello
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; I was investigating the bug
+</I>&gt;<i>      &gt; (<A HREF="http://opensimulator.org/mantis/view.php?id=6803">http://opensimulator.org/mantis/view.php?id=6803</A>) found that
+</I>&gt;<i>      &gt; Mono.Security.dll which is packaged with Npgsql.dll library is needed on
+</I>&gt;<i>      &gt; Windows, but can't be distributed on Linux, because mono already have it and
+</I>&gt;<i>      &gt; gives conflicts error.
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; I would like to discuss about distributing the Mono.Security.dll on a folder
+</I>&gt;<i>      &gt; above bin like &quot;bin/windows&quot; folder, which could contains the libraries that
+</I>&gt;<i>      &gt; only is needed on windows.
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; I did a change on PGSQL project to load dynamicaly Mono.Security only if
+</I>&gt;<i>      &gt; it's running on Windows, and from that folder.
+</I>&gt;<i>      &gt; If it running on Mono, it load it from GAC (if available) and don't load the
+</I>&gt;<i>      &gt; windows dll.
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; <A HREF="http://pastebin.com/WdzfmbSr">http://pastebin.com/WdzfmbSr</A>
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; Let's talk about it ?
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; Fernando Oliveira
+</I>&gt;<i>      &gt; <A HREF="http://oliveira.eti.br">http://oliveira.eti.br</A>
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; _______________________________________________
+</I>&gt;<i>      &gt; Opensim-dev mailing list
+</I>&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011986.html">[Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module
+</A></li>
+	<LI>Next message: <A HREF="011991.html">[Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11990">[ date ]</a>
+              <a href="thread.html#11990">[ thread ]</a>
+              <a href="subject.html#11990">[ subject ]</a>
+              <a href="author.html#11990">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

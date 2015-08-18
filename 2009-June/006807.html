@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] RFC/Proposal: Explicitly serializing SOP rather than relying on .NET automatic serialization.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC/Proposal%3A%20Explicitly%20serializing%20SOP%20rather%0A%20than%20relying%20on%20.NET%20automatic%20serialization.&In-Reply-To=%3C4A2E9984.1060009%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006806.html">
+   <LINK REL="Next"  HREF="006951.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] RFC/Proposal: Explicitly serializing SOP rather than relying on .NET automatic serialization.</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC/Proposal%3A%20Explicitly%20serializing%20SOP%20rather%0A%20than%20relying%20on%20.NET%20automatic%20serialization.&In-Reply-To=%3C4A2E9984.1060009%40googlemail.com%3E"
+       TITLE="[Opensim-dev] RFC/Proposal: Explicitly serializing SOP rather than relying on .NET automatic serialization.">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Jun  9 19:19:00 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006806.html">[Opensim-dev] RFC/Proposal: Explicitly serializing SOP rather than relying on .NET automatic serialization.
+</A></li>
+        <LI>Next message: <A HREF="006951.html">[Opensim-dev] CONSOLE CLEANUP
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6807">[ date ]</a>
+              <a href="thread.html#6807">[ thread ]</a>
+              <a href="subject.html#6807">[ subject ]</a>
+              <a href="author.html#6807">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Frisby, Adam wrote:
+&gt;<i> Speak with Mikko - he wrote a manual parser that reads our formats. We needed it at the time for ModRex.
+</I>&gt;<i> 
+</I>
+Thanks Adam, I will contact Mikko.
+
+&gt;<i> Overall however +1 on a explicit serialisation. Please leave some room to allow us to tag metadata in too.
+</I>
+Just to be clear, explicit serialization will match exactly what is currently being done by the .NET XmlSerializer, 
+including its tolerance for missing or extraneous XML elements.  This proposal is about making evolution possible rather 
+than actually doing it.
+
+&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;&gt;<i> Sent: Tuesday, 9 June 2009 9:04 AM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: [Opensim-dev] RFC/Proposal: Explicitly serializing SOP rather
+</I>&gt;&gt;<i> than relying on .NET automatic serialization.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi there,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> (For reference, I've reproduced this rfc at
+</I>&gt;&gt;<i> <A HREF="http://opensimulator.org/wiki/Explicit_Object_Serialization">http://opensimulator.org/wiki/Explicit_Object_Serialization</A> but any
+</I>&gt;&gt;<i> comments
+</I>&gt;&gt;<i> can be made here).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Up until now, when we've needed to serialize scene objects (for storage
+</I>&gt;&gt;<i> in inventory, movement over region borders,
+</I>&gt;&gt;<i> etc.), we've done so using .NET's automatic XML serialization
+</I>&gt;&gt;<i> capabilities (XmlSerializer).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> .NET XML serialization is convenient when completely adding or removing
+</I>&gt;&gt;<i> properties - extraneous XML elements can be
+</I>&gt;&gt;<i> simply ignored and missing ones just result in the use of a default
+</I>&gt;&gt;<i> value.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But if one wants to change an existing element then things get much
+</I>&gt;&gt;<i> more difficult.  For instance, suppose that you want
+</I>&gt;&gt;<i> to change the existing UUID CreatorID of SceneObjectPart to be a string
+</I>&gt;&gt;<i> instead.  Because the CreatorID uses
+</I>&gt;&gt;<i> OpenMetaverse's UUID object, .NET serialization of this produces the
+</I>&gt;&gt;<i> following
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &lt;CreatorID&gt;&lt;Guid&gt;a6dacf01-4636-4bb9-8a97-
+</I>&gt;&gt;<i> 30609438af9d&lt;/Guid&gt;&lt;/CreatorID&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Simply changing the CreatorID type to String in SceneObjectPart will
+</I>&gt;&gt;<i> cause .NET to look for
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &lt;CreatorID&gt;a6dacf01-4636-4bb9-8a97-30609438af9d&lt;/CreatorID&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> on deserialization, making older assets incompatible.  The alternative
+</I>&gt;&gt;<i> approach of adding a string CreatorID property
+</I>&gt;&gt;<i> alongside the existing UUID one (e.g. have both CreatorID and
+</I>&gt;&gt;<i> CreatorIDFull in SceneObjectPart) quickly runs into very
+</I>&gt;&gt;<i> nasty problems with keeping the fields in sync.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Therefore, I propose that for SceneObjectPart (and later
+</I>&gt;&gt;<i> TaskInventoryDictionary) we switch to explicit XML reading and
+</I>&gt;&gt;<i> writing rather than using .NET serialization.  This will allow object
+</I>&gt;&gt;<i> serializations to evolve without adding
+</I>&gt;&gt;<i> increasingly odd code to keep automatic serialization working, if
+</I>&gt;&gt;<i> that's possible at all (we already have some nasty
+</I>&gt;&gt;<i> find and replace stuff in
+</I>&gt;&gt;<i> SceneObjectSerializer.FromOriginalXmlFormat()).  Serialization formats
+</I>&gt;&gt;<i> will also gain explicit
+</I>&gt;&gt;<i> version numbers.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Other parts of scene object serialization, such as script state, will
+</I>&gt;&gt;<i> remain as they are now.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Being explicit about serialization may also promote interop and
+</I>&gt;&gt;<i> modularization.  Explicit serialization can be moved
+</I>&gt;&gt;<i> away from core and into modules rather than requiring .NET XML
+</I>&gt;&gt;<i> serialization attributes on fields in SceneObjectPart.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Naturally, I expect that OpenSim out of the box will always be
+</I>&gt;&gt;<i> compatible with older serialization formats - migrating
+</I>&gt;&gt;<i> existing scene object assets is not realistically possible.  Also, I
+</I>&gt;&gt;<i> propose that the behaviour when adding or removing
+</I>&gt;&gt;<i> scene object elements (as opposed to changing them) remain the same as
+</I>&gt;&gt;<i> it does with .NET serialization.  In other words,
+</I>&gt;&gt;<i> older region simulators will able to read newer object serializations
+</I>&gt;&gt;<i> simply by ignoring the extra elements.  Only
+</I>&gt;&gt;<i> changes to existing elements will require a region simulator upgrade
+</I>&gt;&gt;<i> and these should be rare.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Comments?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> justincc
+</I>&gt;&gt;<i> Justin Clark-Casey
+</I>&gt;&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006806.html">[Opensim-dev] RFC/Proposal: Explicitly serializing SOP rather than relying on .NET automatic serialization.
+</A></li>
+	<LI>Next message: <A HREF="006951.html">[Opensim-dev] CONSOLE CLEANUP
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6807">[ date ]</a>
+              <a href="thread.html#6807">[ thread ]</a>
+              <a href="subject.html#6807">[ subject ]</a>
+              <a href="author.html#6807">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

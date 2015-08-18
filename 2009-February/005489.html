@@ -1,0 +1,406 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Comms Manager
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C593474.37323.qm%40web23004.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005488.html">
+   <LINK REL="Next"  HREF="005490.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Comms Manager</H1>
+    <B>MW</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C593474.37323.qm%40web23004.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Comms Manager">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Fri Feb 27 00:27:21 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005488.html">[Opensim-dev] Comms Manager
+</A></li>
+        <LI>Next message: <A HREF="005490.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5489">[ date ]</a>
+              <a href="thread.html#5489">[ thread ]</a>
+              <a href="subject.html#5489">[ subject ]</a>
+              <a href="author.html#5489">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Or a slightly different approach would be to add a security level as a a param of the RegisterInterface method. 
+
+So that a module could register multiple interface with different security levels. Its then up to the application/loader which componets get access to which interfaces (or in our implementation which registries those interfaces would be added to)
+
+Anyway these are just ideas at the moment. The base system we have agreed to (unless anyone else objects) is the IApplicationPlugin being able to register to the ApplicationRegistry and to Scenes as it choices. Then having a ApplicationPlugin that is a loader of IService modules. So these ideas are just about how that loader handles things. 
+
+--- On Thu, 26/2/09, MW &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt; wrote:
+From: MW &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt;
+Subject: Re: [Opensim-dev] Comms Manager
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Thursday, 26 February, 2009, 11:17 PM
+
+On that subject I keep coming back to the idea that there should be two register Interface methods.
+
+
+
+And my lastest idea is about having the concept of Primary Registry and
+Secondary Registry as a concept in the IServiceCore interface.
+
+
+
+The primary registry will be the protected Application registry, that
+only privileged components should have access to. And the secondary
+Registry is lower security.
+
+
+
+Then a IServiceModule can decide if it wants to register with the
+secondary Registry at all. A module could also register different
+interfaces to each Registry. So say a cut down interface to the
+Secondary Registry.
+
+
+
+In the context of a ServiceModule being loaded into a Grid server, it
+won't make any difference as (currently) they won't have any secondary
+Registries, so those methods will just be stubbs.
+
+
+
+But in the context of it being loaded into the region server. The
+loader will handle the automagic of adding all modules, that have
+registered with the secondary Registry, to the Scenes.
+
+
+
+So we would have two register methods like:
+
+
+
+&#160; void RegisterPrimaryInterface&lt;T&gt;(T iface);
+
+&#160; void RegisterSecondaryInterface&lt;T&gt;(T iface);
+
+--- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+Subject: Re: [Opensim-dev] Comms Manager
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Thursday, 26 February, 2009, 8:50 PM
+
+Yes, Sounds good. It will, of course, expose _all_ service modules to all
+Scenes. If that is wanted in the long run is another question.
+
+But, +1
+
+Melanie
+
+MW wrote:
+&gt;<i> Well I think the compromise we basically agreed on is that we go with
+</I>IApplicationPlugins being able to register to the ApplicationRegistry and also
+(via OnRegionCreated events) to the scenes. 
+&gt;<i> And then for the service modules, we can have a loader that itself is a
+</I>IApplicationPlugin that loads the service
+ modules (IServiceModule) and does the
+auto registering for them. This way at least this automagic is out of the core
+opensimbase (etc). 
+&gt;<i> --- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;<i> From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;<i> Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Date: Thursday, 26 February, 2009, 8:37 PM
+</I>&gt;<i> 
+</I>&gt;<i> Well, if it gets that evil, then we might as well stick with plan A. As
+</I>long as this &quot;All region&quot; registration is in that specific application
+module, and not global.
+&gt;<i> I believe modules written to load into region servers should also handle
+</I>this explicitly.
+&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> MW wrote:
+</I>&gt;&gt;&gt;<i> A couple of issues/questions are:
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> How would a Region/ServiceModule say what interface it wanted to
+</I>register, it might implement a
+ couple but only want to register one,
+&gt;<i> or 
+</I>&gt;&gt;&gt;<i> it might want to register its class type.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> :(  Yeah, you're right - for some reason I forgot that you have to
+</I>&gt;<i> explicitly name the interface when you make the 
+</I>&gt;&gt;<i> RegisterModuleInterface() call.  e.g.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> RegisterModuleInterface&lt;IHappyModuleMethods&gt;(this);
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I don't believe this can be achieved via reflection.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> However, I think you could still indicate which interfaces should be
+</I>&gt;<i> exposed to the region by adding attributes to them. 
+</I>&gt;&gt;<i>   For example, in Initialise() you could do something like
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>
+</I>RegistryManager.RegisterModuleInterface&lt;IHappyModuleMethods&gt;(this);
+&gt;&gt;<i> 
+</I>&gt;&gt;<i> And annotate the interfaces with something like
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> [ServiceInterface]
+</I>&gt;&gt;<i> public interface IHappyModuleMethods { ...
+</I> }
+&gt;&gt;<i> 
+</I>&gt;&gt;<i> In a region server, the interface would be added to the region
+</I>registry. 
+&gt;<i> In a grid server, the interface would be added 
+</I>&gt;&gt;<i> to the grid registry.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> If one wanted a non-region 'application only' interface in the
+</I>&gt;<i> region server, then one could perhaps also add
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> [ApplicationInterface]
+</I>&gt;&gt;<i> public interface IEvilApplicationMethods { ... }
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> with
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i>
+</I>RegistryManager.RegisterModuleInterface&lt;IEvilApplicationMethods&gt;(this);
+&gt;&gt;<i> 
+</I>&gt;&gt;<i> In a region service this could be added only to the application
+</I>registry
+&gt;<i> and not the region registry.  In a grid service 
+</I>&gt;&gt;<i> it would still be added to the single grid registry.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> This is getting messy though and I'm not sure how much it buys you
+</I>&gt;<i> over simply indicating the 'type' (service or
+</I> 
+&gt;&gt;<i> application) when you initially register it.  Mostly this all becomes
+</I>a
+&gt;<i> refinement of your earlier
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> void RegisterInterfaceToAllRegistries&lt;T&gt;(T iface);
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> And I'm taking it we would still have the ApplicationPlugin
+</I>that
+&gt;<i> could 
+</I>&gt;&gt;&gt;<i> register with what regions it wanted, so would still need the
+</I>Scene.RegisterModule&lt;&gt;() interface for them.
+&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> --- On *Thu, 26/2/09, Justin Clark-Casey
+</I>&gt;<i> /&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;/* 
+</I>&gt;&gt;&gt;<i> wrote:
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     From: Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;
+</I>&gt;&gt;&gt;<i>     Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;&gt;<i>     To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i>     Date: Thursday, 26 February, 2009, 7:07 PM
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     MW wrote:
+</I>&gt;&gt;&gt;<i>    
+</I> &gt; I'm not actually bothered about the interface per se.
+&gt;<i> What I require
+</I>&gt;&gt;&gt;<i>     is     &gt; to be able to dynamically load generic modules
+</I>that no where
+&gt;<i> in that 
+</I>&gt;&gt;&gt;<i>     &gt; module does it know about IScene/Scene.
+</I>&gt;&gt;&gt;<i>     &gt;     &gt; I actually see your approach as complex because
+</I>it demands
+&gt;<i> they need to 
+</I>&gt;&gt;&gt;<i>     &gt; know how to register to a scene themselves when these
+</I>types
+&gt;<i> shouldn't 
+</I>&gt;&gt;&gt;<i>     &gt; need to know. The types of modules I mean are ones where
+</I>they
+&gt;<i> just want 
+</I>&gt;&gt;&gt;<i>     &gt; to register with the Core/Application and be accessed
+</I>from
+&gt;<i> anywhere in 
+</I>&gt;&gt;&gt;<i>     &gt;
+</I>&gt;&gt;&gt;<i>      the application.
+</I>&gt;&gt;&gt;<i>     &gt;     &gt; Of course this module type doesn't fit all
+</I>needs, but
+&gt;<i> thats what
+</I>&gt;&gt;&gt;<i>     I'm     &gt; saying its not right to try to find a single
+</I>solution
+ that
+&gt;<i> fits all 
+</I>&gt;&gt;&gt;<i>     &gt; needs and turns out to be more complex than some modules
+</I>&gt;<i> require. And we 
+</I>&gt;&gt;&gt;<i>     &gt; shouldn't rule out such generic modules.
+</I>&gt;&gt;&gt;<i>     &gt;     &gt; Now we could still do meet the above requirement
+</I>with you
+&gt;<i> system, but it 
+</I>&gt;&gt;&gt;<i>     &gt; would mean doing some automagic in a ApplicationPlugin
+</I>(or
+&gt;<i> whatever 
+</I>&gt;&gt;&gt;<i>     &gt; interface they used) loader.
+</I>&gt;&gt;&gt;<i>     &gt;     &gt; As the loader would have to provide its own
+</I>IServiceCore
+&gt;<i> implementation, 
+</I>&gt;&gt;&gt;<i>     &gt; that it passed to the IServiceModules that it loaded,
+</I>then it
+&gt;<i> would need 
+</I>&gt;&gt;&gt;<i>     &gt; to as your examples show handle scene creation and
+</I>register
+&gt;<i> the all the 
+</I>&gt;&gt;&gt;<i>     &gt; IServiceModules with those.
+</I>&gt;&gt;&gt;<i>     &gt;     &gt; This it does get complex, where the simply
+</I>solution and
+ the
+&gt;<i> one I favour 
+</I>&gt;&gt;&gt;<i>     &gt; is to just have a sharedRegistry that scenes can access.
+</I>&gt;&gt;&gt;<i>      The whole     &gt; automagic came from me trying to find a
+</I>compromise that met
+&gt;<i> your ideas. 
+</I>&gt;&gt;&gt;<i>     &gt; I really dislike it though, but we just need to find a
+</I>&gt;<i> compromise as we 
+</I>&gt;&gt;&gt;<i>     &gt; both have slighly different ideas and requirements.
+</I>&gt;&gt;&gt;<i>     &gt;     &gt; Thats why I would like to hear from other
+</I>people.
+&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     Okay, it seems to me that the chief problem now is that MW
+</I>would
+&gt;<i> like to
+</I>&gt;&gt;&gt;<i>     exposed service module methods to regions     without having
+</I>to put any IScene methods in the module code,
+&gt;<i> allowing it to be
+</I>&gt;&gt;&gt;<i>     used for both the region server and grid     servers.
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     This is possible if all the service methods are exposed to the
+</I>&gt;<i>
+</I> region. 
+&gt;&gt;&gt;<i>     However, Melanie doesn't like this because it     will
+</I>expose some methods that regions should arguably not be able
+&gt;<i> to get at
+</I>&gt;&gt;&gt;<i>     (such as     IInventoryService.CreateNewUserInventory()).
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     I would tend to think that we shouldn't expose such
+</I>service
+&gt;<i> methods to
+</I>&gt;&gt;&gt;<i>     regions.
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     Neither side likes automagic by the
+</I>&gt;&gt;&gt;<i>      core code, but I think a little bit of it
+</I>&gt;&gt;&gt;<i>     will help here.  Instead of having methods     such as
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     void RegisterInterfaceToAllRegistries&lt;T&gt;(T iface);
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     we instead annotate service modules with [RegionModule] and
+</I>region
+&gt;<i> interfaces
+</I>&gt;&gt;&gt;<i>     with [RegionInterface].  Grid modules     which can also
+</I>provide region services are annotated in this way. 
+&gt;<i> When
+</I> the
+&gt;&gt;&gt;<i>     core code goes to load them, the     [RegionInterface] tagged
+</I>interfaces are automatically registered
+&gt;<i> with the
+</I>&gt;&gt;&gt;<i>     region registry.  This replaces     RegisterModuleInterface().
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     It also requires that IServiceModule and IRegionModule are
+</I>&gt;<i> collapsed together,
+</I>&gt;&gt;&gt;<i>     by removing the IScene references in     IRegionModule. 
+</I>Instead, these are passed in via the OnNewScene()
+&gt;<i> event talked
+</I>&gt;&gt;&gt;<i>     about earlier.
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     In this way, service/application modules that aren't
+</I>&gt;<i> interested in scenes
+</I>&gt;&gt;&gt;<i>     don't need to do any extra work apart from     tagging the
+</I>module/interfaces appropriately, avoiding the
+&gt;&gt;&gt;<i>      boilerplate of
+</I>&gt;&gt;&gt;<i>     separately registering the interface to each     region.  The
+</I>regions still don't have access to
+&gt;<i>
+</I> inter-service/non-region
+&gt;&gt;&gt;<i>     interfaces.
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     This does require a separate service registry hidden from the
+</I>&gt;<i> Region/Scene so
+</I>&gt;&gt;&gt;<i>     that services can communicate among     themselves (e.g. the
+</I>user service needs to call the inventory
+&gt;<i> service to create
+</I>&gt;&gt;&gt;<i>     new user inventories).  There would be 2     registries in
+</I>total.
+&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i>     Please excuse me if I haven't fully grokked all the
+</I>previous
+&gt;<i> posts on this
+</I>&gt;&gt;&gt;<i>     thread.
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i> 
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i>
+</I> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>       
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+
+
+
+      _______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+      
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090226/697a6854/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090226/697a6854/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005488.html">[Opensim-dev] Comms Manager
+</A></li>
+	<LI>Next message: <A HREF="005490.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5489">[ date ]</a>
+              <a href="thread.html#5489">[ thread ]</a>
+              <a href="subject.html#5489">[ subject ]</a>
+              <a href="author.html#5489">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

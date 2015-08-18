@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Implemented oar merge facility
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Implemented%20oar%20merge%20facility&In-Reply-To=%3CF701CD3EA52BFF4084E313DA9B0274215614%40dt-svr-1.dreamtechnologies.co.uk%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008018.html">
+   <LINK REL="Next"  HREF="008020.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Implemented oar merge facility</H1>
+    <B>Adelle Fitzgerald</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Implemented%20oar%20merge%20facility&In-Reply-To=%3CF701CD3EA52BFF4084E313DA9B0274215614%40dt-svr-1.dreamtechnologies.co.uk%3E"
+       TITLE="[Opensim-dev] Implemented oar merge facility">Adelle at DreamTechnologies.co.uk
+       </A><BR>
+    <I>Mon Nov 30 03:12:12 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008018.html">[Opensim-dev] Implemented oar merge facility
+</A></li>
+        <LI>Next message: <A HREF="008020.html">[Opensim-dev] Implemented oar merge facility
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8023">[ date ]</a>
+              <a href="thread.html#8023">[ thread ]</a>
+              <a href="subject.html#8023">[ subject ]</a>
+              <a href="author.html#8023">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have quite happily saved and loaded OARs in excess of 500Mb from a DSL
+connection to a local region (on my DSL in the UK) running on OSgrid.
+They take a long time due to my connection; in excess of a few hours,
+but I have not yet had an OAR fail on save or load (great work Justin
+CC!)
+
+This is however the traditional load/save OAR, I have yet to try the OAR
+merge.
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin
+Clark-Casey
+Sent: 28 November 2009 13:43
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Implemented oar merge facility
+
+Jeroen van Veen wrote:
+&gt;<i> awesome! is there a maximum filesize for this? I can imagine that
+</I>20mb+ oar 
+&gt;<i> files may cause problems? I would like to implement an oar template 
+</I>&gt;<i> loader/saver into a webinterface. This would really make things
+</I>easier. Any 
+&gt;<i> suggestions how to make save-oar work in a centralized infrastructure?
+</I>
+I tried the opensim-openvce.oar file at
+<A HREF="http://openvce.net/resources/downloads/">http://openvce.net/resources/downloads/</A> 
+which is 24Mb and this worked fine - I don't think there will be any
+limit on size.
+
+I made a blog post about this at
+
+<A HREF="http://justincc.org/blog/2009/11/27/load-opensim-regions-oars-directly-f">http://justincc.org/blog/2009/11/27/load-opensim-regions-oars-directly-f</A>
+rom-the-web/
+
+but forgot to announce it here, so thanks Chris!
+
+And Chris is right - this has actually been in the code for a long
+while, at 
+least since 0.6.6.  I'm always astounded that people put this stuff in
+but don't 
+announce it (I didn't write the original code).  Indeed, I'd completely 
+forgotten about it until I had a bout of laziness today when I wanted to
+try out 
+the new OpenVCE/Clever Zebra OAR.
+
+And when I did try it I found that it didn't work initially because that
+OAR 
+wasn't registered with the MIME type &quot;application/x-oar&quot; on the
+webserver.  So 
+the tweak I made yesterday (and backported to 0.6.8.RC1) was to disable
+the 
+check - I don't think that it's particularly important since with &quot;load
+oar&quot; 
+we're always trying to load an OAR - we don't need to perform different
+actions 
+depending on what the file actually is.
+
+So as Chris said, this should also work on older OpenSim versions (at
+least 
+0.6.6 and perhaps earlier).  The reason why I didn't really publicize
+this fact 
+is that I wanted to avoid problems where people tried to download an OAR
+with an 
+older version of OpenSim and found that they couldn't because a MIME
+type on the 
+webserver hadn't been set appropriately, particularly since 0.6.8 will
+remove 
+this issue.  But that's just a personal judgement - if people do want to
+talk 
+about then don't let me stop you :)
+
+&gt;<i> 
+</I>&gt;<i> Jeroen
+</I>&gt;<i> 
+</I>&gt;<i> Op vrijdag 27 november 2009 22:54:48 schreef Chris Hart:
+</I>&gt;&gt;<i> Partially in response to this thread, and in response to Justin's
+</I>latest
+&gt;&gt;<i> commit to implement web loading of OAR files (which he also kindly
+</I>added
+&gt;&gt;<i> to 0.6.8-post-fixes) - Justin enabled the following as valid syntax:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Load oar <A HREF="http://path.to/oarfile.oar">http://path.to/oarfile.oar</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So you can host OAR files on a web server and now load them without
+</I>&gt;&gt;<i> having them locally.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> That said, from looking at the code changes, this has actually been
+</I>&gt;&gt;<i> possible for a long time if you have registered the mime type for
+</I>.oar
+&gt;&gt;<i> on your web server.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On a website hosted on a Windows server with IIS7 I just added the
+</I>file
+&gt;&gt;<i> extension .oar and set it to serve up &quot;application/x-oar&quot; and
+</I>&gt;&gt;<i> successfully loaded an OAR file from the web onto an OpenSim 0.6.6
+</I>&gt;&gt;<i> system. Those of you out there familiar with registering mime types
+</I>on
+&gt;&gt;<i> other web application platforms such as Apache can likely do the
+</I>same.
+&gt;&gt;<i>
+</I>&gt;&gt;<i> Just thought I'd drop this in here in case it helps anyone :)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Chris
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin
+</I>&gt;&gt;<i> Clark-Casey
+</I>&gt;&gt;<i> Sent: 25 November 2009 8:21 PM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: [Opensim-dev] Implemented oar merge facility
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Today I implemented an oar merge facility on OpenSim trunk.  A merge
+</I>can
+&gt;&gt;<i> be
+</I>&gt;&gt;<i> specified using a --merge switch like so
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> load oar --merge my.oar
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> more details at
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> <A HREF="http://opensimulator.org/wiki/OpenSim_Archives#Usage">http://opensimulator.org/wiki/OpenSim_Archives#Usage</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The merge will leave the existing objects, terrain, region settings
+</I>and
+&gt;&gt;<i> land
+</I>&gt;&gt;<i> parcels in place.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I'm not sure how useful merging is without a way to save parts of a
+</I>&gt;&gt;<i> region
+</I>&gt;&gt;<i> (either via parcel or possibly owner id).  Feedback appreciated as
+</I>&gt;&gt;<i> always.
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008018.html">[Opensim-dev] Implemented oar merge facility
+</A></li>
+	<LI>Next message: <A HREF="008020.html">[Opensim-dev] Implemented oar merge facility
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8023">[ date ]</a>
+              <a href="thread.html#8023">[ thread ]</a>
+              <a href="subject.html#8023">[ subject ]</a>
+              <a href="author.html#8023">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

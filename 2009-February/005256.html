@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Ini file reorganiSation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ini%20file%20reorganiSation&In-Reply-To=%3C399508.40002.qm%40web23007.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005254.html">
+   <LINK REL="Next"  HREF="005257.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Ini file reorganiSation</H1>
+    <B>MW</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ini%20file%20reorganiSation&In-Reply-To=%3C399508.40002.qm%40web23007.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Ini file reorganiSation">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Fri Feb 20 15:32:47 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005254.html">[Opensim-dev] Ini file reorganiSation
+</A></li>
+        <LI>Next message: <A HREF="005257.html">[Opensim-dev] Ini file reorganiSation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5256">[ date ]</a>
+              <a href="thread.html#5256">[ thread ]</a>
+              <a href="subject.html#5256">[ subject ]</a>
+              <a href="author.html#5256">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>We didn't actually reach final agreement of what the loading order should be. 
+
+But the general idea was that we rename IniMaster to IniPath (although I'm unsure we really need/want to rename it as it might lead to confusion). This can then either be set to a http url or a single local file, or the new thing being it could be a local folder. If its a folder then all the ini files in that folder are loaded and merged together. If its a single file or http url, then it acts exactly like it does now. And just loads that data.
+
+Then after that we load the normal ini file (opensim.ini) exactly like we do now. Which over writes anything loaded before.
+
+So in your case you wouldn't use the folder option. And it would act exactly like it does now.
+
+But maybe the folder option should be a separate layer. Where first we load the MasterIni as we do now. Then there is a new option to load files from a config folder, then lastly the opensim.ini. 
+
+--- On Fri, 20/2/09, Chris Hart &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Chris at codetorque.co.uk</A>&gt; wrote:
+From: Chris Hart &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Chris at codetorque.co.uk</A>&gt;
+Subject: Re: [Opensim-dev] Ini file reorganiSation
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Friday, 20 February, 2009, 2:22 PM
+
+Currently, I handle ini loading in two stages; firstly, I use -inimaster
+to load up settings from a web-based central ini. Secondly, I use
+-inifile pointing to a local small ini file with local storage settings
+and any settings that I want to specify to override the central ini.
+
+You say that your proposal has -inipath local directory, -inifile for
+url, merged last, which is the opposite for me. At least I believe it is
+- correct me if I have misunderstood.
+
+Currently, I can have all region servers on a grid set to use XEngine in
+the master, but have a small local ini on one server to use
+DotNetEngine, for example. Or different physics, chat range, etc. My
+goal is to have as little to change on each region server as possible,
+otherwise I spend most of my time hand-editing 15 to 20 ini files for
+each upgrade. 
+
+If this goes ahead that's ok - I can extend my own admin tools to serve
+up region server specific ini settings all over the web (which was my
+end goal in any case). Just wanted to flag it in case anyone else had
+picked up on it and wanted to use it.
+
+Chris
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Melanie
+Sent: 20 February 2009 14:05
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Ini file reorganiSation
+
+In what way would that break it? It merely adds another options, 
+namely, _if_ inimaster is a local _path_, descend into it. That 
+won't change a thing about the handling of a URL.
+
+The rename would mean that grids would need to adjust, but the 
+rename is the least important part of the proposal and could just as 
+soon not happen.
+
+Melanie
+
+Chris Hart wrote:
+&gt;<i> Note that the 0.6.3 branch made yesterday includes code that enables
+</I>&gt;<i> -inimaster to be loaded over the web, enabling central ini settings to
+</I>&gt;<i> be served over the web with local override capability via a local
+</I>&gt;<i> -inifile. This proposal would break that functionality.
+</I>&gt;<i> 
+</I>&gt;<i> Admittedly, it's probably only me / ReactionGrid that uses it at the
+</I>&gt;<i> moment, but in case anyone else is using it, it's something to be
+</I>aware
+&gt;<i> of.
+</I>&gt;<i> 
+</I>&gt;<i> Otherwise, sounds pretty reasonable.
+</I>&gt;<i> 
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;<i> Sent: 20 February 2009 13:54
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Ini file reorganiSation
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;&gt;<i> I propose to break up the OpenSim.ini.example into module-sized 
+</I>&gt;&gt;&gt;<i> chunks and supply these as separate files in the SVN/distribution.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Can this directory of files be a separate conf/ directory rather than
+</I>&gt;<i> bin/ ?
+</I>&gt;<i> 
+</I>&gt;<i> That was the point.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> No virus found in this incoming message.
+</I>&gt;<i> Checked by AVG - www.avg.com 
+</I>&gt;<i> Version: 8.0.237 / Virus Database: 270.10.25/1957 - Release Date:
+</I>&gt;<i> 02/19/09 18:45:00
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+No virus found in this incoming message.
+Checked by AVG - www.avg.com 
+Version: 8.0.237 / Virus Database: 270.10.25/1957 - Release Date:
+02/19/09 18:45:00
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+      
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090220/687ac6e7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090220/687ac6e7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005254.html">[Opensim-dev] Ini file reorganiSation
+</A></li>
+	<LI>Next message: <A HREF="005257.html">[Opensim-dev] Ini file reorganiSation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5256">[ date ]</a>
+              <a href="thread.html#5256">[ thread ]</a>
+              <a href="subject.html#5256">[ subject ]</a>
+              <a href="author.html#5256">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

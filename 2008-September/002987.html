@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Uris: Errors/Inconsistencies/TBD
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Uris%3A%20Errors/Inconsistencies/TBD&In-Reply-To=%3COF0F1CFD33.9E5E0199-ON852574C0.003C9D9D-852574C0.0042A253%40us.ibm.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002986.html">
+   <LINK REL="Next"  HREF="002990.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Uris: Errors/Inconsistencies/TBD</H1>
+    <B>Alan M Webb</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Uris%3A%20Errors/Inconsistencies/TBD&In-Reply-To=%3COF0F1CFD33.9E5E0199-ON852574C0.003C9D9D-852574C0.0042A253%40us.ibm.com%3E"
+       TITLE="[Opensim-dev] Uris: Errors/Inconsistencies/TBD">alan_webb at us.ibm.com
+       </A><BR>
+    <I>Wed Sep 10 14:07:47 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002986.html">[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+</A></li>
+        <LI>Next message: <A HREF="002990.html">[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2987">[ date ]</a>
+              <a href="thread.html#2987">[ thread ]</a>
+              <a href="subject.html#2987">[ subject ]</a>
+              <a href="author.html#2987">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Stefan
+
+The .NET behavior is bemusing. Running mono on Linux, the behavior is NOT 
+the same - which may be cause for even bigger concern. On Linux, given:
+
+Uri absURI = new Uri(&quot;<A HREF="http://localhost:9000/abc">http://localhost:9000/abc</A>&quot;);
+Uri relURI = new Uri(&quot;abc&quot;, UriKind.Relative);
+Uri simURI = new Uri(&quot;<A HREF="http://localhost:9000/abc">http://localhost:9000/abc</A>);
+
+then Console.WriteLine(xxxURI) and Console.WriteLine(xxxURI.ToString()) 
+both produce exactly what went into the constuctor. If I change the 
+initial string to have a trailing slash, only then do I see a trailing 
+slash on output. On the face of it I agree with your assertion that using 
+the existing behavior of Uri should be preferred, and yet if our goal is 
+to obtain consistent behaviour for OpenSim on multiple platforms, the 
+tests above would suggest that Uri is not going to do that for us, and 
+that the RestClient code, in doing things explicitly, is more likely to 
+succeed. It would be nice to get the same behavior from mono and .net, but 
+that's probably much harder to achieve.
+
+I probably take issue with your criticism of the RestClient's (who wrote 
+this code - they should be defending this!) removal of a single trailing 
+slash. A single trailing slash is an accepted, if not entirely proper, 
+redundancy. Two trailing slashes would be an invalid URI in my opinion and 
+should always be rejected. As an externally supplied value we can not 
+adopt a pre-condition stance as to its validity, so testing and rejection 
+should be preferred I think. In the subsequent code that you used in your 
+example, given the preceding, then this IS based upon a slashless URL 
+representation.
+
+If I were writing the RestClient I think I would prefer to see the 
+decomposition of the URI into its component pieces, and reconstruction 
+from that abstract form immediately prior to use.
+
+So my vote would be for a single class in OpenSim that provides a 
+guaranteed URI behaviour for everybody who deals in this area. No URI 
+would be admitted into OpenSim except via this class, and none generated 
+from any other source. All modifications to the URI would also be made 
+using the class.
+
+By the way, just so the original issue doesn't get lost, our objective 
+here is for OpenSim to have an HTTP interface (REST, XMLRPC, whatever) 
+that does not behave differently when a supplied URI has, or does not 
+have, a trailing &quot;/&quot;, right?
+
+Best regards
+Alan
+-------------------
+T.J. Watson Research Center, Hawthorne, NY
+1-914-784-7286
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080910/c5c329e5/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080910/c5c329e5/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002986.html">[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+</A></li>
+	<LI>Next message: <A HREF="002990.html">[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2987">[ date ]</a>
+              <a href="thread.html#2987">[ thread ]</a>
+              <a href="subject.html#2987">[ subject ]</a>
+              <a href="author.html#2987">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

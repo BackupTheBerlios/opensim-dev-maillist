@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> No subject
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.25.1331736315.7835.opensim-dev%40lists.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002615.html">
+   <LINK REL="Next"  HREF="003322.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>No subject</H1>
+    <B></B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.25.1331736315.7835.opensim-dev%40lists.berlios.de%3E"
+       TITLE="No subject">
+       </A><BR>
+    <I>Wed Mar 14 15:44:31 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002615.html">No subject
+</A></li>
+        <LI>Next message: <A HREF="003322.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2618">[ date ]</a>
+              <a href="thread.html#2618">[ thread ]</a>
+              <a href="subject.html#2618">[ subject ]</a>
+              <a href="author.html#2618">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>seriously evaluate whether it is worth it. Creating new Packet classes&lt;br&gt;
+is something that can be solved in managed code with an object pool that&lt;br&gt;
+is aware of packet types. libomv had a huge success by using an object&lt;br&gt;
+pool for incoming udp buffers and zero(en/de)coding buffers. The Packet&lt;br&gt;
+class has already been re-factored in such a way that would allow object&lt;br&gt;
+reuse.&lt;br&gt;
+&lt;br&gt;
+This is from my own personal testing, and more data on the topic would&lt;br&gt;
+be greatly appreciated. Do you think it will be possible to empirically&lt;br&gt;
+compare performance of funsl vs. the libomv wrapper?&lt;br&gt;
+&lt;font color=&quot;#888888&quot;&gt;&lt;br&gt;
+John&lt;br&gt;
+&lt;/font&gt;&lt;div class=&quot;Ih2E3d&quot;&gt;&lt;br&gt;
+&lt;br&gt;
+-----Original Message-----&lt;br&gt;
+From: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&lt;/a&gt;&lt;br&gt;
+&lt;/div&gt;&lt;div class=&quot;Ih2E3d&quot;&gt;[mailto:&lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&lt;/a&gt;] On Behalf Of Mike Mazur&lt;br&gt;
+Sent: Thursday, August 14, 2008 2:39 PM&lt;br&gt;
+To: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&lt;/a&gt;&lt;br&gt;
+&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;/div&gt;&lt;div class=&quot;Wj3C7c&quot;&gt;Subject: [Opensim-dev] Upcoming work on alternative client stack&lt;br&gt;
+&lt;br&gt;
+Hello,&lt;br&gt;
+&lt;br&gt;
+(Could it be? Are the mailing lists working again? I wanted to send&lt;br&gt;
+this message last weekend.)&lt;br&gt;
+&lt;br&gt;
+Some of you may already know, I&#39;ve started working on an alternative&lt;br&gt;
+client stack. This alternative stack does not use libomv&#39;s Packet&lt;br&gt;
+class to move packets around. The buffers which are written to by&lt;br&gt;
+socket functions are passed around instead, with functions available&lt;br&gt;
+for extracting or writing data to the buffers.&lt;br&gt;
+&lt;br&gt;
+These functions are provided by a package currently codenamed &quot;funsl&quot;.&lt;br&gt;
+Johan has written a compiler[1] which generates C# and C/C++ code from&lt;br&gt;
+LL&#39;s message_template.msg file[2].&lt;br&gt;
+&lt;br&gt;
+We&#39;re doing this because we believe the creation of a Packet object&lt;br&gt;
+for each transferred packet impacts performance, particularly when GC&lt;br&gt;
+events occur.&lt;br&gt;
+&lt;br&gt;
+As I&#39;m working on this I found that libomv&#39;s Packet class is used&lt;br&gt;
+outside the client stack, namely in OpenSim/Framework/ClientManager.cs&lt;br&gt;
+and OpenSim/Framework/IClientAPI.cs (among other places). Since our&lt;br&gt;
+client stack needs to implement these interfaces too, and needs to&lt;br&gt;
+call ClientManager methods, those libomv Packet references get in the&lt;br&gt;
+way. I would like to factor them out.&lt;br&gt;
+&lt;br&gt;
+Please allow me to give you an example, inspired by changeset r5785.&lt;br&gt;
+ClientManager had a method, InPacket(), defined as below:&lt;br&gt;
+&lt;br&gt;
+ &nbsp; &nbsp; public void InPacket(uint circuitCode, Packet packet)&lt;br&gt;
+ &nbsp; &nbsp; {&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; IClientAPI client;&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; bool tryGetRet = false;&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; lock (m_clients)&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; tryGetRet = m_clients.TryGetValue(circuitCode, out&lt;br&gt;
+client); if (tryGetRet)&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; {&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; client.InPacket(packet);&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; }&lt;br&gt;
+ &nbsp; &nbsp; }&lt;br&gt;
+&lt;br&gt;
+This method receives a circuit code and passes the packet to the&lt;br&gt;
+IClientAPI instance associated with said circuit code.&lt;br&gt;
+&lt;br&gt;
+Why should the ClientManager have knowledge of Packet? It&#39;s not in the&lt;br&gt;
+client stack, it only provides access to the clients. Therefore I&lt;br&gt;
+changed the method as follows:&lt;br&gt;
+&lt;br&gt;
+ &nbsp; &nbsp; public void InPacket(uint circuitCode, object packet)&lt;br&gt;
+ &nbsp; &nbsp; {&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; IClientAPI client;&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; bool tryGetRet = false;&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; lock (m_clients)&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; tryGetRet = m_clients.TryGetValue(circuitCode, out&lt;br&gt;
+client); if (tryGetRet)&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; {&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; client.InPacket(packet);&lt;br&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp; }&lt;br&gt;
+ &nbsp; &nbsp; }&lt;br&gt;
+&lt;br&gt;
+Instead of expecting a Packet object for the second argument, we&lt;br&gt;
+expect any object. Naturally the signature of the InPacket() method in&lt;br&gt;
+the IClientAPI interface has also changed. The cast from object to&lt;br&gt;
+Packet (or byte[] in my case) is done in the class which implements&lt;br&gt;
+IClientAPI, namely&lt;br&gt;
+OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs, where InPacket()&lt;br&gt;
+has been changed as follows:&lt;br&gt;
+&lt;br&gt;
+- &nbsp; &nbsp; &nbsp; &nbsp;public virtual void InPacket(Packet NewPack)&lt;br&gt;
++ &nbsp; &nbsp; &nbsp; &nbsp;public virtual void InPacket(object NewPack)&lt;br&gt;
+ &nbsp; &nbsp; {&lt;br&gt;
+- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;m_PacketHandler.InPacket(NewPack);&lt;br&gt;
++ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;// Cast NewPack to Packet.&lt;br&gt;
++ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;m_PacketHandler.InPacket((Packet) NewPack);&lt;br&gt;
+ &nbsp; &nbsp; }&lt;br&gt;
+&lt;br&gt;
+InPacket() is the first method that has been changed so far, but&lt;br&gt;
+others will need to follow (OutPacket(), SendSimStats(),&lt;br&gt;
+ProcessInPacket(), etc).&lt;br&gt;
+&lt;br&gt;
+Please rest assured these changes don&#39;t break existing functionality,&lt;br&gt;
+just factoring out some libomv Packet references which currently live&lt;br&gt;
+outside the client stack.&lt;br&gt;
+&lt;br&gt;
+Any thoughts or concerns?&lt;br&gt;
+&lt;br&gt;
+Thank you,&lt;br&gt;
+Mike&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+[1] If you are interested in the source for the compiler, written in&lt;br&gt;
+LISP, just ask ;)&lt;br&gt;
+[2]&lt;br&gt;
+&lt;a href=&quot;<A HREF="http://svn.secondlife.com/trac/linden/browser/release/scripts/messages">http://svn.secondlife.com/trac/linden/browser/release/scripts/messages</A>&quot; target=&quot;_blank&quot;&gt;<A HREF="http://svn.secondlife.com/trac/linden/browser/release/scripts/messages&lt;/a">http://svn.secondlife.com/trac/linden/browser/release/scripts/messages&lt;/a</A>&gt;&lt;br&gt;
+_______________________________________________&lt;br&gt;
+Opensim-dev mailing list&lt;br&gt;
+&lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;/a&gt;&lt;br&gt;
+&lt;a href=&quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&quot; target=&quot;_blank&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a">https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a</A>&gt;&lt;br&gt;
+_______________________________________________&lt;br&gt;
+Opensim-dev mailing list&lt;br&gt;
+&lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;/a&gt;&lt;br&gt;
+&lt;a href=&quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&quot; target=&quot;_blank&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a">https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a</A>&gt;&lt;br&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;&lt;/div&gt;
+
+------=_Part_202769_7029875.1219103441814--
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002615.html">No subject
+</A></li>
+	<LI>Next message: <A HREF="003322.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2618">[ date ]</a>
+              <a href="thread.html#2618">[ thread ]</a>
+              <a href="subject.html#2618">[ subject ]</a>
+              <a href="author.html#2618">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

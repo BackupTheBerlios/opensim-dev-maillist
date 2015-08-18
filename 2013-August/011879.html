@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim.exe console - progress messages with mesh uploads
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim.exe%20console%20-%20progress%20messages%20with%20mesh%0A%20uploads&In-Reply-To=%3C5220A47D.2030504%40alternatemetaverse.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011875.html">
+   <LINK REL="Next"  HREF="011880.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim.exe console - progress messages with mesh uploads</H1>
+    <B>Mike Chase</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim.exe%20console%20-%20progress%20messages%20with%20mesh%0A%20uploads&In-Reply-To=%3C5220A47D.2030504%40alternatemetaverse.com%3E"
+       TITLE="[Opensim-dev] OpenSim.exe console - progress messages with mesh uploads">mike.chase at alternatemetaverse.com
+       </A><BR>
+    <I>Fri Aug 30 15:56:13 CEST 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011875.html">[Opensim-dev] OpenSim.exe console - progress messages with mesh	uploads
+</A></li>
+        <LI>Next message: <A HREF="011880.html">[Opensim-dev] OpenSim.exe console - progress messages with mesh	uploads
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11879">[ date ]</a>
+              <a href="thread.html#11879">[ thread ]</a>
+              <a href="subject.html#11879">[ subject ]</a>
+              <a href="author.html#11879">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 08/30/2013 08:58 AM, Robert Martin wrote:
+&gt;<i> one thing that might help things here is have some way of having the 
+</I>&gt;<i> simulator &quot;bounce&quot;/return zero when it is doing the calculate cost 
+</I>&gt;<i> stage of a mesh upload.
+</I>
+That's not  really going to help I don't think.  I don't believe the 
+OpenSim implementation does anything or even looks for the mesh data 
+when the cost stage is executed.
+
+Mesh upload happens in 2 stages.  When you push the calculate button the 
+client crunches data and sends a snapshot of it along with the 
+NewAgentInventory request to the server.    The server returns the 
+upload cap along with any optional cost calculations it has done. The 
+client then re-contacts the server at the new cap and transmits the data 
+(again) for the actual upload.
+
+There are two likely places for bottlenecks and depending on what core 
+opensim does an additional place where a failure is possible.
+
+1) The initial calculations done by the client.  If this is the case its 
+going to be seen prior to the upload button enabling.
+2) The actual data transmission.  Probably not a problem because it's 
+using HTTP for the transfer in both cases.  Also if you are seeing the 
+upload button enable then that transmission has already happened once. 
+Which would indicate its probably not the issue.
+
+There is an additional scenarios I hit when I did the implementation for 
+InWorldz.   The zlib.net decompression code occasionally throws 
+indicating an invalid code stream.  IDK if the upstream code actually 
+cracks open the mesh in any way but if so its entirely possible thats 
+what is failing and the exception is being eaten. In the InWorldz case I 
+replaced the zlib calls with the compression/decompression code in .NET 
+and resolved the issue that way.  Its something additional to check.
+
+So more than likely from the description the issue is with asset 
+creation or something that's done after the transmission takes place.
+
+Hope this helps a bit.
+
+Mike
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Thu, Aug 29, 2013 at 6:48 PM, Justin Clark-Casey 
+</I>&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     I'm not sure this will be possible as I believe mesh is uploaded
+</I>&gt;<i>     via a single HTTP post, which isn't easy to monitor server-side.
+</I>&gt;<i>      It's also possible that the mesh you're trying to upload is
+</I>&gt;<i>     unfortunately simply too large and that we should have (optional)
+</I>&gt;<i>     server-side enforced limits.  But this is speculation on my part.
+</I>&gt;<i>
+</I>&gt;<i>     Is this a purely local upload or one to a server not on the same
+</I>&gt;<i>     system?  If the server is on a different system, possibly you
+</I>&gt;<i>     could install a monitoring tool to check your rate of data upload.
+</I>&gt;<i>      Naturally, one would expect a server on a local LAN to be very
+</I>&gt;<i>     quick, but a remote one might be different and even on the local
+</I>&gt;<i>     scenario, things like slow wifi might come into play.
+</I>&gt;<i>
+</I>&gt;<i>     Perhaps you could install a monitoring tool on your system
+</I>&gt;<i>
+</I>&gt;<i>     On 24/08/13 17:22, Ai Austin wrote:
+</I>&gt;<i>
+</I>&gt;<i>         I wonder if its possible to get any debugging related to mesh
+</I>&gt;<i>         uploads and their progress (or otherwise).
+</I>&gt;<i>
+</I>&gt;<i>         I think I am timing out even when I set the AckTimeout = 600  
+</I>&gt;<i>         as suggested by Justin and want to try to figure out
+</I>&gt;<i>         the stage at which the problems occur.
+</I>&gt;<i>
+</I>&gt;<i>         I am uploading some Collada meshes that are 20MB up to 100MB
+</I>&gt;<i>         in size.. and got them in once.. but cannot reliably repeat
+</I>&gt;<i>         that especially f I try to vary the upload options to scale
+</I>&gt;<i>         the incoming mesh, or if I add any physics details.
+</I>&gt;<i>
+</I>&gt;<i>         _______________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     -- 
+</I>&gt;<i>     Justin Clark-Casey (justincc)
+</I>&gt;<i>     OSVW Consulting
+</I>&gt;<i>     <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i>     <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> -- 
+</I>&gt;<i> Robert L Martin
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20130830/5979fc52/attachment-0001.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20130830/5979fc52/attachment-0001.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011875.html">[Opensim-dev] OpenSim.exe console - progress messages with mesh	uploads
+</A></li>
+	<LI>Next message: <A HREF="011880.html">[Opensim-dev] OpenSim.exe console - progress messages with mesh	uploads
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11879">[ date ]</a>
+              <a href="thread.html#11879">[ thread ]</a>
+              <a href="subject.html#11879">[ subject ]</a>
+              <a href="author.html#11879">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

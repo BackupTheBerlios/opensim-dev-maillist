@@ -1,0 +1,280 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Avatar movement packet optimization
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Avatar%20movement%20packet%20optimization&In-Reply-To=%3C49958059.9000300%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005031.html">
+   <LINK REL="Next"  HREF="005037.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Avatar movement packet optimization</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Avatar%20movement%20packet%20optimization&In-Reply-To=%3C49958059.9000300%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Avatar movement packet optimization">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Feb 13 15:14:49 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005031.html">[Opensim-dev] Avatar movement packet optimization
+</A></li>
+        <LI>Next message: <A HREF="005037.html">[Opensim-dev] Avatar movement packet optimization
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5034">[ date ]</a>
+              <a href="thread.html#5034">[ thread ]</a>
+              <a href="subject.html#5034">[ subject ]</a>
+              <a href="author.html#5034">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Stefan Andersson wrote:
+&gt;<i>  &gt; Resizing the terseupdate packet size is going to be placed in to 
+</I>&gt;<i> ModRex at least, that's why in the patch SendAvatarTerseUpdate method is 
+</I>&gt;<i> marked as virtual.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> Just a very quick short one; (yeah right)
+</I>&gt;<i>  
+</I>&gt;<i> Not talking about this patch in particular, just realized there's 
+</I>&gt;<i> something that app devs probably should be made aware of:
+</I>&gt;<i> 
+</I>&gt;<i> In OpenSim, there's been an implicit understanding (that we should 
+</I>&gt;<i> probably discuss and make explicit) that;
+</I>&gt;<i>  
+</I>&gt;<i> 1) Marking stuff as 'virtual' because of the need to subclass in a 
+</I>&gt;<i> particular proprietary application should never be a problem. This 
+</I>&gt;<i> strenghtens the API.
+</I>
++1
+
+&gt;<i>  
+</I>&gt;<i> 2) Going from 'private' to 'protected' because of the need to 
+</I>&gt;<i> subclass in a particular proprietary application should never be a 
+</I>&gt;<i> problem. This strenghtens the API.
+</I>
+This is not always the case.  See <A HREF="http://opensimulator.org/mantis/view.php?id=3072.">http://opensimulator.org/mantis/view.php?id=3072.</A>  Sometimes there are good reasons 
+for keeping methods private.
+
+&gt;<i>  
+</I>&gt;<i> 3) Introducing extra layers of indirection because of the need to 
+</I>&gt;<i> re-direct control flow in a particular proprietary application should 
+</I>&gt;<i> never be a problem. This strenghtens the API.
+</I>
++1
+
+&gt;<i>  
+</I>&gt;<i> 4) Introducing stuff directly into core that is not used by core because 
+</I>&gt;<i> a particular proprietary feature demands it, will always be a 
+</I>&gt;<i> problem. Instead, do 1) or 2) or 3).
+</I>
++1
+
+&gt;<i>  
+</I>&gt;<i> 5) Going from 'protected' to 'public' because a particular proprietary 
+</I>&gt;<i> feature demands it, will always be a problem. Instead, do 1) or 2) or 3).
+</I>
++1
+
+In other words, I broadly agree.  I would also add that none our APIs can be regarded as 'stable' until we near 1.0 - 
+everything is subject to change.  Indeed, I would say that at the moment virtually all of our APIs are 'accidental' APIs 
+in that they were originally formulated for internal use.  Therefore, they are often not well documented or thought 
+through in terms of their functionality and usability for non-core code.
+
+&gt;<i> 
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Stefan Andersson
+</I>&gt;<i> Tribal Media AB
+</I>&gt;<i> 
+</I>&gt;<i>  &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mikko.pallari at adminotech.com</A>
+</I>&gt;<i>  &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; Date: Thu, 12 Feb 2009 14:26:26 +0100
+</I>&gt;<i>  &gt; Subject: Re: [Opensim-dev] Avatar movement packet optimization
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Hi,
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Yes, 'dramatic' as in positive.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; The changes introduced in the patch work for LL clients also and 
+</I>&gt;<i> propably for OpenMetaverse clients too, but I haven't tested this patch 
+</I>&gt;<i> with them.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Resizing the terseupdate packet size is going to be placed in to 
+</I>&gt;<i> ModRex at least, that's why in the patch SendAvatarTerseUpdate method is 
+</I>&gt;<i> marked as virtual.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Sean Dague wrote:
+</I>&gt;<i>  &gt; &gt; Very cool to see this patch. There is some feedback in the mantis 
+</I>&gt;<i> tracker about adjusting the way types are used. It would be great if you 
+</I>&gt;<i> could respin the patch based on that so we could get this in.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Already done.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Cheers,
+</I>&gt;<i>  &gt; Mikko
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; -----Original Message-----
+</I>&gt;<i>  &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> 
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Dirk Krause
+</I>&gt;<i>  &gt; Sent: 12. helmikuuta 2009 13:36
+</I>&gt;<i>  &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; Subject: Re: [Opensim-dev] Avatar movement packet optimization
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Hi,
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; - dramatic in terms of 'positive'?
+</I>&gt;<i>  &gt; - to take advantage of the client side changes one would need to 
+</I>&gt;<i> change the viewer source (or take the Rex Viewer) then?
+</I>&gt;<i>  &gt; I also take it that OpenMetaverse based viewers (like IdealistViewer) 
+</I>&gt;<i> would need a patch for OpenMetaverse?
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; even with the 'server only' optimization, it still is a great 
+</I>&gt;<i> contribution. Should be tested though, and I wonder what would be a 
+</I>&gt;<i> smart way to do this.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Best,
+</I>&gt;<i>  &gt; Dirk/Bart
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; -----Urspr&#252;ngliche Nachricht-----
+</I>&gt;<i>  &gt; Von: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> 
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] Im Auftrag von Mikko Pallari
+</I>&gt;<i>  &gt; Gesendet: Donnerstag, 12. Februar 2009 12:16
+</I>&gt;<i>  &gt; An: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; Betreff: Re: [Opensim-dev] Avatar movement packet optimization
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; That optimization did this and also reduced the terseupdate packet 
+</I>&gt;<i> size. That needed changes to protocol, and because we can't change the 
+</I>&gt;<i> protocol with Linded client, the effect won't be so dramatic here.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Cheers,
+</I>&gt;<i>  &gt; Mikko
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; -----Original Message-----
+</I>&gt;<i>  &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> 
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Jeroen van Veen
+</I>&gt;<i>  &gt; Sent: 12. helmikuuta 2009 11:15
+</I>&gt;<i>  &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; Subject: Re: [Opensim-dev] Avatar movement packet optimization
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; i saw that robotdemo a while ago at 
+</I>&gt;<i> <A HREF="http://community.rexdeveloper.org/.">http://community.rexdeveloper.org/.</A> It's
+</I>&gt;<i>  &gt; the same optimization? That was really some impressive cool stuff. 
+</I>&gt;<i> keep up the
+</I>&gt;<i>  &gt; good work!
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Jeroen
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; On Wednesday 11 February 2009 18:59:19 Tommi Laukkanen wrote:
+</I>&gt;<i>  &gt; &gt; Nice!
+</I>&gt;<i>  &gt; &gt;
+</I>&gt;<i>  &gt; &gt; We need more work like this.
+</I>&gt;<i>  &gt; &gt;
+</I>&gt;<i>  &gt; &gt; Tommi
+</I>&gt;<i>  &gt; &gt;
+</I>&gt;<i>  &gt; &gt; On Wed, Feb 11, 2009 at 1:21 PM, Mikko Pallari
+</I>&gt;<i>  &gt; &gt; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mikko.pallari at adminotech.com</A>
+</I>&gt;<i>  &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; wrote:
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; Hi,
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; I have made a patch to optimize number of packets to enable even more
+</I>&gt;<i>  &gt; &gt; &gt; users in simulator. I have submitted this patch to mantis and you can
+</I>&gt;<i>  &gt; &gt; &gt; review it here: <A HREF="http://opensimulator.org/mantis/view.php?id=3136">http://opensimulator.org/mantis/view.php?id=3136</A>
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; And as described in mantis this packet should increase the max 
+</I>&gt;<i> number of
+</I>&gt;<i>  &gt; &gt; &gt; avatars the server can handle. It combines many terse update 
+</I>&gt;<i> packets in
+</I>&gt;<i>  &gt; &gt; &gt; to one packet.
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; Our initial tests show that:
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; - two avatars moving in a circle with optimization: 30-60 packets per
+</I>&gt;<i>  &gt; &gt; &gt; second on client
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; - two avatars moving in a circle without optimization: 40-70 
+</I>&gt;<i> packets per
+</I>&gt;<i>  &gt; &gt; &gt; second on client
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; Cheers,
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; Mikko Pallari
+</I>&gt;<i>  &gt; &gt; &gt;
+</I>&gt;<i>  &gt; &gt; &gt; _______________________________________________
+</I>&gt;<i>  &gt; &gt; &gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; _______________________________________________
+</I>&gt;<i>  &gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt; _______________________________________________
+</I>&gt;<i>  &gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; _______________________________________________
+</I>&gt;<i>  &gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt; _______________________________________________
+</I>&gt;<i>  &gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005031.html">[Opensim-dev] Avatar movement packet optimization
+</A></li>
+	<LI>Next message: <A HREF="005037.html">[Opensim-dev] Avatar movement packet optimization
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5034">[ date ]</a>
+              <a href="thread.html#5034">[ thread ]</a>
+              <a href="subject.html#5034">[ subject ]</a>
+              <a href="author.html#5034">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

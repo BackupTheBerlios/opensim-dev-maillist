@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> No subject
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.52.1331736377.7835.opensim-dev%40lists.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006636.html">
+   <LINK REL="Next"  HREF="006771.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>No subject</H1>
+    <B></B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.52.1331736377.7835.opensim-dev%40lists.berlios.de%3E"
+       TITLE="No subject">
+       </A><BR>
+    <I>Wed Mar 14 15:44:31 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006636.html">No subject
+</A></li>
+        <LI>Next message: <A HREF="006771.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6637">[ date ]</a>
+              <a href="thread.html#6637">[ thread ]</a>
+              <a href="subject.html#6637">[ subject ]</a>
+              <a href="author.html#6637">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>objects in memory and increasing memory usage. This may be causing portions=
+ of memory to swap out where they may not have before. When retrieving the =
+asset, it would need to swap it back in and it may have to do it in several=
+ steps in order to locate the asset. This may cause further delay as it may=
+ have to swap other memory out to make space. It would seem likely that a f=
+ile based cache may perform better as the filename might provide a more dir=
+ect route to the actual cache data. I suspect that the operating system may=
+ also allow searching directories for a filename fairly quickly - modern fi=
+le systems are quite efficient these days.&lt;div&gt;
+&lt;br&gt;&lt;/div&gt;&lt;div&gt;This is really just a guess... I suspect some benchmarking a=
+nd profiling of several systems of different configurations may be necessar=
+y to determine what the bottleneck really is.&lt;br&gt;&lt;br&gt;&lt;div class=3D&quot;gmail_qu=
+ote&quot;&gt;
+On Tue, May 26, 2009 at 3:52 PM,  &lt;span dir=3D&quot;ltr&quot;&gt;&lt;&lt;a href=3D&quot;mailto:d=
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">iva at metaverseink.com</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&lt;/a&gt;&gt;&lt;/span&gt; wrote:&lt;br&gt;&lt;block=
+quote class=3D&quot;gmail_quote&quot; style=3D&quot;margin:0 0 0 .8ex;border-left:1px #ccc=
+ solid;padding-left:1ex;&quot;&gt;
+I noticed we have GlynnTucker.Cache.dll in the distribution, and this&lt;br&gt;
+wasn&#39;t being used. I have no idea what the story is, but since it&#39;s=
+&lt;br&gt;
+there, I did one alternative cache module implementation using it, just&lt;br&gt;
+to see what happens. Since everything is modularized now, replacing the&lt;br&gt;
+asset cache implementation is as simple as editing your XXXCommon.ini&lt;br&gt;
+and changing the name:&lt;br&gt;
+&lt;br&gt;
+;AssetCaching =3D &quot;CoreAssetCache&quot;&lt;br&gt;
+AssetCaching =3D &quot;GlynnTuckerAssetCache&quot;&lt;br&gt;
+&lt;br&gt;
+I would still urge that someone figures out what&#39;s wrong with&lt;br&gt;
+OpenSim/Framework/Cache.cs, which is the one used in CoreAssetCache.&lt;br&gt;
+&lt;br&gt;
+The GlynnTuckerAssetCache has been tried in the UCI Grid and in some&lt;br&gt;
+sims in OSGrid and at least it&#39;s not being an anti-cache. Let&#39;s wai=
+t a&lt;br&gt;
+few more days to see if it&#39;s being a real cache; if so we should see&lt;br=
+&gt;<i>
+</I>declines on the traffic to the asset servers :-)&lt;br&gt;
+&lt;div&gt;&lt;div&gt;&lt;/div&gt;&lt;div class=3D&quot;h5&quot;&gt;&lt;br&gt;
+Arthur Valadares wrote:&lt;br&gt;
+&gt;<i> If we ran a profiling with this cache maybe we could see where the&lt;br&gt;
+</I>&gt;<i> bottle neck is, couldn&#39;t we?&lt;br&gt;
+</I>&gt;<i>&lt;br&gt;
+</I>&gt;<i> Mono has simple statistical profiler that shouldn&#39;t be too intrudi=
+</I>ng:&lt;br&gt;
+&gt;<i>&lt;br&gt;
+</I>&gt;<i> $ mono --profile=3Ddefault:stat program.exe&lt;br&gt;
+</I>&gt;<i>&lt;br&gt;
+</I>&gt;<i> If anyone who saw this performance loss could test this, would be&lt;br&gt;
+</I>&gt;<i> interesting to see where it&#39;s spending all this extra time.&lt;br&gt;
+</I>&gt;<i>&lt;br&gt;
+</I>&gt;<i> On Tue, 2009-05-26 at 10:57 -0700, &lt;a href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink</A>=
+</I>.com&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&lt;/a&gt; wrote:&lt;br&gt;
+&gt;&gt;<i> Just a quick note to inform everyone that word from osgrid folks&lt;b=
+</I>r&gt;
+&gt;&gt;<i> indicates that the asset cache is still borked and still a mystery=
+</I>. When&lt;br&gt;
+&gt;&gt;<i> it is on, CPU usage spikes to unsustainable values (150% with 4 av=
+</I>ies in&lt;br&gt;
+&gt;&gt;<i> WP).&lt;br&gt;
+</I>&gt;&gt;<i>&lt;br&gt;
+</I>&gt;&gt;<i> If anyone cares to take a look at it / replace it with something e=
+</I>lse,&lt;br&gt;
+&gt;&gt;<i> please do.&lt;br&gt;
+</I>&gt;&gt;<i>&lt;br&gt;
+</I>&gt;&gt;<i> OpenSim/Framework/Cache.cs&lt;br&gt;
+</I>&gt;&gt;<i> _______________________________________________&lt;br&gt;
+</I>&gt;&gt;<i> Opensim-dev mailing list&lt;br&gt;
+</I>&lt;/div&gt;&lt;/div&gt;&gt;&gt; &lt;a href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&quot;&gt;Opensi=
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">m-dev at lists.berlios.de</A>&lt;/a&gt; &lt;mailto:&lt;a href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.b</A>=
+erlios.de&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;/a&gt;&gt;&lt;br&gt;
+&lt;div class=3D&quot;im&quot;&gt;&gt;&gt; &lt;a href=3D&quot;<A HREF="https://lists.berlios.de/mailman/list=">https://lists.berlios.de/mailman/list=</A>
+info/opensim-dev&quot; target=3D&quot;_blank&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listin=">https://lists.berlios.de/mailman/listin=</A>
+fo/opensim-dev&lt;/a&gt;&lt;br&gt;
+&gt;<i>&lt;br&gt;
+</I>&lt;/div&gt;&gt; ----------------------------------------------------------------=
+--------&lt;br&gt;
+&lt;div&gt;&lt;div&gt;&lt;/div&gt;&lt;div class=3D&quot;h5&quot;&gt;&gt;&lt;br&gt;
+&gt;<i> _______________________________________________&lt;br&gt;
+</I>&gt;<i> Opensim-dev mailing list&lt;br&gt;
+</I>&gt;<i> &lt;a href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berl</A>=
+</I>ios.de&lt;/a&gt;&lt;br&gt;
+&gt;<i> &lt;a href=3D&quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&quot; targ=
+</I>et=3D&quot;_blank&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a">https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a</A>&gt;&lt;br&gt;
+_______________________________________________&lt;br&gt;
+Opensim-dev mailing list&lt;br&gt;
+&lt;a href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.d</A>=
+e&lt;/a&gt;&lt;br&gt;
+&lt;a href=3D&quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&quot; target=3D=
+&quot;_blank&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a">https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a</A>&gt;&lt;br&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;&lt;/div&gt;
+
+--0016364ee01c638db7046ae1d243--
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006636.html">No subject
+</A></li>
+	<LI>Next message: <A HREF="006771.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6637">[ date ]</a>
+              <a href="thread.html#6637">[ thread ]</a>
+              <a href="subject.html#6637">[ subject ]</a>
+              <a href="author.html#6637">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

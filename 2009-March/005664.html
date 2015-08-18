@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] More login refactoring
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20More%20login%20refactoring&In-Reply-To=%3CBLU134-W11FFEF608370CB8F7408C2D59F0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005662.html">
+   <LINK REL="Next"  HREF="005666.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] More login refactoring</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20More%20login%20refactoring&In-Reply-To=%3CBLU134-W11FFEF608370CB8F7408C2D59F0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] More login refactoring">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Mar 12 10:14:23 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005662.html">[Opensim-dev] More login refactoring
+</A></li>
+        <LI>Next message: <A HREF="005666.html">[Opensim-dev] More login refactoring
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5664">[ date ]</a>
+              <a href="thread.html#5664">[ thread ]</a>
+              <a href="subject.html#5664">[ subject ]</a>
+              <a href="author.html#5664">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Diva,
+
+ 
+
+actually, I don't know how far away we are.
+
+ 
+
+The problem is that somewhere way back when, there was a lot of copy+pasteing &quot;to get things to work&quot;(tm) - which led to the login services being textually almost identical, but perusing different classes. (IE, local Uses RegionInfo to work with region settings, grid uses RegionProfileData) - classes taht we are wary of working with because they are potentially serialized.
+
+ 
+
+My focus right now, today even, is to try and pry the RegionInfo out of RegionProfiles cold dead hands. I thought I succeeded, but alas, more debugging seems to be needed.
+
+ 
+
+Once I (or we, by all means) have gotten to the point where I (we) have de-duplicated the backend services, modularizing them should not be that hard. (knock on wood)
+
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+
+
+ 
+&gt;<i> Date: Wed, 11 Mar 2009 19:05:05 -0700
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] More login refactoring
+</I>&gt;<i> 
+</I>&gt;<i> Actually, it's more than modules pertaining to the User Services. The 
+</I>&gt;<i> Grid Services too. Specifically, these two
+</I>&gt;<i> 
+</I>&gt;<i> m_httpServer.AddXmlRPCHandler(&quot;map_block&quot;, 
+</I>&gt;<i> XmlRpcMapBlockMethod);
+</I>&gt;<i> m_httpServer.AddXmlRPCHandler(&quot;search_for_region_by_name&quot;, 
+</I>&gt;<i> XmlRpcSearchForRegionMethod);
+</I>&gt;<i> 
+</I>&gt;<i> Standalones may also want to provide these services, especially with 
+</I>&gt;<i> better clients coming on the horizon.
+</I>&gt;<i> 
+</I>&gt;<i> The Hypergrid already has some of those modules for standalones, namely 
+</I>&gt;<i> Inventory and Asset, so that inventory of standalone users can be 
+</I>&gt;<i> accessed from the outside. But, really, this is not the right way of 
+</I>&gt;<i> doing it, because it has a fair amount of code duplication with what's 
+</I>&gt;<i> in the corresponding Servers.
+</I>&gt;<i> 
+</I>&gt;<i> Any ideas?
+</I>&gt;<i> And apologies if this touches again on the heated discussion between MW 
+</I>&gt;<i> and Melanie a couple of weeks ago...
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Diva Canto wrote:
+</I>&gt;<i> &gt; Lbsa/MW,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I know you have been refactoring the login code a bit. I wonder if 
+</I>&gt;<i> &gt; you're stopping here or if there's more coming. The reason I ask is this.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; OpenSim.Framework.Communications.LoginResponse is pretty much the Linden 
+</I>&gt;<i> &gt; Viewer login response, so it should go somewhere under Linden.Login. You 
+</I>&gt;<i> &gt; already did part of this for standalone. But this brings up a bigger 
+</I>&gt;<i> &gt; issue: substantial parts of the login code, including this LoginResponse 
+</I>&gt;<i> &gt; but not only, are shared between Region (standalone) and 
+</I>&gt;<i> &gt; Grid.UserServer. I wonder if there's a way of making them be modules 
+</I>&gt;<i> &gt; that both the region server (in standalone mode) and the User server can 
+</I>&gt;<i> &gt; load?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Ideally, one would have a collection of Login modules that people can 
+</I>&gt;<i> &gt; choose to support on their grids/standalones.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; How far are we from being able to do that?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Crista
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090312/52ec5fbc/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090312/52ec5fbc/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005662.html">[Opensim-dev] More login refactoring
+</A></li>
+	<LI>Next message: <A HREF="005666.html">[Opensim-dev] More login refactoring
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5664">[ date ]</a>
+              <a href="thread.html#5664">[ thread ]</a>
+              <a href="subject.html#5664">[ subject ]</a>
+              <a href="author.html#5664">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

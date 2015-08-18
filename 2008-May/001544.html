@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Where should we put GetUserAppearance ?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Where%20should%20we%20put%20GetUserAppearance%20%3F&In-Reply-To=%3Cb046ff2a0805132348t54c65346ra2764fb95950da62%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001542.html">
+   <LINK REL="Next"  HREF="001545.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Where should we put GetUserAppearance ?</H1>
+    <B>liu xiaolu</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Where%20should%20we%20put%20GetUserAppearance%20%3F&In-Reply-To=%3Cb046ff2a0805132348t54c65346ra2764fb95950da62%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Where should we put GetUserAppearance ?">lulurun at gmail.com
+       </A><BR>
+    <I>Wed May 14 08:48:08 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001542.html">[Opensim-dev] Documentation and continuous builds
+</A></li>
+        <LI>Next message: <A HREF="001545.html">[Opensim-dev] Where should we put GetUserAppearance ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1544">[ date ]</a>
+              <a href="thread.html#1544">[ thread ]</a>
+              <a href="subject.html#1544">[ subject ]</a>
+              <a href="author.html#1544">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi, everyone,
+I am planing to implement &quot;AssetPortability&quot; in OpenSim,
+The basic idea is to let RegionServer get assets from a
+dynamic(user specified) AssetServerURL.
+
+Very thankful for someone added &quot;asseturl&quot; and &quot;inventoryurl&quot;
+to the userprofile structure and the &quot;Users&quot; table.
+(though I do not know exactly what it was he did)
+
+Recently, I found there is a stub &quot;GetUserAppearance&quot; in &quot;IUserService&quot;.
+This is a little different from what I am thinking, so here I would like to
+share my plan for the &quot;appearance portability&quot; and have a discussion
+with you.
+
+# Preparation
+1. User stores &quot;wearables&quot; in &quot;inventoryserver&quot;
+2. User stores actual &quot;assetdata&quot; in &quot;assetserver&quot;
+3. User tells its &quot;asset/inventory url&quot; to &quot;userserver&quot;
+(by user registration or someway like openid)
+
+# Login
+At <A HREF="http://openugai.sourceforge.net/?page=openasset_proposal">http://openugai.sourceforge.net/?page=openasset_proposal</A>
+there are 2 possible patterns,
+&quot;Implemetation 1&quot; is following current opensim - &quot;GetUserAppearance&quot; in
+&quot;UserServive&quot;.
+&quot;Implemetation 2&quot; is my proposal.
+
+* Implemetation 1
+1. &quot;UserServer&quot; acts as a agent, when &quot;GetUserAppearance&quot; called,
+2. &quot;UserServer&quot; gets &quot;wearables&quot; from &quot;inventoryserver&quot;
+3. &quot;UserServer&quot; gets &quot;assetdata&quot; foreach &quot;wearables&quot; UUID.
+4. &quot;UserServer&quot; returns appearance to RegionServer(OGS1UserServices)
+
+* Implemetation 2
+&quot;GetUserAppearance&quot; is not in &quot;UserServer&quot;, it should be a module or
+something
+independent. There is
+* &quot;OGS1InventoryServices&quot; incharge of communicating with &quot;InventoryServer&quot;.
+* &quot;AssetCache&quot; gets &quot;assetdata&quot; from &quot;AssetServer&quot;.
+I think we can use the 2 existing components to &quot;GetUserAppearance&quot;.
+
+Why I prefer &quot;Implementation 2&quot; ?
+1. Just as UserServer does not provide &quot;Inventory&quot; information, UesrServer
+also should NOT
+provide appearance information.
+(UserServer should be concentrated on providing basic user information and
+the authentication.)
+2. If UserServer have to fetch Complete &quot;Appearance&quot;, UserServer must know
+about AssetServerUrl,
+and something like &quot;AssetCache&quot; must be implemented inside UserServer. This
+makes UserServer
+become less indenpendent.
+3. &quot;Appearance&quot; can be thought as &quot;a special inventory folder called
+'wearables' &quot;.
+(InventoryServer is born to do such things)
+
+Look forward to hearing your concerns and opinions.
+
+Cheers,
+lulurun
+
+-- 
+Liu Xiaolu
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080514/a93ef3b7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080514/a93ef3b7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001542.html">[Opensim-dev] Documentation and continuous builds
+</A></li>
+	<LI>Next message: <A HREF="001545.html">[Opensim-dev] Where should we put GetUserAppearance ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1544">[ date ]</a>
+              <a href="thread.html#1544">[ thread ]</a>
+              <a href="subject.html#1544">[ subject ]</a>
+              <a href="author.html#1544">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] physics interface / Re: OpenSim beginner question
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20physics%20interface%20/%20Re%3A%20OpenSim%20beginner%20question&In-Reply-To=%3C34cc66250912111634r842b476r5ae1499392aeb225%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008097.html">
+   <LINK REL="Next"  HREF="008106.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] physics interface / Re: OpenSim beginner question</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20physics%20interface%20/%20Re%3A%20OpenSim%20beginner%20question&In-Reply-To=%3C34cc66250912111634r842b476r5ae1499392aeb225%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] physics interface / Re: OpenSim beginner question">teravus at gmail.com
+       </A><BR>
+    <I>Sat Dec 12 01:34:11 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008097.html">[Opensim-dev] Web2World Tools from the Immersive Education	Consortium
+</A></li>
+        <LI>Next message: <A HREF="008106.html">[Opensim-dev] Synchronous or Asynchronous.. Packet handler	synchronicity
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8104">[ date ]</a>
+              <a href="thread.html#8104">[ thread ]</a>
+              <a href="subject.html#8104">[ subject ]</a>
+              <a href="author.html#8104">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>That's actually the &quot;easiest description to understand&quot; version.
+The longer and more truthful version..   is 'Simulate' is run within
+the thread context of the heartbeat thread in the region.   Having
+changes applied during that time does not require extensive locking
+because we know, for sure, that only a single thread will be making
+the changes during that time.
+
+Best Regards
+
+Teravus
+
+
+On Fri, Dec 11, 2009 at 7:30 PM, Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; wrote:
+&gt;<i> It is a queue, so that every change to a prim doesn't have to lock the
+</I>&gt;<i> prim. &#160; &#160;Changes get added to a List. &#160;The prim is locked during
+</I>&gt;<i> Simulate and the changes are applied at that time.
+</I>&gt;<i>
+</I>&gt;<i> Best Regards
+</I>&gt;<i>
+</I>&gt;<i> Teravus
+</I>&gt;<i>
+</I>&gt;<i> On Fri, Dec 11, 2009 at 11:23 AM, Max 79 &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">emmix79 at googlemail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> Thanks Dhalia for the hint, I got much deeper in OpenSim source code now,
+</I>&gt;&gt;<i> but I have a problem to follow the connection to ODE . What is this
+</I>&gt;&gt;<i> taintedPrim-flag for?....comments say it would be some kind of queue, for
+</I>&gt;&gt;<i> not loosing updates, while a prim is locked...but who else might lock that
+</I>&gt;&gt;<i> prim? I cut out and paste the particular piece of code at the end of this
+</I>&gt;&gt;<i> mail.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Another thing I wonder about, where to find a function or class, that serves
+</I>&gt;&gt;<i> for all that synchronization stuff. I think you must use this for objects
+</I>&gt;&gt;<i> that are physics enabled but moved only after a collision or gravity. Those
+</I>&gt;&gt;<i> must also be updated in the no-physics-scene. I don`t know how to find that
+</I>&gt;&gt;<i> part of physics interface, can anybody help with this?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks in advance,
+</I>&gt;&gt;<i> Max
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> public override void AddPhysicsActorTaint(PhysicsActor prim)
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160; {
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; if (prim is OdePrim)
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; {
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; OdePrim taintedprim = ((OdePrim) prim);
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; lock (_taintedPrim)
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; {
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; if (!(_taintedPrim.Contains(taintedprim)))
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; _taintedPrim.Add(taintedprim); &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; }
+</I>&gt;&gt;<i> &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; ...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Dahlia Trimble schrieb:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi Max,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The communication with the client is mainly handled in the class
+</I>&gt;&gt;<i> LLClientView.cs (OpenSim\Region\ClientStack\LindenUDP\LLClientView.cs on my
+</I>&gt;&gt;<i> installation). It communicates with the rest of OpenSim through various
+</I>&gt;&gt;<i> interface classes. To make exploring the code easier, I would recommending
+</I>&gt;&gt;<i> opening the OpenSim solution in Visual Studio or Visual C# Express and using
+</I>&gt;&gt;<i> the &quot;Go To Definition&quot; and &quot;Find All References&quot; features that appear when
+</I>&gt;&gt;<i> right-clicking on a identifier name.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Mon, Dec 7, 2009 at 10:49 AM, Max 79 &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">emmix79 at googlemail.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">emmix79 at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &#160;&#160;&#160; Hi all,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &#160;&#160;&#160; i discovered this project last week and now i&#180;m trying to
+</I>&gt;&gt;<i> &#160;&#160;&#160; understand the the OpenSimServer. I read onlinedocs on projects
+</I>&gt;&gt;<i> &#160;&#160;&#160; site, then i started to look at the source code. Now i`m searching
+</I>&gt;&gt;<i> &#160;&#160;&#160; for something like the entry point of a message processing, which
+</I>&gt;&gt;<i> &#160;&#160;&#160; has been send to the server. Can anybody give me a hint, which
+</I>&gt;&gt;<i> &#160;&#160;&#160; class serves as communicator to the client?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &#160;&#160;&#160; Thanks in advance,
+</I>&gt;&gt;<i> &#160;&#160;&#160; Max
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &#160;&#160;&#160; _______________________________________________
+</I>&gt;&gt;<i> &#160;&#160;&#160; Opensim-dev mailing list
+</I>&gt;&gt;<i> &#160;&#160;&#160; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> &#160;&#160;&#160; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008097.html">[Opensim-dev] Web2World Tools from the Immersive Education	Consortium
+</A></li>
+	<LI>Next message: <A HREF="008106.html">[Opensim-dev] Synchronous or Asynchronous.. Packet handler	synchronicity
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8104">[ date ]</a>
+              <a href="thread.html#8104">[ thread ]</a>
+              <a href="subject.html#8104">[ subject ]</a>
+              <a href="author.html#8104">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

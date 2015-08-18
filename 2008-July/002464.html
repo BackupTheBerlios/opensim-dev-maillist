@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] secure_inventory_server ??
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20secure_inventory_server%20%3F%3F&In-Reply-To=%3C150977.24415.qm%40web23007.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002461.html">
+   <LINK REL="Next"  HREF="002469.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] secure_inventory_server ??</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20secure_inventory_server%20%3F%3F&In-Reply-To=%3C150977.24415.qm%40web23007.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] secure_inventory_server ??">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Fri Jul 25 16:32:47 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002461.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+        <LI>Next message: <A HREF="002469.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2464">[ date ]</a>
+              <a href="thread.html#2464">[ thread ]</a>
+              <a href="subject.html#2464">[ subject ]</a>
+              <a href="author.html#2464">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+
+liu xiaolu &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lulurun at gmail.com</A>&gt; wrote: Hi, _MW,
+
+&gt;<i>a quick follow on, what I mean about it being too rigid, is that by having a set userserver set
+</I>&gt;<i>url in the inventory server.
+</I>I think I have to explain more about the security change.
+
+[definition:]
+* To put inventoryserver and userserver separatly, means they are on different servers and use
+   different DB.
+* &quot;inventory information&quot; is very *closely* related to user information(inventoryids belongs to a userid),
+  but &quot;inventory information&quot; does not contain enough information that can prove user's identity.
+ * Inventoryserver holds such kind of &quot;inventory information&quot;
+* Userserver holds the information that can prove user's identity(uuid/name,password) 
+[problem:]
+* If we put inventoryserver separate from userserver, then inventoryserver can not claim user's
+   identity by itself
+  =&gt; inventoryserver has to rely on 1 or some userservers. (check_auth_session call is neccessary)
+// Above, is the current situation
+[solution for &quot;too rigid&quot;:]
+* add a new table for inventoryserver, 2 fields, useruuid, userserver_url, everytime inventoryserver
+   extract &quot;session_id&quot;, &quot;user_id&quot; from the request, get &quot;userserver_url&quot; by &quot;user_id&quot;, then check the
+  identity of &quot;user_id&quot; from &quot;userserver_url&quot; (call check_auth_session)
+
+I really think rather than the inventory server calling a authenticate method on the user server. That the user server should send a sessionid to the inventory server when a new login happens. I guess your idea of the userserver_url was something silmilar in that the userserver would update it when a user logs in? Otherwise if it was just &quot;hardcoded&quot; in the db then it wouldn't solve anything.
+
+Of course there is also the case of a user being online on multiple &quot;grids&quot; at the same time while using a single inventory server (which we have done). But if needed that shouldn't be too hard for someone to make the changes themselves. (just store mutliple sessions/grid pairs per user's inventory).
+
+ 
+&gt;<i>It makes it harder to use the same inventory server on multiple grids.
+</I>&gt;<i>Either for the same user (if their id on each grid was the same).
+</I>  &gt;Or just multiple grids/user groups sharing a common inventory server.
+Have you ever think about 1 grid uses multiple inventoryservers. :&gt;
+Sounds like the opposite of what you said, but I think inventoryserver should be thought in this way:
+ *** inventoryserver is serving for the users, not the grids/regions.
+I mean, inventory server should not be always tied up with grids, no matter 1 to n or n to 1,
+inventory server just exists for &quot;users&quot;, and the &quot;users&quot; maybe from different grids.
+
+I really not sure what you mean here? Nothing I have said would stop multiple inventory servers on 1 grid. In fact I think my suggestions would make these easier to support. Also yes I'm totally talking about making a inventory server , serve users rather than &quot;grids&quot;. Just at the moment with the security system as it is currently. It is set up for exactly the opposite. Its tying a inventory server to a grid.
+
+I think inventory and in the future asset servers. Should be thought of a seperate services. That a user could pick whatever service they want to hold their inventory/assets and create a account on it. Then tell whatever &quot;grid&quot; they join/are part of to use that service. All they should need to do is set the permissions of the inventory/asset account so that the grid can access it (I also think eventally that permissions should be at the folder level, so can give a grid read only permissions or something). 
+ 
+This is also a part of my plan of &quot;interop&quot;, please refer to
+<A HREF="http://opensimulator.org/wiki/Avatar_portability_version_2">http://opensimulator.org/wiki/Avatar_portability_version_2</A>
+for more information
+ 
+regards,
+Lulurun
+
+ 
+ _______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+---------------------------------
+ Not happy with your email address?
+  Get the one you really want - millions of new email addresses available now at  Yahoo!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080725/11e70ffc/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080725/11e70ffc/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002461.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+	<LI>Next message: <A HREF="002469.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2464">[ date ]</a>
+              <a href="thread.html#2464">[ thread ]</a>
+              <a href="subject.html#2464">[ subject ]</a>
+              <a href="author.html#2464">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

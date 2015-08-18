@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] creating some Asset
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20creating%20some%20Asset&In-Reply-To=%3C4AA902E8.2030304%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007504.html">
+   <LINK REL="Next"  HREF="007513.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] creating some Asset</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20creating%20some%20Asset&In-Reply-To=%3C4AA902E8.2030304%40googlemail.com%3E"
+       TITLE="[Opensim-dev] creating some Asset">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Sep 10 15:45:12 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007504.html">[Opensim-dev] creating some Asset
+</A></li>
+        <LI>Next message: <A HREF="007513.html">[Opensim-dev] Make ODE and Meshmerizer the default options?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7523">[ date ]</a>
+              <a href="thread.html#7523">[ thread ]</a>
+              <a href="subject.html#7523">[ subject ]</a>
+              <a href="author.html#7523">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Daniel Herzog wrote:
+&gt;<i> Hi all,
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> I&#8217;m trying to map a picture stored in an image file to a texture 
+</I>&gt;<i> situated on a prim in Opensim via code. For that reason I have looked to 
+</I>&gt;<i> the osMakeNotecard() function in OSSL_Api.cs to get an overview which 
+</I>&gt;<i> steps are needed to upload an object to an inventory.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> The first thing they do is to create an AssetBase followed by a 
+</I>&gt;<i> TaskInventoryItem that could be added to the inventory of the specified 
+</I>&gt;<i> prim. For me it seems that the AssetBase object has the data of the 
+</I>&gt;<i> object that should be added (for me: the data of the image) and is 
+</I>&gt;<i> connected with the TaskInventoryItem in the next step.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> To get started, I have created an AssetBase object as well as an 
+</I>&gt;<i> TaskInventoryItem as shown in the osMakeNotecard function. To fill my 
+</I>&gt;<i> AssetBase object with some data, I have used the LoadAsset function 
+</I>&gt;<i> found in AssetLoadeFileSystem.cs (in addition I have also tried to get 
+</I>&gt;<i> the data of an image file with the function shown below). As a result I 
+</I>&gt;<i> see the new TaskItem in the inventory list of my prim as an image but 
+</I>&gt;<i> unfortunately with no content. What might be the reason for that empty 
+</I>&gt;<i> image?
+</I>
+These seems to be broadly the right track.  Two things to consider
+
+1)  Have you converted your image to Jpeg2000 format (as required by SL)?  Grep 
+for OpenJPEG.DecodeToImage in the code for examples of how to do this
+
+2)  If so, check that the uploaded asset in the database actually contains your 
+image data.
+
+&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Furthermore, is this the right way by creating an AssetBase and a 
+</I>&gt;<i> TaskInventoryItem to get an image on a prim via code? Are there any 
+</I>&gt;<i> other possibilities?
+</I>&gt;<i> 
+</I>
+It sounds right, but you might want to examine the item upload code in
+
+ApplicationPlugins/Rest/Inventory/RestInventoryServices.cs
+
+which I'm guessing more closely matches what you want to do.
+
+&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Thanks in advance,
+</I>&gt;<i> 
+</I>&gt;<i> Daniel
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> -----------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> private byte[] BildToByteArray(Image Bild, 
+</I>&gt;<i> System.Drawing.Imaging.ImageFormat Bildformat)
+</I>&gt;<i> 
+</I>&gt;<i>         {
+</I>&gt;<i> 
+</I>&gt;<i>             MemoryStream IS = new MemoryStream();
+</I>&gt;<i> 
+</I>&gt;<i>             Bild.Save(IS, Bildformat);
+</I>&gt;<i> 
+</I>&gt;<i>             IS.Flush();
+</I>&gt;<i> 
+</I>&gt;<i>             return IS.ToArray();
+</I>&gt;<i> 
+</I>&gt;<i>        }
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.org">http://justincc.org</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007504.html">[Opensim-dev] creating some Asset
+</A></li>
+	<LI>Next message: <A HREF="007513.html">[Opensim-dev] Make ODE and Meshmerizer the default options?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7523">[ date ]</a>
+              <a href="thread.html#7523">[ thread ]</a>
+              <a href="subject.html#7523">[ subject ]</a>
+              <a href="author.html#7523">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Some notes on physical and phantom states and on	volume Detection.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20notes%20on%20physical%20and%20phantom%20states%20and%20on%0A%09volume%20Detection.&In-Reply-To=%3C4944BBD8.10404%40chello.at%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004135.html">
+   <LINK REL="Next"  HREF="004060.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Some notes on physical and phantom states and on	volume Detection.</H1>
+    <B>Gerhard D&#252;nnebeil</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20notes%20on%20physical%20and%20phantom%20states%20and%20on%0A%09volume%20Detection.&In-Reply-To=%3C4944BBD8.10404%40chello.at%3E"
+       TITLE="[Opensim-dev] Some notes on physical and phantom states and on	volume Detection.">Gerhard.Duennebeil at chello.at
+       </A><BR>
+    <I>Sun Dec 14 08:55:04 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004135.html">[Opensim-dev] Always mutable assets in OpenSim --	does	it	make	sense?
+</A></li>
+        <LI>Next message: <A HREF="004060.html">[Opensim-dev] heads up: git in opensim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4059">[ date ]</a>
+              <a href="thread.html#4059">[ thread ]</a>
+              <a href="subject.html#4059">[ subject ]</a>
+              <a href="author.html#4059">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello everybody
+
+This post stems on a few discussions on OpenSim-Dev and on a patch proposal.
+
+I post it here because the tables are hard to handle via IRC.
+
+----
+
+I did a few tests to understand phys, phantom and VolumeDetect (see 
+llVolumeDetect) behaviour.
+
+To do that I created a prim in SL and put the following script in it.
+
+As one can ( easily :-) ) see it toggles through different states on 
+touch, telling some interesting things and then waiting for something to 
+happen.
+It reacts on the next touch and on the collision_start event.
+See the results and a discussion below.
+
+------------------------------------------------------------------------------------------------
+list states=[
+    0,0,0,
+    0,0,1,  // Removing Phantom from this state through the UI did not 
+change the behaviour !!!
+    0,1,0,
+    0,1,0,  // This is in twice as the above state change did not yield 
+the expected result.
+    0,1,1,
+    1,0,0,
+//    1,0,1,    // Comment this in to have some fun
+    1,1,0
+//    1,1,1     // Comment this in if you were unable to learn from the 
+above case
+];
+
+integer iCurrentState=-1;
+
+printStatus() {
+    llSay(0, &quot;Physics is now &quot;+(string)llGetStatus(STATUS_PHYSICS));
+    llSay(0, &quot;Phantom is now &quot;+(string)llGetStatus(STATUS_PHANTOM));
+}
+
+vector initialPosition;
+rotation initialRotation;
+
+default
+{
+    state_entry()
+    {
+        initialPosition=llGetPos();
+        initialRotation=llGetRot();
+    }
+
+    touch_start(integer total_number)
+    {
+        integer numberOfStates=llGetListLength(states)/3;
+        iCurrentState+=1;
+        if (iCurrentState&gt;=numberOfStates)
+            iCurrentState=0;
+
+        if (iCurrentState==5)
+            iCurrentState=6;    // Skip a dangerous state
+           
+        llSay(0, &quot;Switching now to state &quot;+(string)iCurrentState);
+       
+        integer iPhysics=llList2Integer(states, 3*iCurrentState+0);
+        integer iPhantom=llList2Integer(states, 3*iCurrentState+1);
+        integer iVolDet =llList2Integer(states, 3*iCurrentState+2);
+
+        llSay(0, &quot;Commanded 
+states=&quot;+(string)iPhysics+&quot;,&quot;+(string)iPhantom+&quot;,&quot;+(string)iVolDet);
+
+        llSetPos(initialPosition);
+        llSetRot(initialRotation);
+
+        llSetStatus(STATUS_PHYSICS, iPhysics);
+        llSetStatus(STATUS_PHANTOM, iPhantom);
+        llVolumeDetect(iVolDet);
+
+        printStatus();
+       
+    }
+   
+    collision_start(integer iDetected) {
+        llSay(0, &quot;Bong&quot;);
+    }
+}
+
+--------------------------------------------------------------------------------------
+
+Following are the results:
+
+State: Physflag, Phantomflag, VD-Flag as set by the script above
+Phys (Scr): The Phys state as seen by the script
+Phan (Scr): The Phan state as seen by the script
+Phys (UI) : The Phys state as reflected by the Viewer
+Phan (UI): The Phan state as reflected by the Viewer
+IsPhys : The behaviour in world (did it tumble when kicked)
+IsPhan: The behaviour in world (was it there when kicked)
+DetectsColl: Was the collsions start event send (did it complain when 
+kicked)
+
+Inworld behaviour was tested by walking against/through the prim with an 
+avatar
+
+State    Phys (Scr)    Phan (Scr)    Phys(UI)    Phan(UI)    IsPhys   
+ IsPhan    DetectsColl
+0,0,0      0                    0                  0                0   
+            0            0              1
+0,0,1      0                    1                  0                1   
+            0            1              1
+0,1,0 (seems a hidden 0,0,0)  
+             0                    0                   0                
+0               0             0             1
+0,1,0     0                   1                    0                1   
+            0             1             0
+0,1,1     0                   1                    0                1   
+            0             1             1
+1,0,0     1                   0                    1                0   
+            1             0             1
+1,0,1    Fall through the cracks                        
+1,1,0     1                   1                    1                1   
+            1             1             0
+1,1,1    Fall through the cracks                        
+----------------------------------------------------------------------------------------------
+
+Discussion:
+
+To me that looks like there is a set of three independant flags around, 
+one for each property under examination.
+I don't call them states as a &quot;state&quot; for me implies the notion of a 
+finite state machine which in turn implies that things are mutual 
+exclusive. This is not the case here.
+
+Nevertheless, these flags seem to be coupled on changes. This means 
+there is some sort of implicit state machine here. But it's not 
+represented by a single state variable!
+
+The physical flag is set independantly.
+
+The folloing behaviour seems to be implemented:
+
+Setting the VD flag implicitely sets the phantom flag.
+Resetting the VD flag also removes the phantom flag
+Resetting phantom while VD is set does *not* reset VD behavior; it seems 
+this is only possible via script.
+
+Also note the fact, that in SL phantom prims can be physical. This is an 
+interesting derivation from the OS implementation that should be kept in 
+mind (which doesn't mean that OS' implementation should be changed).
+Another interesting thing is the behaviour of the states commented out 
+in the above script. The prim literarelly &quot;falls through the cracks&quot; 
+means collision handling with the ground seems to be switched off. very 
+funny.
+
+Conclusions:
+To implement a somewhat similar behaviour we don't need extra &quot;states&quot;. 
+All we need is a new flag &quot;volumeDetect&quot; and a logic that influences the 
+other states when changed.
+Looking at the fact that VD can't be switched off via UI in SL: This 
+seems not to be pretty. We could switch this off when removing phantom.
+Looking at the behaviour of physical, VD enabled prims: We also could do 
+better here as by detecting a collsion with the ground and handle that 
+differently.
+
+Best regards
+Gerhard
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004135.html">[Opensim-dev] Always mutable assets in OpenSim --	does	it	make	sense?
+</A></li>
+	<LI>Next message: <A HREF="004060.html">[Opensim-dev] heads up: git in opensim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4059">[ date ]</a>
+              <a href="thread.html#4059">[ thread ]</a>
+              <a href="subject.html#4059">[ subject ]</a>
+              <a href="author.html#4059">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

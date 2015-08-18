@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Performance optimization of complex ScienceSim regions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Performance%20optimization%20of%20complex%20ScienceSim%20regions&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD804495D978%40orsmsx502.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007431.html">
+   <LINK REL="Next"  HREF="007426.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Performance optimization of complex ScienceSim regions</H1>
+    <B>Lake, Dan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Performance%20optimization%20of%20complex%20ScienceSim%20regions&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD804495D978%40orsmsx502.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Performance optimization of complex ScienceSim regions">dan.lake at intel.com
+       </A><BR>
+    <I>Mon Aug 31 12:50:13 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007431.html">[Opensim-dev] OpenSim-Commits question
+</A></li>
+        <LI>Next message: <A HREF="007426.html">[Opensim-dev] Performance optimization of complex ScienceSim regions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7425">[ date ]</a>
+              <a href="thread.html#7425">[ thread ]</a>
+              <a href="subject.html#7425">[ subject ]</a>
+              <a href="author.html#7425">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>A few months back, we analyzed and proposed optimizations to scripting and timers on homogeneous regions which were dynamically created with up to 40,000 simple cubes and physics disabled. Considerable reductions in scene creation time and cpu utilization were achieved. 
+
+The regions running on ScienceSim at this time have few scripts (less than 1% of objects), have large linked sets,  are loaded at startup from a database, and most have ODE physics enabled although very few objects are physical. This represents a completely different workload for OpenSim from our previous analysis. Some of these ScienceSim regions are extremely complex with between 60,000 and 140,000 prims. We have noticed that startup on these regions can take 45 minutes or more and consume 50% of a CPU once they reach a steady state with no users connected. We did not expect that high utilization since script counts were below 200 and no users were connected.
+
+We have identified 3 areas of optimization.
+
+1. On startup, the region must be loaded from the database and all region modules must be started to prepare the region to run. On the largest ScienceSim regions, this step takes 20 minutes before the command prompt appears. We refer to this phase as the startup time. 
+
+2. The appearance of the OpenSim command prompt indicates that the Heartbeat thread has started up. Commands can be issued such as &quot;create user&quot; or &quot;show stats&quot;, but the Heartbeat thread itself will remain in its first &quot;beat&quot; for up to 40 more minutes. During this time, users cannot connect and the stats are all listed as 0 and do not update. We refer to this phase as &quot;first heartbeat time&quot;. 	
+
+3. Once the region has completely started up, but before any users have connected, we notice that the CPU utilization seems unusually high for the amount of &quot;action&quot; in the scene. Less than 200 scripted or physical objects should not represent a high load, but the 140,000 static prims somehow consumed 50% of a CPU.
+
+Analysis
+
+Startup
+
+During startup, we identified two issues and provide patches which reduce a 20 minute startup to 4 minutes, 30 seconds. 
+
+First, the LoadObjects function queries the database for each prim in the region separately to determine if it has any inventory (primitems). This results in 140,000 unnecessary database queries since none have any inventory. We replaced the query with one to get a list of only the region prims which have inventory and then requesting the inventory only for those that we know have items. The patch is for MySQL only.
+0001-LoadItems-from-DB-only-for-prims-with-inventory.patch
+MANTIS: <A HREF="http://opensimulator.org/mantis/view.php?id=4077">http://opensimulator.org/mantis/view.php?id=4077</A>
+
+Also during startup, there is a lot of linear searching through an O(n) list in ODE used to taint each object as it is added to the physical scene. We replace the List with a HashSet and add System.Core to prebuild.xml.
+0001-Optimize-startup.-ODE-taint-list-changed-from-List-w.patch
+MANTIS: <A HREF="http://opensimulator.org/mantis/view.php?id=4078">http://opensimulator.org/mantis/view.php?id=4078</A>
+
+First Heartbeat
+
+During the first heartbeat, most cycles were again spent in ODE running some seemingly simple mesh functions which convert lists of vertices and triangles into lists of indices. The function used an O(n) IndexOf operator on lists of vertices, some with thousands of entries. For only 300 prims, 78 million calls were made to Object::Equals(Vertex, Vertex). We replaced the public lists with private Dictionaries and encapsulated the functionality within Mesh. Meshmerizer no longer adds Vertexes, but only Triangles to a Mesh.  
+0001-Optimized-ODE-initialization-of-meshed-by-changing-v.patch
+MANTIS: <A HREF="http://opensimulator.org/mantis/view.php?id=4079">http://opensimulator.org/mantis/view.php?id=4079</A>
+
+We found that in ODEPrim.cs, there is a Sleep(10) statement during the meshing of each prim. By removing this sleep, we see erratic ODE behavior. In the best case, we see first heartbeat time reduced by 75%, in the worst case, ODE crashes or consumes all available cores until the process is killed. This patch is experimental and not recommended for commit. The Sleep was added in February 2008 by Teravus to handle a race condition. We are proposing that if the race condition can be identified, and the Sleep removed, that first heartbeat performance of ODE may be considerably better. 
+0001-Optimize-ODE-mesh-by-removing-sleep.-On-a-region-wit.patch
+MANTIS: <A HREF="http://opensimulator.org/mantis/view.php?id=4080">http://opensimulator.org/mantis/view.php?id=4080</A>
+
+Steady State
+
+We identified 3 issues in the steady state for a region with 140,000 prims. Patches to 2 of these issues are submitted here. During each heartbeat, the UpdateEntityMovement function is called on SceneGraph which calls UpdateMovement on every Entity in the scene. For SceneObjectGroups, this function is null, but it cannot be inlined and so the empty context is created almost 1 million times per second. By eliminating the empty calls and instead only calling UpdateMovement for ScenePresences, steady state CPU was reduced 35%.
+0001-Optimize-Heartbeat-loop-by-changing-UpdateEntityMove.patch
+MANTIS: <A HREF="http://opensimulator.org/mantis/view.php?id=4081">http://opensimulator.org/mantis/view.php?id=4081</A>
+
+For each heartbeat cycle, Update is called on each SceneObjectGroup. Part of the update only applies to physical objects, but the computations are performed whether or not the object is physical. By rearranging the 'if' statements, we can optimize 10% of the CPU cycles away without changing semantics.
+0001-Optimize-Heartbeat-loop-by-eliminating-physical-calc.patch
+MANTIS: <A HREF="http://opensimulator.org/mantis/view.php?id=4076">http://opensimulator.org/mantis/view.php?id=4076</A>
+
+We are investigating a solution to other issues during steady state to further reduce resource utilization of these large regions. 
+
+Dan lake
+Software Engineer
+Visual Applications Research
+Microprocessor &amp; Programming Res	earch
+Intel Labs
+503.712.8318
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>
+ 
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007431.html">[Opensim-dev] OpenSim-Commits question
+</A></li>
+	<LI>Next message: <A HREF="007426.html">[Opensim-dev] Performance optimization of complex ScienceSim regions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7425">[ date ]</a>
+              <a href="thread.html#7425">[ thread ]</a>
+              <a href="subject.html#7425">[ subject ]</a>
+              <a href="author.html#7425">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

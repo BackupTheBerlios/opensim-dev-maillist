@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposed feature addition to OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs (patch included)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposed%20feature%20addition%20to%0A%20OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs%20%28patch%0A%20included%29&In-Reply-To=%3CBANLkTi%3D%3D-gzCsyVNv5aBJ%2BrTTnT5DZYw6w%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010239.html">
+   <LINK REL="Next"  HREF="010241.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposed feature addition to OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs (patch included)</H1>
+    <B>James Stallings II</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposed%20feature%20addition%20to%0A%20OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs%20%28patch%0A%20included%29&In-Reply-To=%3CBANLkTi%3D%3D-gzCsyVNv5aBJ%2BrTTnT5DZYw6w%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Proposed feature addition to OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs (patch included)">james.stallings at gmail.com
+       </A><BR>
+    <I>Fri May 27 01:19:51 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010239.html">[Opensim-dev] Proposed feature addition to OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs (patch included)
+</A></li>
+        <LI>Next message: <A HREF="010241.html">[Opensim-dev] Proposed feature addition to OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs (patch included)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10240">[ date ]</a>
+              <a href="thread.html#10240">[ thread ]</a>
+              <a href="subject.html#10240">[ subject ]</a>
+              <a href="author.html#10240">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>My apologies, but the previous code was completely ineffective on testing. I
+know, it should be tested before submission. Mea Culpa, it looked really
+good.
+
+This, however, actually works:
+
+1103d1102
+&lt;
+1117,1125c1116,1125
+&lt;
+&lt;                if (GetRequestingAgentID(remoteClient) != dataForAgentID)
+&lt;                {
+&lt;                    if (!membership.ListInProfile)
+&lt;                    {
+&lt;                       // If we're sending group info to remoteclient about
+another agent,
+&lt;                       // filter out groups the other agent doesn't want to
+share.
+&lt;                       continue;
+&lt;                    }
+---
+&gt;<i>                 if
+</I>(!remoteClient.Scene.Permissions.IsGod(remoteClient.AgentID))
+&gt;<i>                     if (GetRequestingAgentID(remoteClient) !=
+</I>dataForAgentID)
+&gt;<i>                     {
+</I>&gt;<i>                         if (!membership.ListInProfile)
+</I>&gt;<i>                         {
+</I>&gt;<i>                             // If we're sending group info to remoteclient
+</I>about another agent,
+&gt;<i>                             // filter out groups the other agent doesn't
+</I>want to share.
+&gt;<i>                             continue;
+</I>&gt;<i>                         }
+</I>&gt;<i>                     }
+</I>1128d1127
+&lt;
+1237,1242c1236,1237
+&lt;             //  c_scene and property accessor 'is_god' are in support of
+the opertions to bypass 'hidden' group attributes for
+&lt;             // those with a GodLike aspect.
+&lt;             Scene c_scene = (Scene) requestingClient.Scene;
+&lt;             bool is_god =
+c_scene.Permissions.IsGod(requestingClient.AgentId);
+&lt;
+&lt;             if(is_god) {
+---
+&gt;<i>             if (requestingClient.AgentId != dataForAgentID)
+</I>&gt;<i>             {
+</I>1248c1243
+&lt;                 membershipArray = membershipData.ToArray();
+---
+&gt;<i>                 membershipArray =
+</I>membershipData.FindAll(showInProfile).ToArray();
+1252,1265c1247
+&lt;
+&lt;                 if (requestingClient.AgentId != dataForAgentID)
+&lt;                 {
+&lt;                     Predicate&lt;GroupMembershipData&gt; showInProfile =
+delegate(GroupMembershipData membership)
+&lt;                     {
+&lt;                         return membership.ListInProfile;
+&lt;                     };
+&lt;
+&lt;                     membershipArray =
+membershipData.FindAll(showInProfile).ToArray();
+&lt;                 }
+&lt;                 else
+&lt;                 {
+&lt;                     membershipArray = membershipData.ToArray();
+&lt;                 }
+---
+&gt;<i>                 membershipArray = membershipData.ToArray();
+</I>1266a1249
+&gt;<i>
+</I>
+On Thu, May 26, 2011 at 11:36 AM, James Stallings II &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">james.stallings at gmail.com</A>&gt; wrote:
+
+&gt;<i> Greetings, OpenSimulator developers :)
+</I>&gt;<i>
+</I>&gt;<i> I'm writing to propose the addition of certain functionality
+</I>&gt;<i> to OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs, to
+</I>&gt;<i> wit:
+</I>&gt;<i>
+</I>&gt;<i> Present 'Hidden' groups and other related group detail to agents requesting
+</I>&gt;<i> such iniformation via CAPs as have assumed a 'godlike' aspect, or in other
+</I>&gt;<i> words, have successfully activated the administrative functionality in the
+</I>&gt;<i> client.
+</I>&gt;<i>
+</I>&gt;<i> The changes to the substance of the code involve credits more than not; a
+</I>&gt;<i> diff is both attached and included for convenient review. A fork has been
+</I>&gt;<i> created on github at <A HREF="git://github.com/JamesStallings/opensim.git">git://github.com/JamesStallings/opensim.git</A> which
+</I>&gt;<i> contains the changes for convenience should contribution of source be
+</I>&gt;<i> accepted. I will also open a mantis on the topic for the sake of
+</I>&gt;<i> thoroughness and attach the diff there.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Many thanks and cheers!
+</I>&gt;<i>
+</I>&gt;<i> James Stallings aka Hiro Protagonist
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Diff follows:
+</I>&gt;<i>
+</I>&gt;<i> 1103,1107d1102
+</I>&gt;<i> &lt;             //  c_scene and property accessor 'is_god' are in support of
+</I>&gt;<i> the opertions to bypass 'hidden' group attributes for
+</I>&gt;<i> &lt;             // those with a GodLike aspect.
+</I>&gt;<i> &lt;             Scene c_scene = (Scene) remoteClient.Scene;
+</I>&gt;<i> &lt;             bool is_god =
+</I>&gt;<i> c_scene.Permissions.IsGod(remoteClient.AgentId);
+</I>&gt;<i> &lt;
+</I>&gt;<i> 1121,1138c1116,1126
+</I>&gt;<i> &lt; //              bypass the 'hidden' attributes of groups for those who
+</I>&gt;<i> have
+</I>&gt;<i> &lt; //              a GodLike aspect
+</I>&gt;<i> &lt; //
+</I>&gt;<i> &lt; //              Big shout out to Dan Banner for showing me his running
+</I>&gt;<i> proof-of-concept and endorsing this idea as meaningful work
+</I>&gt;<i> &lt; //              Another big shout out to BlueWall Slade for helping me
+</I>&gt;<i> chase down all the elements required to properly access
+</I>&gt;<i> &lt; //              Scene and IClientAPI properties.  JS aka HP
+</I>&gt;<i> &lt;                 if (!is_god)
+</I>&gt;<i> &lt;                 {
+</I>&gt;<i> &lt;                 if (GetRequestingAgentID(remoteClient) !=
+</I>&gt;<i> dataForAgentID)
+</I>&gt;<i> &lt;                 {
+</I>&gt;<i> &lt;                     if (!membership.ListInProfile)
+</I>&gt;<i> &lt;                     {
+</I>&gt;<i> &lt;                         // If we're sending group info to remoteclient
+</I>&gt;<i> about another agent,
+</I>&gt;<i> &lt;                         // filter out groups the other agent doesn't
+</I>&gt;<i> want to share.
+</I>&gt;<i> &lt;                         continue;
+</I>&gt;<i> &lt;                     }
+</I>&gt;<i> &lt;                 }
+</I>&gt;<i> &lt; }
+</I>&gt;<i> ---
+</I>&gt;<i> &gt;                 if
+</I>&gt;<i> (!remoteClient.Scene.Permissions.IsGod(remoteClient.AgentID))
+</I>&gt;<i> &gt;                     if (GetRequestingAgentID(remoteClient) !=
+</I>&gt;<i> dataForAgentID)
+</I>&gt;<i> &gt;                     {
+</I>&gt;<i> &gt;                         if (!membership.ListInProfile)
+</I>&gt;<i> &gt;                         {
+</I>&gt;<i> &gt;                             // If we're sending group info to
+</I>&gt;<i> remoteclient about another agent,
+</I>&gt;<i> &gt;                             // filter out groups the other agent doesn't
+</I>&gt;<i> want to share.
+</I>&gt;<i> &gt;                             continue;
+</I>&gt;<i> &gt;                         }
+</I>&gt;<i> &gt;                     }
+</I>&gt;<i> &gt;                 }
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> ===================================
+</I>&gt;<i> <A HREF="http://simhost.com">http://simhost.com</A> <A HREF="http://osgrid.org">http://osgrid.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/jstallings2">http://twitter.com/jstallings2</A>
+</I>&gt;<i> <A HREF="http://www.linkedin.com/pub/5/770/a49">http://www.linkedin.com/pub/5/770/a49</A>
+</I>&gt;<i>
+</I>
+
+
+-- 
+===================================
+<A HREF="http://simhost.com">http://simhost.com</A> <A HREF="http://osgrid.org">http://osgrid.org</A>
+<A HREF="http://twitter.com/jstallings2">http://twitter.com/jstallings2</A>
+<A HREF="http://www.linkedin.com/pub/5/770/a49">http://www.linkedin.com/pub/5/770/a49</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110526/542515df/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110526/542515df/attachment.html</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: groupsmodule.cs-diff
+Type: application/octet-stream
+Size: 2260 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110526/542515df/attachment.obj">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110526/542515df/attachment.obj</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010239.html">[Opensim-dev] Proposed feature addition to OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs (patch included)
+</A></li>
+	<LI>Next message: <A HREF="010241.html">[Opensim-dev] Proposed feature addition to OpenSim/Region/OptionalModules/Avatar/XmlRpcGroups/GroupsModule.cs (patch included)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10240">[ date ]</a>
+              <a href="thread.html#10240">[ thread ]</a>
+              <a href="subject.html#10240">[ subject ]</a>
+              <a href="author.html#10240">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

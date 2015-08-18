@@ -1,0 +1,244 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] User services refactoring status
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20services%20refactoring%20status&In-Reply-To=%3CBEF91261-48BB-4375-888F-F091EFB811A1%40bessacarr.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008214.html">
+   <LINK REL="Next"  HREF="008217.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] User services refactoring status</H1>
+    <B>Tom Willans</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20services%20refactoring%20status&In-Reply-To=%3CBEF91261-48BB-4375-888F-F091EFB811A1%40bessacarr.com%3E"
+       TITLE="[Opensim-dev] User services refactoring status">tom.willans at bessacarr.com
+       </A><BR>
+    <I>Fri Jan  8 10:59:48 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008214.html">[Opensim-dev] User services refactoring status
+</A></li>
+        <LI>Next message: <A HREF="008217.html">[Opensim-dev] User services refactoring status
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8215">[ date ]</a>
+              <a href="thread.html#8215">[ thread ]</a>
+              <a href="subject.html#8215">[ subject ]</a>
+              <a href="author.html#8215">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+.NET is ok and I appreciate why it was used for OpenSim, but most of  
+the CMS systems that I have come across and may want to integrate are  
+not .NET such as Joomla, Drupal. Would this mean installing Mono on  
+all systems, not just the OpenSim systems? Still a helpful alternative  
+to consider.
+
+
+On 7 Jan 2010, at 20:39, Impalah Shenzhou wrote:
+
+&gt;<i> If someone is looking for some kind of purity (using  
+</I>&gt;<i> exclusively .NET for web management) recently I have discovered <A HREF="http://www.dotnetnuke.com/">http://www.dotnetnuke.com/</A>
+</I>&gt;<i>
+</I>&gt;<i> Is a CMS (like Alfresco, Drupal, Joomla...) but runs over .NET. It  
+</I>&gt;<i> shouldn't be too difficult to connect the native Opensim components  
+</I>&gt;<i> to get/set data instead of accessing directly to database.
+</I>&gt;<i>
+</I>&gt;<i> Greetings
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> 2010/1/7 Fly Man &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">fly.man.opensim at gmail.com</A>&gt;
+</I>&gt;<i> In other words:
+</I>&gt;<i>
+</I>&gt;<i> Wiredux won't use those connectors but will grab to the database  
+</I>&gt;<i> itself. Wiredux is not a .NET application so it will go directly to  
+</I>&gt;<i> the database.
+</I>&gt;<i>
+</I>&gt;<i> I will wait until the refactoring is done, have a look what's  
+</I>&gt;<i> wrecked and maybe fix it.
+</I>&gt;<i>
+</I>&gt;<i> 2010/1/5 &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i> Putting PHP in front of the DBs is one of the most natural things to  
+</I>&gt;<i> do
+</I>&gt;<i> from here on -- not just the things that Wiredux does, but for a lot
+</I>&gt;<i> more! In fact, the entire collection of OpenSim.Services that are
+</I>&gt;<i> provided as reference implementations can be replaced with
+</I>&gt;<i> implementations in Apache+PHP.
+</I>&gt;<i>
+</I>&gt;<i> Calls from the simulators to the services are now all neatly  
+</I>&gt;<i> packaged in
+</I>&gt;<i> OpenSim.Services.Connectors (these are the &quot;out&quot; connectors). Just
+</I>&gt;<i> browse through those connectors and check out the wire protocols, then
+</I>&gt;<i> do the receiving end in PHP. Many of them are using standard web  
+</I>&gt;<i> forms,
+</I>&gt;<i> others use XMLRPC, others use custom-made HTTP-based dialects.
+</I>&gt;<i>
+</I>&gt;<i> Calls from outside to the simulators are packaged in
+</I>&gt;<i> OpenSim.Server.Handlers. Again, check them out and, if not using .NET,
+</I>&gt;<i> write your own client for them. If using .NET/mono you can import the
+</I>&gt;<i> DLL OpenSim.Connectors.dll, and reuse the existing connectors as-is.
+</I>&gt;<i>
+</I>&gt;<i> But that's not all. Since now the interactions between the simulators
+</I>&gt;<i> and the resource services are all formalized in interfaces
+</I>&gt;<i> (OpenSim.Services.Interfaces), and the handlers and connectors in the
+</I>&gt;<i> simulator are loaded dynamically, you can replace the connectors and
+</I>&gt;<i> handlers themselves. In other words, if you want OpenSim to talk web
+</I>&gt;<i> services, roll your own Web Services handlers and connectors under  
+</I>&gt;<i> those
+</I>&gt;<i> interfaces, and you're done -- you'll have to use .NET for this part,
+</I>&gt;<i> though.
+</I>&gt;<i>
+</I>&gt;<i> Tom Willans wrote:
+</I>&gt;<i> &gt; Hi,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; First thanks for all your work.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I assume from this that the webredux will no longer work without
+</I>&gt;<i> &gt; modification and will need updating. ( Thanks again here).
+</I>&gt;<i> &gt; Is there any information about the new authentication approach  
+</I>&gt;<i> anywhere,
+</I>&gt;<i> &gt; if not in detail then an overview. Is LDAP on the horizon?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I am mostly interested in linking php based frontends to opensim and
+</I>&gt;<i> &gt; hence accessing the database directly. Particularly relevant is  
+</I>&gt;<i> moving
+</I>&gt;<i> &gt; away from using UUIDs.
+</I>&gt;<i> &gt; Please forgive me if I am missing something but I assume there are  
+</I>&gt;<i> no
+</I>&gt;<i> &gt; web-services that can be called and calling C# from php is not a  
+</I>&gt;<i> very
+</I>&gt;<i> &gt; good solution.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Thanks.
+</I>&gt;<i> &gt; Tom
+</I>&gt;<i> &gt; On 5 Jan 2010, at 10:37, Ai Austin wrote:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;&gt; At 18:32 04/01/2010, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-request at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt; &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-request at lists.berlios.de</A>&gt; wrote:
+</I>&gt;<i> &gt;&gt;&gt; To be honest, I don't think Sqlite should be a database type  
+</I>&gt;<i> that we
+</I>&gt;<i> &gt;&gt;&gt; (OpenSim) should keep alive in the project,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; It is useful to have a double click and go out of the box solution
+</I>&gt;<i> &gt;&gt; which people can try out and test with.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; One other use of SQLite that I am aware of and fine very useful is
+</I>&gt;<i> &gt;&gt; for the really simple and handy single region hosted on your own
+</I>&gt;<i> &gt;&gt; system that is connected to the New World Grid for any avatar using
+</I>&gt;<i> &gt;&gt; the &quot;New World Studio&quot; packaged version of Opensim. See
+</I>&gt;<i> &gt;&gt; <A HREF="http://www.newworldgrid.com/lang/en-us/land/free-land">http://www.newworldgrid.com/lang/en-us/land/free-land</A>
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Tom Willans
+</I>&gt;<i> &gt; Managing Director
+</I>&gt;<i> &gt; Bessacarr Publications Ltd
+</I>&gt;<i> &gt; 3 Highfield, Hatton Park, Warwick, CV35 7TQ
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tom.willans at bessacarr.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tom.willans at bessacarr.com</A>&gt;
+</I>&gt;<i> &gt; +44 (0) 1926 402055   +44 (0) 121 288 0281
+</I>&gt;<i> &gt; Registered in England and Wales at the above address.  Company No:
+</I>&gt;<i> &gt; 4925067. VAT No:GB 823 9317 24.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; This e-mail is confidential and intended solely for the use of the
+</I>&gt;<i> &gt; individual to whom it is addressed. Any views or opinions  
+</I>&gt;<i> presented are
+</I>&gt;<i> &gt; solely those of the author and do not necessarily represent those of
+</I>&gt;<i> &gt; Bessacarr Publications Ltd. If you are not the intended recipient  
+</I>&gt;<i> you
+</I>&gt;<i> &gt; have received this e-mail in error and that any use, dissemination,
+</I>&gt;<i> &gt; forwarding, printing or copying of this e-mail is strictly  
+</I>&gt;<i> prohibited.
+</I>&gt;<i> &gt; Please return it to the sender immediately. The contents of this  
+</I>&gt;<i> message
+</I>&gt;<i> &gt; may be legally privileged.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;  
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+Tom Willans
+Managing Director
+Bessacarr Publications Ltd
+3 Highfield, Hatton Park, Warwick, CV35 7TQ
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tom.willans at bessacarr.com</A>
++44 (0) 1926 402055   +44 (0) 121 288 0281
+Registered in England and Wales at the above address.  Company No:  
+4925067. VAT No:GB 823 9317 24.
+
+This e-mail is confidential and intended solely for the use of the  
+individual to whom it is addressed. Any views or opinions presented  
+are solely those of the author and do not necessarily represent those  
+of Bessacarr Publications Ltd. If you are not the intended recipient  
+you have received this e-mail in error and that any use,  
+dissemination, forwarding, printing or copying of this e-mail is  
+strictly prohibited. Please return it to the sender immediately. The  
+contents of this message may be legally privileged.
+
+
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20100108/667a643a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20100108/667a643a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008214.html">[Opensim-dev] User services refactoring status
+</A></li>
+	<LI>Next message: <A HREF="008217.html">[Opensim-dev] User services refactoring status
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8215">[ date ]</a>
+              <a href="thread.html#8215">[ thread ]</a>
+              <a href="subject.html#8215">[ subject ]</a>
+              <a href="author.html#8215">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

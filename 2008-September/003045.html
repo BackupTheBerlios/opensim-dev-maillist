@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Local assets in Grid mode
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Local%20assets%20in%20Grid%20mode&In-Reply-To=%3CBLU134-W139EB1898308D74A61482CD5500%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003044.html">
+   <LINK REL="Next"  HREF="003046.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Local assets in Grid mode</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Local%20assets%20in%20Grid%20mode&In-Reply-To=%3CBLU134-W139EB1898308D74A61482CD5500%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Local assets in Grid mode">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sat Sep 13 16:59:38 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003044.html">[Opensim-dev] Local assets in Grid mode
+</A></li>
+        <LI>Next message: <A HREF="003046.html">[Opensim-dev] Local assets in Grid mode
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3045">[ date ]</a>
+              <a href="thread.html#3045">[ thread ]</a>
+              <a href="subject.html#3045">[ subject ]</a>
+              <a href="author.html#3045">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Folks,
+
+It's been a long time ambition to streamline the services into something a bit more 'chainable'.
+
+All services should  be thought of, and implemented like, provider interfaces;
+
+it should not matter to the code if it IAssetProvider.GetAsset from something that reads directly, and un-cached, from disk, or from something that uses an in-memory IAssetProvider as a cache and uses its internal http proxying IAssetProvider to forward requests to a http service;
+
+On the http service end, The service should be implemented with the _exact_ same family of concrete IAssetProvider implementations to fetch and serve the resources; this will lead to efficient code re-use and to build 'service chains' (think streams) will ease redirection and inclusion of multiple services on each chain step. IE, the 'grid asset service' could, in turn, re-route asset requests to yet another higher node, or to the asset service of another grid, using the exact same concrete implementations as the region server.
+
+For quite some time I've been pointing out that efficient asset fetching and caching will be different from one scenario to another. Chaining like this will accomodate the basest case, all to the inter-grid metaverse protocols.
+
+The same goes for all the other services (user/inventory/message/grid) as well; if we can harmonize and normalize the interfaces and implementations, we can start to build intelligent information routing chains - a big step towards intergrid experimentation.
+
+(In this scenario, the simplest scenario for a local implementation would be to instantiate a local file-based IAssetProvider directly instead of the cached proxy that would constitute the grid equivalent. What concrete class should be the asset provider(s) should be an ini setting, like any other module setting.)
+
+And, while we're on the topic; the asset fetching needs to go asynch; we can't have the lag of each step fetching the full asset before returning it to the next step.
+
+Best regards,
+Stefan Andersson
+Tribal Media AB
+ 
+Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>
+
+ 
+
+
+&gt;<i> Date: Sat, 13 Sep 2008 15:15:31 +0100
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Local assets in Grid mode
+</I>&gt;<i> 
+</I>&gt;<i> Yes. In the future it will be. But to get there at all, the first 
+</I>&gt;<i> logical step is to remove local asset mode. It was only a kludge, 
+</I>&gt;<i> left over because of legacy compatibility.
+</I>&gt;<i> It has become a stumbling block now and needs to be relegated to the 
+</I>&gt;<i> junkyard of ancient code history.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> James Hughes wrote:
+</I>&gt;<i> &gt; Melanie wrote:
+</I>&gt;<i> &gt;&gt; What I propose is a multi-step process.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; 1. Remove the local assets flag and the code needed to use local 
+</I>&gt;<i> &gt;&gt; assets. At this time, local asset regions need to start a local
+</I>&gt;<i> &gt;&gt; asset server and change their grid asset server to point to 127.0.0.1.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; 2. Refactor the asset loading system, providing a persistent local 
+</I>&gt;<i> &gt;&gt; asset cache and cleaner code paths.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Up to here, there would be no functional changes.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; 3. Extend the interface to get a &quot;asset search list&quot;, which will let 
+</I>&gt;<i> &gt;&gt; the region's avatars use grid assets even while in the local asset 
+</I>&gt;<i> &gt;&gt; region.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Melanie
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;   
+</I>&gt;<i> &gt; As grids start to inter-connect the asset system will, probably, become
+</I>&gt;<i> &gt; very distributed. Maybe the Grid server will provide a service to
+</I>&gt;<i> &gt; automatically point Region servers to Asset servers that are trusted for
+</I>&gt;<i> &gt; the &quot;local&quot; grid. Then Regions could add others as needed in the
+</I>&gt;<i> &gt; configuration.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; Say a region on grid-a has a vendor in a rental space. The items to be
+</I>&gt;<i> &gt; sold are hosted on the Asset service for grid-b. And, I make my home on
+</I>&gt;<i> &gt; a region in grid-c. If I purchase the item, the Region on grid-a needs
+</I>&gt;<i> &gt; to point my Inventory service to the grid-b Asset service to make a
+</I>&gt;<i> &gt; reference to the item. And, possibly arrange a copy of the item to be
+</I>&gt;<i> &gt; transfered to my Asset service on grid-c. And, when I rez the item on my
+</I>&gt;<i> &gt; home grid, it could be pulled from my grid's Asset server, or possibly
+</I>&gt;<i> &gt; the grid-b Asset server.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; The Inventory service could also point to multiple Asset services to
+</I>&gt;<i> &gt; make the system redundant to provide a backup feature.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; BlueWall &lt;j&gt;
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080913/b8ceecaa/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080913/b8ceecaa/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003044.html">[Opensim-dev] Local assets in Grid mode
+</A></li>
+	<LI>Next message: <A HREF="003046.html">[Opensim-dev] Local assets in Grid mode
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3045">[ date ]</a>
+              <a href="thread.html#3045">[ thread ]</a>
+              <a href="subject.html#3045">[ subject ]</a>
+              <a href="author.html#3045">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

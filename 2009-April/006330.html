@@ -1,0 +1,167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving away from grid vs. standalone
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C6b9359640904281324q40c5dd00ve6a93f61bce662d0%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006329.html">
+   <LINK REL="Next"  HREF="006332.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving away from grid vs. standalone</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C6b9359640904281324q40c5dd00ve6a93f61bce662d0%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] moving away from grid vs. standalone">aerowolf at gmail.com
+       </A><BR>
+    <I>Tue Apr 28 22:24:15 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006329.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+        <LI>Next message: <A HREF="006332.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6330">[ date ]</a>
+              <a href="thread.html#6330">[ thread ]</a>
+              <a href="subject.html#6330">[ subject ]</a>
+              <a href="author.html#6330">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>For security, I'd really rather have socket mechanisms other than
+simply TCP/IP (such as UNIX-style named pipes)... and I'd also much
+prefer to have the ability to bind to a specific IP in the case where
+TCP/IP is the only socket model available.  (Realistically, I'd rather
+have the ability to bind to a specific IP anyway -- allow one machine
+to run multiple apparently-different instances on a single machine.)
+
+Technically, Windows has named pipes as well, but you can't get to
+them from inside .NET.  You have to drop to the native interface, upon
+which Win32/Win64 is built.
+
+-Kyle H
+
+On Tue, Apr 28, 2009 at 1:12 PM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> looks like what I have wanted to do for a long time. Finally get eid
+</I>&gt;<i> of that pesky monolithic &quot;mode&quot; switch and straighten out the bent
+</I>&gt;<i> code paths.
+</I>&gt;<i> However, groups is a region module. It would not have a
+</I>&gt;<i> configuration there, it has it's own section. Apart from that, +1000
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;<i> Hi everyone,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I am now at a point where the current grid vs standalone issue, along
+</I>&gt;&gt;<i> with the communications dlls that go with it, is a major obstacle to
+</I>&gt;&gt;<i> progress. Been thinking about this for the past 3 weeks, and I now have
+</I>&gt;&gt;<i> a vision of what we could do; details are still up for discussion...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Basically, the formulation &quot;grid vs. standalone&quot; is a packaged division
+</I>&gt;&gt;<i> that needs to be unpacked. What's really going on is &quot;local vs remote
+</I>&gt;&gt;<i> services&quot; -- this formulation being as old as distributed computing came
+</I>&gt;&gt;<i> around.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So - let me start from the top, because it tells the story (refer to
+</I>&gt;&gt;<i> <A HREF="http://opensimulator.org/wiki/Virtual_World_Model">http://opensimulator.org/wiki/Virtual_World_Model</A>). Below is a draft of
+</I>&gt;&gt;<i> what OpenSim.ini could look like. Thoughts?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [RegionResourceServices]
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> grid_server_url = &quot;<A HREF="http://192.168.1.101:9000">http://192.168.1.101:9000</A>&quot;
+</I>&gt;&gt;<i> grid_send_key = &quot;null&quot;
+</I>&gt;&gt;<i> grid_recv_key = &quot;null&quot;
+</I>&gt;&gt;<i> ; are we to optimize for a standalone grid?
+</I>&gt;&gt;<i> LocalGridService = {True|False}
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> user_server_url = &quot;<A HREF="http://192.168.1.101:9000">http://192.168.1.101:9000</A>&quot;
+</I>&gt;&gt;<i> user_send_key = &quot;null&quot;
+</I>&gt;&gt;<i> user_recv_key = &quot;null&quot;
+</I>&gt;&gt;<i> ; are we to optimize for a standalone grid?
+</I>&gt;&gt;<i> LocalUserService = {True|False}
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> asset_server_url = &quot;<A HREF="http://192.168.1.101:9000">http://192.168.1.101:9000</A>&quot;
+</I>&gt;&gt;<i> ; are we to optimize for a standalone grid?
+</I>&gt;&gt;<i> LocalAssetService = {True|False}
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> inventory_server_url = &quot;<A HREF="http://192.168.1.101:9000">http://192.168.1.101:9000</A>&quot;
+</I>&gt;&gt;<i> ; are we to optimize for a standalone grid?
+</I>&gt;&gt;<i> LocalInventoryService = {True|False}
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> messaging_server_url = &quot;<A HREF="http://192.168.1.101:8006">http://192.168.1.101:8006</A>&quot;
+</I>&gt;&gt;<i> ; are we to optimize for a standalone grid?
+</I>&gt;&gt;<i> LocalMessagingService = False; because no one has done a local one yet
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> group_server_url = &quot;<A HREF="http://server.mcortez.com:8005">http://server.mcortez.com:8005</A>&quot;
+</I>&gt;&gt;<i> ; are we to optimize for a standalone grid?
+</I>&gt;&gt;<i> LocalGroupService = False; because no one has done a local one yet
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ... other services ...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [Security]
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> SessionAuthentication = {True|False}
+</I>&gt;&gt;<i> KeyAuthentication = {True|False}
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> AllowHyperlinksToThisSim = {True|False}
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> AllowGuestUsers = {True|False}
+</I>&gt;&gt;<i> DisplayTOS = {True|False}
+</I>&gt;&gt;<i> TOSMessage = &quot;Please behave or go away!&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ; this should also be in the user server configs
+</I>&gt;&gt;<i> AllowLocalUsersOutside = {True|False}
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [LocalServicesConfiguration]
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> What's currently under Standalone
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006329.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+	<LI>Next message: <A HREF="006332.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6330">[ date ]</a>
+              <a href="thread.html#6330">[ thread ]</a>
+              <a href="subject.html#6330">[ subject ]</a>
+              <a href="author.html#6330">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

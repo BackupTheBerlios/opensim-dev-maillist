@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Authentication, take 2: Capabilities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%2C%20take%202%3A%20Capabilities&In-Reply-To=%3C49A76D99.4030203%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005484.html">
+   <LINK REL="Next"  HREF="005495.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Authentication, take 2: Capabilities</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%2C%20take%202%3A%20Capabilities&In-Reply-To=%3C49A76D99.4030203%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Authentication, take 2: Capabilities">diva at metaverseink.com
+       </A><BR>
+    <I>Fri Feb 27 05:35:37 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005484.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+        <LI>Next message: <A HREF="005495.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5494">[ date ]</a>
+              <a href="thread.html#5494">[ thread ]</a>
+              <a href="subject.html#5494">[ subject ]</a>
+              <a href="author.html#5494">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After more poking at the viewer, here's what I found.
+
+FetchInventoryDescendents seems to be working consistently over CAPs, in 
+fact better than over UDP. When the agent logs in, the client always 
+invokes that CAP, unlike the message over UDP which only seems to come 
+after a clear cache. That first FetchInventoryDescendents request is for 
+getting the 1st-level items just below the Root folder. Whenever you 
+unfold folders, this CAP is invoked too, and that happens all the time. 
+In other words, the inventory skeleton is passed in a lazy mode to the 
+client, and directly from wherever this Capability is being served. Why 
+is this commented in the code?
+
+Observation #1: we could make the provider of this CAP be the inventory 
+service, instead of the region. That way, the user can *browse* the 
+contents of her inventory *safely everywhere* -- even if the region 
+where she is doesn't have her inventory.
+
+Unfortunately, the goodies sort of stop here. I tried coercing the 
+viewer to use FetchInventory, CreateInventoryItem, 
+CreateInventoryFolder, and other inventory manipulation operations, over 
+CAPs, but the viewer doesn't seem to want to do that. The only ones that 
+are over CAPs are the ones we already have related to notecards and 
+scripts. Those can also be split eventually, some of them should go to 
+the inv server directly, namely: NewFileAgentInventory, 
+UpdateNotecardAgentInventory, UpdateScriptAgentInventory. There's really 
+no need to let the regions serve these.
+
+However, even though inventory access doesn't seem to be entirely over 
+CAPs, not all is lost. What this means is that we can stop regions (the 
+untrusted ones, at least) from getting the user's inventory in its 
+entirety while the user still *sees* it. The next problem is *access*. 
+That is, I can see I have a shape in there, but as soon as I try to wear 
+it, that fails, because the region where I am doesn't known anything 
+about it (it doesn't have the assetID, because it doesn't have the 
+inventory).
+
+We have three options here.
+
+(1) We have the region fetch that inventory item from the user's 
+inventory, and then send it to the viewer; so the region gets a copy of 
+the item.
+(2) We have the region serve merely as front-end of the request, passing 
+it to the user's inventory server or home region, and have them send the 
+actual item to the viewer. (my favorite; in this case, Identity and 
+Authentication would be established by the viewer's EndPoint, again)
+(3) We simply don't serve the item.
+
+In any case, the great thing here is that the region doesn't have the 
+complete listing of the users' inventory items, but the viewer does. 
+That is, we avoid that dreadful &quot;Loading...&quot;. The region may get 
+requests for fetching items, and those IDs come from the client. So when 
+the inv server gets a request to fetch an item, we know that with all 
+likelihood this request came from the legitimate viewer; the odds of the 
+region guessing a valid itemID are pretty low.
+
+---
+
+I can already hear Melanie saying that any of this is going to break 57 
+things related to attachments and scripting :-) That's ok. I'm talking 
+about crossing boundaries of trust for now, so Hypergrid, OSGrid and 
+others like that. And there's ways of not breaking attachments and 
+scripts across region boundaries.
+
+My main objective is to defeat what I've put DNCH doing at the moment -- 
+wiping out people's inventories.
+
+Melanie wrote:
+&gt;<i> That is what was said. Linden reverted the inventory protocol to UDP 
+</I>&gt;<i>   on their servers because of an issue in the viewer that was so 
+</I>&gt;<i> fundamental that it was decided to not be worth fixing.
+</I>&gt;<i>
+</I>&gt;<i> Whether this is true, I don't know. but it was said.
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i> Diva Canto wrote:
+</I>&gt;<i>   
+</I>&gt;&gt;<i> Melanie wrote:
+</I>&gt;&gt;<i>     
+</I>&gt;&gt;&gt;<i> Linden turned it off because it's broken in the client. So, we can 
+</I>&gt;&gt;&gt;<i> try to use it but will hit the same wall, since the client was never 
+</I>&gt;&gt;&gt;<i> fixed.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>   
+</I>&gt;&gt;&gt;<i>       
+</I>&gt;&gt;<i> Melanie: are you 100% sure about this? This, of course, is critical. The 
+</I>&gt;&gt;<i> whole point of my thinking was to access inventory over the consistent 
+</I>&gt;&gt;<i> model of CAPs; if that's not working, then everything else is minor.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090226/ef655a5d/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090226/ef655a5d/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005484.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+	<LI>Next message: <A HREF="005495.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5494">[ date ]</a>
+              <a href="thread.html#5494">[ thread ]</a>
+              <a href="subject.html#5494">[ subject ]</a>
+              <a href="author.html#5494">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

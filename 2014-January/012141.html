@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] New developer with an idea to fix IRCBridgeBot
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2014-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20New%20developer%20with%20an%20idea%20to%20fix%20IRCBridgeBot&In-Reply-To=%3C52D881F1.80405%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="012137.html">
+   <LINK REL="Next"  HREF="012138.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] New developer with an idea to fix IRCBridgeBot</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20New%20developer%20with%20an%20idea%20to%20fix%20IRCBridgeBot&In-Reply-To=%3C52D881F1.80405%40googlemail.com%3E"
+       TITLE="[Opensim-dev] New developer with an idea to fix IRCBridgeBot">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Jan 17 02:05:53 CET 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="012137.html">[Opensim-dev] New developer with an idea to fix IRCBridgeBot
+</A></li>
+        <LI>Next message: <A HREF="012138.html">[Opensim-dev] Texture encoding in database
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12141">[ date ]</a>
+              <a href="thread.html#12141">[ thread ]</a>
+              <a href="subject.html#12141">[ subject ]</a>
+              <a href="author.html#12141">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Tamara.  I've never looked at the IRC module before (and I'm not familiar with the IRC protocol), but could it be as 
+simple as calling m_reader.Read() in IRCConnector.Connect() and checking for the 004 and 005 responses?
+
+Naturally, you would also need to set ReadTimeout [1] so that an unresponsive IRC server doesn't hang up the method 
+permanently.
+
+I agree, a Sleep would be an ugly hack and something we want to avoid.
+
+I must admit, the IRC module gets very neglected as I doubt any core developer uses it, but very happy to accept patches 
+on it.  Others who have worked on it in the past might also want to chime in.
+
+[1] <A HREF="http://msdn.microsoft.com/en-us/library/bk6w7hs8%28v=vs.100%29.aspx">http://msdn.microsoft.com/en-us/library/bk6w7hs8%28v=vs.100%29.aspx</A>
+
+On 16/01/14 20:16, Nihlaeth wrote:
+&gt;<i> Hey All,
+</I>&gt;<i> I've been meaning to delve into the opensim code for a while now, and
+</I>&gt;<i> I finally found a starting point.
+</I>&gt;<i>
+</I>&gt;<i> I think I have found the problem with the IRCBridgeBot module. It
+</I>&gt;<i> sends the NICK, USER and JOIN commands at the same time, which causes
+</I>&gt;<i> the JOIN to be ignored, because ircd's need some time to log you in.
+</I>&gt;<i>
+</I>&gt;<i> This in turn causes the '[IRC-Connector-0]: cannot connect AvaBot29 to
+</I>&gt;<i> 127.0.0.1:5757: Write failure' error, because it doesn't get join
+</I>&gt;<i> confirmation, at which bridgebot starts to reconnect, starting the
+</I>&gt;<i> reconnect spam cycle.
+</I>&gt;<i>
+</I>&gt;<i> It quite simple to solve, bridgebot should wait for the 004, or 005
+</I>&gt;<i> (even better) response before sending the join command.
+</I>&gt;<i>
+</I>&gt;<i> See this example of a telnet irc login (with input captured from
+</I>&gt;<i> ircbridgebot, but timed differently):
+</I>&gt;<i> :epona.nihlaeth.nl 001 AvaBot70 :Welcome to the AvaIrc Internet Relay
+</I>&gt;<i> Chat Network AvaBot70
+</I>&gt;<i> :epona.nihlaeth.nl 002 AvaBot70 :Your host is
+</I>&gt;<i> epona.nihlaeth.nl[epona.nihlaeth.nl/6665], running version
+</I>&gt;<i> charybdis-3.2.1
+</I>&gt;<i> :epona.nihlaeth.nl 003 AvaBot70 :This server was created Thu Jan 16
+</I>&gt;<i> 2014 at 17:38:10 CET
+</I>&gt;<i> :epona.nihlaeth.nl 004 AvaBot70 epona.nihlaeth.nl charybdis-3.2.1
+</I>&gt;<i> DQRSZagiloswz CFILPQbcefgijklmnopqrstvz bkloveqjfI
+</I>&gt;<i> :epona.nihlaeth.nl 005 AvaBot70 CHANTYPES=&amp;# EXCEPTS INVEX
+</I>&gt;<i> CHANMODES=eIbq,k,flj,CFPcgimnpstz CHANLIMIT=&amp;#:15 PREFIX=(ov)@+
+</I>&gt;<i> MAXLIST=bqeI:100 MODES=4 NETWORK=AvaIrc KNOCK STATUSMSG=@+ CALLERID=g
+</I>&gt;<i> :are supported by this server
+</I>&gt;<i>
+</I>&gt;<i> I'd really like to provide a fix for this myself, but I'm afraid I'm
+</I>&gt;<i> going to need a bit of help with it. Anyone here who wants to help me
+</I>&gt;<i> get started?
+</I>&gt;<i>
+</I>&gt;<i> I don't quite understand how the different parts of the module fit
+</I>&gt;<i> together and communicate. I've identified the spot where the login is
+</I>&gt;<i> done, but other than building in a sleep (which would be a very ugly
+</I>&gt;<i> hack), I'm a bit stuck.
+</I>&gt;<i>
+</I>&gt;<i> I'd really appreciate it!
+</I>&gt;<i>
+</I>&gt;<i> Kind regards,
+</I>&gt;<i> Tamara van Haarlem
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="012137.html">[Opensim-dev] New developer with an idea to fix IRCBridgeBot
+</A></li>
+	<LI>Next message: <A HREF="012138.html">[Opensim-dev] Texture encoding in database
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12141">[ date ]</a>
+              <a href="thread.html#12141">[ thread ]</a>
+              <a href="subject.html#12141">[ subject ]</a>
+              <a href="author.html#12141">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

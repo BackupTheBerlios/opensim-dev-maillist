@@ -1,0 +1,355 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Using ODE for vehicles and ragdolls
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Using%20ODE%20for%20vehicles%20and%20ragdolls&In-Reply-To=%3Ceb6de36d0811210612q5e19bb12w3e2662f0aaa4ec7c%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003651.html">
+   <LINK REL="Next"  HREF="003681.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Using ODE for vehicles and ragdolls</H1>
+    <B>nlin (message)</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Using%20ODE%20for%20vehicles%20and%20ragdolls&In-Reply-To=%3Ceb6de36d0811210612q5e19bb12w3e2662f0aaa4ec7c%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Using ODE for vehicles and ragdolls">nlin.message at gmail.com
+       </A><BR>
+    <I>Fri Nov 21 15:12:45 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003651.html">[Opensim-dev] Using ODE for vehicles and ragdolls
+</A></li>
+        <LI>Next message: <A HREF="003681.html">[Opensim-dev] Using ODE for vehicles and ragdolls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3676">[ date ]</a>
+              <a href="thread.html#3676">[ thread ]</a>
+              <a href="subject.html#3676">[ subject ]</a>
+              <a href="author.html#3676">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+Great to see all of the work on and interest in vehicles and ODE in
+OpenSim. I have posted a highly experimental patch to enable jointed
+ODE vehicles, based off of r7394. The project is on GForge here:
+
+<A HREF="http://forge.opensimulator.org/gf/project/physicsjoints/">http://forge.opensimulator.org/gf/project/physicsjoints/</A>
+
+Though this patch is nowhere near complete, I thought it might help
+the discussion by providing an illustrative example of a working
+prototype implementation of jointed ODE vehicles in OpenSim.
+
+Please have a look if you are interested; feedback and discussion
+would be most welcome.
+
+Thanks,
+N Lin (nlin)
+
+
+2008/11/19, James Stallings II &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">james.stallings at gmail.com</A>&gt;:
+&gt;<i> Heh.
+</I>&gt;<i>
+</I>&gt;<i> For the record:
+</I>&gt;<i>
+</I>&gt;<i> It was I who first demostrated the possibility of using
+</I>&gt;<i> llSetForce/llApplyImpulse as a viable method of making a prim behave like a
+</I>&gt;<i> vehicle, some 10 months or so ago. During a conversation with one Owen Oyen
+</I>&gt;<i> (who is something of a physics guy), of SL and OSGrid, he became aware of my
+</I>&gt;<i> proof-of-concept efforts along these lines and produced a working vehicle
+</I>&gt;<i> script.
+</I>&gt;<i>
+</I>&gt;<i> On the linden grid, Owen is a boat scripter and scripter of related
+</I>&gt;<i> technologies; he has, for instance, devised a means of producing current
+</I>&gt;<i> effects based on a model of the contour of the sea floor
+</I>&gt;<i>
+</I>&gt;<i> While our current work is targeted directly at boating, it can be readily
+</I>&gt;<i> adapted to encompass all of the typical vehicle types of SL, without any of
+</I>&gt;<i> their vehicle functions.
+</I>&gt;<i>
+</I>&gt;<i> This model is very primitive, as are those presented in the LSL Vehicle API
+</I>&gt;<i> as found in LL's LSL.
+</I>&gt;<i>
+</I>&gt;<i> The characteristics of the LSL vehicle API as implemented by LL are quite
+</I>&gt;<i> simple:
+</I>&gt;<i>
+</I>&gt;<i> 1. Linear motors. These motors provide motive force parallel to a given axis
+</I>&gt;<i> or axes.
+</I>&gt;<i> 2. Torque motors. These motors provide rotational force about an axis or
+</I>&gt;<i> axes.
+</I>&gt;<i>
+</I>&gt;<i> That's it. Period.
+</I>&gt;<i>
+</I>&gt;<i> These two models are further modified by a series of contraints that
+</I>&gt;<i> introduce the concept of friction or other load against the forces provided
+</I>&gt;<i> by these motors.
+</I>&gt;<i>
+</I>&gt;<i> Tidy all this up into a 32 bit bitfield for describing the motive forces and
+</I>&gt;<i> their loads and wrap it up in a nice set of functions exposing this via LSL
+</I>&gt;<i> commands that characterise a vehicle 'type' (e.g., boat/car/plane) with any
+</I>&gt;<i> related constraints/dampers and you have Linden vehicle physics.
+</I>&gt;<i>
+</I>&gt;<i> As I said, this is a highly simplified vehicle simulation model. There is no
+</I>&gt;<i> distribution of mass involved, no geometry-based drag. There is a single
+</I>&gt;<i> center of gravity at the geometric center. All motion produced by the calls
+</I>&gt;<i> to the API is produced around this center. The complexity all rests witth
+</I>&gt;<i> the description of the motive forces and their respective loading and
+</I>&gt;<i> damping. The forces are applied either to a simple prim in the simplest
+</I>&gt;<i> case, or to a linkset. If to a linkset, the linkset is treated as a single
+</I>&gt;<i> object except for collision purposes, the extent of which is to mesh any
+</I>&gt;<i> geometric complexities of the object.
+</I>&gt;<i>
+</I>&gt;<i> The short story is, we have modelled LSL-style vehicles using little but
+</I>&gt;<i> llApplyImpulse and llSetForce, and a first-order friction calculation.
+</I>&gt;<i> Ironically, our experiences indicate that these vehicles are consistently
+</I>&gt;<i> better in their handling characteristics than what is available on the
+</I>&gt;<i> Linden grid. Indeed, about half of Owen's current work is in the interest of
+</I>&gt;<i> porting this work *back* to the linden grid.
+</I>&gt;<i>
+</I>&gt;<i> Enough of that. Lets talk ODE :D
+</I>&gt;<i>
+</I>&gt;<i> ODE *does* present some rich opportunities for simulation beyond the
+</I>&gt;<i> (arguably oversimplified) model presented by the LSL vehicle API. given the
+</I>&gt;<i> type of things I've seen reading the ODE documentation, my suspicion is that
+</I>&gt;<i> it's strong points for such simulations will be wheeled vehicles, tracked
+</I>&gt;<i> vehicles, walkers, and by extension, ragdoll/skeletal physics. These would
+</I>&gt;<i> certainly add an interesting element to the mix, and I am all for seeing
+</I>&gt;<i> these ideas roll forward.
+</I>&gt;<i>
+</I>&gt;<i> I do, however, wish to draw a strong distinction between this ODE work and
+</I>&gt;<i> basic vehicle physics ala Linden Labs, as the vehicle paradigm in LSL is so
+</I>&gt;<i> heavily abstracted that 'simulation', for any meaningful employment of the
+</I>&gt;<i> word, is at best inaccurate, and at most hype. Worse, their method of
+</I>&gt;<i> 'simplifying' (read 'dumbing down'), adds significant processing cycles;
+</I>&gt;<i> were I to guess, I'd say that their API represents greater processing
+</I>&gt;<i> overhead than do the physics proper.
+</I>&gt;<i>
+</I>&gt;<i> I'd say +1 for rolling forward with some OS functions for ODE; indeed, I
+</I>&gt;<i> would suggest (as I have been for some 9 months now) that ODE's interface be
+</I>&gt;<i> exposed directly in a set of OS functions, allowing the scripter to work in
+</I>&gt;<i> a relationship that is only once removed from the physics engine, in the
+</I>&gt;<i> interest of providing the fullness of the ODE featureset to the scripter. I
+</I>&gt;<i> think some fabulously interesting things would come of this, not the least
+</I>&gt;<i> of which might be a more interesting in-world experience for those of us who
+</I>&gt;<i> primarily employ this as an entertainment platform.
+</I>&gt;<i>
+</I>&gt;<i> Keep up the good work y'all, this is an excellent dialogue and I hope I have
+</I>&gt;<i> contributed in some way to a clarification of the events surrounding our
+</I>&gt;<i> recent in-world vehicle work (btw we should be ready to demo some of this
+</I>&gt;<i> broadly this coming weekend), and to the issues that lie ahead as we work to
+</I>&gt;<i> bring more physics features to the scripting language and our virtual
+</I>&gt;<i> environment.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Cheers!
+</I>&gt;<i> Hiro/daTwitch/Laz...etc.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Nov 19, 2008 at 6:14 AM, Stefan Andersson
+</I>&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt;wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i>  I for one would love to see it unfold something like this
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 1) one or several prototypical and specialized implementations coding
+</I>&gt;&gt;<i> directly to ODE but in a nice manner.
+</I>&gt;&gt;<i> 2) the implementations refactored into a nice OpenSim API for ODE joints
+</I>&gt;&gt;<i> 3) one or several implementations of vehicles utilizing this API directly
+</I>&gt;&gt;<i> 4) these implementations refactored into a nice OpenSim vehicle API
+</I>&gt;&gt;<i> 5) implementing the LSL vehicle model using this API
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> so yeah, bottom up is the way to go, but with a clear goal in the back of
+</I>&gt;&gt;<i> our heads.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I for one would want to see the monorail module before the monorail lsl
+</I>&gt;&gt;<i> script.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I also suspect that along the lines, we might see that we want to
+</I>&gt;&gt;<i> implement
+</I>&gt;&gt;<i> vehicle types that don't fit into the lsl model... like the 'humanoid' or
+</I>&gt;&gt;<i> 'animal' - anybody up for building a stone giant or re-casting an agent in
+</I>&gt;&gt;<i> pure prims? :D
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Best regards,
+</I>&gt;&gt;<i> Stefan Andersson
+</I>&gt;&gt;<i> Tribal Media AB
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>
+</I>&gt;&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; Date: Wed, 19 Nov 2008 02:01:27 -0500
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &gt; Subject: Re: [Opensim-dev] Using ODE for vehicles and ragdolls
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Doesnt ODE have vehicle support internally? The concern I'd have about a
+</I>&gt;&gt;<i> vehicle layer over the top might be that performance is suboptimal since
+</I>&gt;&gt;<i> we
+</I>&gt;&gt;<i> need to run a second physics step which could introduce issues.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Regards,
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Adam
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; &gt; -----Original Message-----
+</I>&gt;&gt;<i> &gt; &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Gerhard D&#252;nnebeil
+</I>&gt;&gt;<i> &gt; &gt; Sent: Tuesday, 18 November 2008 10:40 PM
+</I>&gt;&gt;<i> &gt; &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; &gt; Subject: Re: [Opensim-dev] Using ODE for vehicles and ragdolls
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; Hi
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; having looked into the ODE engine I don't think it's usable for the
+</I>&gt;&gt;<i> &gt; &gt; vehicle API.
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; Instead i think we should put the vehicle engine on top of it.
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; This is pretty easily done by adding another layer (could/should be in
+</I>&gt;&gt;<i> &gt; &gt; a
+</I>&gt;&gt;<i> &gt; &gt; plugin).
+</I>&gt;&gt;<i> &gt; &gt; It can be called in each &quot;Simulate&quot; step and calculate the forces
+</I>&gt;&gt;<i> &gt; &gt; needed
+</I>&gt;&gt;<i> &gt; &gt; to achieve the vehicles behaviour.
+</I>&gt;&gt;<i> &gt; &gt; These forces are then applied -- using the phys engine's API -- to the
+</I>&gt;&gt;<i> &gt; &gt; objects.
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; This way we are
+</I>&gt;&gt;<i> &gt; &gt; a) ... independant (at least theoretically) from the characteristics
+</I>&gt;&gt;<i> &gt; &gt; of
+</I>&gt;&gt;<i> &gt; &gt; the underlying Phys engine
+</I>&gt;&gt;<i> &gt; &gt; b) ... able to implement different engines for different purposes
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; I know someone (is it you, nlin?) already implemented a sailing boat
+</I>&gt;&gt;<i> &gt; &gt; in
+</I>&gt;&gt;<i> &gt; &gt; OpenSim. A modular approach here would allow us to implement
+</I>&gt;&gt;<i> &gt; &gt; alternative
+</I>&gt;&gt;<i> &gt; &gt; friction models beyond what LSL gives us.
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; Just my two cents
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; Gerhard
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; nlin (message) wrote:
+</I>&gt;&gt;<i> &gt; &gt; &gt; Hello,
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; There's been some discussion about SL-compatible vehicles in OpenSim
+</I>&gt;&gt;<i> &gt; &gt; &gt; recently, with its higher-level abstraction of how vehicles work.
+</I>&gt;&gt;<i> &gt; &gt; This
+</I>&gt;&gt;<i> &gt; &gt; &gt; would have the long-term goals of compatibility and ability to swap
+</I>&gt;&gt;<i> &gt; &gt; &gt; out physics engines while still using the same vehicle layer.
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; SL-compatibility and abstracting vehicles from the physics engine
+</I>&gt;&gt;<i> &gt; &gt; &gt; are
+</I>&gt;&gt;<i> &gt; &gt; &gt; good goals for the long term; sort of a top-down approach (start
+</I>&gt;&gt;<i> &gt; &gt; &gt; with
+</I>&gt;&gt;<i> &gt; &gt; &gt; the vehicle abstraction, map it to many different physics engines).
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; Complementary to this, I'd like to explore and start discussion of
+</I>&gt;&gt;<i> &gt; &gt; &gt; an
+</I>&gt;&gt;<i> &gt; &gt; &gt; alternative way of handling vehicles by using a bottom-up approach.
+</I>&gt;&gt;<i> &gt; &gt; &gt; Starting with the specific physics engine of ODE, can we use
+</I>&gt;&gt;<i> &gt; &gt; &gt; ODE-specific features to make simple vehicles?
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; I did some experiments with OpenSim and ODE and the answer seems to
+</I>&gt;&gt;<i> &gt; &gt; be
+</I>&gt;&gt;<i> &gt; &gt; &gt; yes, we can make simple vehicles with ODE by using joints. We can
+</I>&gt;&gt;<i> &gt; &gt; also
+</I>&gt;&gt;<i> &gt; &gt; &gt; make ragdolls. I posted some videos to YouTube of the preliminary
+</I>&gt;&gt;<i> &gt; &gt; results:
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; <A HREF="http://www.youtube.com/watch?v=iYIh-eIwmjs">http://www.youtube.com/watch?v=iYIh-eIwmjs</A>
+</I>&gt;&gt;<i> &gt; &gt; &gt; <A HREF="http://www.youtube.com/watch?v=z9bedzIuxdM">http://www.youtube.com/watch?v=z9bedzIuxdM</A>
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; This is only prototype work for now, put together sort of quickly as
+</I>&gt;&gt;<i> &gt; &gt; a
+</I>&gt;&gt;<i> &gt; &gt; &gt; proof-of-concept with just enough &quot;plumbing&quot; (data flow) to work.
+</I>&gt;&gt;<i> &gt; &gt; &gt; There are a number of issues that need to be solved for this to work
+</I>&gt;&gt;<i> &gt; &gt; &gt; cleanly. As far as I know (please correct me if I'm wrong) there
+</I>&gt;&gt;<i> &gt; &gt; &gt; hasn't been much work done to try to get ODE
+</I>&gt;&gt;<i> &gt; &gt; &gt; joints/vehicles/ragdolls
+</I>&gt;&gt;<i> &gt; &gt; &gt; working in OpenSim, but I think it's an avenue worth exploring.
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; Is there interest in pursuing this approach for OpenSim vehicles? I
+</I>&gt;&gt;<i> &gt; &gt; &gt; would look forward to discussing some of the issues that would need
+</I>&gt;&gt;<i> &gt; &gt; to
+</I>&gt;&gt;<i> &gt; &gt; &gt; be solved.
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; Thanks,
+</I>&gt;&gt;<i> &gt; &gt; &gt; N Lin (nlin)
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; ---------------------------------------------------------------------
+</I>&gt;&gt;<i> &gt; &gt; ---
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; &gt; &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> ===================================
+</I>&gt;<i> The wind
+</I>&gt;<i> scours the earth for prayers
+</I>&gt;<i> The night obscures them
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="http://osgrid.org">http://osgrid.org</A>
+</I>&gt;<i> <A HREF="http://del.icio.us/SPQR">http://del.icio.us/SPQR</A>
+</I>&gt;<i> <A HREF="http://twitter.com/jstallings2">http://twitter.com/jstallings2</A>
+</I>&gt;<i> <A HREF="http://www.linkedin.com/pub/5/770/a49">http://www.linkedin.com/pub/5/770/a49</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003651.html">[Opensim-dev] Using ODE for vehicles and ragdolls
+</A></li>
+	<LI>Next message: <A HREF="003681.html">[Opensim-dev] Using ODE for vehicles and ragdolls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3676">[ date ]</a>
+              <a href="thread.html#3676">[ thread ]</a>
+              <a href="subject.html#3676">[ subject ]</a>
+              <a href="author.html#3676">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

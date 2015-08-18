@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Proposal] New software architecture
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BProposal%5D%20New%20software%20architecture&In-Reply-To=%3C4A170704.8060201%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006605.html">
+   <LINK REL="Next"  HREF="006597.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Proposal] New software architecture</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BProposal%5D%20New%20software%20architecture&In-Reply-To=%3C4A170704.8060201%40googlemail.com%3E"
+       TITLE="[Opensim-dev] [Proposal] New software architecture">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri May 22 22:11:48 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006605.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+        <LI>Next message: <A HREF="006597.html">[Opensim-dev] Memory cache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6607">[ date ]</a>
+              <a href="thread.html#6607">[ thread ]</a>
+              <a href="subject.html#6607">[ subject ]</a>
+              <a href="author.html#6607">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Melanie wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> 3.  Are the details of the protocol between client and server side really invisible to the service clients?  The awkward 
+</I>&gt;&gt;<i> case here is between local 'in process' and remote servers, I think.  For instance, on IAssetService there is a method
+</I>&gt;<i> 
+</I>&gt;<i> It is not impossible for a client that knows how to infer internal 
+</I>&gt;<i> workings from observable behavior to determine which connector it's 
+</I>&gt;<i> talking to. However, doing this would be bad practice.
+</I>
+The issue isn't about the client actively trying to infer things, it's about unexpected effects in calling code because 
+different things are happening internally in different situations.
+
+&gt;<i> 
+</I>&gt;&gt;<i> Get(string id, Object sender, AssetRetrieved handler)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Afaik, if the asset service is local then the asset is returned via the same thread to the AssetRetrieved handler (i.e. 
+</I>&gt;&gt;<i> synchronously).  If the asset service is remote, then the asset is returned asynchronously to the nominated handler 
+</I>&gt;&gt;<i> method on a different thread.  This is not fully invisible.
+</I>&gt;<i> 
+</I>&gt;<i> A synchronous method is needed. It may block, even for extended 
+</I>&gt;<i> periods and the caller needs to make sure there is no contention. 
+</I>&gt;<i> The amount of time spent in the method is undefined.
+</I>
+Fair enough.
+
+&gt;<i> 
+</I>&gt;&gt;<i> This could be a problem if the caller does a lot of work using the handler thread.  If the service is synchronous, then 
+</I>&gt;&gt;<i> the caller thread may be used for this where the caller did not expect it.
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>&gt;<i> As in .NET async, the request will run on the caller's thread if it 
+</I>&gt;<i> completes synchronously, or on a threadpool thread if not.
+</I>&gt;<i> Where it actually runs is not defined and the caller must be 
+</I>&gt;<i> prepared for both scenarios.
+</I>
+Okay.
+
+&gt;<i> 
+</I>&gt;&gt;<i> 4.  In particular on IAssetService, there appears to be a purely synchronous get methods, e.g.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> AssetBase Get(string id);
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I know these also existed in the past, but are they a good idea in a world where the callers are not meant to know 
+</I>&gt;&gt;<i> whether the underlying service is local or remote?  I know practically they may be needed (at least in the old code, the 
+</I>&gt;&gt;<i> underlying call simply timed out and returned null if the asset wasn't retrieved in a hard coded amount of time). 
+</I>&gt;&gt;<i> Again, this is a difference between in-process servers (which will return immediately) and remote ones (which could 
+</I>&gt;&gt;<i> delay up to 10 secs).
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>&gt;<i> They are needed and the caller must be prepared to block.
+</I>&gt;<i> 
+</I>
+As far as I'm concerned, this point and the previous two are perfectly reasonable, as long as this behavior is 
+documented on the interfaces so that the caller doesn't need to dig around in specific implementations to work out what 
+the contract is.
+
+&gt;&gt;<i> 5.  At the very least, interfaces need proper documentation if the caller is not meant to have to know what is happening 
+</I>&gt;&gt;<i> inside.  This documentation needs to be in the proper XML style so that it shows up in generated documentation.
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>&gt;<i> That style can't be easily generated with my tools (vi). I don't use 
+</I>&gt;<i> an IDE. Anyone is free to add it, even though it looks ugly in pure 
+</I>&gt;<i> code view, but I can't.
+</I>
+I'm happy to add the right syntax after the fact, as long as documentation for non-obvious methods is there in the first 
+place.  It's when this doesn't exist that the situation becomes difficult.
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006605.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+	<LI>Next message: <A HREF="006597.html">[Opensim-dev] Memory cache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6607">[ date ]</a>
+              <a href="thread.html#6607">[ thread ]</a>
+              <a href="subject.html#6607">[ subject ]</a>
+              <a href="author.html#6607">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

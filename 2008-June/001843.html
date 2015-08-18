@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Trying to understand llDetected* functions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Trying%20to%20understand%20llDetected%2A%20functions&In-Reply-To=%3CD34F5C5E193B4144AD333BBBB940A528052AC1%40exchange1.lan.konge.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001852.html">
+   <LINK REL="Next"  HREF="001848.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Trying to understand llDetected* functions</H1>
+    <B>Tedd Hansen</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Trying%20to%20understand%20llDetected%2A%20functions&In-Reply-To=%3CD34F5C5E193B4144AD333BBBB940A528052AC1%40exchange1.lan.konge.net%3E"
+       TITLE="[Opensim-dev] Trying to understand llDetected* functions">tedd at konge.net
+       </A><BR>
+    <I>Tue Jun 17 11:14:42 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001852.html">[Opensim-dev] Opensim Help
+</A></li>
+        <LI>Next message: <A HREF="001848.html">[Opensim-dev] C# 2005 or 2008 ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1843">[ date ]</a>
+              <a href="thread.html#1843">[ thread ]</a>
+              <a href="subject.html#1843">[ subject ]</a>
+              <a href="author.html#1843">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi
+
+Number of items passed with an event such as touch_start will always be
+1.
+
+LL has a slightly different architecture where they pile up all requests
+of a certain type before they fire the script event. We just queue the
+whole event. Therefore if 10 people touch_start an object within 10 ms
+then toch_start will be executed 10 times with 1 parameter (as opposed
+to LL who would execute 1 touch_start with 10 parameters).
+
+What data is brought into this 1 parameter varies depending on LSL2
+specification of what command it is. All events have the option to bring
+some private data for the executing event-function to read.
+
+- Tedd
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Mike Mazur
+Sent: 17. juni 2008 08:54
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: [Opensim-dev] Trying to understand llDetected* functions
+
+Hello,
+
+I'm trying to wrap my head around how llDetected* functions work in
+OpenSim.
+
+Here's what I know so far:
+- these functions tell you something about either a prim/object or
+avatar
+- they only apply in certain events (collision{,_start,_end},
+touch{,_start,_end} and sensor)
+- they take a number as an argument which is an index of the object
+
+I may have some of that mixed up a bit...
+
+I traced through the code for touch_start to try to figure this out.
+First, in
+OpenSim/Region/ScriptEngine/Common/ScriptEngineBase/EventManager.cs
+line 119 the touch_start function is executed and an llDetectParams
+struct is filled in. The arrays in the struct are all 1 in size, and
+are filled with some values.
+
+What exactly do these values represent? According to
+OpenSim/Region/ScriptEngine/Common/ScriptEngineBase/EventManager.cs
+line 152, _key is &quot;detected key&quot; and _key2 is &quot;owner key&quot;. What are
+these exactly? The position, velocity, rotation and _string (name)
+properties make sense, but the _bool and _int ones don't.
+
+This llDetectParams struct is then assigned to the script, and accessed
+in OpenSim/Region/ScriptEngine/Common/LSL_BuiltIn_Commands.cs in
+functions llDetectedName() (line 554), uuidDetectedKey() (line 595) and
+entityDetectedKey() (line 632).
+
+The number argument to each of those functions is used to index the
+arrays in the llDetectParams struct (_key, _key2, etc). This array is
+always initialized to size 1. Is the number argument ever not 0? Do
+those arrays inside the llDetectParams struct ever grow or shrink?
+
+Also, how does the event that is triggered affect the number passed in?
+Is it different for collosion_start and touch_start for instance?
+
+Finally, which object is usually referred to in those llDetected*
+functions? For example, if I have a box with a script that calls
+llDetectedVel() in its touch_start event, will llDetectedVel return the
+velocity of the box at the instant it is touched by an avatar? Or maybe
+it's the velocity of the avatar?
+
+A lot of questions, but here's hoping someone can clear this up a bit
+further.
+
+Thanks,
+Mike
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001852.html">[Opensim-dev] Opensim Help
+</A></li>
+	<LI>Next message: <A HREF="001848.html">[Opensim-dev] C# 2005 or 2008 ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1843">[ date ]</a>
+              <a href="thread.html#1843">[ thread ]</a>
+              <a href="subject.html#1843">[ subject ]</a>
+              <a href="author.html#1843">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

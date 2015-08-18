@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Scope and Purpose of	IApplicationPlugins	and	IRegionModules
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Scope%20and%20Purpose%20of%0A%09IApplicationPlugins%09and%09IRegionModules&In-Reply-To=%3C486CABE6.7000203%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002235.html">
+   <LINK REL="Next"  HREF="002237.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Scope and Purpose of	IApplicationPlugins	and	IRegionModules</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Scope%20and%20Purpose%20of%0A%09IApplicationPlugins%09and%09IRegionModules&In-Reply-To=%3C486CABE6.7000203%40t-data.com%3E"
+       TITLE="[Opensim-dev] Scope and Purpose of	IApplicationPlugins	and	IRegionModules">melanie at t-data.com
+       </A><BR>
+    <I>Thu Jul  3 12:37:26 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002235.html">[Opensim-dev] Scope and Purpose of IApplicationPlugins	and	IRegionModules
+</A></li>
+        <LI>Next message: <A HREF="002237.html">[Opensim-dev] linux development
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2236">[ date ]</a>
+              <a href="thread.html#2236">[ thread ]</a>
+              <a href="subject.html#2236">[ subject ]</a>
+              <a href="author.html#2236">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+region modules come in two flavors: private and shared. A private 
+region module is instantiated once per region. A shared one is 
+instatiated once and then it's init function is called again for 
+each region loaded.
+
+The difference then is that the shared modules tracks the regions 
+itself, while the private module implicitly acts on one region only.
+
+Some modules can't reasonably be done as a shared module, some could 
+be either, and some must be shared to do the job, as they 
+allocate/manage finite resources that are taken from an 
+instance-wide pool.
+
+So, there is a good case to be made for both types of region modules.
+
+Yes, a means to exclude modules from certain regions might be useful 
+to some. Currently, if a module wants to provide it's functionality 
+to only a subset of the available regions, the module itself must 
+make that choice. The loader doesn't have the option.
+
+Because of the RegisterModuleInterface&lt;IFace&gt;(instance) and 
+RequestModuleInterface&lt;Iface&gt;() methods in Scene, inter-module 
+communications are possible, provided each module uses the interface 
+and they know about each other at compile time.
+
+This, and the Scene event manager hooks, and the client hooks, give 
+modules themselves very fine grained control of the events they are 
+interested in.
+
+Script engines are special region modules, which are loaded in a 
+separate pass. There can only be one. It must not be a shared 
+module. And they're loaded last.
+
+Outside of that, they are normal region modules.
+
+Region modules are loaded/reinitialized at startup, and on dynamic 
+region load. Many shared region modules, even the stock ones, are 
+not prepared for a region going away, and to my knowledge there is 
+no method/event to effect a &quot;Region down&quot; action, e.g. release 
+memory allocated on the region's behalf. Of course this applies to 
+shared modules only, since private ones will be unref'd and poof.
+
+That pretty much summarizes what I know about region modules
+
+Melanie
+
+Justin Clark-Casey wrote:
+&gt;<i> Ryan McDougall wrote:
+</I>&gt;&gt;<i> In my poking about the loading code to get an idea of the scale of the
+</I>&gt;&gt;<i> problem. I asked before about I*Plugin v. I(Region)Module, but I don't
+</I>&gt;&gt;<i> think there was much of a clear answer...
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> The reason I am asking again is that I noticed:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 1. That a Scene takes a (Region)ModuleLoader as an argument to its
+</I>&gt;&gt;<i> constructor. It doesn't appear to use this reference at all. 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Is there a Scene that needs to load its own RegionModules? Or is this an
+</I>&gt;&gt;<i> example of bit-rotted code or inappropriate abstraction/coupling?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 2. That LoadRegionsPlugin (an IApplicationPlugin) uses its reference to
+</I>&gt;&gt;<i> (Region)ModuleLoader (through OpenSimBase) to load RegionModules. 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Without knowing the semantic difference between a Plugin and Module, the
+</I>&gt;&gt;<i> LoadRegionsPlugin looks a bit awkward. It appears as if its only purpose
+</I>&gt;&gt;<i> is to choose between RegionLoaderFileSystem and RegionLoaderWebServer,
+</I>&gt;&gt;<i> then load them within a plugin...
+</I>&gt;<i> 
+</I>&gt;<i> I wrote an overview post at 
+</I>&gt;<i> <A HREF="http://justincc.wordpress.com/2008/05/08/opensim-tech-basics-my-god-its-full-of-modules/">http://justincc.wordpress.com/2008/05/08/opensim-tech-basics-my-god-its-full-of-modules/</A>
+</I>&gt;<i> about the different modular systems we have/had, though this does 
+</I>&gt;<i> contain information which is a little 'reverse engineered' too.  My 
+</I>&gt;<i> assumption was the plugins denoted application wide code that spans 
+</I>&gt;<i> regions (region information loading, load balancing, etc) , whilst 
+</I>&gt;<i> modules contained code specific to a region (chat, terrain, trees, etc.).
+</I>&gt;<i> 
+</I>&gt;<i> It feels intuitively a good idea to have application plugins and region 
+</I>&gt;<i> modules (the terminology *is* a little confusing) separate all the way 
+</I>&gt;<i> up to the user level.  For instance, one could conceivably run different 
+</I>&gt;<i> region modules on different regions, while an application plugin will 
+</I>&gt;<i> always apply to the whole server.  One could dynamically load and unload 
+</I>&gt;<i> some region modules, but with whole application plugins this could be 
+</I>&gt;<i> inappropriate (though maybe that it possible there as well...).
+</I>&gt;<i> 
+</I>&gt;<i> However, this could be a mistaken intuition, on really digging into the 
+</I>&gt;<i> code another conclusion may well be viable.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Perhaps it might be more appropriate to make that selection in
+</I>&gt;&gt;<i> OpenSimBase in order to keep all loading in one place? 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> There are many ways I could do that, but it would take understanding the
+</I>&gt;&gt;<i> purpose of the current and future design in order to make my plugin
+</I>&gt;&gt;<i> loader a true solution that accommodates all use-cases.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Can we replace IRegionModules with IRegionPlugins and have PluginLoader
+</I>&gt;&gt;<i> load them all?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Cheers,
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002235.html">[Opensim-dev] Scope and Purpose of IApplicationPlugins	and	IRegionModules
+</A></li>
+	<LI>Next message: <A HREF="002237.html">[Opensim-dev] linux development
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2236">[ date ]</a>
+              <a href="thread.html#2236">[ thread ]</a>
+              <a href="subject.html#2236">[ subject ]</a>
+              <a href="author.html#2236">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

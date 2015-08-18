@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Lockless Lists?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3Cebe9df730811241143k2c6bbf56v8cbb641aed91cfe2%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003704.html">
+   <LINK REL="Next"  HREF="003711.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Lockless Lists?</H1>
+    <B>Homer Horwitz</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3Cebe9df730811241143k2c6bbf56v8cbb641aed91cfe2%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Lockless Lists?">homerhorwitz at googlemail.com
+       </A><BR>
+    <I>Mon Nov 24 20:43:09 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003704.html">[Opensim-dev] Lockless Lists?
+</A></li>
+        <LI>Next message: <A HREF="003711.html">[Opensim-dev] Lockless Lists?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3705">[ date ]</a>
+              <a href="thread.html#3705">[ thread ]</a>
+              <a href="subject.html#3705">[ subject ]</a>
+              <a href="author.html#3705">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>'On Mon, Nov 24, 2008 at 11:23 AM, Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; wrote:
+&gt;<i> ...
+</I>&gt;<i> Does anyone have any opposition if we try to replace some of the core
+</I>&gt;<i> structures with lock-free versions, and then removing the locks on them? I'm
+</I>&gt;<i> thinking Scene.Entities, Scene.Presences would be two good targets for the
+</I>&gt;<i> first lot, then maybe we can attack some deeper bits later.
+</I>Weeeellll...
+
+I find lock-free programming a great idea, if it is done right and you
+have enough spare processors to benefit from it. It isn't a topic that
+is easy to grasp, though.
+
+You won't be able to just replace the list/directory/queue. Lock-free
+programming requires a completely different programming style (a small
+hint is shown on the web-page). Basically you replace easy to
+understand, relatively stable, and non-scalable code by much harder to
+understand (and debug), not stable at all (i.e. behaviour depends very
+much on timing; again hard to debug) and very well scalable code
+(except if you cheat and copy the things you process
+(list/dictionary/queue/whatever) first, which will lock in object
+creation/heap allocation, so you'll lose the main property:
+lock-freeness). As you have to code fallbacks/retries in, that code
+will probably be considerably bigger and slower. In the main usage
+scenario of lock-free code, i.e. multi-processor systems with higher
+processor count, that doesn't matter as it scales very well with the
+number of processors, so if you run it on 16 processors, you can run
+it on 16 processors in parallel instead of on 1 of 16 processors at a
+time. But this might lead to performance issues if you run it on 1 or
+2 processors.
+
+So, I'm not sure if we really should do that move. If at all, I'm for
+a very slow move to lock-free versions from a rather stable software
+base (which we currently don't have in trunk), so errors that are
+introduced during that move are more easily identifiable, with much
+testing in-between. Even then, I'm absolutely sure we will get a lot
+of Heisenbugs in the process, which will take us weeks to find.
+
+In the (very) long run: +1
+At the moment (and the current code-quality in trunk/number of
+failures during &quot;normal&quot; operations): -5
+
+Just my 0.02&#8364;
+
+Cheers,
+  Homer
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003704.html">[Opensim-dev] Lockless Lists?
+</A></li>
+	<LI>Next message: <A HREF="003711.html">[Opensim-dev] Lockless Lists?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3705">[ date ]</a>
+              <a href="thread.html#3705">[ thread ]</a>
+              <a href="subject.html#3705">[ subject ]</a>
+              <a href="author.html#3705">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

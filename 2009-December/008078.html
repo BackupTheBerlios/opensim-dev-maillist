@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Designing with reusability in mind
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Designing%20with%20reusability%20in%20mind&In-Reply-To=%3C4B1FEEA8.2000504%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008077.html">
+   <LINK REL="Next"  HREF="008080.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Designing with reusability in mind</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Designing%20with%20reusability%20in%20mind&In-Reply-To=%3C4B1FEEA8.2000504%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Designing with reusability in mind">diva at metaverseink.com
+       </A><BR>
+    <I>Wed Dec  9 19:38:32 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008077.html">[Opensim-dev] libomv (client bot) problems with 0.6.8
+</A></li>
+        <LI>Next message: <A HREF="008080.html">[Opensim-dev] Designing with reusability in mind
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8078">[ date ]</a>
+              <a href="thread.html#8078">[ thread ]</a>
+              <a href="subject.html#8078">[ subject ]</a>
+              <a href="author.html#8078">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>In the same vein as Teravus' message about designing with 
+instrumentation in mind...
+
+I would like to ask for us to design with reusability in mind. Let's get 
+out of the model that we are developing an application, and always think 
+that we are developing components that can be used both for putting 
+together an application that looks like SL, and for other applications 
+as well.
+
+Case in point: in the sequence of the conversation about free IARs, 
+OARs, etc., I have been putting together a package with freebies. I 
+thought about releasing it as an IAR, like everyone else is doing, but 
+this has a problem: it requires operator access to the server -- not all 
+users can take advantage of this free content.
+
+Solution: let's use the underused OpenSim Library and add more stuff in 
+there. No one has changed that part of OpenSim for ages! There's a good 
+reason for it: adding content to it manually is a huge PITA and 
+extremely error-prone. So, idea: let's take any IAR and write an 
+external tool that converts it into the OpenSim Library format. That way 
+different operators can provide different libraries very easily: just 
+take your favorite IAR and dump it into your OpenSim Library, therefore 
+making it available to all of your users.
+
+This sounds easy enough. Justin has the code for unarchiving IARs... 
+except that it's all tangled up with Scenes. :-/
+
+The rule of thumb for reusability in the context of OpenSim is very 
+easy: the region modules that come in OpenSim.Region.CoreModules.dll 
+should be as thin as possible. They should only have enough meat to 
+bridge between Scenes and whatever it is those modules actually do. 
+&quot;Whatever it is they do&quot;, for the most part, is relatively generic and 
+should be factored out into their own dll, so that it can be reused from 
+elsewhere that has nothing to do with scenes. Example: all the service 
+connectors now can be reused out of the box by other tools to access 
+remote OpenSim servers. (OpenSim.Service.Connectors.dll)
+
+Counter-Example: inventory archiving/dearchiving. From looking at that 
+code, the only reason why the actual worker code needs the Scene object 
+is to be able to get to IInventoryService and IAssetService. So... it 
+should get those instead of Scene, and it should be factored out from 
+Region.CoreModules, because inventory archiving/dearchiving is a lot 
+more generic than a Scene utility.
+
+That way I could write this tool that I want in 4 hours reusing Justin's 
+code as a dll, instead of having to copy-and-paste Justin's code and 
+purge it from all references to Scene. I would simply need to provide my 
+own implementation of IInventoryService and IAssetService that would 
+write things in bin/assets and bin/inventory instead of sending them to 
+a server.
+
+The general request is this: let's not hide useful code under 
+OpenSim.Region.*, which are components that only make sense for the live 
+VW server. There's so many more tools/applications that can be done 
+around it! -- let's not hide good code under there, where it can never 
+be reused.
+
+Crista / Diva
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008077.html">[Opensim-dev] libomv (client bot) problems with 0.6.8
+</A></li>
+	<LI>Next message: <A HREF="008080.html">[Opensim-dev] Designing with reusability in mind
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8078">[ date ]</a>
+              <a href="thread.html#8078">[ thread ]</a>
+              <a href="subject.html#8078">[ subject ]</a>
+              <a href="author.html#8078">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

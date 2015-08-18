@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] The HyperGrid
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20The%20HyperGrid&In-Reply-To=%3C490497DD.5020201%40ics.uci.edu%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003298.html">
+   <LINK REL="Next"  HREF="003296.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] The HyperGrid</H1>
+    <B>Cristina Videira Lopes</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20The%20HyperGrid&In-Reply-To=%3C490497DD.5020201%40ics.uci.edu%3E"
+       TITLE="[Opensim-dev] The HyperGrid">lopes at ics.uci.edu
+       </A><BR>
+    <I>Sun Oct 26 17:16:29 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003298.html">[Opensim-dev] we're having trouble connecting
+</A></li>
+        <LI>Next message: <A HREF="003296.html">[Opensim-dev] The HyperGrid
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3295">[ date ]</a>
+              <a href="thread.html#3295">[ thread ]</a>
+              <a href="subject.html#3295">[ subject ]</a>
+              <a href="author.html#3295">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I started working on an extension to OpenSim that makes it work in 
+peer-to-peer mode, i.e. no need for grid servers to help the process of 
+teleporting and more, which I explain below.  I'm really excited to say 
+that this is working! -- I hope some of you are interested in trying it 
+out, and helping out too!
+
+The project is called the HyperGrid. Hypergrid is an existing 
+theoretical concept in p2p networks which maps reasonably well to what 
+I'm doing here, so I borrowed the name.
+
+Comments, suggestions, contributions, ... welcome!
+Crista / Diva
+
+--------
+
+** OpenSim HyperGrid**
+
+The basic idea of p2p is that nodes define networks by linking to other 
+nodes. Unfortunately, this concept doesn't map too well to the concept 
+of a 2-dimensional map of &quot;the world&quot; (i.e. &quot;the grid&quot;). What does 
+position (Xloc, YLoc) mean in p2p where there is no central authority? 
+The 2-dimensional map is quite interesting in VWs, so we should continue 
+to use it. Should someone coordinate the allocation of sims  to grid 
+positions world-wide?
+
+Enters hypergrid. In an hypergrid of p2p nodes there is no central 
+authority for allocating nodes to grid positions. The position of peers 
+in the map is determined locally by the node itself, and not by any 
+global entity. As we move from peer to peer, we are presented completely 
+different grids. For example, my node can connect to CNN's world placing 
+it in position 10, 10 of my grid; but when I TP to CNN, I am presented 
+with a totally different grid: the node that I TP-ed to is probably not 
+at position 10, 10 of its local grid; my own node is probably not in 
+CNN's grid at all.
+
+These links are the VW-equivalent of web hyperlinks. Some comparisons to 
+the Web:
+- Just like hypertext links, hyperworld links are uni-directional.
+- The establishment of hyperworld links by region administrators is 
+[sort of] equivalent to writing a web page with hypertext links to other 
+web sites.
+- A web page with external links can be thought of as a 1D Map. The VW 
+Map happens to be 2D.
+
+I've implemented a console command that looks like this:
+link-region 10 10 ucigrid02.nacs.uci.edu 9000
+
+10, 10 is the position on the local grid
+ucigrid02.nacs.uci.edu and 9000 are the host and port respectively of 
+the remote opensim
+
+Once this link is established, we can interact with this peer in the 
+normal way. It will show up in the local map at position 10, 10. We can 
+TP to it via the map. (I'm still debating whether adjacencies should be 
+allowed or not; they bring along child agents that can overload the 
+remote regions; but that's a detail)
+
+I have this working already, and that leads to a whole other topic: the 
+topic of maintaining identity and accessing inventory. This second part 
+is not done yet, so once you TP out you loose access to your inventory. 
+If the viewer would cooperate, this would be infinitely easier, but 
+since we're assuming the LL viewer for the foreseeable future, this 
+needs a bit of server-side trickery.
+
+*** Trying it out ***
+
+Please get the sources from svn and follow the instructions in README.txt:
+<A HREF="http://forge.opensimulator.org/gf/project/hypergrid/">http://forge.opensimulator.org/gf/project/hypergrid/</A>
+
+If things are not clear, don't hesitate in emailing me.
+
+*** Implementation ***
+
+The implementation of HyperGrid is a thin layer on top of the existing 
+protocols, Local and OGS1. The classes reuse the OpenSim framework 
+massively by inheritance, delegation and, when those fail, copy&amp;paste. 
+The major crux of the idea is the management of region handles, which 
+need to be mapped between the local grid and the remote node's grid.
+
+There are two sets of classes so that HyperGrid works both for 
+standalones and grid-ed opensims.
+
+** Of interest to OpenSim architects: in order to instantiate these 
+classes, I had to subclass Region.Application.OpenSim and override a 
+bunch of things, especially the Startup methods which hard-code the 
+communication protocol class names. So if there's a way of modularizing 
+that better, it would be good.
+
+** Of interest to Open Grid Protocol people: I didn't use any of your 
+code/concepts, for the following reasons:
+a) It wasn't clear that what you are doing is an hypergrid model vs 
+simply supporting TPs between LL and opensim servers on the same grid.
+b) OGP seems to be designed for talking to LL's servers. I wanted to do 
+something for opensim, because it's the only server code I have for 
+experimentation.
+But I think that once the p2p protocols are clearly defined, we can 
+implement a different layer of messaging for LL servers using LLSD 
+instead of remoting. That is, assuming LL is vaguely interested in the 
+non-centralized, hypergrid model of VWs.
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003298.html">[Opensim-dev] we're having trouble connecting
+</A></li>
+	<LI>Next message: <A HREF="003296.html">[Opensim-dev] The HyperGrid
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3295">[ date ]</a>
+              <a href="thread.html#3295">[ thread ]</a>
+              <a href="subject.html#3295">[ subject ]</a>
+              <a href="author.html#3295">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

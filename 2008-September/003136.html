@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] avatar appearance and grayness
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20avatar%20appearance%20and%20grayness&In-Reply-To=%3C856627.41403.qm%40web23008.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003129.html">
+   <LINK REL="Next"  HREF="003130.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] avatar appearance and grayness</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20avatar%20appearance%20and%20grayness&In-Reply-To=%3C856627.41403.qm%40web23008.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] avatar appearance and grayness">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Sat Sep 27 13:17:28 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003129.html">[Opensim-dev] avatar appearance and grayness
+</A></li>
+        <LI>Next message: <A HREF="003130.html">[Opensim-dev] Fwd: [sldev] Security Update to SL Viewers and source	code
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3136">[ date ]</a>
+              <a href="thread.html#3136">[ thread ]</a>
+              <a href="subject.html#3136">[ subject ]</a>
+              <a href="author.html#3136">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+
+Mic Bowman &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A>&gt; wrote: for the last couple weeks i've been digging into the appearance and
+attachments code. it started as an attempt to find that
+inventory/attachments race condition and has turned into an attempt to
+understand (and hopefully fix) the problem where all avatars on our
+internal sims start gray (and stay that way until you rebake
+textures/edit appearance). as part of the investigation, i'm convinced
+that there is &quot;magic&quot; in here that i don't understand.
+
+for the moment, i have two concrete questions...
+
+* in scenepresence, the oncompletemovementtoregion event chains calls
+to sendinitialdata() and completemovement(). is there a reason why
+those two functions are separated? the only place either is called is
+in that particular event handler... i want to experiment with changing
+the order of some of the other tasks. specifically, getting the
+appearance complete is much more important for my internal users than
+getting the scene updated right away (something about semi-naked gray
+avatars is an immediate turn-off for novice users working in open
+cubicles :-).
+
+&gt;<i> I don't think there is any actual reason for them to be seperated apart from that they perform the different functions, We should be performing the CompleteMovement on that event ( IClientAPI.OnCompleteMovementToRegion ) as that includes the reply to the client to confirm the movement into the region has completed. 
+</I>But as far as I remember we only have the SendInitialData attached to that event, as we can start sending region (prims and avatars) data to the client  at any point after it has sent the move into region packet. So its basically the earliest time we could run that method.
+
+
+
+* here's the magic question... can anyone explain why the avatars
+appear gray? i'm certain the avatar appearance data is being sent (and
+i've verified that it is correct for both default and customized
+avatars). often one or two parts of the appearance are correct (like
+avatar hair). if i leave the call to &quot;sendavatardata&quot; in the later
+sendinitialdata event handler, then i need to wait for quite awhile to
+rebake.. but if i move it up so that it gets sent right after i create
+the appearance (and before the initial inventory retrieval request
+happens) then rebake *always* works the first time. (and edit
+appearance  always fixes the grayness for my avatar and everyone who
+is looking at my avatar)
+
+&gt;<i> I actually think there are a few different problems with how we have appearance working, Ourselves(TribalMedia) only generally notice grey avatar after teleporting to new regions, as opensim isn't actually sending all the required data to the new regions (the visual params for example). But there also at times are inventory issues. Plus some pontential problems in the default avatarAppearanceFactory module in opensim.
+</I>
+like we have: 
+      public bool TryGetAvatarAppearance(UUID avatarId, out AvatarAppearance appearance)
+         {
+            CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
+            //if ((profile != null) &amp;&amp; (profile.RootFolder != null))
+            if (profile != null)
+            {
+                appearance = m_scene.CommsManager.AvatarService.GetUserAppearance(avatarId);
+               
+ which means it checks for the userProfile in the cache before it tries to fetch the appearance, and its been noted that the fetch for the appearance often happens before the userprofile has been fetched. Really there is no reason for them to be related, we don't or at least shouldn't need the userprofile before we can get the appearance. 
+
+I'm a bit pressed for time now and would need to refresh my memory before I tried to explain in any detail the whole appearance fetch process, but a couple of webpages that might help are:
+<A HREF="http://blog.secondlife.com/2006/09/18/getting-technical-baked-avatar-textures/">http://blog.secondlife.com/2006/09/18/getting-technical-baked-avatar-textures/</A> and <A HREF="http://blog.secondlife.com/2006/10/11/gray-and-missing-image-avatars/">http://blog.secondlife.com/2006/10/11/gray-and-missing-image-avatars/</A> 
+
+When I get a bit more time, I'll try to write in a bit more detail how (I remember) we are handling the whole appearance, and where the problems are most likely to be.
+
+
+and for what its worth... just for kicks I added a 5 second sleep into
+the inventory retrieval in the mysql inventory module, it fixes the
+gray avatar problem. which seems to indicate that the client is
+expecting a particular order... and speeding up inventory retrieval
+broke that ordering.
+
+thoughts? more places to start looking?
+
+--mic
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080927/9e6529f4/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080927/9e6529f4/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003129.html">[Opensim-dev] avatar appearance and grayness
+</A></li>
+	<LI>Next message: <A HREF="003130.html">[Opensim-dev] Fwd: [sldev] Security Update to SL Viewers and source	code
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3136">[ date ]</a>
+              <a href="thread.html#3136">[ thread ]</a>
+              <a href="subject.html#3136">[ subject ]</a>
+              <a href="author.html#3136">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

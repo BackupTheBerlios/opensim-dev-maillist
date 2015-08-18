@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%22Friendly%20teleports%22%20between%20the%20standalone%20sims&In-Reply-To=%3C20070925144133.GK4037%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000065.html">
+   <LINK REL="Next"  HREF="000077.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%22Friendly%20teleports%22%20between%20the%20standalone%20sims&In-Reply-To=%3C20070925144133.GK4037%40dague.net%3E"
+       TITLE="[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims">sean at dague.net
+       </A><BR>
+    <I>Tue Sep 25 16:41:33 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000065.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+        <LI>Next message: <A HREF="000077.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#68">[ date ]</a>
+              <a href="thread.html#68">[ thread ]</a>
+              <a href="subject.html#68">[ subject ]</a>
+              <a href="author.html#68">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Tue, Sep 25, 2007 at 03:36:59AM +0200, Dalien Talbot wrote:
+&gt;<i> Folks,
+</I>&gt;<i> 
+</I>&gt;<i> wanted to check your opinion on this.
+</I>&gt;<i> 
+</I>&gt;<i> I've slowly started hacking up the code to try out my idea of &quot;friendly
+</I>&gt;<i> teleports&quot;.
+</I>&gt;<i> 
+</I>&gt;<i> The way I am playing with it is by making the &quot;hybrid backend services&quot; - a
+</I>&gt;<i> backend services class has the LocalBackEndServices as a class member, first
+</I>&gt;<i> redirects all of the calls to it, and then handles the &quot;failure&quot; cases  in
+</I>&gt;<i> InformRegionOfChildAgent, ExpectAvatarCrossing, AcknowledgeAgentCrossed,
+</I>&gt;<i> RequestNeighbourInfo.
+</I>&gt;<i> 
+</I>&gt;<i> The latter retrieves the regioninfo from the &quot;remote regions cache&quot; - hash
+</I>&gt;<i> indexed by the regionid, which would need to be populated within the flow of
+</I>&gt;<i> the said os* function.
+</I>&gt;<i> 
+</I>&gt;<i> The rationale for making the &quot;overlay class&quot; is to avoid the duplication of
+</I>&gt;<i> the functionality of  &quot;same-server&quot; functions which are there already in the
+</I>&gt;<i> local backend services - and have just the &quot;intergrid&quot; functions using the
+</I>&gt;<i> remoting which I snarf from the OGS1 backend services code.
+</I>&gt;<i> 
+</I>&gt;<i> Since the regionhandle seems to be quite tied to the grid coordinates, I am
+</I>&gt;<i> thinking of the following scheme:
+</I>&gt;<i> 
+</I>&gt;<i> 1) I add a new os* function, which would take the URL of the sim + the
+</I>&gt;<i> coordinates as the parameter. (could be a PATH_INFO-like scheme, i.e.:
+</I>&gt;<i> <A HREF="http://sim-domain-name/path_to_handler_or_sim_name_in_case_of_grid/x/y/z">http://sim-domain-name/path_to_handler_or_sim_name_in_case_of_grid/x/y/z</A>
+</I>&gt;<i> 
+</I>&gt;<i> 2) when the user script calls this function, the source sim A retrieves the
+</I>&gt;<i> info about the destination sim (grid) B via this URL (the mainly interesting
+</I>&gt;<i> stuff for the current implementation is the remoting IP/port) - but might
+</I>&gt;<i> change in the future. This is the point where the user might get a dialog
+</I>&gt;<i> box &quot;do you want to teleport to ...&quot;
+</I>&gt;<i> 
+</I>&gt;<i> 3) A and B need to negotiate a &quot;temporary&quot; regionHandle, which would be
+</I>&gt;<i> unused in both sims (grids).
+</I>&gt;<i> 
+</I>&gt;<i> 3a) A sends a request with the proposed region handle to sim B
+</I>&gt;<i> 3b) if this regionhandle is ok - then B responds to it, else it responds
+</I>&gt;<i> with &quot;NAK&quot;, and proposes its own region handle.
+</I>&gt;<i> 3c) A does the same - if still not ok, selects the new temp region handle
+</I>&gt;<i> and the story repeats. If after N attempts we do not succeed, the teleport
+</I>&gt;<i> is declared as failed. If it succeeds, then both A and B have in the cache
+</I>&gt;<i> the info about the temporary handle.
+</I>&gt;<i> 
+</I>&gt;<i> 4) the user is sent to the target sim B using the
+</I>&gt;<i> scene.RequestTeleportLocation()
+</I>&gt;<i> 
+</I>&gt;<i> 5) once the user arrives, the sim (grid) B initiates a second teleport to
+</I>&gt;<i> the &quot;real&quot; region and signals back to sim (grid) A that the temporary
+</I>&gt;<i> location there can be cleared.
+</I>&gt;<i> 
+</I>&gt;<i> once the teleport succeeds, the sim(grid) B clears the temporary location as
+</I>&gt;<i> well. The temporary locations would be probably cutting off the chunk of the
+</I>&gt;<i> topmost X/Y coordinates.
+</I>&gt;<i> 
+</I>&gt;<i> This is a raw idea, I still need to test it further, but I think it might
+</I>&gt;<i> work..
+</I>
+This sounds quite nifty, and a very interesting way to address world
+jump given the current arch limitations. :)  Perhaps we could specify a
+certain incoming reserved region set for OpenSim grids to enable this
+functionality between worlds.
+
+&gt;<i> /d
+</I>&gt;<i> 
+</I>&gt;<i> p.s. I do not open yet the can of worms with the inventory, etc. :)
+</I>
+Yeh, I can imagine that wil be a lot of worms. ;)
+
+     -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20070925/8ba1c16f/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20070925/8ba1c16f/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000065.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+	<LI>Next message: <A HREF="000077.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#68">[ date ]</a>
+              <a href="thread.html#68">[ thread ]</a>
+              <a href="subject.html#68">[ subject ]</a>
+              <a href="author.html#68">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

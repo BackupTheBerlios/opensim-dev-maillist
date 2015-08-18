@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Restructuring test directories
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Restructuring%20test%20directories&In-Reply-To=%3C48C4F242.3090303%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002973.html">
+   <LINK REL="Next"  HREF="002885.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Restructuring test directories</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Restructuring%20test%20directories&In-Reply-To=%3C48C4F242.3090303%40t-data.com%3E"
+       TITLE="[Opensim-dev] Restructuring test directories">melanie at t-data.com
+       </A><BR>
+    <I>Mon Sep  8 11:37:06 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002973.html">[Opensim-dev] Resolved - Restructuring test directories
+</A></li>
+        <LI>Next message: <A HREF="002885.html">[Opensim-dev] Restructuring test directories
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2966">[ date ]</a>
+              <a href="thread.html#2966">[ thread ]</a>
+              <a href="subject.html#2966">[ subject ]</a>
+              <a href="author.html#2966">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+there is one major issue with that approach: the script engine 
+components. It is just not ever possible to put tests and code into 
+one dll, not even in debug mode.
+Because it will just not work. It will cause huge dependency trees 
+to be loaded into the script app domain, consuming all available 
+memory with only a few scripts. That would force a choice on people 
+like me: Either run release code, and lose the line number 
+information in crash dumps, or run debug code and be severely 
+limited in usability, to the point of total unfitness for purpose.
+
+So, anything to do with scripting must have tests in separate DLLs.
+
+Melanie
+
+
+Mariusz Nowostawski wrote:
+&gt;<i> Dr Scofield wrote:
+</I>&gt;&gt;<i> Mike Mazur wrote:
+</I>&gt;&gt;<i>   
+</I>&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On Fri, Sep 5, 2008 at 11:45 PM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i>     
+</I>&gt;&gt;&gt;&gt;<i> IMHO, the tests belong in separate DLLs.
+</I>&gt;&gt;&gt;&gt;<i>       
+</I>&gt;&gt;&gt;<i> I'm kind of with Melanie here. Why force the production DLLs to larger
+</I>&gt;&gt;&gt;<i> sizes when those tests are never run against the same compiled
+</I>&gt;&gt;&gt;<i> assembly more than once? Also when packaging OpenSim, the test DLLs
+</I>&gt;&gt;&gt;<i> can be removed, saving a little on space.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -1 on combining code and its tests in one assembly.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>     
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> i think having a.b.c.test and having test and code in different assemblies is
+</I>&gt;&gt;<i> not contradictory...
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> I agree with Melanie et al that having test code + dependencies in the 
+</I>&gt;<i> production level-executables is not desirable. The production 
+</I>&gt;<i> executables should be lean and clean.
+</I>&gt;<i> 
+</I>&gt;<i> But, debug level executables and DLLs is a different story. I agree with 
+</I>&gt;<i> those voices that having code and test cases for that code spread around 
+</I>&gt;<i> in large number of directory structures and (often ad hoc, confusing and 
+</I>&gt;<i> inconsistent) naming conventions, with large number of DLLs is not 
+</I>&gt;<i> helpful for debugging and testing purposes. If I have a given DLL how I 
+</I>&gt;<i> should know which DLL to call to test that one in question?  For a given 
+</I>&gt;<i> test code how I know what code it is actually being tested? And for the 
+</I>&gt;<i> code, how I know if there are test cases for it already or not?  Even 
+</I>&gt;<i> though there is not much being tested in OS now, it is already confusing 
+</I>&gt;<i> to know of what exactly is being tested, where the tests are, and which 
+</I>&gt;<i> DLLs those tests are going to be compiled into.
+</I>&gt;<i> 
+</I>&gt;<i> The two objectives above are not exclusive - they can be achieved 
+</I>&gt;<i> together. This is exactly what compile-time flags are for. This is why 
+</I>&gt;<i> GCC has a -d flag, etc. The build process should produce clean 
+</I>&gt;<i> execulables and DLLs for production releases, and debug executables and 
+</I>&gt;<i> DLLs for everything else.
+</I>&gt;<i> 
+</I>&gt;<i> I would rather see test code being together with the code that is being 
+</I>&gt;<i> tested, and I would rather see test binary code going into the DLL that 
+</I>&gt;<i> is being tested too. There are some cases where a single test case spans 
+</I>&gt;<i> multiple codebases, but these are usually exceptions, and could go to a 
+</I>&gt;<i> single project-wide DLL with all the awkward tests - a DLL that is well 
+</I>&gt;<i> known to everyone.
+</I>&gt;<i> 
+</I>&gt;<i> Otherwise, too much freedom will create more problems than necessary. 
+</I>&gt;<i> Simple question like: &quot;where is the test code for this particular code 
+</I>&gt;<i> I'm looking at right now, and how I can run it&quot; will become non-trivial.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002973.html">[Opensim-dev] Resolved - Restructuring test directories
+</A></li>
+	<LI>Next message: <A HREF="002885.html">[Opensim-dev] Restructuring test directories
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2966">[ date ]</a>
+              <a href="thread.html#2966">[ thread ]</a>
+              <a href="subject.html#2966">[ subject ]</a>
+              <a href="author.html#2966">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

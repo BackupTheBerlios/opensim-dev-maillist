@@ -1,0 +1,276 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Feature Request ...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Feature%20Request%20...&In-Reply-To=%3C999314.43671.qm%40web23001.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004219.html">
+   <LINK REL="Next"  HREF="004239.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Feature Request ...</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Feature%20Request%20...&In-Reply-To=%3C999314.43671.qm%40web23001.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Feature Request ...">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Mon Dec 22 00:45:07 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004219.html">[Opensim-dev] Feature Request ...
+</A></li>
+        <LI>Next message: <A HREF="004239.html">[Opensim-dev] Feature Request ...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4228">[ date ]</a>
+              <a href="thread.html#4228">[ thread ]</a>
+              <a href="subject.html#4228">[ subject ]</a>
+              <a href="author.html#4228">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>It is perfectly possible to make service wrappers without changing the main classes of the various opensim servers. As in the example that Stefan provided, you just don't call the  Work() method. You only need to call the Startup() method, as a windows service will continue to run until it is shutdown.
+
+We do the above all the time, so I can asure you it works.
+
+The service just won't read console input if you don't call the Work method, so there is no point redirecting it. 
+
+But I believe that is your only option as I don't think you will get agreement to make the sort of changes you want, to the opensim classes.
+
+Develope &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Develope at Ashuan.de</A>&gt; wrote:
+
+@ Stefan Andersson
+2) To be able to do so, you should implement the services as 'wrappers',
+separate applications that _use_ the Main Classes, not change or expand
+on them, like for example for the grid service wrapper:
+ 
+    partial class GridServ : ServiceBase
+    {
+        private GridServerBase m_gridApplication;
+
+        protected override void OnStart(string[] args)
+        {
+            // Define working directory (For a service, this is set to
+System dir by default...)
+            Process pc = Process.GetCurrentProcess();
+            string useDirectory = pc.MainModule.FileName.Substring(0,
+pc.MainModule.FileName.LastIndexOf(@&quot;\&quot;));
+            Directory.SetCurrentDirectory(useDirectory);
+            log4net.Config.XmlConfigurator.Configure();
+            m_gridApplication = new GridServerBase();
+            m_gridApplication.Startup();
+        }
+   }
+ 
+(This snippet taken from Tribal Medias proprietary service wrappers -
+feel free to copy+paste.)
+ 
+--- It is impossible to not change the main applications, cause they
+all went into 
+   public void Work()
+        {
+            m_console.Notice(&quot;Enter help for a list of commands\n&quot;);
+
+            while (true)
+            {
+                m_console.Prompt();
+            }
+        }
+
+ Holding a Service into a loop or in console.readline make the
+OnStart() not responsable for the machine and nothing runs.
+
+---  Is the System.ServiceProcess not implemented in Mono ? If so there
+is no problem doing this. In my solution all executables are running as
+service and doing well (Win 2003). I try to evaluate how it works in
+mono.
+
+--- My implementation is:
+ Here is the first bad hack
+     public /*abstract*/ class BaseOpenSimServer :
+System.ServiceProcess.ServiceBase
+  {
+  ...
+   public static void RunService(BaseOpenSimServer
+pInstance, string[] args)
+   {
+   ...
+   }
+  ...
+  }
+
+ In case of Gridserver ...
+        public static void Main(string[] args)
+        {
+            XmlConfigurator.Configure();
+
+            GridServerBase.RunService(new GridServerBase(), args);
+
+            //GridServerBase app = new GridServerBase();
+
+  //app.Startup();
+  //app.Work();
+        }
+  Thats all.
+--- You can now start your application with parameter '/Install' or
+'/unistall' to create this service or to uninstall it.
+--- You chose if it starts as a service and how its name an dependencies
+only in app.config of the diffrent projects.
+ If you dont want to run this as service switch in app.config.
+
+
+Greetz
+
+Kai
+
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Kyle Hamilton
+Sent: Sonntag, 21. Dezember 2008 00:24
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Feature Request ...
+
+You can also use srvany.exe from Microsoft to turn any .exe into a
+service.  <A HREF="http://www.iopus.com/guides/srvany.htm">http://www.iopus.com/guides/srvany.htm</A> has information.
+
+-Kyle H
+
+On Sat, Dec 20, 2008 at 1:13 PM, Stefan Andersson
+ wrote:
+&gt;<i> Excellent! We really need windows service wrappers for the various
+</I>exe's.
+&gt;<i>
+</I>&gt;<i> A couple of pointers:
+</I>&gt;<i>
+</I>&gt;<i> 1) Since this is (in practice) a windows-only project, you should
+</I>implement
+&gt;<i> this as a 'forge' project;
+</I>&gt;<i> <A HREF="http://forge.opensimulator.org/gf/">http://forge.opensimulator.org/gf/</A>
+</I>&gt;<i>
+</I>&gt;<i> 2) To be able to do so, you should implement the services as
+</I>'wrappers',
+&gt;<i> separate applications that _use_ the Main Classes, not change or
+</I>expand on
+&gt;<i> them, like for example for the grid service wrapper:
+</I>&gt;<i>
+</I>&gt;<i>     partial class GridServ : ServiceBase
+</I>&gt;<i>     {
+</I>&gt;<i>         private GridServerBase m_gridApplication;
+</I>&gt;<i>
+</I>&gt;<i>         protected override void OnStart(string[] args)
+</I>&gt;<i>         {
+</I>&gt;<i>             // Define working directory (For a service, this is set to
+</I>&gt;<i> System dir by default...)
+</I>&gt;<i>             Process pc = Process.GetCurrentProcess();
+</I>&gt;<i>             string useDirectory = pc.MainModule.FileName.Substring(0,
+</I>&gt;<i> pc.MainModule.FileName.LastIndexOf(@&quot;\&quot;));
+</I>&gt;<i>             Directory.SetCurrentDirectory(useDirectory);
+</I>&gt;<i>             log4net.Config.XmlConfigurator.Configure();
+</I>&gt;<i>             m_gridApplication = new GridServerBase();
+</I>&gt;<i>             m_gridApplication.Startup();
+</I>&gt;<i>         }
+</I>&gt;<i>    }
+</I>&gt;<i>
+</I>&gt;<i> (This snippet taken from Tribal Medias proprietary service wrappers -
+</I>feel
+&gt;<i> free to copy+paste.)
+</I>&gt;<i>
+</I>&gt;<i> 3) When you've done the wrappers, the next step is to add a method to
+</I>&gt;<i> communicate with the consoles. One way to go about it is to have the
+</I>service
+&gt;<i> process redirect the console in and output to a named pipe, and then
+</I>supply
+&gt;<i> a console app that listens/writes to those pipes.
+</I>&gt;<i>
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Stefan Andersson
+</I>&gt;<i> Tribal Media AB
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i> Date: Sat, 20 Dec 2008 19:53:32 +0100
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Develope at Ashuan.de</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: [Opensim-dev] Feature Request ...
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Hi Friends,
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> i wish to implement the feature to run all Gridcomponents (Userserver,
+</I>&gt;<i> Assetserver ....) as a Service.
+</I>&gt;<i>
+</I>&gt;<i> My work is now only to evaluate how easy or not it is ... it is easy
+</I>.. but
+&gt;<i> ...
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I must add an Reference to the System.ServiceProcess in several
+</I>Project.
+&gt;<i>
+</I>&gt;<i> Now my question ...
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Is there a Problem doing this?
+</I>&gt;<i>
+</I>&gt;<i> And second how do i include an reference into a .patch-File?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Kai
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081221/e40387ea/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081221/e40387ea/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004219.html">[Opensim-dev] Feature Request ...
+</A></li>
+	<LI>Next message: <A HREF="004239.html">[Opensim-dev] Feature Request ...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4228">[ date ]</a>
+              <a href="thread.html#4228">[ thread ]</a>
+              <a href="subject.html#4228">[ subject ]</a>
+              <a href="author.html#4228">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

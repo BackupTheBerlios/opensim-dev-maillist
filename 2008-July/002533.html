@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Fix provider selection and possible security	issue with plugins
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fix%20provider%20selection%20and%20possible%20security%0A%09issue%20with%20plugins&In-Reply-To=%3Cc7a1b5240807290536l33a20e03q3e81752a5996f600%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002526.html">
+   <LINK REL="Next"  HREF="002534.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Fix provider selection and possible security	issue with plugins</H1>
+    <B>Ryan McDougall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fix%20provider%20selection%20and%20possible%20security%0A%09issue%20with%20plugins&In-Reply-To=%3Cc7a1b5240807290536l33a20e03q3e81752a5996f600%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Fix provider selection and possible security	issue with plugins">sempuki1 at gmail.com
+       </A><BR>
+    <I>Tue Jul 29 14:36:43 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002526.html">[Opensim-dev] Fix provider selection and possible security issue with plugins
+</A></li>
+        <LI>Next message: <A HREF="002534.html">[Opensim-dev] Fix provider selection and possible security	issue with plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2533">[ date ]</a>
+              <a href="thread.html#2533">[ thread ]</a>
+              <a href="subject.html#2533">[ subject ]</a>
+              <a href="author.html#2533">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Tue, Jul 29, 2008 at 9:07 PM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> as commented on Mantis, it would be wrong to disallow loading of
+</I>&gt;<i> arbitrary DLLs. There are already extensions that are not in the
+</I>
+That statement just isn't correct. It would be _madness_ to allow
+loading of arbitrary executable code. Luckily we are talking about
+something far more specific, so please read on.
+
+&gt;<i> core SVN, and there will be more. These currently work by dropping
+</I>&gt;<i> them into bin.
+</I>
+What exactly are these?
+
+If they are RegionModules, then I haven't touched them. I sense the
+possibility of dragons.
+
+If these are any of the plugins that I have modified already, have any
+of them broken? If not they my changes haven't broken anything, have
+they? Lets consider this a bit deeper:
+
+The use case here was initially OpenSim.Data.MySQL.dll,
+OpenSim.Data.MSSQL.dll, et al. All of which do the exact same thing,
+but in a mutually exclusive way. They both extend a specific extension
+point, and thus only one of this type should ever be loaded. Correct?
+
+Currently this is accomplished in *_Config.xml in a field called
+&quot;database_provider&quot; which is usually set to OpenSim.Data.MySQL.dll or
+some related, and is successfully loaded and executed so long as they
+implement IGridData.
+
+The previous loader, before my work, took that provider config string,
+passed it directly to a loader which naively attempted to place the
+file it names in memory and execute anything that implemented the
+IGridData interface. You could argue that the only way for an attacker
+to use that vulnerability was if he had local access to the machine,
+and thus all bets were off anyways, but in principle I tend to avoid
+arbitrarily executing things when not necessary. Its just sane best
+practise.
+
+A previous version of the code, I think the one everyone is running
+now, works by doing string operations on the provider string to hack
+out something that is already embedded within the Mono.Addins
+manifest. However I believe its clearly documented as a hack, and I
+generally detest poor quality code, even (especially?) if its mine. I
+raised this issue previously on the mailing list but no one commented
+at the time, likely because they had no idea what I was on about.
+
+This patch changes it from being a hack on a provider string to tease
+out a &quot;Mono.Addins id&quot;, to being somewhat self-documenting &quot;provider&quot;
+attribute in the manifest. Its smart and sane and good software
+engineering, regardless to its resemblance to &quot;just renaming&quot;.
+
+&gt;<i> I believe it's wrong to limit OpenSim to loading plugins known at
+</I>&gt;<i> compile time.
+</I>
+Where on earth is it written that this is a compile time issue??
+
+If fact one of the nice things about an external XML manifest is that
+you can change it without a recompile. Nothing here is remotely
+compile-time as that would *entirely* defeat the purpose of a dynamic
+loader and would be silliness of a monty python magnitude.
+
+&gt;<i> I don't know if that is where you want to go, but one of your
+</I>&gt;<i> comments gave me that impression. I would feel very uncomfortable
+</I>&gt;<i> with any change that limits the system to loading only DLLs listed
+</I>&gt;<i> in core code.
+</I>
+Fhew! We dodged a bullet then, because there is no danger of that happening! :)
+
+If I have misunderstood, or somehow broken 3rd party modules, please
+let me know so I can fix things immediately.
+
+&gt;<i> Melanie
+</I>&gt;<i>
+</I>
+Thank you for your feedback and concern Melanie. :)
+
+Cheers,
+
+
+&gt;<i> Ryan McDougall wrote:
+</I>&gt;&gt;<i> Details on mantis.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> <A HREF="http://opensimulator.org/mantis/view.php?id=1852">http://opensimulator.org/mantis/view.php?id=1852</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Review and commit as usual would be greatly appreciated. Next step is
+</I>&gt;&gt;<i> documenting the process of making a &quot;new-style&quot; plugin:
+</I>&gt;&gt;<i> <A HREF="http://opensimulator.org/wiki/How_to_create_a_dynamic_plugin">http://opensimulator.org/wiki/How_to_create_a_dynamic_plugin</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Finally, I think the most important dynamic loading is done, outside of
+</I>&gt;&gt;<i> RegionModules, which I haven't touched for now. The completed plugins
+</I>&gt;&gt;<i> are:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> IApplicationPlugin
+</I>&gt;&gt;<i> IGridPlugin
+</I>&gt;&gt;<i> IGridDataPlugin
+</I>&gt;&gt;<i> ILogDataPlugin
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The plugins I should also do because they are probably important:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> IAssetProvider
+</I>&gt;&gt;<i> IInventoryData
+</I>&gt;&gt;<i> IUserData
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The rest should be a simple transformation based on my instructions
+</I>&gt;&gt;<i> (when they're finished). Anyone want to go for some low-hanging fruit by
+</I>&gt;&gt;<i> finishing the process?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> IGenericConfig
+</I>&gt;&gt;<i> IDataSnapshotProvider
+</I>&gt;&gt;<i> IClientNetworkServer
+</I>&gt;&gt;<i> IPhysicsPlugin
+</I>&gt;&gt;<i> IMeshingPlugin
+</I>&gt;&gt;<i> IRegionDataStore
+</I>&gt;&gt;<i> IEstateDataStore
+</I>&gt;&gt;<i> ITerrainEffect
+</I>&gt;&gt;<i> ITarget
+</I>&gt;&gt;<i> IDataNode
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Lastly, is there a special meaning given to ifaces that end with Data or
+</I>&gt;&gt;<i> Provider?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Cheers,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002526.html">[Opensim-dev] Fix provider selection and possible security issue with plugins
+</A></li>
+	<LI>Next message: <A HREF="002534.html">[Opensim-dev] Fix provider selection and possible security	issue with plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2533">[ date ]</a>
+              <a href="thread.html#2533">[ thread ]</a>
+              <a href="subject.html#2533">[ subject ]</a>
+              <a href="author.html#2533">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

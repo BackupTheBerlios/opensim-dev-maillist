@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Partial libSL.Packet fix submitted
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Partial%20libSL.Packet%20fix%20submitted&In-Reply-To=%3C476A736B.2030608%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000610.html">
+   <LINK REL="Next"  HREF="000613.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Partial libSL.Packet fix submitted</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Partial%20libSL.Packet%20fix%20submitted&In-Reply-To=%3C476A736B.2030608%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Partial libSL.Packet fix submitted">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Dec 20 14:51:39 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000610.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+        <LI>Next message: <A HREF="000613.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#611">[ date ]</a>
+              <a href="thread.html#611">[ thread ]</a>
+              <a href="subject.html#611">[ subject ]</a>
+              <a href="author.html#611">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Teravus Ovares wrote:
+&gt;<i> Well, alternatively, you could strip out the hyphens where needed.
+</I>&gt;<i>  
+</I>&gt;<i> ToString.Replace FTW!!!111!!1!1!!11!1!!One
+</I>Or on the lines of Johan's 3. (and 1.) below, perhaps we should use the 
+non overriden LLUUID.GetBytes() and convert this back to an unhyphenated 
+hex string with a simple utility method.  To get off ToString() (a point 
+about which I completely agree with Stefan) we could also have a utility 
+method to produce the hyphenated version.
+
+Changing the underlying representations in the database at this stage 
+(though it might well be necessary at some point) would cause a 
+significant amount of upheaval for grid maintainers.  I know this is 
+alpha code, but if we were to do this it would be  nice to provide a 
+migration path, even if this is just some sql file which directly 
+manipulates grid mysql).  We might also want to signal our intention to 
+change database representations in advance in order to give grid 
+operators some time to prepare.
+
+--
+justincc
+&gt;<i>
+</I>&gt;<i>  
+</I>&gt;<i> On 12/20/07, *Justin Clark-Casey* &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> 
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     Johan Berntsson wrote:
+</I>&gt;<i>     &gt; This problem is not caused by my work, but of changes in later
+</I>&gt;<i>     versions
+</I>&gt;<i>     &gt; of LibSL. It has changed from using ToString (unhyphenated) and
+</I>&gt;<i>     &gt; ToStringHyphenated(), to only using ToString() (hyphenated).
+</I>&gt;<i>     This means
+</I>&gt;<i>     &gt; that there is no way of getting an unhyphenated string from libSL
+</I>&gt;<i>     &gt; anymore. I changed all instances of  ToStringHyphenated() in
+</I>&gt;<i>     OpenSim to
+</I>&gt;<i>     &gt; ToString(), but I didn't realize that there would be a problem with
+</I>&gt;<i>     &gt; plain ToString() calls.
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; The basic problem is that we are relying on a libSL behaviour
+</I>&gt;<i>     that is
+</I>&gt;<i>     &gt; outside our control, and has changed. If we want to keep up to
+</I>&gt;<i>     date with
+</I>&gt;<i>     &gt; libSL I suggest that the problem is solved.
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; Possible solutions:
+</I>&gt;<i>     &gt; 1. Identify the problematic ToString() calls and use a utility
+</I>&gt;<i>     function
+</I>&gt;<i>     &gt; (Util.ConvertToUnhyphentated) to fix them like before.
+</I>&gt;<i>     &gt; 2. Write scripts to update the current databases to use hyphenated
+</I>&gt;<i>     &gt; GUID:s
+</I>&gt;<i>     &gt; 3. Change the code not to use ToString at all.
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; I prefer option 3, and to be compatible it could output
+</I>&gt;<i>     unhyphenated
+</I>&gt;<i>     &gt; GUIDs. At least this means that we won't have problems every
+</I>&gt;<i>     time libSL
+</I>&gt;<i>     &gt; is refactored (and ToString is meant as a debug tool, not as a
+</I>&gt;<i>     provider
+</I>&gt;<i>     &gt; of keys to a database)
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     Is there any chance that, if asked, the LibSL folks would add extra
+</I>&gt;<i>     methods such as
+</I>&gt;<i>
+</I>&gt;<i>     ToGuidString()
+</I>&gt;<i>     ToGuidHyphenatedString()
+</I>&gt;<i>
+</I>&gt;<i>     ?  We would still be relying on LibSL but with explicitly named and
+</I>&gt;<i>     purposed methods such as these rather than ToString(), I would hope
+</I>&gt;<i>     no-notice refactoring would be much less likely.
+</I>&gt;<i>
+</I>&gt;<i>     If necessary, we could then migrate to our own methods at our leisure
+</I>&gt;<i>     (after patching all the string calls to use these two methods).
+</I>&gt;<i>
+</I>&gt;<i>     Even if they won't do this, we could patch their code in the meantime
+</I>&gt;<i>     for these methods (I doubt that would be very complicated) if
+</I>&gt;<i>     migrating
+</I>&gt;<i>     now would be considerable and destablizing work (in light of 0.5).
+</I>&gt;<i>
+</I>&gt;<i>     Regards,
+</I>&gt;<i>
+</I>&gt;<i>     --
+</I>&gt;<i>     justincc
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>     &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000610.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+	<LI>Next message: <A HREF="000613.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#611">[ date ]</a>
+              <a href="thread.html#611">[ thread ]</a>
+              <a href="subject.html#611">[ subject ]</a>
+              <a href="author.html#611">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,237 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Using XMPP for managing and tranmitting Instant	Messages and presence in OpenSimulator.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Using%20XMPP%20for%20managing%20and%20tranmitting%20Instant%0A%09Messages%20and%20presence%20in%20OpenSimulator.&In-Reply-To=%3C34cc66250803031308y47eff06ck310fce0b439c0a92%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001002.html">
+   <LINK REL="Next"  HREF="001081.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Using XMPP for managing and tranmitting Instant	Messages and presence in OpenSimulator.</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Using%20XMPP%20for%20managing%20and%20tranmitting%20Instant%0A%09Messages%20and%20presence%20in%20OpenSimulator.&In-Reply-To=%3C34cc66250803031308y47eff06ck310fce0b439c0a92%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Using XMPP for managing and tranmitting Instant	Messages and presence in OpenSimulator.">teravus at gmail.com
+       </A><BR>
+    <I>Mon Mar  3 22:08:07 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001002.html">[Opensim-dev] Metaverse platform gambling 2
+</A></li>
+        <LI>Next message: <A HREF="001081.html">[Opensim-dev] Using XMPP for managing and tranmitting Instant Messages and presence in OpenSimulator.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1014">[ date ]</a>
+              <a href="thread.html#1014">[ thread ]</a>
+              <a href="subject.html#1014">[ subject ]</a>
+              <a href="author.html#1014">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I've paused working on the Instant message system to investigate in greater
+detail what would be entailed in using XMPP to transmit online presence
+data, one to one instant messages, and one to many instant messages and I've
+essentially gotten that none of the specs or drafts really take advantage of
+the inherent scalability of grid computing.
+
+Lets start with the pitfalls of the approved XMPP Spec
+*Requires constant TCP streams
+*Requires a central server.
+*To add more load capability, you add another central server. Each central
+server is allocated by domain in DNS.
+
+In large scale applications, I think it's clear that constant TCP streams
+are not the way to go.  And IMHO polling isn't either.
+So that leads us to one of the Drafts of the XMPP spec
+
+XMPP over BOSH(Bidirectional-streams over synchronous HTTP)
+
+However, this spec only defines the possibility of having a HTTP Gateway,
+which translates to open TCP streams.  So, once again, we end up with open
+TCP streams. Essentially the Region Host would have the open TCP stream to
+the XMPP server.   Once again, this is limiting to growth.  Given that low
+use TCP servers struggle to handle &gt;=5,000 connections.   That essentially
+limits your XMPP server to 5,000 regions or less.    Probably less given
+that there could be up to N users in a region..   which would turn it from a
+low use connection, to a high use connection.
+
+Therefore, at least in my opinion, none of the barrage of XMPP specs are not
+suitable for this application in general use.
+
+However.    I'd like to note that if each Instant Message has a region
+domain associated with it and the regions are responsible for connecting to
+other regions to deliver instant messages then we get massive scalability
+automatically.   In addition, to provide outside interoperability with XMPP
+servers, a XMPP module could be built to communicate with the outside world
+using XMPP.   The 'region domain' on the Instant message could lead to the
+XMPP over BOSH gateway for people who have chosen to connect to IM only
+applications.    The user would have the XMPP Gateway as the 'region that
+the Instant Message Module' thinks they are at.
+
+In this example, substitute User Server with whatever server you've got set
+up to handle it.  Such as the Message Server..   Grid Server.. etc.
+
+To put the Presence/IM flow into perspective:
+1. User A - logged into a region
+User B - logged into a region
+User C - logged into a region
+User D - logged into a connected Jabber server
+
+2.   User A is friends with User B
+User C is Friends with User A
+User A is friends with User D
+Therefore by the transitive
+User B is friends with User A and User A is friends with User C by the
+transitive.
+However, User B and User C are not friends with each other
+
+3. User A, B, C, and D are part of a Group
+
+ (for our purposes lets say the friend list is a representation of a
+presence subscription list that automatically gets subscribed to on both
+sides, presuming that the friendship rules say that User X has given User Y
+permission to see them online and User Y has given User X permission to see
+them online)
+
+   1. User A signs on.
+      1. The User server determines that nobody is online in User A's
+      friendlist to notify
+      2. end.
+   2. User B signs on.
+      1. The User server determines that User A is connected and that
+      User B is in a region/simulator
+      2. User Server sends a notice through the simulator that they
+      are in that A is online to User B
+      3. User Server sends a notice through the simulator that they
+      are in that B is online to User A
+      4. end
+   3. User C signs on.
+      1. The User server determines that User A is connected and that
+      User C is in a region/simulator
+      2. User server sends a notice through the simulator that they
+      are in that A is online to User C
+      3. Users Server sends a notice through the simulator that they
+      are in that C is online to A
+      4. end
+   4. User D signs on the jabber server.
+      1. The jabber server notifies the user server through XMPP over
+      BOSH, or parhaps straight XMPP
+      2. The user server translates the friend list to &lt;iq&gt; stanzas
+      3. The jabber server sends the subscription requests, which get
+      translated into presence requests on the User Server
+      4. The user server notes that User A is online and in a region
+      5. User Server sends a notice to User A that User D is online.
+      6. User Server sends a Presence stanza to the XMPP server
+      regarding User A's Online status
+      7. User Server sends a notice to the region that User A is in
+      about User D's status
+      8. Region Server notifies User A
+      9. end
+   5. At this point we have A, B, C and D Online, and all users have
+   properly updated presence.
+   6. User A signs off.
+      1. User server determines that User B, C, and D are on User A's
+      friend list
+      2. User Server sends the simulator that has the open connection
+      with User B the notice that User A logged off
+         1. Region server informs User B
+      3. User Server sends the simulator that has the open connection
+      with User C the notice that User A logged off
+         1. Region server informs User C
+      4. User server sends a presence stanza to the XMPP
+      server/Gateway to notify User D
+      5. end
+   7. A this point we have User B, C and D online all with properly
+   updated presence
+   8. User A signs on again
+      1. User server sends a notice to the simulator B, and C are in
+      with presence notifications
+      2. User server sends a presence stanza to the XMPP server/Gatway
+      with the proper session ID
+      3. end
+   9. User A sends a message to User B.
+      1. User A's Region either knows where User B is or looks up the
+      information from the User Server
+      2. User A's Region connects directly with User B's Region and
+      delivers the message to User B's region.
+      3. User B's Region delivers the message to User B and caches the
+      location and information of User A's Region
+      4. end - Message Delivered
+   10. User A sends a message to User D.
+      1. User A's region knows where User D is (the Jabber server/XMPP
+      Gateway).
+      2. User A's region connects directly with the JabberServer/XMPP
+      Gateway and delivers the message stanza caches the user's location.
+      3. end - Message Delivered
+   11. User D sends a message to User A
+      1. The Jabber Server/XMPP Gateway over BOSH sends a HTTP Request
+      to the region the user is in and sends a message stanza.
+      2. User A's Region notifies User A.
+      3. end - Message Delivered
+   12. User B opens up a Group session with User A, C and D
+      1. The User Server establishes a forwarding session with three
+      regions and the XMPP Server
+      2. The User Server establishes a group session with the XMPP
+      Server.
+      3. The XMPP Server informs the XMPP Client (User D) that there's
+      a group session starting.
+      4. Message from User B gets delivered to User A's Region and
+      User C's Region.
+      5. A Message Stanza gets sent to the XMPP Server with the group
+      session ID from the User Server.
+   13. User D sends a message in the group session
+      1. The Message gets sent to the appropriate users on the XMPP
+      Server and gets sent to the User Server.
+      2. The User Server sends the message to User A, B and C's
+      Regions.
+      3. The Regions delivers the message to the users.
+      4. end
+
+
+Assumptions:
+
+   1. Regions can contact each other's HTTP port and Regions can contact
+   the Jabber Server/XMPP Gateway over BOSH.
+   2. Card based group sessions are just dynamic group sessions.   Other
+   then their dynamic nature, they function exactly the same as a session
+   established by a pre-existing group.
+   3. Eventually Group sessions will time out if there's no activity.
+   4. The user server either periodially notifies subscribed user
+   A's regions about which region User B is in.  Presumably in border
+   crossings, etc, or this is looked up per instant message
+
+
+:<i>D  A little more complicated then it looks at first hmm?
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080303/051937d3/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080303/051937d3/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001002.html">[Opensim-dev] Metaverse platform gambling 2
+</A></li>
+	<LI>Next message: <A HREF="001081.html">[Opensim-dev] Using XMPP for managing and tranmitting Instant Messages and presence in OpenSimulator.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1014">[ date ]</a>
+              <a href="thread.html#1014">[ thread ]</a>
+              <a href="subject.html#1014">[ subject ]</a>
+              <a href="author.html#1014">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

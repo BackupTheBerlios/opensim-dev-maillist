@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Built libbullet shared object libraries for Linux but this isn't what you wanted!
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Built%20libbullet%20shared%20object%20libraries%20for%20Linux%0A%20but%20this%20isn%27t%20what%20you%20wanted%21&In-Reply-To=%3C196F957100FA404AAA030BA11A723DF56086B2DCE2%40rrsmsx501.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010324.html">
+   <LINK REL="Next"  HREF="010316.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Built libbullet shared object libraries for Linux but this isn't what you wanted!</H1>
+    <B>Adams, Robert</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Built%20libbullet%20shared%20object%20libraries%20for%20Linux%0A%20but%20this%20isn%27t%20what%20you%20wanted%21&In-Reply-To=%3C196F957100FA404AAA030BA11A723DF56086B2DCE2%40rrsmsx501.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Built libbullet shared object libraries for Linux but this isn't what you wanted!">robert.adams at intel.com
+       </A><BR>
+    <I>Thu Jun 30 17:08:31 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010324.html">[Opensim-dev] Built libbullet shared object libraries for Linux but this isn't what you wanted!
+</A></li>
+        <LI>Next message: <A HREF="010316.html">[Opensim-dev] How?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10328">[ date ]</a>
+              <a href="thread.html#10328">[ thread ]</a>
+              <a href="subject.html#10328">[ subject ]</a>
+              <a href="author.html#10328">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I got the same errors when I tried your Makefile -- it is odd that the MS compiler didn't catch some of these. A few simple changes, though, allows it to compile. I will have Dan check in the changes. I didn't have time to link and run it yesterday but I will give it a try today.
+
+-- ra 
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+Sent: Wednesday, June 29, 2011 4:51 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Built libbullet shared object libraries for Linux but this isn't what you wanted!
+
+On 27/06/11 16:52, Adams, Robert wrote:
+&gt;<i> Building Bullet itself is a start. Thanks Justin.
+</I>&gt;<i>
+</I>&gt;<i> The makefile should be fairly straight forward as there are just the two cpp files and one .h file with the only dependencies being on the std library and Bullet itself. As you now know, Bullet used CMAKE for its build/configuration tool and I don't know if there is a way to link a BulletSim build into it (put the Bullet directory under BulletSim and do a CMAKE which builds both together).
+</I>&gt;<i>
+</I>&gt;<i> I'm setting up a Linux build environment so I should be able to help anyone working on this by next weekend. I'm doing some stress testing this week and then I will look into linksets again -- I want to get vehicles working.
+</I>
+I put in a scratch Makefile and fixed one definition issue in BulletSim.cpp.  However, on make this still brings up the 
+errors
+
+BulletSim.cpp:38:14: error: 'gDeactivationTime' was declared 'extern' and later 'static'
+BulletDynamics/Dynamics/btRigidBody.h:29:17: error: previous declaration of 'gDeactivationTime'
+BulletSim.cpp: In member function 'int BulletSim::PhysicsStep(btScalar, int, btScalar, int*, EntityProperties***, int*, 
+unsigned int**)':
+BulletSim.cpp:107:79: error: cast from 'void*' to 'unsigned int' loses precision
+BulletSim.cpp:108:79: error: cast from 'void*' to 'unsigned int' loses precision
+BulletSim.cpp: In member function 'btCollisionShape* BulletSim::CreateShape(ShapeData*)':
+BulletSim.cpp:405:61: error: no matching function for call to 
+'BulletSim::AdjustScaleForCollisionMargin(btCollisionShape*&amp;, btVector3)'
+BulletSim.h:469:7: note: candidate is: void BulletSim::AdjustScaleForCollisionMargin(btCollisionShape*, btVector3&amp;)
+BulletSim.cpp:426:62: error: no matching function for call to 
+'BulletSim::AdjustScaleForCollisionMargin(btCollisionShape*&amp;, btVector3)'
+BulletSim.h:469:7: note: candidate is: void BulletSim::AdjustScaleForCollisionMargin(btCollisionShape*, btVector3&amp;)
+BulletSim.cpp:432:61: error: no matching function for call to 
+'BulletSim::AdjustScaleForCollisionMargin(btCollisionShape*&amp;, btVector3)'
+BulletSim.h:469:7: note: candidate is: void BulletSim::AdjustScaleForCollisionMargin(btCollisionShape*, btVector3&amp;)
+BulletSim.cpp: In member function 'SweepHit BulletSim::ConvexSweepTest(unsigned int, btVector3&amp;, btVector3&amp;, btScalar)':
+BulletSim.cpp:1166:95: error: cast from 'void*' to 'unsigned int' loses precision
+BulletSim.cpp: In member function 'RaycastHit BulletSim::RayTest(unsigned int, btVector3&amp;, btVector3&amp;)':
+BulletSim.cpp:1209:70: error: cast from 'void*' to 'unsigned int' loses precision
+make: *** [BulletSim.o] Error 1
+
+It's a long time since I did any significant c/cpp (and then it wasn't on Linux) so I'm not sure why this is happening. 
+  Maybe it's gcc specific.
+
+&gt;<i>
+</I>&gt;<i> I was able to pull opensim-libs anonymously last week (<A HREF="http://opensimulator.org/svn/opensim-libs">http://opensimulator.org/svn/opensim-libs</A>). Has it broken since then?
+</I>
+Thanks Robert - I was trying the wrong url.  I put the information into the wiki.
+
+&gt;<i>
+</I>&gt;<i> -- ra
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;<i> Sent: Sunday, June 26, 2011 4:48 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: [Opensim-dev] Built libbullet shared object libraries for Linux but this isn't what you wanted!
+</I>&gt;<i>
+</I>&gt;<i> Hi Robert.  I briefly putzed around with building shared object Bullet 2.78 under Linux tonight and popped the results
+</I>&gt;<i> in as commit 23bf773 on the bulletsim branch.
+</I>&gt;<i>
+</I>&gt;<i> However, I just realised that you weren't asking for the bullet libraries to be built.  What you were really asking for
+</I>&gt;<i> in <A HREF="010271.html">http://lists.berlios.de/pipermail/opensim-dev/2011-June/010271.html</A> were Linux/OSX makefiles to build your
+</I>&gt;<i> BulletSim.dll interfacing library in the opensim-libs svn repo (for which anonymous access is unfortunately not
+</I>&gt;<i> currently working - this need to be fixed).
+</I>&gt;<i>
+</I>&gt;<i> That doesn't look too difficult but it's a little more involved for me since it's a long time since I wrote a Makefile.
+</I>&gt;<i>    I don't know when I might get a slice of time to do that, so I think help from anybody else would still be very much
+</I>&gt;<i> appreciated.
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010324.html">[Opensim-dev] Built libbullet shared object libraries for Linux but this isn't what you wanted!
+</A></li>
+	<LI>Next message: <A HREF="010316.html">[Opensim-dev] How?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10328">[ date ]</a>
+              <a href="thread.html#10328">[ thread ]</a>
+              <a href="subject.html#10328">[ subject ]</a>
+              <a href="author.html#10328">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

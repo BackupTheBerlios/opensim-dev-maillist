@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OAuth as authentication and authorisation	(capability) specification
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OAuth%20as%20authentication%20and%0A%20authorisation%09%28capability%29%20specification&In-Reply-To=%3C49F77198.5000506%40comlounge.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006326.html">
+   <LINK REL="Next"  HREF="006333.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OAuth as authentication and authorisation	(capability) specification</H1>
+    <B>Christian Scholz</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OAuth%20as%20authentication%20and%0A%20authorisation%09%28capability%29%20specification&In-Reply-To=%3C49F77198.5000506%40comlounge.net%3E"
+       TITLE="[Opensim-dev] OAuth as authentication and authorisation	(capability) specification">cs at comlounge.net
+       </A><BR>
+    <I>Tue Apr 28 23:14:00 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006326.html">[Opensim-dev] OAuth as authentication and authorisation (capability) specification
+</A></li>
+        <LI>Next message: <A HREF="006333.html">[Opensim-dev] OAuth as authentication and authorisation	(capability) specification
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6331">[ date ]</a>
+              <a href="thread.html#6331">[ thread ]</a>
+              <a href="subject.html#6331">[ subject ]</a>
+              <a href="author.html#6331">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi!
+
+Melvin Carvalho schrieb:
+&gt;<i> On Tue, Apr 28, 2009 at 2:04 PM, Tommi Laukkanen
+</I>&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> Ouch, any chance of standard extension to support rich clients :)
+</I>&gt;<i> 
+</I>&gt;<i> Christian is likely to know more, but hopefully the larger providers
+</I>&gt;<i> will work on providing something like this.
+</I>
+So just to recap how it works in the website case.
+
+You have the following entities:
+
+- The OpenID Provider (OP) which can verify that an OpenID indeed 
+belongs to a user by means of logging the user in to prove it. Login can 
+be done by many means, usually username/pw but also InformationCards or 
+an SSL client cert.
+- The Relying Party (RP) is a website which wanst to log a user in.
+- The user who wants to login to an RP
+
+And the process is roughly:
+
+1. User enters his OpenID (URI) at the RP
+2. RP performs service discovery on that URI to check if an OpenID 
+server endpoint can be found
+3. RP contacts the endpoint at the OP and initiates a session
+4. RP redirects user to the OP to verify this OpenID
+5. OP asks the user to login if he isn't already (probably via a 
+cookie). User logs in
+6. OP asks the user if it's OK to tell the RP that you own that OpenID. 
+User confirms
+7. OP redirects the user back to the RP
+8. RP checks back with the OP if the user was verified.
+9. OP says yes and RP is happy
+
+So in the website case the RP is some web site, e.g. some social network.
+
+Now because the web browser is only used to show pages it needs to 
+redirect to the OP so that the user can login. It will probably hold 
+some cookie from the OP to keep it's login state.
+It also needs to show the URL of the OP to the user so the user can be 
+sure it's the right site and does not enter username/password on some 
+phishing site.
+
+In the virtual worlds case the RP is probably some region/simulator 
+which wants to know who is trying to login.
+
+Now I am not into all the security details of OpenID and what attacks 
+are possible (certainly phishing is but migth be helped by 
+InformationCards or SSL certs to login) but maybe some extension for 
+rich clients can be thought of.
+
+I assume that you always have to trust your client anyway, be it a web 
+browser or some virtual worlds client. So a possible extension could 
+maybe work as follows:
+
+1. User enters OpenID and region URI in VW client
+2. VW client checks what login methods are available at the region (e.g. 
+via XRD/LRDD based service discovery). It finds OpenID
+3. The VW client posts the OpenID to the region's OpenID service (this 
+needs to be defined)
+4. The region performs OpenID service discovery (also called YADIS) and 
+find the OP server endpoint as well as our new extension for logging the 
+user in. This results in a URI at the OP.
+5. region establishes an OpenID session with the OP
+6. If the extension in 4 is found then it returns the request from the 
+VW client and informs it to ask for username and password and gives that 
+URI for the extension.
+7. The VW client shows the OP URI (so the user knows where he logs in) 
+and asks for username/password
+8. The VW client sends this information to that OP URI and receives some 
+key which it sends back to the region in turn (maybe an OK would be 
+sufficient so the client knows that the login was successful)
+9. The region then checks back if the OpenID was valid and the user if 
+logged in.
+
+Now this means that
+
+- the region never sees any username/password
+- the OP can only support username/password logins but maybe there could 
+be several extensions to choose from
+- the step where the user confirms that the information is sent back to 
+the RP is missing but maybe that's not really needed here.
+- the user needs to login for each new region again as there is no means 
+of maintaining a session with the OP right now.
+
+Now if the extension is not found (e.g. a normal OpenID provider as of 
+today) then the client could simply act as a web browser and will show a 
+regions login screen where the user can enter an OpenID. The redirect 
+would be as in the standard specs and after that the region might use 
+some redirect with a protocol handler (e.g. <A HREF="opensim://">opensim://</A>) to initiate the 
+sim connection. The URI of that would probably need some UUID/key so 
+that the region can confirm that this redirect is in fact coming from 
+the user which just logged in.
+
+Ok, these are my late evening thoughts.
+
+As for the web needing some more intelligent client, maybe that's right 
+but then again we have to deal with it as it's now ;-)
+
+And another question might be if it would be easier with an OAuth based 
+solution and I will give this some thought the next days. Probably it is 
+because the redirect is only an option in there while it's mandatory in 
+the OpenID spec. And the above idea might also be worthwhile to discuss 
+on the OpenID list so maybe I will do that once I thought about this a 
+bit more.
+
+
+-- Christian
+
+-- 
+COM.lounge GmbH
+<A HREF="http://comlounge.net">http://comlounge.net</A>
+Hanbrucher Strasse 33, 52064 Aachen
+Amtsgericht Aachen HRB 15170
+Gesch&#228;ftsf&#252;hrer: Dr. Ben Scheffler, Christian Scholz
+
+email: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">info at comlounge.net</A>
+fon: +49-241-4007300
+fax: +49-241-97900850
+
+personal email: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cs at comlounge.net</A>
+personal blog: <A HREF="http://mrtopf.de/blog">http://mrtopf.de/blog</A>
+personal podcasts: <A HREF="http://openweb-podcast.de,">http://openweb-podcast.de,</A> <A HREF="http://datawithoutborders.net">http://datawithoutborders.net</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006326.html">[Opensim-dev] OAuth as authentication and authorisation (capability) specification
+</A></li>
+	<LI>Next message: <A HREF="006333.html">[Opensim-dev] OAuth as authentication and authorisation	(capability) specification
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6331">[ date ]</a>
+              <a href="thread.html#6331">[ thread ]</a>
+              <a href="subject.html#6331">[ subject ]</a>
+              <a href="author.html#6331">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

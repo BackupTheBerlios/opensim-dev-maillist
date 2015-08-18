@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Fancy a smoothie (ish)?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fancy%20a%20smoothie%20%28ish%29%3F&In-Reply-To=%3C4E978506.1040906%40rigutech.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010651.html">
+   <LINK REL="Next"  HREF="010653.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Fancy a smoothie (ish)?</H1>
+    <B>R. Gunther</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fancy%20a%20smoothie%20%28ish%29%3F&In-Reply-To=%3C4E978506.1040906%40rigutech.com%3E"
+       TITLE="[Opensim-dev] Fancy a smoothie (ish)?">rigun at rigutech.com
+       </A><BR>
+    <I>Fri Oct 14 02:40:38 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010651.html">[Opensim-dev] Fancy a smoothie (ish)?
+</A></li>
+        <LI>Next message: <A HREF="010653.html">[Opensim-dev] Fancy a smoothie (ish)?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10652">[ date ]</a>
+              <a href="thread.html#10652">[ thread ]</a>
+              <a href="subject.html#10652">[ subject ]</a>
+              <a href="author.html#10652">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin, are the new ini lines working with OSgrid OpenSimulator 
+0.7.2.dev.8caf3ed - [zip] [27.4mb] 09-24-2011 
+&lt;<A HREF="http://osgrid.googlecode.com/files/osgrid.opensim-09242011.v0.7.2.8caf3ed.zip">http://osgrid.googlecode.com/files/osgrid.opensim-09242011.v0.7.2.8caf3ed.zip</A>&gt; 
+?
+
+
+
+On 2011-10-14 01:37, Justin Clark-Casey wrote:
+&gt;<i> Hi folks.  I've had reason recently to investigate why flying across a 
+</I>&gt;<i> region can feel quite jerky.
+</I>&gt;<i>
+</I>&gt;<i> It seems that one solution is to increase the number of 
+</I>&gt;<i> ImprovedTerseObjectUpdate packets that OpenSim sends out when the 
+</I>&gt;<i> avatar is moved.  I'm assuming that more packets means smaller and 
+</I>&gt;<i> more frequent corrections of avatar position extrapolation by the viewer.
+</I>&gt;<i>
+</I>&gt;<i> At the moment, we only send out 11 ish packets per second.  Increasing 
+</I>&gt;<i> this to 22 makes avatar flying much smoother subjectively.
+</I>&gt;<i>
+</I>&gt;<i> You can do this via a new set of config parameters added to the bottom 
+</I>&gt;<i> of the [Startup] config section of OpenSimDefaults.ini on commit 4e7d433.
+</I>&gt;<i>
+</I>&gt;<i> In OpenSimDefaults.ini you can see the lines (minus comments)
+</I>&gt;<i>
+</I>&gt;<i>     MinFrameTime = 0.089
+</I>&gt;<i>     UpdateObjectsEveryNFrames = 1;
+</I>&gt;<i>     UpdateAgentsEveryNFrames = 1;
+</I>&gt;<i>     UpdateEntityMovementEveryNFrames = 1;
+</I>&gt;<i>     UpdateCoarseLocationsEveryNFrames = 50;
+</I>&gt;<i>     UpdatePhysicsEveryNFrames = 1;
+</I>&gt;<i>     UpdateTempCleaningEveryNFrames = 1000;
+</I>&gt;<i>     UpdateEventsEveryNFrames = 1;
+</I>&gt;<i>     UpdateTerrainEveryNFrames = 50;
+</I>&gt;<i>     UpdateStorageEveryNFrames = 200;
+</I>&gt;<i>
+</I>&gt;<i> At the moment we need to halve MinFrameTime and double all the Update* 
+</I>&gt;<i> params except UpdateAgentsEveryNFrames.  You can do this by overriding 
+</I>&gt;<i> the defaults with the following parameters at the bottom of the 
+</I>&gt;<i> [Startup] section of OpenSim.ini.
+</I>&gt;<i>
+</I>&gt;<i>     MinFrameTime = 0.0445
+</I>&gt;<i>     UpdateObjectsEveryNFrames = 2;
+</I>&gt;<i>     UpdateAgentsEveryNFrames = 1;
+</I>&gt;<i>     UpdateEntityMovementEveryNFrames = 2;
+</I>&gt;<i>     UpdateCoarseLocationsEveryNFrames = 100;
+</I>&gt;<i>     UpdatePhysicsEveryNFrames = 2;
+</I>&gt;<i>     UpdateTempCleaningEveryNFrames = 2000;
+</I>&gt;<i>     UpdateEventsEveryNFrames = 2;
+</I>&gt;<i>     UpdateTerrainEveryNFrames = 100;
+</I>&gt;<i>     UpdateStorageEveryNFrames = 400;
+</I>&gt;<i>
+</I>&gt;<i> My subjective experience is that horizontal avatar flying feels much 
+</I>&gt;<i> smoother on my local standalone and on a remote system.  However, this 
+</I>&gt;<i> is only the case once everything has finished loading and if you 
+</I>&gt;<i> aren't being spammed by spurious ObjectUpdates from prims, as 
+</I>&gt;<i> discussed very recently in this list.  You can prevent spamming by 
+</I>&gt;<i> making sure your client bandwidth is suitable for your connection 
+</I>&gt;<i> quality or by setting enable_adaptive_throttles = true in 
+</I>&gt;<i> [ClientStack.LindenUDP].
+</I>&gt;<i>
+</I>&gt;<i> I've no idea how this will perform on a more heavily loaded sim, 
+</I>&gt;<i> particularly as we're currently achieving this change by halving the 
+</I>&gt;<i> time that physics has to update and avatar location is updating twice 
+</I>&gt;<i> for every physics update.  But if you try this I'd be interested in 
+</I>&gt;<i> any feedback.
+</I>&gt;<i>
+</I>&gt;<i> Also, please feel free to tweak the settings in other ways but we 
+</I>&gt;<i> cannot provide any support.
+</I>&gt;<i>
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20111014/012ea89f/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20111014/012ea89f/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010651.html">[Opensim-dev] Fancy a smoothie (ish)?
+</A></li>
+	<LI>Next message: <A HREF="010653.html">[Opensim-dev] Fancy a smoothie (ish)?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10652">[ date ]</a>
+              <a href="thread.html#10652">[ thread ]</a>
+              <a href="subject.html#10652">[ subject ]</a>
+              <a href="author.html#10652">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

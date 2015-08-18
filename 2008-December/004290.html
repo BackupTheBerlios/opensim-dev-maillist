@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim Comms
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20Comms&In-Reply-To=%3C49590AB4.1080808%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004289.html">
+   <LINK REL="Next"  HREF="004291.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim Comms</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20Comms&In-Reply-To=%3C49590AB4.1080808%40t-data.com%3E"
+       TITLE="[Opensim-dev] OpenSim Comms">melanie at t-data.com
+       </A><BR>
+    <I>Mon Dec 29 18:36:52 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004289.html">[Opensim-dev] OpenSim Comms
+</A></li>
+        <LI>Next message: <A HREF="004291.html">[Opensim-dev] OpenSim Comms
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4290">[ date ]</a>
+              <a href="thread.html#4290">[ thread ]</a>
+              <a href="subject.html#4290">[ subject ]</a>
+              <a href="author.html#4290">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+why should comms not be null? The point of optionality is to be 
+optional. Comms may not be needed. Any or all types of comms may not 
+be needed or wanted in a given application. So, comms should indeed 
+be able to be null and a region module is the perfect place for it.
+
+Also, the modules should really not chain. Where they do, that 
+should be configurable and optional.
+
+Melanie
+
+
+Diva Canto wrote:
+&gt;<i> MW wrote:
+</I>&gt;&gt;<i> I think we should use REST for most of the comms, but am a little bit 
+</I>&gt;&gt;<i> wary about if it will be the right choice for some of the region to 
+</I>&gt;&gt;<i> region comms. And if the overhead in lots of http requests/posts will 
+</I>&gt;&gt;<i> be too much, for messages like ChildAgentUpdate that we should be 
+</I>&gt;&gt;<i> sending quite often.
+</I>&gt;<i> I have the same reservations as you on the particular case of 
+</I>&gt;<i> ChildAgentUpdate. However, assuming the HTTP server is up to the task, 
+</I>&gt;<i> sending over HTTP is an improvement over sending over Remoting, I think. 
+</I>&gt;<i> Both are TCP-based, and Remoting has the additional overhead of using 
+</I>&gt;<i> reflection for serialization/deserialization, which is not the case for 
+</I>&gt;<i> the HTTP calls.
+</I>&gt;<i> But we'll find out if this is an overhead or not when this is deployed.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> As for making comms a Region module, I'm +1 to that sort of idea. In 
+</I>&gt;&gt;<i> the past I have from time to time, gone through removing direct 
+</I>&gt;&gt;<i> references from scene, and region modules to the comms manager and 
+</I>&gt;&gt;<i> instead routing them through wrapper functions in 
+</I>&gt;&gt;<i> SceneCommunicationService. So that at some point we could refactor it 
+</I>&gt;&gt;<i> to remove the current comms manager and make SceneCommunicationService 
+</I>&gt;&gt;<i> into some sort of region module.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I know that recently we have started taking the reverse course and 
+</I>&gt;&gt;<i> removing the wrapper function. Which also has its benefits as there 
+</I>&gt;&gt;<i> isn't much point in having the wrapper if we keep the comms manager as 
+</I>&gt;&gt;<i> it is.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But anyway to answer your questions, if you have a REST 
+</I>&gt;&gt;<i> childagentUpdate working and its a improvement on what we have, then 
+</I>&gt;&gt;<i> I'd say that there shouldn't be any problem with replacing the old 
+</I>&gt;&gt;<i> method as the way to get it in the quickest.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But I think we really should have some better method to do comms 
+</I>&gt;&gt;<i> plugin replacement/configuration in the future, weather that is by 
+</I>&gt;&gt;<i> having it as a region module, or just improving the current system. So 
+</I>&gt;&gt;<i> if you want to do that now, then I think that would be great.
+</I>&gt;<i> 
+</I>&gt;<i> Right now, I'm following Melanie's advice and implement this as region 
+</I>&gt;<i> modules. Like this:
+</I>&gt;<i> 
+</I>&gt;<i> OpenSim/Region/Environment/Modules/Local
+</I>&gt;<i> OpenSim/Region/Environment/Modules/REST
+</I>&gt;<i> 
+</I>&gt;<i> Then in OpenSim.ini we'll have
+</I>&gt;<i> 
+</I>&gt;<i> [Communications]
+</I>&gt;<i> 
+</I>&gt;<i> ;InterregionComms = &quot;LocalComms&quot;
+</I>&gt;<i> ;InterregionComms = &quot;RESTComms&quot;
+</I>&gt;<i> 
+</I>&gt;<i> (RESTComms is implemented using LocalComms too)
+</I>&gt;<i> 
+</I>&gt;<i> This will help making the transition incremental without disturbing what 
+</I>&gt;<i> already exists, and slowly making the existing Comms code dead.
+</I>&gt;<i> 
+</I>&gt;<i> I don't think this architecture is exactly right, for a number of 
+</I>&gt;<i> reasons. Communications pertains to Regions, yes, but not to 
+</I>&gt;<i> Region/Environment. And communications may be empty but should never be 
+</I>&gt;<i> null, so the region module concept is not the best; it will be better to 
+</I>&gt;<i> have interfaces and replaceable DLLs. Essentially, I think the current 
+</I>&gt;<i> design OpenSim.Region.Communications.* is the right one, but needs some 
+</I>&gt;<i> improvements. Probably we should have something like this:
+</I>&gt;<i> 
+</I>&gt;<i> OpenSim/Region/Communications/Interregion/Local
+</I>&gt;<i> OpenSim/Region/Communications/Interregion/REST
+</I>&gt;<i> OpenSim/Region/Communications/Interregion/&lt;others&gt;
+</I>&gt;<i> OpenSim/Region/Communications/UserService/Local
+</I>&gt;<i> OpenSim/Region/Communications/UserService/REST
+</I>&gt;<i> ...
+</I>&gt;<i> 
+</I>&gt;<i> And then
+</I>&gt;<i> 
+</I>&gt;<i> [Communications]
+</I>&gt;<i> 
+</I>&gt;<i> ;InterregionComms = 
+</I>&gt;<i> &quot;OpenSim.Region.Communications.Interregion.LocalComms.dll&quot;
+</I>&gt;<i> ;InterregionComms = 
+</I>&gt;<i> &quot;OpenSim.Region.Communications.Interregion.RESTComms.dll&quot;
+</I>&gt;<i> ;UserServiceComms = 
+</I>&gt;<i> &quot;OpenSim.Region.Communications.UserService.LocalComms.dll&quot;
+</I>&gt;<i> ...
+</I>&gt;<i> 
+</I>&gt;<i> But for now, I'm going with region modules, just to make it work without 
+</I>&gt;<i> interfering with the existing Comms, and to study the best manner of 
+</I>&gt;<i> componentizing this whole thing.
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004289.html">[Opensim-dev] OpenSim Comms
+</A></li>
+	<LI>Next message: <A HREF="004291.html">[Opensim-dev] OpenSim Comms
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4290">[ date ]</a>
+              <a href="thread.html#4290">[ thread ]</a>
+              <a href="subject.html#4290">[ subject ]</a>
+              <a href="author.html#4290">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

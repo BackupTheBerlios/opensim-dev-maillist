@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Severely%20Decreased%20LSL%20Script%20Performance%20from%0A%200.6.5%20-%3E%200.6.6%20-%3E%200.6.7&In-Reply-To=%3C4ACBF649.1050702%40liferain.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007752.html">
+   <LINK REL="Next"  HREF="007775.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7</H1>
+    <B>Shack Dougall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Severely%20Decreased%20LSL%20Script%20Performance%20from%0A%200.6.5%20-%3E%200.6.6%20-%3E%200.6.7&In-Reply-To=%3C4ACBF649.1050702%40liferain.com%3E"
+       TITLE="[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7">shack at liferain.com
+       </A><BR>
+    <I>Wed Oct  7 04:00:41 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007752.html">[Opensim-dev] Severely Decreased LSL Script Performance from	0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+</A></li>
+        <LI>Next message: <A HREF="007775.html">[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7754">[ date ]</a>
+              <a href="thread.html#7754">[ thread ]</a>
+              <a href="subject.html#7754">[ subject ]</a>
+              <a href="author.html#7754">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks for that suggestion, Dahlia.  I don't know if it will help, but 
+it is consistent with one other thing that I observed in 0.6.7.  When my 
+libopenmv program was creating the rezzer today, I saw my first ODE 
+crash ever.  It took down the whole server.  It's possible that some 
+changes in ODE are contributing to the problem.
+
+I'll give it a try and report back.  --Shack
+
+Dahlia Trimble wrote:
+&gt;<i> I'm not sure what may be causing your delays but I do have one 
+</I>&gt;<i> suggestion which may help mitigate some issues you are seeing: try 
+</I>&gt;<i> making any prins that you rez phantom and do not change that state 
+</I>&gt;<i> until the entire object is complete. This will eliminate a lot of 
+</I>&gt;<i> unnecessafy interaction with the physics engine and may improve 
+</I>&gt;<i> reliability and speed.
+</I>&gt;<i>  
+</I>&gt;<i> On Tue, Oct 6, 2009 at 2:03 PM, Shack Dougall &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">shack at liferain.com</A> 
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">shack at liferain.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     One part of Prim Composer is an LSL-based rezzing system that
+</I>&gt;<i>     creates a
+</I>&gt;<i>     build from notecard data.
+</I>&gt;<i>     <A HREF="http://liferain.com/downloads/primcomposer/">http://liferain.com/downloads/primcomposer/</A>
+</I>&gt;<i>
+</I>&gt;<i>     In OpenSim 0.6.5, this system worked almost as good as in Second Life.
+</I>&gt;<i>     Unfortunately, it does not work well in 0.6.6 and is unusable in 0.6.7
+</I>&gt;<i>
+</I>&gt;<i>     *Test Platform*: Standalone, Windows XP, MySQL, ODE Physics,
+</I>&gt;<i>     Meshmerizer.  Other than this I use the defaults.
+</I>&gt;<i>
+</I>&gt;<i>     So, the question is &quot;What is causing the problem?&quot;  What has changed
+</I>&gt;<i>     since 0.6.5 that causes the LSL rezzer to perform so badly?
+</I>&gt;<i>
+</I>&gt;<i>     I have verified that the script engine defaults have not changed.
+</I>&gt;<i>
+</I>&gt;<i>     *How the rezzer works*
+</I>&gt;<i>
+</I>&gt;<i>     The rezzer contains linksets with various numbers of prims, e.g.,
+</I>&gt;<i>     Linkset-10 is a linkset with 10 prims in it.
+</I>&gt;<i>
+</I>&gt;<i>     1. The rezzer reads data out of a notecard. It sees how many prims
+</I>&gt;<i>     should be in the next linkset and rezzes a linkset from its inventory
+</I>&gt;<i>     with that number of prims.
+</I>&gt;<i>     2. When the linkset rezzes, the root prim tells the rezzer that it is
+</I>&gt;<i>     alive and the rezzer sends it the UUID and line number of a
+</I>&gt;<i>     notecard to
+</I>&gt;<i>     read via chat.  At this point, the rezzer goes back to Step 1.
+</I>&gt;<i>     3. The root prim then sends a link message to its children telling
+</I>&gt;<i>     them
+</I>&gt;<i>     the UUID and a line number to read.
+</I>&gt;<i>     4.  Each prim in the linkset then reads their data independently from
+</I>&gt;<i>     the notecard and then performs llSetPrimitiveParams to transform
+</I>&gt;<i>     themselves into the shape determined by the notecard data.
+</I>&gt;<i>
+</I>&gt;<i>     It's actually a lot more complicated than that, but you get the idea.
+</I>&gt;<i>     So, lots of prims are being rezzed very quickly via LSL and each prim
+</I>&gt;<i>     has a script in it that reads notecard data and sets params.
+</I>&gt;<i>
+</I>&gt;<i>     In 0.6.5, this process runs very smoothly--prims and scripts are
+</I>&gt;<i>     created
+</I>&gt;<i>     and execute quickly.  In 0.6.6 and above, something is happening that
+</I>&gt;<i>     drastically slows this process down.  Either the prims are rezzing
+</I>&gt;<i>     slower, or the scripts are starting slower or the scripts are
+</I>&gt;<i>     executing
+</I>&gt;<i>     slower.
+</I>&gt;<i>
+</I>&gt;<i>     In any event, the difference is extreme.  It is bad in 0.6.6 and seems
+</I>&gt;<i>     to be even worse in 0.6.7.
+</I>&gt;<i>
+</I>&gt;<i>     Does anyone have any ideas or suggestions?  Is this a bug?  Is it an
+</I>&gt;<i>     inevitable fact of life?  Can it be improved?  What can I do to help
+</I>&gt;<i>     with the process?
+</I>&gt;<i>
+</I>&gt;<i>     I'm more than happy to create a video showing the difference.  The LSL
+</I>&gt;<i>     scripts are open source.  I can also set you up with some test
+</I>&gt;<i>     data and
+</I>&gt;<i>     a copy of my maxport utility if anyone wants to try to reproduce
+</I>&gt;<i>     it.  It
+</I>&gt;<i>     is very easy to do.
+</I>&gt;<i>
+</I>&gt;<i>     Thanks in advance!  --Shack
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007752.html">[Opensim-dev] Severely Decreased LSL Script Performance from	0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+</A></li>
+	<LI>Next message: <A HREF="007775.html">[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7754">[ date ]</a>
+              <a href="thread.html#7754">[ thread ]</a>
+              <a href="subject.html#7754">[ subject ]</a>
+              <a href="author.html#7754">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Object Representation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Object%20Representation&In-Reply-To=%3C47AC977D.20208%40dzonux.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000808.html">
+   <LINK REL="Next"  HREF="000815.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Object Representation</H1>
+    <B>Dzonatas</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Object%20Representation&In-Reply-To=%3C47AC977D.20208%40dzonux.net%3E"
+       TITLE="[Opensim-dev] Object Representation">dzonatas at dzonux.net
+       </A><BR>
+    <I>Fri Feb  8 18:55:09 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000808.html">[Opensim-dev] Object Representation
+</A></li>
+        <LI>Next message: <A HREF="000815.html">[Opensim-dev] Object Representation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#809">[ date ]</a>
+              <a href="thread.html#809">[ thread ]</a>
+              <a href="subject.html#809">[ subject ]</a>
+              <a href="author.html#809">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sean Dague wrote:
+&gt;<i> So, here is your chance to be a hero in the OpenSim world. :)  Ideas on
+</I>&gt;<i> how to reasonably pull all this together to give us a much more
+</I>&gt;<i> consistent serialization approach are very welcomed.  Please pile on.
+</I>&gt;<i>
+</I>&gt;<i> I think that solving this is probably our next big battle.  I'm excited
+</I>&gt;<i> to see the NHibernate work getting very close, as I think that's a huge
+</I>&gt;<i> step forward in this regard.  This probably also means we need to bring
+</I>&gt;<i> up the SOP/SOG discussion that Stephan wanted to kick off as well.
+</I>&gt;<i>   
+</I>
+
+NHibernate is nice, but I believe there are more general ways for object 
+stores and persistence.
+
+Based on Atomatrix, I've reworked its basic scheme to SQL tables.  The 
+scheme is very simple:
+
+CREATE TABLE IF NOT EXISTS `matrix0` (
+  `uuid` binary(16) NOT NULL,
+  `precursor` binary(16) NOT NULL,
+  `intracursor` binary(16) NOT NULL,
+  `concursor` binary(16) NOT NULL,
+  `network` binary(16) NOT NULL,
+  `intranet` binary(16) NOT NULL,
+  `transnet` binary(16) NOT NULL,
+  PRIMARY KEY  (`uuid`),
+  KEY `precursor` (`precursor`),
+  KEY `network` (`network`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+
+CREATE TABLE IF NOT EXISTS `matrix1` (
+  `uuid` binary(16) NOT NULL,
+  `precursor` longblob NOT NULL,
+  PRIMARY KEY  (`uuid`),
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+
+
+If you haven't used Atomatrix or heard me talk about the scheme, you 
+probably are saying &quot;intracursor, concursor, what heck is that?&quot; Same 
+basic scheme as an atomatrix, but with different names on the data 
+structure.
+
+Before one complains dearly, do notice that the structure above is 
+exactly 128 byte aligned records, and all other variable data is in a 
+separate table if needed. Performance is in mind here.
+
+The scheme basically takes an object and maps them to these records, and 
+it will require more than one to map a full object. The scheme is meant 
+to map any kind of matrix of any dimension to a database.
+
+A quick guide to the scheme: the precursor, intracursor, and concursor 
+are similar to class inheritance; and network, intranet, and transnet 
+are similar to metadata and properties. Those similarities become 
+perceptible once there is enough of these to map an object. The 
+precursor is a uuid that points to another uuid. For example with C#, 
+when you have &quot;... A inherits B...&quot; then B is the 'precursor' of A.  The 
+methods and data of A are found through 'network' maps.  The blob stores 
+the variable data, if needed.
+
+Atomatrix is now under GPLv3 and that includes this scheme.
+
+I started to play around with the CIL emitter to replace what I had 
+working in Atomatrix as a built in compiler.  I had a virtual world that 
+ran with concurrent players 20 years ago (modem days, multiple dial-up) 
+that I still use today for regression tests, and it does seem practical 
+to replace the generated code with run-time generated CIL based code. 
+There already exists an XML format, so a base system being stored in DB 
+can be imported/exported to SVN.
+
+I'll leave this explanation as brief as this is, and I know what I just 
+said just went *whoosh* for many ... but (published) code is docs on 
+this one.
+
+=)
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000808.html">[Opensim-dev] Object Representation
+</A></li>
+	<LI>Next message: <A HREF="000815.html">[Opensim-dev] Object Representation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#809">[ date ]</a>
+              <a href="thread.html#809">[ thread ]</a>
+              <a href="subject.html#809">[ subject ]</a>
+              <a href="author.html#809">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] What I've Learned About AvatarAppearance
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20What%20I%27ve%20Learned%20About%20AvatarAppearance&In-Reply-To=%3CAANLkTinaYajjg35JFh6%3DHK5NHG9D1FMGR8Y5n4rVnf6D%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009674.html">
+   <LINK REL="Next"  HREF="009676.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] What I've Learned About AvatarAppearance</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20What%20I%27ve%20Learned%20About%20AvatarAppearance&In-Reply-To=%3CAANLkTinaYajjg35JFh6%3DHK5NHG9D1FMGR8Y5n4rVnf6D%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] What I've Learned About AvatarAppearance">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Thu Oct 21 19:07:00 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009674.html">[Opensim-dev] What I've Learned About AvatarAppearance
+</A></li>
+        <LI>Next message: <A HREF="009676.html">[Opensim-dev] What I've Learned About AvatarAppearance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9675">[ date ]</a>
+              <a href="thread.html#9675">[ thread ]</a>
+              <a href="subject.html#9675">[ subject ]</a>
+              <a href="author.html#9675">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Persisting visual params makes sense for those types of clients which dont
+generate them, such as some libomv bots. Typically these clients rely on
+params generated from prior logins with a normal viewer.
+
+
+
+On Wed, Oct 20, 2010 at 12:31 PM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+
+&gt;<i> Hi Mic,
+</I>&gt;<i>
+</I>&gt;<i> that all sounds great.
+</I>&gt;<i>
+</I>&gt;<i> To address your questions:
+</I>&gt;<i>
+</I>&gt;<i> Persisting visual params doesn't appear to make sense, as far as I
+</I>&gt;<i> know they are regenerated on each login anyway, and they are &lt; 256
+</I>&gt;<i> bytes. Not really a load factor to worry about.
+</I>&gt;<i>
+</I>&gt;<i> Persisting baked textures would require them to be uploaded to the
+</I>&gt;<i> asset server, which would cause unacceptable asset bloat. While I
+</I>&gt;<i> can see where there are scenarios where that is an advantage, for a
+</I>&gt;<i> normal social grid this is an unacceptable volume. It needs to be
+</I>&gt;<i> optional, and not on by default.
+</I>&gt;<i> However, encoding the actual baked textures into AgentCircuitData
+</I>&gt;<i> could improve performance, as it would no longer be required to
+</I>&gt;<i> re-upload them in each sim one crosses or teleports into.
+</I>&gt;<i> The avatar appearance (avatar service) is a name-value pair storage
+</I>&gt;<i> anyway, so it could easily hold the UUIDs of baked textures along
+</I>&gt;<i> with the components of the avatar appearance. It could also hold the
+</I>&gt;<i> visual params, the question there is to what degree that is useful.
+</I>&gt;<i>
+</I>&gt;<i> Compatibility is not really an issue. For something as tremendously
+</I>&gt;<i> beneficial as this could become, we can easily bump the interface
+</I>&gt;<i> version.
+</I>&gt;<i>
+</I>&gt;<i> As for testing, we can either branch it on opensimulator.org, and
+</I>&gt;<i> then work with the branch, or you can branch in your repo and we
+</I>&gt;<i> pull from it and then debug and fix it in opensimulator.org.
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i> Mic Bowman wrote:
+</I>&gt;<i> &gt; just to set some context... we started looking at appearance because the
+</I>&gt;<i> &gt; cost of logins was very high and grows quadratically (it takes 3+ hours
+</I>&gt;<i> to
+</I>&gt;<i> &gt; start up our 1000 avatar demonstration).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; the current version of opensim does not persist either baked avatar
+</I>&gt;<i> textures
+</I>&gt;<i> &gt; or visual parameters. as a result, when an avatar logs in, the login
+</I>&gt;<i> service
+</I>&gt;<i> &gt; sends to the simulator a packet that includes wearables and attachments.
+</I>&gt;<i> as
+</I>&gt;<i> &gt; part of the login process the incomplete appearance is sent to the client
+</I>&gt;<i> &gt; and the client &quot;fixes&quot; it. the &quot;fixing&quot; process involves multiple packets
+</I>&gt;<i> &gt; being sent by the viewer to the simulator to set various visual
+</I>&gt;<i> parameters,
+</I>&gt;<i> &gt; uploading multiple baked textures (in my case i see 6 textures uploaded
+</I>&gt;<i> on
+</I>&gt;<i> &gt; the typical login), then a final setappearance packet to assign the baked
+</I>&gt;<i> &gt; textures to the avatar's appearance.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; each one of these updates causes the current state of the avatar's
+</I>&gt;<i> &gt; appearance to be sent to every connected client. and, since currently
+</I>&gt;<i> baked
+</I>&gt;<i> &gt; textures are not persisted, baked textures must be uploaded/downloaded on
+</I>&gt;<i> &gt; every login. so 10 clients logging in simultaneously means that the
+</I>&gt;<i> &gt; simulator is sending appearance 10x10xN times where N is the number of
+</I>&gt;<i> &gt; packets it takes for one avatar to establish its appearance (N == 8 for
+</I>&gt;<i> my
+</I>&gt;<i> &gt; avatar).  with 1000 clients logging in... the numbers are in the
+</I>&gt;<i> millions...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; to get around this problem we set out to persist visual parameters and
+</I>&gt;<i> baked
+</I>&gt;<i> &gt; textures. there is no easy fix....
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; to summarize what we are testing (see below for question about how to get
+</I>&gt;<i> it
+</I>&gt;<i> &gt; published... too big for a simple patch)...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; we moved all packing/unpacking of appearance into AvatarAppearance. this
+</I>&gt;<i> &gt; works really well except that the four places where the appearance was
+</I>&gt;<i> &gt; packed before (all four using slightly different encodings) now break
+</I>&gt;<i> &gt; backward compatibility unless we leave all the old code in place (which
+</I>&gt;<i> sort
+</I>&gt;<i> &gt; of defeats the purpose). I&#8217;m not sure what to do about backward
+</I>&gt;<i> &gt; compatibility, more on that in a minute.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; the packing includes baked textures and visual params. the net effect of
+</I>&gt;<i> &gt; that is that if you appearance hasn&#8217;t changed, there are no baked
+</I>&gt;<i> textures
+</I>&gt;<i> &gt; uploaded and no visual params set on login. that cuts out 6-ish baked
+</I>&gt;<i> &gt; texture uploads and multiple (4-6 depending on the avatar) updates of the
+</I>&gt;<i> &gt; visual params.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; we added [Set|Get]Appearance calls to IAvatarService but left in the
+</I>&gt;<i> Set/Get
+</I>&gt;<i> &gt; avatar calls which pass avatar data. The Robust implementation of
+</I>&gt;<i> &gt; Set|GetAppearance just calls the Set|GetAvatar operations. That should
+</I>&gt;<i> &gt; encode the data in the same way it was encoded before (the Appearance
+</I>&gt;<i> &gt; encoding/decoding in AvatarData remains) with no baked textures or visual
+</I>&gt;<i> &gt; parameters saved. And all values that will be stored in the user database
+</I>&gt;<i> &gt; should continue to be short-ish (no change, in theory) to fit into the
+</I>&gt;<i> &gt; current 256 character size limit on userdata.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; we cleaned out a bunch of unused code from avatarfactory and moved
+</I>&gt;<i> several
+</I>&gt;<i> &gt; of the appearance handling routines from scenepresence into that module.
+</I>&gt;<i> at
+</I>&gt;<i> &gt; some point... appearance updates should be held briefly to accumulate
+</I>&gt;<i> &gt; changes rather than sending out the changes on every appearance update
+</I>&gt;<i> &gt; packet.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; compatibility issues&#8230;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; first&#8230; appearance is encoded|decoded in ScenePresence (CopyTo() and
+</I>&gt;<i> &gt; CopyFrom() routines, AgentCircuitData, ChildAgentDataUpdate, and
+</I>&gt;<i> AvatarData.
+</I>&gt;<i> &gt; Each one uses a slightly different method for encoding/decoding the
+</I>&gt;<i> &gt; appearance data (and they do not all encode the same subset of appearance
+</I>&gt;<i> &gt; data). If backward compatibility were not an issue&#8230; AvatarData could go
+</I>&gt;<i> away
+</I>&gt;<i> &gt; completely and all three of the others could use just the new packing
+</I>&gt;<i> &gt; routines (that&#8217;s basically what I&#8217;ve been testing). I&#8217;ve already modified
+</I>&gt;<i> &gt; the login script for simian to send the right data. If the data were
+</I>&gt;<i> being
+</I>&gt;<i> &gt; passed to the Robust avatar service in the same way, I could modify that
+</I>&gt;<i> to
+</I>&gt;<i> &gt; use the new data as well. However&#8230; unless we drop backward compatibility
+</I>&gt;<i> &gt; with older regions, all the old encode|decode code needs to stay in the
+</I>&gt;<i> &gt; codebase &amp; be checked on every access. i'm open to suggestions for the
+</I>&gt;<i> best
+</I>&gt;<i> &gt; way to handle this... there is value in having a flag day and just
+</I>&gt;<i> switching
+</I>&gt;<i> &gt; to the new encoding, but it seems more reasonable to preserve the old
+</I>&gt;<i> code
+</I>&gt;<i> &gt; for awhile so long as we deprecate it at some point...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; final issue...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; this is a big refactor/rewrite. and it needs to be tested on a variety of
+</I>&gt;<i> &gt; platforms. and i need help updating the avatarservice &amp; loginservice in
+</I>&gt;<i> the
+</I>&gt;<i> &gt; robust code (no set up to test that). what's the best way for a non-core
+</I>&gt;<i> &gt; developer to create a public branch that others can test before it gets
+</I>&gt;<i> &gt; merged...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; --mic
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20101021/75ee9bd5/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20101021/75ee9bd5/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009674.html">[Opensim-dev] What I've Learned About AvatarAppearance
+</A></li>
+	<LI>Next message: <A HREF="009676.html">[Opensim-dev] What I've Learned About AvatarAppearance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9675">[ date ]</a>
+              <a href="thread.html#9675">[ thread ]</a>
+              <a href="subject.html#9675">[ subject ]</a>
+              <a href="author.html#9675">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] explanation of services
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20explanation%20of%20services&In-Reply-To=%3C4A493E70.7090909%40ics.uci.edu%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006914.html">
+   <LINK REL="Next"  HREF="006916.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] explanation of services</H1>
+    <B>Cristina Videira Lopes</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20explanation%20of%20services&In-Reply-To=%3C4A493E70.7090909%40ics.uci.edu%3E"
+       TITLE="[Opensim-dev] explanation of services">lopes at ics.uci.edu
+       </A><BR>
+    <I>Tue Jun 30 00:21:36 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006914.html">[Opensim-dev] explanation of services
+</A></li>
+        <LI>Next message: <A HREF="006916.html">[Opensim-dev] explanation of services
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6915">[ date ]</a>
+              <a href="thread.html#6915">[ thread ]</a>
+              <a href="subject.html#6915">[ subject ]</a>
+              <a href="author.html#6915">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>For &quot;grid mode&quot; things are not as you describe. I can tell you how 
+things are done currently, but this may/can change very easily, and in 
+fact things are quite different if C is Grider.
+
+For the normal LL client, and as of now: C never talks to G/A/I 
+directly; it talks to U and to Rs only. Upon login, C first contacts U, 
+which in turn contacts G to know the info about the intended login 
+Region, and then it informs that region R about the agent.
+
+On region crossings/TPs G is also not involved that much; it only serves 
+for the departing region to find the info about the destination region. 
+Once it gets that info, crosssings/TPs are done region-to-region. It's 
+also the regions that interact with C during this process. The only 
+difference in HG is that G is not used for region lookup at all; instead 
+the info about the destination region is local to the departing region. 
+But TPs are almost identical, with one extra first step.
+
+You can find some sequence diagrams here:
+<A HREF="http://opensimulator.org/wiki/Teleports">http://opensimulator.org/wiki/Teleports</A>
+
+Paul Fishwick wrote:
+&gt;<i> I am writing a tutorial for a conference, where I'd like to introduce
+</I>&gt;<i> them to OpenSim, and I wanted in that tutorial to include some information
+</I>&gt;<i> on how services connect. If there is a web page that I have overlooked,
+</I>&gt;<i> please let me know where it is.
+</I>&gt;<i> 
+</I>&gt;<i> Here are some assumptions, which may not be right--and I'd like to be
+</I>&gt;<i> as accurate as possible. Here are some letters I'll use for servers:
+</I>&gt;<i> 
+</I>&gt;<i> C - Client
+</I>&gt;<i> G - Grid
+</I>&gt;<i> U - User
+</I>&gt;<i> A - Asset
+</I>&gt;<i> I - Inventory
+</I>&gt;<i> M - Messaging
+</I>&gt;<i> Rx - Region # x
+</I>&gt;<i> 
+</I>&gt;<i> .............................
+</I>&gt;<i> 
+</I>&gt;<i> 1. For StandAlone mode, C connects with one server that contains all of 
+</I>&gt;<i> the other services
+</I>&gt;<i>     inside of it, along with N regions. So, this behavior seems more 
+</I>&gt;<i> straightforward.
+</I>&gt;<i>     All &quot;other services&quot; are (U,A,I,M, and Rx).   I am assuming that 
+</I>&gt;<i> most LSL commands
+</I>&gt;<i>     are executed server side, except for some like Rotation, Audio and 
+</I>&gt;<i> Video Streaming...
+</I>&gt;<i>     Is there a list of what is server vs. client side?
+</I>&gt;<i> 
+</I>&gt;<i> 2. For Grid mode, here are some guesses - please correct or edit..
+</I>&gt;<i> 
+</I>&gt;<i>     C connects to G and then G serves as a gateway, routing messages to 
+</I>&gt;<i> the other
+</I>&gt;<i>     services. For example, if a user logs in, C connects to G which 
+</I>&gt;<i> connects to U,
+</I>&gt;<i>     which contains information on all agents and their avatars, 
+</I>&gt;<i> positions, etc.
+</I>&gt;<i> 
+</I>&gt;<i>     A and I require the bulk of the database storage since Regions (R) 
+</I>&gt;<i> have a UUID
+</I>&gt;<i>    (pointer) reference and do not contain the bulk of the data (i.e, 
+</I>&gt;<i> textures, images,
+</I>&gt;<i>    prim attributes).
+</I>&gt;<i> 
+</I>&gt;<i>     If a region crossing is made from, say R1 to R2, R1 sends a message 
+</I>&gt;<i> to G which
+</I>&gt;<i>     forwards it to R2.
+</I>&gt;<i> 
+</I>&gt;<i> 3. For HyperGrid mode, there is no &quot;G&quot; and so it is more of a peer to 
+</I>&gt;<i> peer relationship
+</I>&gt;<i>     of StandAlones.
+</I>&gt;<i> 
+</I>&gt;<i> Comments and corrections welcome!
+</I>&gt;<i> 
+</I>&gt;<i> paul
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006914.html">[Opensim-dev] explanation of services
+</A></li>
+	<LI>Next message: <A HREF="006916.html">[Opensim-dev] explanation of services
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6915">[ date ]</a>
+              <a href="thread.html#6915">[ thread ]</a>
+              <a href="subject.html#6915">[ subject ]</a>
+              <a href="author.html#6915">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

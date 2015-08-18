@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Packet text field overflows
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Packet%20text%20field%20overflows&In-Reply-To=%3C47E40D83.5080707%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001169.html">
+   <LINK REL="Next"  HREF="001172.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Packet text field overflows</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Packet%20text%20field%20overflows&In-Reply-To=%3C47E40D83.5080707%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Packet text field overflows">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Mar 21 20:33:23 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001169.html">[Opensim-dev] Packet text field overflows
+</A></li>
+        <LI>Next message: <A HREF="001172.html">[Opensim-dev] Violating the GPL by looking (Re: Voice Module)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1195">[ date ]</a>
+              <a href="thread.html#1195">[ thread ]</a>
+              <a href="subject.html#1195">[ subject ]</a>
+              <a href="author.html#1195">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Jeff Ames wrote:
+&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> In libSL, there are a number of packets with string fields, with a
+</I>&gt;<i> maximum length of either 255 or 1500 characters.  If OpenSim sends a
+</I>&gt;<i> string longer than this, then libSL will throw an exception.
+</I>&gt;<i>
+</I>&gt;<i> One fix to this is to replace the existing bits of ClientView.cs,
+</I>&gt;<i> generally something like this:
+</I>&gt;<i>
+</I>&gt;<i>     myPacket.text = Helpers.StringToField(text)
+</I>&gt;<i>
+</I>&gt;<i> with something like this:
+</I>&gt;<i>
+</I>&gt;<i>     myPacket.text = Helpers.StringToField(text.Substring(0,
+</I>&gt;<i> Math.Min(1499, text.Length)))
+</I>&gt;<i>
+</I>&gt;<i> (The 1499 is because StringToField will add a null terminator.)
+</I>&gt;<i>
+</I>&gt;<i> This approach, however, requires OpenSim to hard-code some of the
+</I>&gt;<i> internal details of these packets.  Another solution, which would
+</I>&gt;<i> require libSL changes, would be to define something like a
+</I>&gt;<i> libSL.BoundedString class with a MaxLength member OpenSim could query
+</I>&gt;<i> and use to apply Substring() appropriately.
+</I>&gt;<i>
+</I>&gt;<i> However, these methods only solve the problem of outgoing data.
+</I>&gt;<i> Currently it seems we're trusting the client not to send overly long
+</I>&gt;<i> strings for fields that should be bounded.  This issue came up this
+</I>&gt;<i> time because OpenSim was incorrectly converting a non-ASCII string
+</I>&gt;<i> into a string of hex values, which quickly expanded past the max field
+</I>&gt;<i> length.  If a rogue client sent overly long strings, we could
+</I>&gt;<i> conceivably have two crashes -- a MalformedDataException when libSL
+</I>&gt;<i> tries to construct the incoming packet, and an OverflowException when
+</I>&gt;<i> OpenSim sends that information back out.
+</I>&gt;<i>
+</I>&gt;<i> One possible solution would be to call Substring in the property set()
+</I>&gt;<i> methods in libSL instead of throwing exceptions, and maybe output some
+</I>&gt;<i> warning message.  Or we could wrap all the libSL interactions with
+</I>&gt;<i> try/catch blocks and log failed packet creation.
+</I>&gt;<i>
+</I>&gt;<i> Thoughts?
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>I think we certainly need to protect ourselves against problems of this 
+kind.  As for the location, it seems to me that doing it in libSL is 
+nicer, since presumably these issues apply to all libSL users rather 
+than just us?  Also, it feels like a protocol issue rather than an 
+OpenSim issue. 
+
+On the con side, I imagine getting such a patch into libSL is much 
+harder than just doing it ourselves (remembering the whole 
+LLUUID.ToString() business), and doing our own patch on top of libSL is 
+also harder to maintain. 
+
+On balance, though, I think patching libSL is still better (perhaps I'm 
+just saying that because I'm not the one doing it :-)
+
+Perhaps DrSchofld has some comments, since I know he's doing work with 
+libsecondlife?
+
+Regards,
+
+-- 
+justincc
+Justin Clark-Casey
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001169.html">[Opensim-dev] Packet text field overflows
+</A></li>
+	<LI>Next message: <A HREF="001172.html">[Opensim-dev] Violating the GPL by looking (Re: Voice Module)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1195">[ date ]</a>
+              <a href="thread.html#1195">[ thread ]</a>
+              <a href="subject.html#1195">[ subject ]</a>
+              <a href="author.html#1195">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Revising the grid standards (Part II	-Implementation details)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Revising%20the%20grid%20standards%20%28Part%20II%0A%09-Implementation%20details%29&In-Reply-To=%3CDC4BD4ABB7C6DB469AEA4BD7D3E35AE603F1A406%40orsmsx420.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000306.html">
+   <LINK REL="Next"  HREF="000308.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Revising the grid standards (Part II	-Implementation details)</H1>
+    <B>Bowman, Mic</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Revising%20the%20grid%20standards%20%28Part%20II%0A%09-Implementation%20details%29&In-Reply-To=%3CDC4BD4ABB7C6DB469AEA4BD7D3E35AE603F1A406%40orsmsx420.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Revising the grid standards (Part II	-Implementation details)">mic.bowman at intel.com
+       </A><BR>
+    <I>Fri Nov  2 23:08:32 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000306.html">[Opensim-dev] Revising the grid standards (Part II -	Implementation details)
+</A></li>
+        <LI>Next message: <A HREF="000308.html">[Opensim-dev] Revising the grid standards (Part II -	Implementation details)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#307">[ date ]</a>
+              <a href="thread.html#307">[ thread ]</a>
+              <a href="subject.html#307">[ subject ]</a>
+              <a href="author.html#307">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>XMPP does presence very well. it does coarse-grained events (especially,
+for example, updates of presence) very well. it also has the advantage
+that the messages are typed. that means you could extend it to carry
+useful VW-specific information like my avatar's current location in
+order to implement local chat (or to pass currency or object references
+or whatever...). but the current open-source implementations (there's a
+great list on www.jabber.org) don't scale well on number of messages per
+second. the implementations were designed with IM usages in mind
+(potentially a large number of users, very long sessions, and a few
+messages per minutes at the most). 
+ 
+XMPP would clearly be good for IM and possibly local chat. it would work
+well for cross-domain user presence (eg send IM's from osgrid to
+deepgrid, monitor presence of friends across regions etc). it might
+actually work for advertising regions &amp; monitoring region presence. 
+ 
+most of the server implementations have pluggable authentication. that
+would make it possible to separate the identity (and user
+authentication) pieces in one service that was shared among regions &amp; IM
+&amp; whatever else you want. translation: you could have one identity that
+was used to authenticate for regions, assets, and IM. 
+ 
+i don't believe XMPP (or rather the current server implementations)
+would be a good mechanism for distributing assets or for handling
+object/scene updates. the current (open source) implementations just
+cant handle that volume of traffic. the message formats might be useful,
+but i really haven't looked through the list of XMPP extensions to find
+ones that would help us.
+ 
+--mic
+ 
+
+________________________________
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Michael
+Wright
+Sent: Friday, November 02, 2007 1:48 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Revising the grid standards (Part II
+-Implementation details)
+
+
+Yeah finding c# jabber/xmpp servers is a problem. There is one (that
+doesn't look that complete) but its in c#' 3.0 so not really usable by
+us at the moment. There are some c# xmpp client libraries (not
+completely sure the licenses) so I guess its most likely a case of
+writing our own servers from them. Or taking a java server and porting,
+which maybe the easiest thing.
+
+But, I think after reading mic's reply that we should drop the idea of
+using XMPP for grid/user, as I think we need to listen to someone who
+has had experience of using it. So we should just use it for IM's , as
+has been the plan since very early in this project.
+
+Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; wrote: 
+
+	On Fri, Nov 02, 2007 at 07:43:54PM +0000, Michael Wright wrote:
+	&gt; When I first mentioned XMPP it was just a throw out idea. But
+thinking
+	&gt; and looking into it some more I actually think its got some
+plus
+	&gt; points. But I don't think we should think about it for Assets
+(which I
+	&gt; think REST is the correct thing for) and maybe not even
+inventory. I
+	&gt; was thinking more User server and grid server.
+	
+	My brain is starting to wrap on this a bit more, and treating
+Regions
+	and Users as just things with presence via XMPP actually seems
+pretty
+	interesting.
+	
+	Could you sketch out a bit more the way you think that would
+work?
+	
+	&gt; I really don't think using REST because thats what LL use
+makes any
+	&gt; difference as when they release specs we are going to have to
+have new
+	&gt; implementation anyway. Please remember not everyone is
+interested in
+	&gt; connecting to LL grid, so I think no matter what happens it
+most
+	&gt; likely will be, that we end up with at least two
+implementations; our
+	&gt; own and one compatible with their grid.
+	
+	Agreed, and understood.
+	
+	&gt; I think XMPP most likely will end up as easiest and fastest to
+	&gt; implement and it includes a number of things that we wouldn't
+need to
+	&gt; spend time on. But when it comes down to it, I'm not fixed on
+the idea
+	&gt; enough to fight strongly for it. So if the general opinion is
+for REST
+	&gt; for all. Then I'd go with that without a problem. As long as
+we are
+	&gt; going with it for the right reasons and not the compatible
+reason.
+	
+	Presumably, regardless of how much XMPP will be in OpenSim (i.e.
+just
+	messaging or messaging + much more) we'll need XMPP client /
+server
+	classes in OpenSim anyway. So work in getting that into tree and
+	functional would be good regardless.
+	
+	Fwiw, XMPP did come up at last office hours re: IM, and steffan
+said
+	something about there not being nicely licensed library/server
+for C#.
+	It would be good to make sure we had that before getting on the
+XMPP
+	bandwagon.
+	
+	-Sean
+	
+	-- 
+	
+__________________________________________________________________
+	
+	Sean Dague Mid-Hudson Valley
+	sean at dague dot net Linux Users Group
+	<A HREF="http://dague.net">http://dague.net</A> <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+	
+	There is no silver bullet. Plus, werewolves make better
+neighbors
+	than zombies, and they tend to keep the vampire population down.
+	
+__________________________________________________________________
+	_______________________________________________
+	Opensim-dev mailing list
+	<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+	<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+	
+
+
+________________________________
+
+For ideas on reducing your carbon footprint visit Yahoo! For Good
+&lt;<A HREF="http://uk.promotions.yahoo.com/forgood/environment.html">http://uk.promotions.yahoo.com/forgood/environment.html</A>&gt;  this month. 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071102/4688f513/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071102/4688f513/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000306.html">[Opensim-dev] Revising the grid standards (Part II -	Implementation details)
+</A></li>
+	<LI>Next message: <A HREF="000308.html">[Opensim-dev] Revising the grid standards (Part II -	Implementation details)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#307">[ date ]</a>
+              <a href="thread.html#307">[ thread ]</a>
+              <a href="subject.html#307">[ subject ]</a>
+              <a href="author.html#307">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

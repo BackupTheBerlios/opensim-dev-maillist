@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving away from grid vs. standalone
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3CBLU134-W1D53390EC0DD2012947C6D56C0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006353.html">
+   <LINK REL="Next"  HREF="006366.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving away from grid vs. standalone</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3CBLU134-W1D53390EC0DD2012947C6D56C0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] moving away from grid vs. standalone">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Apr 30 05:55:04 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006353.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+        <LI>Next message: <A HREF="006366.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6363">[ date ]</a>
+              <a href="thread.html#6363">[ thread ]</a>
+              <a href="subject.html#6363">[ subject ]</a>
+              <a href="author.html#6363">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+
+
+
+
+
+
+
+
+
+
+
+
+
+&gt;<i> &gt; 2.  On your previous suggested ini stuff, in my opinion something like
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; UserService = { local | remote }
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; would be clearer than
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; LocalUserService = {True|False}
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt;  From what I remember, specifying remote is understandable even if the services are actually on the same machine (but 
+</I>&gt;<i> &gt; one has chosen to run them as separate processes).  Local would naturally denote the use of services in the same process 
+</I>&gt;<i> &gt;   as the simulator.
+</I>&gt;<i> 
+</I>&gt;<i> Actually, there's a subtle but very important difference in the case of 
+</I>&gt;<i> hypergrid. A standalone grid wanting to allow Guests would have to use 
+</I>&gt;<i> the Remote dll, even though the service for local users is local.
+</I>
+I don't see a problem with 'chaining' services; something like
+
+[RegionResourceServices]
+
+GridService = OpenSim.Region.Communications.Hypergrid.dll, HGGridServices
+
+[Hypergrid]
+RemoteGridService = OpenSim.Region.Communications.OGS1.dll, OGS1GridServices 
+
+&gt;<i> This is, in fact, the kernel of the complexity here. Local has been 
+</I>&gt;<i> designed to be Sandbox connectors, and OSG1 has been designed to connect 
+</I>&gt;<i> with exactly *one* of each type of service. All remote calls in it 
+</I>&gt;<i> hardcode serversInfo.xxxURL.
+</I>
+Yes. As part of the login/distributed assets refactoring, I was thinking of introducing an UserServicesManager that would keep proxies to all registered user services. Of course, I never got that far.
+
+&gt;<i> The Hypergrid needs the regions to interact with *several* of each type 
+</I>&gt;<i> of service, potentially, including the local one. So, most of the 
+</I>&gt;<i> hypergrid changes have to do with determining local vs remote and, if 
+</I>&gt;<i> remote, determining the service URL, making it a variable instead of a 
+</I>&gt;<i> constant.
+</I>
+Again, some kind of repository for proxy classes would probably be the easy way, I think. the proxy classes could just as well be non-proxy persistent (local db), non-proxy volatile (in-mem), proxy to 'home' user service or proxy to foreign service. It would be the proxies that contained the protocol-specific functions to resolve calls (or just local in-mem calls in case of local)
+
++1 on the
+
+&gt;<i> AllowGuests = {True|False}
+</I>vs
+&gt;<i> gridmode = {True|False}
+</I>
+
+&gt;<i> So if we want to keep 3 architectures around, as separate architectures 
+</I>&gt;<i> (and not one, more general), we have a meta option here:
+</I>&gt;<i> 
+</I>&gt;<i> ServiceConnectors = {Sandbox|LLGrid|Hypergrid}
+</I>
+again, I guess service connector plugins could report a 'short name' that could be used in resolving configurations like this.
+ 
+&gt;<i> With this, I can make the hypergrid architecture have configuration 
+</I>&gt;<i> variables to be able to generate all of the behaviors of Sandbox and 
+</I>&gt;<i> LLGrid, and more -- basically place the ideas on my original email under 
+</I>&gt;<i> the Hypergrid mode, and leave the other two as they are now.
+</I>
+For what it's worth, I think that all the various services should share a common abstract baseclass (per domain) so we can pull up and push down freely.
+
+/Stefan
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090430/c2cacfdf/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090430/c2cacfdf/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006353.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+	<LI>Next message: <A HREF="006366.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6363">[ date ]</a>
+              <a href="thread.html#6363">[ thread ]</a>
+              <a href="subject.html#6363">[ subject ]</a>
+              <a href="author.html#6363">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

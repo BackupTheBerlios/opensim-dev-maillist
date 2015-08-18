@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Asset Server Rest Interface
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Asset%20Server%20Rest%20Interface&In-Reply-To=%3C589064de0711050539h1b7e41bewbf216868d8f93356%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000346.html">
+   <LINK REL="Next"  HREF="000351.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Asset Server Rest Interface</H1>
+    <B>Tleiades Hax</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Asset%20Server%20Rest%20Interface&In-Reply-To=%3C589064de0711050539h1b7e41bewbf216868d8f93356%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Asset Server Rest Interface">tleiades at gmail.com
+       </A><BR>
+    <I>Mon Nov  5 14:39:22 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000346.html">[Opensim-dev] Asset Server Rest Interface
+</A></li>
+        <LI>Next message: <A HREF="000351.html">[Opensim-dev] Asset Server Rest Interface
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#348">[ date ]</a>
+              <a href="thread.html#348">[ thread ]</a>
+              <a href="subject.html#348">[ subject ]</a>
+              <a href="author.html#348">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 11/5/07, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i> On Mon, Nov 05, 2007 at 10:11:39AM +0100, Stefan Andersson wrote:
+</I>&gt;<i> &gt; Uh, not entirely sure how to read the current state of the draft, but
+</I>&gt;<i> just wanted to make sure that
+</I>&gt;<i> &gt; POST /assets/new should returd assetid in response, as we can't rely
+</I>&gt;<i> &gt; on everybody 'playing nice'.
+</I>&gt;<i>
+</I>&gt;<i> My initial thought was that it returns the full object, with UUID in
+</I>&gt;<i> place.
+</I>
+
+I think it is a bad idea to let the asset server assign the asset id, this
+will make it necessary for the client to wait for the asset id to be
+returned, leading to a lot of situations where the client will hold an
+&quot;internal&quot; id, and then later fix up the internal representation with the
+actual and real asset id.
+
+One of the beauties, almost the only one I can think of actually, by using
+UUID's as a data type for id's is that they can be created and assigned
+client side, without fear of collision and/or elaborate schemes for ensuring
+uniqueness.
+
+By implementing a protocol where the assets server is responsible we force
+the hand of the client designers and architects to either create assets in a
+synchronous process or force them into a situation where assets have two
+id's, an &quot;internal id&quot; and a public &quot;external id&quot;. I would strongly
+recommend that we leave it up to the client to assign the asset id.
+
+
+&gt;<i> The Draft should also define the response on all commands; I'd suggest
+</I>&gt;<i> &gt; we use an xml posted object response; something like
+</I>&gt;<i>
+</I>&gt;<i> Why don't we just use HTTP response codes instead (full list at:
+</I>&gt;<i> <A HREF="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html</A>)
+</I>&gt;<i>
+</I>&gt;<i> &gt; GET:
+</I>&gt;<i> &gt; The binary asset,
+</I>&gt;<i> &gt; Content-type: xxx
+</I>&gt;<i>
+</I>&gt;<i> Besides content also setup the response codes correctly
+</I>&gt;<i>
+</I>&gt;<i> 200 - success
+</I>&gt;<i> 401 - forbidden
+</I>&gt;<i> 404 - not found
+</I>
+
+I agree with using response codes, anything else will be too &quot;XML-RPC&quot;'ish,
+and not really rest. Unfortunately this will require some rewriting of the
+basic HTTP server implementation code we use, which will impact a lot of
+code. I am not saying that we shouldn't do that, but lets do one thing at a
+time.
+
+
+&gt;<i> DELETE:
+</I>&gt;<i> &gt; &lt;DeleteResponse&gt;
+</I>&gt;<i> &gt; &lt;Result success=&quot;true&quot;&gt;Ok&lt;/Result&gt;
+</I>&gt;<i> &gt; &lt;/DeleteResponse&gt;
+</I>&gt;<i> &gt; Content-type: application/xml
+</I>
+
+we need to decide what our content type is going to be, MW clearly likes
+&quot;text/xml&quot;, this says &quot;application/xml&quot;, I have tried to discover, what the
+correct content-type is, but have found nothing conclusive the &quot;XML Media
+Types &lt;<A HREF="http://www.ietf.org/rfc/rfc3023.txt">http://www.ietf.org/rfc/rfc3023.txt</A>&gt;&quot; RFC seems to leave it up to us,
+but I do propose that we are consistent.
+
+I think it is too early days to commit to a &quot;formal&quot; spec, I am convinced
+that the current layout will change quite a number of times, from now and
+til version 0.6.
+
+/tleiades
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071105/02dd96a3/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071105/02dd96a3/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000346.html">[Opensim-dev] Asset Server Rest Interface
+</A></li>
+	<LI>Next message: <A HREF="000351.html">[Opensim-dev] Asset Server Rest Interface
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#348">[ date ]</a>
+              <a href="thread.html#348">[ thread ]</a>
+              <a href="subject.html#348">[ subject ]</a>
+              <a href="author.html#348">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] client API bindings?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20client%20API%20bindings%3F&In-Reply-To=%3C4A9FD8E8.8000608%40maroy.hu%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007438.html">
+   <LINK REL="Next"  HREF="007459.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] client API bindings?</H1>
+    <B>Mar&#243;y &#193;kos</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20client%20API%20bindings%3F&In-Reply-To=%3C4A9FD8E8.8000608%40maroy.hu%3E"
+       TITLE="[Opensim-dev] client API bindings?">akos at maroy.hu
+       </A><BR>
+    <I>Thu Sep  3 16:55:36 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007438.html">[Opensim-dev] client API bindings?
+</A></li>
+        <LI>Next message: <A HREF="007459.html">[Opensim-dev] client API bindings?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7444">[ date ]</a>
+              <a href="thread.html#7444">[ thread ]</a>
+              <a href="subject.html#7444">[ subject ]</a>
+              <a href="author.html#7444">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Toni,
+
+&gt;<i> Cool idea.
+</I>
+:<i>)
+</I>
+&gt;<i> In OpenSim they are called ClientViews.They implement a protocol which 
+</I>&gt;<i> clients can use to connect to the server. The prominent one is for the 
+</I>&gt;<i> SL(tm) viewer, but there is an experimental one for another new VW 
+</I>&gt;<i> protocol called MXP, and at least an IRC one as well. Also for the 
+</I>&gt;<i> Realxtend project there is a modified ClientView where the SL protocol 
+</I>&gt;<i> is extended to support Ogre meshes etc.
+</I>
+hm, interesting
+
+&gt;<i> OpenSim is a .NET project, written in C#, so you can use any language 
+</I>&gt;<i> that has a .net implementation for writing your thing. IronPython is a 
+</I>&gt;<i> pretty cool and mature implementation, I wrote an experimental .py 
+</I>&gt;<i> region module loader for OpenSim once and probably you could use it to 
+</I>&gt;<i> write a ClientView too if you prefer that to C#. But C# is also nice, 
+</I>&gt;<i> kind of a mix of C++ and Python -- if those are what you know from 
+</I>&gt;<i> before, should be easy to learn. The API is the same for any .net language.
+</I>
+actually it's not that simple. for example, X-Plane has a plugin 
+architecture, that accepts plugins written in C++, or in Python. thust 
+the best is if there's a client implementation in any of these 
+languages, as one has to create a shared object a python files (without 
+native libraries linked) to integrate to X-Plane. (oh, and the native 
+ones in three platforms, Linux, MacOS and Windows)
+
+other platforms would behave similarly.
+
+also, if one wants a proliferation of clients, one has to allow for a 
+wide range of client implementations.
+
+&gt;<i> It should be feasible in principle, and I think a quite interesting 
+</I>&gt;<i> challenge for the platform.
+</I>
+hm hm..
+
+&gt;<i> One problem is that due to the Second Life compatibility origins, the 
+</I>&gt;<i> OpenSim worlds are partitioned in 256x256m regions, which run as 
+</I>&gt;<i> separate instances. When you cross a region border, there is a handover 
+</I>&gt;<i> procedure etc. So the default architecture is not at all suitable for 
+</I>&gt;<i> flying 300m/s 'cause you'd need so many regions and it'd be doing the 
+</I>&gt;<i> crossing procedure all the time.
+</I>
+yes, this is a problem indeed. moreover, in a flight simulator, the 
+horizon spans quite far. also, you actually need different update levels 
+- for objects that are close, one needs fast and accurate update, while 
+for objects far but still visible, one doesn't need that frequent updates.
+
+moreover, movement prediction is also important - the client needs to be 
+able to predict the trajectory of the objects for smooth drawing, and 
+graceful handling of network connection issues.
+
+&gt;<i> I think there's an on-going experiment with different sized / large 
+</I>&gt;<i> regions, just today Teravus touched this thing it seems, that might 
+</I>&gt;<i> serve you and I guess he can tell more - 
+</I>&gt;<i> /OpenSim/Region/CoreModules/World/Land/RegionCombinerModule.cs
+</I>
+hm I'll take a look..
+
+&gt;<i> A trick I've been thinking for supporting fast large movements is to 
+</I>&gt;<i> change the scale: make your planes 1/100 the size, so the default region 
+</I>&gt;<i> size is then 25,6km for the lilliput pilot in the plane :) A 10x10 
+</I>&gt;<i> region grid or something would already give quite nice amount of space, 
+</I>&gt;<i> and grids can be much larger too. Then you could fly past the giant 
+</I>&gt;<i> avatars there and they'd have fun seeing small model planes fly :o
+</I>
+hm, but what is the position precision then? is it precise enough?
+
+&gt;<i> For example in MXP you don't have this kind of region stuff in the 
+</I>&gt;<i> protocol at all - there you just have a thing called a bubble, which 
+</I>&gt;<i> AFAIK is the sphere of perception for the viewer, and the server always 
+</I>&gt;<i> tells the client about the things close to it. The client nor the 
+</I>&gt;<i> protocol don't know anything about how the space is partitioned on the 
+</I>&gt;<i> server(s). So in the MXP ClientView you can perhaps see an example how 
+</I>&gt;<i> to adapt the OpenSim internal scene things to a different protocol.
+</I>
+this sounds a better approach - but one still needs to treat 'near' and 
+'far' objects differently (see above)
+
+thanks for the input..
+
+
+Akos
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007438.html">[Opensim-dev] client API bindings?
+</A></li>
+	<LI>Next message: <A HREF="007459.html">[Opensim-dev] client API bindings?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7444">[ date ]</a>
+              <a href="thread.html#7444">[ thread ]</a>
+              <a href="subject.html#7444">[ subject ]</a>
+              <a href="author.html#7444">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

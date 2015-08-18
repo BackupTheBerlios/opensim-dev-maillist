@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Ways to bundle a building/content for	sharing	with others
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ways%20to%20bundle%20a%20building/content%20for%0A%09sharing%09with%20others&In-Reply-To=%3CBLU134-W23BF60F5BEB613C80D6A9D5DA0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004370.html">
+   <LINK REL="Next"  HREF="004373.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Ways to bundle a building/content for	sharing	with others</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ways%20to%20bundle%20a%20building/content%20for%0A%09sharing%09with%20others&In-Reply-To=%3CBLU134-W23BF60F5BEB613C80D6A9D5DA0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Ways to bundle a building/content for	sharing	with others">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sat Jan 10 19:37:49 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004370.html">[Opensim-dev] Ways to bundle a building/content for sharing	with others
+</A></li>
+        <LI>Next message: <A HREF="004373.html">[Opensim-dev] Ways to bundle a building/content for sharing	with others
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4372">[ date ]</a>
+              <a href="thread.html#4372">[ thread ]</a>
+              <a href="subject.html#4372">[ subject ]</a>
+              <a href="author.html#4372">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Actually, there are some interesting options with the approach we investigated with Tribal Net; The Tribal Net Desktop Server is an OpenSim instance that runs witha local gui. Now, one of the things that that approach would allow for, would be to 'browse' the sim for content - so saving part of a sim would be as easy as locating it in the scenegraph, then righ-click and choose 'save as...'
+ 
+Of course, the non-local approach would be to have a 'region service admin' console, something I think several people have been working on and thinking about, that would offer to do the same, probably over said REST interfaces. (ie, something would pull a region, or part of a region over REST, then just re-serialize it and allow for a save-to-disk)
+ 
+Of course, the same would go for inventory - a grid admin could be able to browse user inventories visually, and save nodes into an array of formats - one of them, obviously, the opensim default library node format. This is a feature much needed if we're going to clean up the library node like I suggested in the 2nd birthday post. It's also not that hard, actually. If one shuns desktop guis, one could definitively see the same function as part of a web admin tool, like the redux - or even in the built-in http servers on the regions. Given we already are serving quite a lot, that might not be difficult to implement.
+ 
+And on JSON; of course, object serialization format should be totally transparent. There should be xml, json and probably a number of others as well. (binary, llsd et c) There are some patterns around to create serialization factories to allow for various file formats for same objects.
+You might be interested in what we did with 'Tribal One' - there, we implemented a new type of scene object, the ViewPort that defined a part of region space, that had an 'Content Url' that loaded the ViewPorts content from an http fetch of a save-xml graph (this was before save-oar) Actually, since ViewPorts could contain ViewPorts, the whole region was a ViewPort, so the terrain was fetched as well, and child ViewPorts terrain was combined with parent terrain. This allows for 'fetching' of programatically constructed xml fragments, not necessarily originating from any object dump at all, but rather from applications serving renditions of data. That probably also tells us that we need _one_ save paradigm, and that we simply should be able to either incorporate fragments, or reference them.
+ 
+So your os function would be something like
+osCreateViewPort( v1, v2, url )
+ 
+There's nothing out there to show it, as we still haven't found any business case for it (too far out, perhaps, for the time being) but feel it's probably a concept well in line with the notion of the 3D web - moving fethcing of content off database accesses and onto http fetches. I believe Vast Park is based on the same premises.
+ 
+<A HREF="http://lbsa71.net/category/tribal-media/tribal-one/">http://lbsa71.net/category/tribal-media/tribal-one/</A>
+Best regards,Stefan AnderssonTribal Media AB
+ 
+
+
+
+Date: Sat, 10 Jan 2009 12:13:20 -0500From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">imohax at gmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: Re: [Opensim-dev] Ways to bundle a building/content for sharing with others+1 Ai, we need a improved way to save reusable, complex content in singular files that can be passed between sims. Whatever results from such an effort will likely play nicely into REST transfer of such things between OpenSim grids.Up to now the methods you describe are the only methods and do not allow the casual OpenSim user any way to put such content into their inventory requiring, instead, sim administrator intervention. I think that will remain that way for some time to come because anything else requires some sort of viewer customization.I know others have created LSL scripts to transform XML from a notecard into an in-world object like some of the SL tools available for sale do. So far I know of none that actually use save-xml, xml2, oar output however.One approach I have been meaning to explore, but have lacked the time and skill, is creating an OpenSim module or special scripted function that would accept XML from xml, xml2 or oar as input, perhaps even directly from a notecard (but that could be a lot of dataserver hits) and automatically build out the represented object in world. In fact, there is already a suggested OSS function to do this from a URL pointing to such XML:
+osRezFromURL(string url, vector pos, vector vel, rotation rot, integer param)A whole family of osRezFrom*() functions would perhaps be best, each with different imposed lag penalties to avoid overloading XML sources. I cannot see such functions, with the parsing and possible network calls, ever being used to rez objects more than once every 0.2 seconds, the usual delay for similar things in LSL. Maybe something like the following:
+osRezFromXML(string xml, vector pos, vector vel, rotation rot, integer param)osRezFromXML2(string xml, vector pos, vector vel, rotation rot, integer param)osRezFromOAR(string oar, vector pos, vector vel, rotation rot, integer param)I admit I like rez from URL best in the long run since it takes care of the ugly issue of getting the XML/XML2/OAR into the string argument in the first place, too many dataserver calls to read such a thing from a notecard I would think. But before layering all the network fetching code having a function that simply does the parsing and rezzing would be work enough to write.
+On Sat, Jan 10, 2009 at 6:34 AM, Ai Austin &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ai.ai.austin at googlemail.com</A>&gt; wrote:
+This might be a question for Justin as he has worked on the OARmechanism and load/save-xml console commands....It would be useful to be able to take some content, such as  abuilding or developed area, and to be able top save that in a  formthat can be downloaded or shared with others to get the same contentin heir own opensim setup.  save-xml, save-xml2 preserve the whole ofa sim region keeping creatorid, ownerid, lastownerid and prim uuidsas they were, and save-oar pr serve the whole of the contents of asim region including the terrain height map.The mechanism I have used to make a building available to differentOpensim setups, or in different areas of our own build is to use oneof two mechanisms...a) save-xml on a sim region that ONLY contains the required content(I use a sandbox region just for this purpose), and note how manyprims were in the region as a check.. I edit the creatorid, owneridand lastownerid manually (i.e. change UUID for 3 X number of prims).Then on restore I use the load-xml with -newuid flag to ensure newUUIDs are used for the newly loaded prims.  I then check the requirednumber fo saved prims did come back in.b) save-oar on a sim region that ONLY contains the required content(I use a sandbox region just for this purpose).  load-oar into anempty sandbox region (as the terrain will change).  Then take thecontents into inventory - with the disadvantage that relativepositioning of parts is lost.  or link teh whole build and take intoinventory to be moved where you wish with the disadvantage that majorlinked parts in a modular build are lost.As you can see, the save-xml and save-oar are VERY clise to what isneeded, but are really for archiving within one Opensim set ratherthan transfer of modular assets to others.  I think a mechanism tosave-oar with a  flag to say -noterrain, and/or a mechanism toload-oar -noterrain that can ignore any terrain included in theOAR  and a way to say -add so that the objects in te oar are added tothe current region, rather than everything being replaced would beclose to what is wanted.  A way to make sure that all UUIDs in thenew content are suitable for the target environment (Prim UUID,texture UUIDs, creatorid, ownerid and lastownerdid) may be needed ifthe OAR mechanism does not already do that._______________________________________________Opensim-dev mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.dehttps</A>://lists.berlios.de/mailman/listinfo/opensim-dev-- Mo <A HREF="Haxhttp://imohax.com">Haxhttp://imohax.com</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090110/8be73e89/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090110/8be73e89/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004370.html">[Opensim-dev] Ways to bundle a building/content for sharing	with others
+</A></li>
+	<LI>Next message: <A HREF="004373.html">[Opensim-dev] Ways to bundle a building/content for sharing	with others
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4372">[ date ]</a>
+              <a href="thread.html#4372">[ thread ]</a>
+              <a href="subject.html#4372">[ subject ]</a>
+              <a href="author.html#4372">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

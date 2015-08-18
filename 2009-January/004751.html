@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] proposal: cleanup and break up region modules
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20proposal%3A%20cleanup%20and%20break%20up%20region%20modules&In-Reply-To=%3C4981ABB3.6090600%40ics.uci.edu%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004755.html">
+   <LINK REL="Next"  HREF="004741.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] proposal: cleanup and break up region modules</H1>
+    <B>Cristina Videira Lopes</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20proposal%3A%20cleanup%20and%20break%20up%20region%20modules&In-Reply-To=%3C4981ABB3.6090600%40ics.uci.edu%3E"
+       TITLE="[Opensim-dev] proposal: cleanup and break up region modules">lopes at ics.uci.edu
+       </A><BR>
+    <I>Thu Jan 29 14:14:27 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004755.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+        <LI>Next message: <A HREF="004741.html">[Opensim-dev] OpenSim 2nd Birthday Tommorrow - Blog About it
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4751">[ date ]</a>
+              <a href="thread.html#4751">[ thread ]</a>
+              <a href="subject.html#4751">[ subject ]</a>
+              <a href="author.html#4751">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>My experience with RESTComms, and having looked at the other modules in 
+there, is that most of those aren't really &quot;modules&quot; as in &quot;optional 
+components&quot;, but as &quot;the reference implementation of a required 
+interface that can be replaced with another implementation&quot;. For that 
+reason they can be seen as belonging to core, and be bundled in one 
+single dll.
+
+Although I would prefer to see each one of them in a separate dll, I 
+think MW's proposal is perfectly reasonable. It's a good idea to 
+separate these modules from, at least, OpenSim.Region.Environment.dll, 
+if not from each other.
+
+MW wrote:
+&gt;<i> Putting aside the optimisations for now, as I think that is a 
+</I>&gt;<i> different question. As if we are going to have a dynamic module system 
+</I>&gt;<i> then those issues come with it.
+</I>&gt;<i>
+</I>&gt;<i> While I think having every module in a separate dll/project is too 
+</I>&gt;<i> much. As Stefan said I think we have just about enough projects in the 
+</I>&gt;<i> core as it is. But I can see a case for moving all the modules that 
+</I>&gt;<i> are currently in OpenSim.Region.Environment, into a single separate 
+</I>&gt;<i> project/dll called something like OpenSim.Region.CoreModules.
+</I>&gt;<i>
+</I>&gt;<i> And if we could as Justin said, impove the module loading system, so 
+</I>&gt;<i> that the operator can turn on and off the loading/usage of any modules 
+</I>&gt;<i> in a single dll.
+</I>&gt;<i>
+</I>&gt;<i> */Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt;/* wrote:
+</I>&gt;<i>
+</I>&gt;<i>     I think that some confusion stems from the fact that it's a
+</I>&gt;<i>     difference between referencing the assembly, and dynamically
+</I>&gt;<i>     instancing classes out of it.
+</I>&gt;<i>      
+</I>&gt;<i>     If you reference classes directly, as in
+</I>&gt;<i>      
+</I>&gt;<i>     mything = new Thing();
+</I>&gt;<i>      
+</I>&gt;<i>     where thing could be a module, albeit _referenced_, not _loaded_
+</I>&gt;<i>      
+</I>&gt;<i>     is a huge difference to
+</I>&gt;<i>      
+</I>&gt;<i>     mything = loadedAssembly.Instantiate( &quot;Thing&quot; );
+</I>&gt;<i>
+</I>&gt;<i>     in the former, the jit compiler can do all kinds of neat
+</I>&gt;<i>     optimizations when referencing classes in the Assembly, since it
+</I>&gt;<i>     has both the referenced component and the referrer at hand. It can
+</I>&gt;<i>     also inline and optimize away type validity checks and trusted
+</I>&gt;<i>     domain checks.
+</I>&gt;<i>      
+</I>&gt;<i>     In the latter, it really can't, and need to wrap everything in
+</I>&gt;<i>     prudent encapsulation, protection and indirection.
+</I>&gt;<i>
+</I>&gt;<i>     Optimization points aside, I would hate for us to expand the core
+</I>&gt;<i>     modules into separate projects just because we can; I think we
+</I>&gt;<i>     would have to add 20 more projects to the solution and that would
+</I>&gt;<i>     just suck - especially now that we have cleaned out so many. Some
+</I>&gt;<i>     of the these new projects will have just a handful of classes,
+</I>&gt;<i>     which is just an absurd waste of resources for something that
+</I>&gt;<i>     should be used in 95% of the setups.
+</I>&gt;<i>      
+</I>&gt;<i>     I actually don't know how mono addins work, but in the .net
+</I>&gt;<i>     framework individual classes are referenced by assembly and class
+</I>&gt;<i>     if loaded at runtime, so for examble
+</I>&gt;<i>      
+</I>&gt;<i>     authModule= &quot;MyAuthLib.dll, MyAuthenticator&quot; would reference the
+</I>&gt;<i>     class MyAuthenticator in the dll MyAuthLib.dll - which means that
+</I>&gt;<i>     you can lump as many of those together in an dll that you want to.
+</I>&gt;<i>      
+</I>&gt;<i>     so we should make sure we can do something liket that, and instead
+</I>&gt;<i>     try to lump modules that share a common domain together.
+</I>&gt;<i>      
+</I>&gt;<i>     The only two reasons to ever split an assembly into two is from
+</I>&gt;<i>     * references being too different (if you want to re-use them
+</I>&gt;<i>     separately)
+</I>&gt;<i>     * encapsulation and security issues (actuallly USING internal as
+</I>&gt;<i>     it was intended)
+</I>&gt;<i>      
+</I>&gt;<i>     So, what I'm saying is that we should strive towards a situation
+</I>&gt;<i>     where the core modules are bundled into a minimal set of
+</I>&gt;<i>     assemblies, and the rest put on forge.
+</I>&gt;<i>
+</I>&gt;<i>     Best regards,
+</I>&gt;<i>     Stefan Andersson
+</I>&gt;<i>     Tribal Media AB
+</I>&gt;<i>
+</I>&gt;<i>     &gt; Date: Thu, 29 Jan 2009 11:28:19 +0100
+</I>&gt;<i>     &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>
+</I>&gt;<i>     &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>     &gt; Subject: Re: [Opensim-dev] proposal: cleanup and break up region
+</I>&gt;<i>     modules
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; Tleiades Lauridsen wrote:
+</I>&gt;<i>     &gt; &gt;
+</I>&gt;<i>     &gt; &gt;
+</I>&gt;<i>     &gt; &gt;&gt; Date: Thu, 29 Jan 2009 08:31:48 +0100
+</I>&gt;<i>     &gt; &gt;&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>
+</I>&gt;<i>     &gt; &gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>     &gt; &gt;&gt; Subject: Re: [Opensim-dev] proposal: cleanup and break up
+</I>&gt;<i>     region modules
+</I>&gt;<i>     &gt; &gt;&gt;
+</I>&gt;<i>     &gt; &gt;&gt; Tleiades wrote:
+</I>&gt;<i>     &gt; &gt;&gt; &gt;&gt; I'd be much more of a fan of having each module a seperate
+</I>&gt;<i>     dll. Files
+</I>&gt;<i>     &gt; &gt;&gt; &gt;&gt; are cheap too. :) And that makes it very clear to people
+</I>&gt;<i>     what they are
+</I>&gt;<i>     &gt; &gt;&gt; &gt;&gt; loading, and what they aren't loading.
+</I>&gt;<i>     &gt; &gt;&gt; &gt;&gt;
+</I>&gt;<i>     &gt; &gt;&gt; &gt;
+</I>&gt;<i>     &gt; &gt;&gt; &gt; (On the fear of talking about performance prematurely)
+</I>&gt;<i>     &gt; &gt;&gt; &gt; Won't that cause problems for the JIT'er?
+</I>&gt;<i>     &gt; &gt;&gt; &gt;
+</I>&gt;<i>     &gt; &gt;&gt; &gt; Normally access to member variables gets optimized away
+</I>&gt;<i>     into a direct
+</I>&gt;<i>     &gt; &gt;&gt; &gt; memory access rather than invocation of a JSR. If I recall
+</I>&gt;<i>     correctly
+</I>&gt;<i>     &gt; &gt;&gt; &gt; this optimization does not work for dynamically loaded
+</I>&gt;<i>     assemblies.
+</I>&gt;<i>     &gt; &gt;&gt;
+</I>&gt;<i>     &gt; &gt;&gt; well, if that's the case, then it's not working currently
+</I>&gt;<i>     either :-)
+</I>&gt;<i>     &gt; &gt; currently
+</I>&gt;<i>     &gt; &gt;&gt; we lump all region modules into one large super DLL and load that
+</I>&gt;<i>     &gt; &gt; dynamically.
+</I>&gt;<i>     &gt; &gt;
+</I>&gt;<i>     &gt; &gt; I guess what I'm saying is that dll files are not as cheap as
+</I>&gt;<i>     it is
+</I>&gt;<i>     &gt; &gt; being implied. Having an application dynamicallly load a large
+</I>&gt;<i>     number of
+</I>&gt;<i>     &gt; &gt; dll's at runtime, is less efficient that loading a few large dll's
+</I>&gt;<i>     &gt; &gt; during load time. The JIT'ed code will be less efficient and
+</I>&gt;<i>     loadtime of
+</I>&gt;<i>     &gt; &gt; the application will increase. While load time may not be a
+</I>&gt;<i>     big issue, I
+</I>&gt;<i>     &gt; &gt; believe it is best to give the JIT engine the best working
+</I>&gt;<i>     condition.
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; we are always loading at runtime --- or let me ask the other way
+</I>&gt;<i>     round: what do
+</I>&gt;<i>     &gt; you define as &quot;loadtime&quot;?
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; &gt;
+</I>&gt;<i>     &gt; &gt; As I understand it the JIT engine and assembly loader have
+</I>&gt;<i>     been designed
+</I>&gt;<i>     &gt; &gt; based on a use pattern which states: &quot;Most assemblies will be
+</I>&gt;<i>     loaded
+</I>&gt;<i>     &gt; &gt; during application load time, and only few assemblies will be
+</I>&gt;<i>     loaded at
+</I>&gt;<i>     &gt; &gt; a latter stage&quot;,
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; well, we are loading at runtime then.
+</I>&gt;<i>     &gt;
+</I>&gt;<i>     &gt; --
+</I>&gt;<i>     &gt; dr dirk husemann ---- virtual worlds research ---- ibm zurich
+</I>&gt;<i>     research lab
+</I>&gt;<i>     &gt; SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ----
+</I>&gt;<i>     <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+</I>&gt;<i>     &gt; RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 -
+</I>&gt;<i>     <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+</I>&gt;<i>     &gt; _______________________________________________
+</I>&gt;<i>     &gt; Opensim-dev mailing list
+</I>&gt;<i>     &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>     &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090129/756cc687/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090129/756cc687/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004755.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+	<LI>Next message: <A HREF="004741.html">[Opensim-dev] OpenSim 2nd Birthday Tommorrow - Blog About it
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4751">[ date ]</a>
+              <a href="thread.html#4751">[ thread ]</a>
+              <a href="subject.html#4751">[ subject ]</a>
+              <a href="author.html#4751">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

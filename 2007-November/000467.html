@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-commits] r2413 - in	trunk/OpenSim/Region: Application Environment	Environment/Modules Environment/Scenes Examples/SimpleApp
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r2413%20-%20in%0A%09trunk/OpenSim/Region%3A%20Application%20Environment%0A%09Environment/Modules%20Environment/Scenes%20Examples/SimpleApp&In-Reply-To=%3C970c50810711180642h4a3b46bcuce6bdc7bc85821d7%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000475.html">
+   <LINK REL="Next"  HREF="000468.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-commits] r2413 - in	trunk/OpenSim/Region: Application Environment	Environment/Modules Environment/Scenes Examples/SimpleApp</H1>
+    <B>Dalien Talbot</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r2413%20-%20in%0A%09trunk/OpenSim/Region%3A%20Application%20Environment%0A%09Environment/Modules%20Environment/Scenes%20Examples/SimpleApp&In-Reply-To=%3C970c50810711180642h4a3b46bcuce6bdc7bc85821d7%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] [Opensim-commits] r2413 - in	trunk/OpenSim/Region: Application Environment	Environment/Modules Environment/Scenes Examples/SimpleApp">dalienta at gmail.com
+       </A><BR>
+    <I>Sun Nov 18 15:42:03 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000475.html">[Opensim-dev] Getting this list on opensimulator.org's homepage?
+</A></li>
+        <LI>Next message: <A HREF="000468.html">[Opensim-dev] [Opensim-commits] r2413 - in	trunk/OpenSim/Region: Application Environment	Environment/Modules Environment/Scenes Examples/SimpleApp
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#467">[ date ]</a>
+              <a href="thread.html#467">[ thread ]</a>
+              <a href="subject.html#467">[ subject ]</a>
+              <a href="author.html#467">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>MW,
+
+For the map, I think we need also to optimize the comms between the
+simulator and grid server. We've done a bit of debugging with nebanon
+(thanks neb! :), what happens is that the client fires off a *lot* of
+MapBlockRequest packets.
+
+Currently for every one of them we fire up an XMLHTTP request to the
+grid. Needless to say that 15+ HTTP requests constitute a small-scale
+DoS (especially since the UGA does not seem to be a super performant
+http server) - this was causing HTTP timeout in some cases (hence
+crash on the client - which i trapped now) - but at the moment
+bringing up the map still causes a major hiccup both for UGA and for
+the sim.
+
+My thought is to time-throttle the requests - on the first
+MapBlockRequest record the requested coordinates, and set up the timer
+callback of, say, 3 seconds. every other MapBlockRequest that comes in
+before the callback fires, does either of the two:
+1) records the requested rectangle coords in the list (to be used
+during http req)
+2) updates the &quot;requested rectangle&quot; such that it is a rectangle
+covering all the previous requests.
+
+And resets the timer to 3 sec again.
+
+Once the callback finally fires, the region collates all the data for
+the request, and makes a *single* http request - either with the
+&quot;superset rectangle&quot; (although i guess if the MapBlockRequests can
+have disparate coordinates, this is potentially dangerous) - or -
+ideally - with the list of rectangles (for which the current UGA might
+need to be modded ?) Or, if we want to stay 100% backwards compatible,
+just try to collate as much as we can (say, into up to 5x5 rect
+requests), and the rest just shape not to fire too fast..
+
+While this still does not solve the fundamental problem of scalability
+of the UGA, this should make the things bit better.
+
+I was planning to do that today hopefully, if Nebanon is available for
+his kind help again :-)
+
+/d
+
+
+On Sun, Nov 18 2007 03:11:44 -0800,  &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mw at opensimulator.org</A>&gt; wrote:
+&gt;<i> Author: mw
+</I>&gt;<i> Date: 2007-11-18 03:11:44 -0800 (Sun, 18 Nov 2007)
+</I>&gt;<i> New Revision: 2413
+</I>
+&gt;<i> Attempt to get World Map working in Grid mode, will need to be using the grid asset server for it to work correctly and has only been quickly tested in a three region grid.
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000475.html">[Opensim-dev] Getting this list on opensimulator.org's homepage?
+</A></li>
+	<LI>Next message: <A HREF="000468.html">[Opensim-dev] [Opensim-commits] r2413 - in	trunk/OpenSim/Region: Application Environment	Environment/Modules Environment/Scenes Examples/SimpleApp
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#467">[ date ]</a>
+              <a href="thread.html#467">[ thread ]</a>
+              <a href="subject.html#467">[ subject ]</a>
+              <a href="author.html#467">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

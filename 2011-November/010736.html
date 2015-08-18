@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Signal Handling
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Signal%20Handling&In-Reply-To=%3C4EB86F03.2090800%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010733.html">
+   <LINK REL="Next"  HREF="010737.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Signal Handling</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Signal%20Handling&In-Reply-To=%3C4EB86F03.2090800%40t-data.com%3E"
+       TITLE="[Opensim-dev] Signal Handling">melanie at t-data.com
+       </A><BR>
+    <I>Tue Nov  8 00:51:31 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010733.html">[Opensim-dev] Signal Handling
+</A></li>
+        <LI>Next message: <A HREF="010737.html">[Opensim-dev] Signal Handling
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10736">[ date ]</a>
+              <a href="thread.html#10736">[ thread ]</a>
+              <a href="subject.html#10736">[ subject ]</a>
+              <a href="author.html#10736">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>You should Mantis it and then maybe post the Mantis link here. I for
+one might be interested in signals processing, like proper SIGTERM
+and maybe SIGHUP.
+
+Melanie
+
+On 08/11/2011 00:31, Justin Clark-Casey wrote:
+&gt;<i> Hi Rory.  I think most people currently achieve this kind of thing via the RemoteAdmin interface [1].  However, I don't 
+</I>&gt;<i> personally have any objection to having POSIX handling code in OpenSim if that's useful to people.
+</I>&gt;<i> 
+</I>&gt;<i> The best place for such a thing could be a separate OpenSim.ApplicationPlugins.PosixController package (or similar) 
+</I>&gt;<i> rather than mixing it in with OpenSim.cs.
+</I>&gt;<i> 
+</I>&gt;<i> Things such as #if and #endif do exist in C# [2].  To be honest, I don't think you need to detect Windows as long as it 
+</I>&gt;<i> does compile under Windows - one can include the mono.posix.dll in OpenSim directly if necessary.  And some Windows 
+</I>&gt;<i> environments (e.g. Cygwin) do provide POSIX handling so it might work there.
+</I>&gt;<i> 
+</I>&gt;<i> If you want to submit a patch please create an account on Mantis [3] and post it there, putting it into the &quot;Patch 
+</I>&gt;<i> included&quot; state.  As I would classify this as a feature, we will need you to sign and submit a contributor's agreement 
+</I>&gt;<i> [4].  Thanks.
+</I>&gt;<i> 
+</I>&gt;<i> [1] <A HREF="http://opensimulator.org/wiki/RemoteAdmin">http://opensimulator.org/wiki/RemoteAdmin</A>
+</I>&gt;<i> [2] <A HREF="http://stackoverflow.com/questions/5159657/isolate-mono-specific-code">http://stackoverflow.com/questions/5159657/isolate-mono-specific-code</A>
+</I>&gt;<i> [3] <A HREF="http://opensimulator.org/mantis.">http://opensimulator.org/mantis.</A>
+</I>&gt;<i> [4] <A HREF="http://opensimulator.org/wiki/Contributions_Policy">http://opensimulator.org/wiki/Contributions_Policy</A>
+</I>&gt;<i> 
+</I>&gt;<i> On 07/11/11 15:50, Rory Slegtenhorst wrote:
+</I>&gt;&gt;<i> Dear List,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> My very first post in the dev mailing list, as I am going to spend much more time in my personal OpenSim.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I have written some code quite a while back and wanted to share my thoughts and start a discussion about it.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> *Signal Handling*
+</I>&gt;&gt;<i> Currently, OpenSim services do NOT support POSIX signal handling when POSIX is available. This support is available
+</I>&gt;&gt;<i> on pretty much any *nix platform including MacOS X. Windows does NOT support POSIX period.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In Mono, POSIX signal handling can be easily accomplished using the mono.posix.dll.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I have currently implemented nothing more but the TERM signal, to ensure the services are properly stopped, instead of
+</I>&gt;&gt;<i> simply killed on the spot. This means that the service actually goes through the shutdown procedure (if any).
+</I>&gt;&gt;<i> The next goal would be to implement HUP to reload the service.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> My current problem, is that the code is just there. No ifdef statements, nothing.
+</I>&gt;&gt;<i> I simply lack the knowledge in .NET/Mono to exclude the code from an environment that does not include posix.
+</I>&gt;&gt;<i> Some pointers in the right direction would be much appreciated.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> *Discussion*
+</I>&gt;&gt;<i> When creating services, there must be an easy way to start/stop them. Especially on *nix this comes in handy.
+</I>&gt;&gt;<i> Shoving the word &quot;exit&quot; or &quot;shutdown&quot; into the service cli is just not working all the time and is error prone.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Adding POSIX signal handling would be considered &quot;standard&quot; in such services. The fact that MS Windows does not
+</I>&gt;&gt;<i> support POSIX signals is simply disregarded. The equivalent on Windows would be to have a service binary that runs
+</I>&gt;&gt;<i> the OpenSim services (I think that already exists).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> There aren't that many other &quot;standard&quot; solutions to the same problem, and although signal handling wouldn't work on
+</I>&gt;&gt;<i> ONE platform (ONE being Windows), it is guaranteed to work on ALL others (ALL being the *nix ones lol).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So to start the discussion, here are some questions:
+</I>&gt;&gt;<i> 1. Is there any interest in this code?
+</I>&gt;&gt;<i> With this I mean: would we want POSIX signal handling or will we try to develop a different way to solve the same problem?
+</I>&gt;&gt;<i> 2. If there is any interest, who do I send my patch to?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> With kind regards,
+</I>&gt;&gt;<i> Rory Slegtenhorst
+</I>&gt;&gt;<i> rory dot slegtenhorst at gmail dot com
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010733.html">[Opensim-dev] Signal Handling
+</A></li>
+	<LI>Next message: <A HREF="010737.html">[Opensim-dev] Signal Handling
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10736">[ date ]</a>
+              <a href="thread.html#10736">[ thread ]</a>
+              <a href="subject.html#10736">[ subject ]</a>
+              <a href="author.html#10736">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

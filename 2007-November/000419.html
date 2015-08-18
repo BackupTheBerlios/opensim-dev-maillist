@@ -1,0 +1,226 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Patch] llSetText with color and alpha argument
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BPatch%5D%20llSetText%20with%20color%20and%20alpha%20argument&In-Reply-To=%3C970c50810711111424u59207705x277430653f4aec6%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000411.html">
+   <LINK REL="Next"  HREF="000412.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Patch] llSetText with color and alpha argument</H1>
+    <B>Dalien Talbot</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BPatch%5D%20llSetText%20with%20color%20and%20alpha%20argument&In-Reply-To=%3C970c50810711111424u59207705x277430653f4aec6%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] [Patch] llSetText with color and alpha argument">dalienta at gmail.com
+       </A><BR>
+    <I>Sun Nov 11 23:24:32 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000411.html">[Opensim-dev] [Patch] llSetText with color and alpha argument
+</A></li>
+        <LI>Next message: <A HREF="000412.html">[Opensim-dev] New dependency on Nini?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#419">[ date ]</a>
+              <a href="thread.html#419">[ thread ]</a>
+              <a href="subject.html#419">[ subject ]</a>
+              <a href="author.html#419">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I've applied both (sorry for the bad wording in the null ptr exception one :-)
+
+/d
+
+On Nov 10, 2007 5:03 PM, Mathias Soeken
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">msoeken at informatik.uni-bremen.de</A>&gt; wrote:
+&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> This is a patch which takes care of the color and alpha argument of the
+</I>&gt;<i> llSetText command.
+</I>&gt;<i>
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Mathias
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Index: OpenSim/Framework/IClientAPI.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- OpenSim/Framework/IClientAPI.cs     (revision 2322)
+</I>&gt;<i> +++ OpenSim/Framework/IClientAPI.cs     (working copy)
+</I>&gt;<i> @@ -403,7 +403,7 @@
+</I>&gt;<i>          void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
+</I>&gt;<i>
+</I>&gt;<i>          void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
+</I>&gt;<i> -                                   LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text,
+</I>&gt;<i> +                                   LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
+</I>&gt;<i>                                     uint parentID, byte[] particleSystem, LLQuaternion rotation);
+</I>&gt;<i>
+</I>&gt;<i>          void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
+</I>&gt;<i> Index: OpenSim/Region/ClientStack/ClientView.API.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- OpenSim/Region/ClientStack/ClientView.API.cs        (revision 2322)
+</I>&gt;<i> +++ OpenSim/Region/ClientStack/ClientView.API.cs        (working copy)
+</I>&gt;<i> @@ -1023,7 +1023,7 @@
+</I>&gt;<i>          public void SendPrimitiveToClient(
+</I>&gt;<i>              ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
+</I>&gt;<i>              uint flags,
+</I>&gt;<i> -            LLUUID objectID, LLUUID ownerID, string text, uint parentID, byte[] particleSystem, LLQuaternion rotation)
+</I>&gt;<i> +            LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem, LLQuaternion rotation)
+</I>&gt;<i>          {
+</I>&gt;<i>              ObjectUpdatePacket outPacket = new ObjectUpdatePacket();
+</I>&gt;<i>              outPacket.RegionData.RegionHandle = regionHandle;
+</I>&gt;<i> @@ -1036,6 +1036,10 @@
+</I>&gt;<i>              outPacket.ObjectData[0].FullID = objectID;
+</I>&gt;<i>              outPacket.ObjectData[0].OwnerID = ownerID;
+</I>&gt;<i>              outPacket.ObjectData[0].Text = Helpers.StringToField(text);
+</I>&gt;<i> +            outPacket.ObjectData[0].TextColor[0] = color[0];
+</I>&gt;<i> +            outPacket.ObjectData[0].TextColor[1] = color[1];
+</I>&gt;<i> +            outPacket.ObjectData[0].TextColor[2] = color[2];
+</I>&gt;<i> +            outPacket.ObjectData[0].TextColor[3] = color[3];
+</I>&gt;<i>              outPacket.ObjectData[0].ParentID = parentID;
+</I>&gt;<i>              outPacket.ObjectData[0].PSBlock = particleSystem;
+</I>&gt;<i>              outPacket.ObjectData[0].ClickAction = 0;
+</I>&gt;<i> Index: OpenSim/Region/Environment/Scenes/SceneObjectGroup.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- OpenSim/Region/Environment/Scenes/SceneObjectGroup.cs       (revision 2322)
+</I>&gt;<i> +++ OpenSim/Region/Environment/Scenes/SceneObjectGroup.cs       (working copy)
+</I>&gt;<i> @@ -37,6 +37,7 @@
+</I>&gt;<i>  using OpenSim.Framework;
+</I>&gt;<i>  using OpenSim.Region.Environment.Interfaces;
+</I>&gt;<i>  using OpenSim.Region.Physics.Manager;
+</I>&gt;<i> +using System.Drawing;
+</I>&gt;<i>
+</I>&gt;<i>  namespace OpenSim.Region.Environment.Scenes
+</I>&gt;<i>  {
+</I>&gt;<i> @@ -166,6 +167,12 @@
+</I>&gt;<i>              get { return m_rootPart.OwnerID; }
+</I>&gt;<i>          }
+</I>&gt;<i>
+</I>&gt;<i> +        public Color Color
+</I>&gt;<i> +        {
+</I>&gt;<i> +            get { return m_rootPart.Color; }
+</I>&gt;<i> +            set { m_rootPart.Color = value; }
+</I>&gt;<i> +        }
+</I>&gt;<i> +
+</I>&gt;<i>          public string Text
+</I>&gt;<i>          {
+</I>&gt;<i>              get { return m_rootPart.Text; }
+</I>&gt;<i> @@ -1417,6 +1424,10 @@
+</I>&gt;<i>
+</I>&gt;<i>          public override void SetText(string text, Vector3 color, double alpha)
+</I>&gt;<i>          {
+</I>&gt;<i> +            Color = Color.FromArgb (0xff - (int)(alpha * 0xff),
+</I>&gt;<i> +                                    (int)(color.x * 0xff),
+</I>&gt;<i> +                                    (int)(color.y * 0xff),
+</I>&gt;<i> +                                    (int)(color.z * 0xff));
+</I>&gt;<i>              Text = text;
+</I>&gt;<i>          }
+</I>&gt;<i>      }
+</I>&gt;<i> Index: OpenSim/Region/Environment/Scenes/SceneObjectPart.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- OpenSim/Region/Environment/Scenes/SceneObjectPart.cs        (revision 2322)
+</I>&gt;<i> +++ OpenSim/Region/Environment/Scenes/SceneObjectPart.cs        (working copy)
+</I>&gt;<i> @@ -37,6 +37,7 @@
+</I>&gt;<i>  using OpenSim.Region.Environment.Interfaces;
+</I>&gt;<i>  using OpenSim.Region.Environment.Scenes.Scripting;
+</I>&gt;<i>  using OpenSim.Region.Physics.Manager;
+</I>&gt;<i> +using System.Drawing;
+</I>&gt;<i>
+</I>&gt;<i>  namespace OpenSim.Region.Environment.Scenes
+</I>&gt;<i>  {
+</I>&gt;<i> @@ -303,6 +304,21 @@
+</I>&gt;<i>              set { m_description = value; }
+</I>&gt;<i>          }
+</I>&gt;<i>
+</I>&gt;<i> +        private Color m_color = Color.Black;
+</I>&gt;<i> +
+</I>&gt;<i> +        public Color Color
+</I>&gt;<i> +        {
+</I>&gt;<i> +            get { return m_color; }
+</I>&gt;<i> +            set
+</I>&gt;<i> +            {
+</I>&gt;<i> +                m_color = value;
+</I>&gt;<i> +                /* ScheduleFullUpdate() need not be called b/c after
+</I>&gt;<i> +                 * setting the color, the text will be set, so then
+</I>&gt;<i> +                 * ScheduleFullUpdate() will be called. */
+</I>&gt;<i> +                //ScheduleFullUpdate();
+</I>&gt;<i> +            }
+</I>&gt;<i> +        }
+</I>&gt;<i> +
+</I>&gt;<i>          private string m_text = &quot;&quot;;
+</I>&gt;<i>
+</I>&gt;<i>          public string Text
+</I>&gt;<i> @@ -1000,9 +1016,10 @@
+</I>&gt;<i>                  }
+</I>&gt;<i>              }
+</I>&gt;<i>
+</I>&gt;<i> +            byte[] color = new byte[] { m_color.R, m_color.G, m_color.B, m_color.A };
+</I>&gt;<i>              remoteClient.SendPrimitiveToClient(m_regionHandle, 64096, LocalID, m_shape, lPos, clientFlags, m_uuid,
+</I>&gt;<i>                                                 OwnerID,
+</I>&gt;<i> -                                               m_text, ParentID, m_particleSystem, lRot);
+</I>&gt;<i> +                                               m_text, color, ParentID, m_particleSystem, lRot);
+</I>&gt;<i>          }
+</I>&gt;<i>
+</I>&gt;<i>          /// Terse updates
+</I>&gt;<i> @@ -1089,6 +1106,10 @@
+</I>&gt;<i>
+</I>&gt;<i>          public void SetText(string text, Vector3 color, double alpha)
+</I>&gt;<i>          {
+</I>&gt;<i> +            Color = Color.FromArgb (0xff - (int)(alpha * 0xff),
+</I>&gt;<i> +                                    (int)(color.x * 0xff),
+</I>&gt;<i> +                                    (int)(color.y * 0xff),
+</I>&gt;<i> +                                    (int)(color.z * 0xff));
+</I>&gt;<i>              Text = text;
+</I>&gt;<i>          }
+</I>&gt;<i>
+</I>&gt;<i> Index: OpenSim/Region/Examples/SimpleApp/MyNpcCharacter.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- OpenSim/Region/Examples/SimpleApp/MyNpcCharacter.cs (revision 2322)
+</I>&gt;<i> +++ OpenSim/Region/Examples/SimpleApp/MyNpcCharacter.cs (working copy)
+</I>&gt;<i> @@ -272,7 +272,7 @@
+</I>&gt;<i>
+</I>&gt;<i>          public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
+</I>&gt;<i>                                                    PrimitiveBaseShape primShape, LLVector3 pos, uint flags,
+</I>&gt;<i> -                                                  LLUUID objectID, LLUUID ownerID, string text, uint parentID,
+</I>&gt;<i> +                                                  LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID,
+</I>&gt;<i>                                                    byte[] particleSystem, LLQuaternion rotation)
+</I>&gt;<i>          {
+</I>&gt;<i>          }
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000411.html">[Opensim-dev] [Patch] llSetText with color and alpha argument
+</A></li>
+	<LI>Next message: <A HREF="000412.html">[Opensim-dev] New dependency on Nini?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#419">[ date ]</a>
+              <a href="thread.html#419">[ thread ]</a>
+              <a href="subject.html#419">[ subject ]</a>
+              <a href="author.html#419">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

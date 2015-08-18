@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] RFC: Ways of creating profiles for creators who will	never log in
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20Ways%20of%20creating%20profiles%20for%20creators%20who%0A%20will%09never%20log%20in&In-Reply-To=%3C49CBFD2C.6020209%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005889.html">
+   <LINK REL="Next"  HREF="005892.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] RFC: Ways of creating profiles for creators who will	never log in</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20Ways%20of%20creating%20profiles%20for%20creators%20who%0A%20will%09never%20log%20in&In-Reply-To=%3C49CBFD2C.6020209%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] RFC: Ways of creating profiles for creators who will	never log in">diva at metaverseink.com
+       </A><BR>
+    <I>Thu Mar 26 23:09:48 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005889.html">[Opensim-dev] RFC: Ways of creating profiles for creators who	willnever log in
+</A></li>
+        <LI>Next message: <A HREF="005892.html">[Opensim-dev] RFC: Ways of creating profiles for creators who	will	never log in
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5891">[ date ]</a>
+              <a href="thread.html#5891">[ thread ]</a>
+              <a href="subject.html#5891">[ subject ]</a>
+              <a href="author.html#5891">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Whatever you decided to do (option 3 seems the cleanest), this will 
+probably also be used in the Hypergrid, to keep track of foreign users. 
+I need that! :-)
+
+Justin Clark-Casey wrote:
+&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> For Inventory Archives I plan to preserve item creator information.  When the archive is loaded I would like to recreate 
+</I>&gt;<i> these profiles where possible/necessary (grid operators can choose not to allow this and that will be the default, I 
+</I>&gt;<i> expect).
+</I>&gt;<i>
+</I>&gt;<i> However, unless an item creator has an account on the OpenSim to which the archive is loaded, they shouldn't be able to 
+</I>&gt;<i> login to that instance.
+</I>&gt;<i>
+</I>&gt;<i> So far I've thought of 3 ways to create a profile without automatically allowing login.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> (1)  Create a normal user account but set the password to something random.
+</I>&gt;<i>
+</I>&gt;<i> PROS
+</I>&gt;<i> * Doesn't require any changes to what we have today
+</I>&gt;<i>
+</I>&gt;<i> CONS
+</I>&gt;<i> * Creates user accounts which are never intended to be used for login
+</I>&gt;<i> * No way to distinguish archive created accounts from legitimate accounts
+</I>&gt;<i> ~~~~~
+</I>&gt;<i>
+</I>&gt;<i> (2)  Add a 'ProfileOnly' flag to the Users table
+</I>&gt;<i>
+</I>&gt;<i> PROS
+</I>&gt;<i> * Minimal changes to what we have today
+</I>&gt;<i> * Makes it clear that an entries has been created for its profile only, which can be used as a flag to disallow logins
+</I>&gt;<i>
+</I>&gt;<i> CONS
+</I>&gt;<i> * Creates user accounts where many details will be irrelevant unless item creators then get accounts on the instance.
+</I>&gt;<i> * Complicates administration tasks (e.g. create user).
+</I>&gt;<i> ~~~~~
+</I>&gt;<i>
+</I>&gt;<i> (3)  Separate the current 'users' table into 'userprofiles' and 'users' tables.
+</I>&gt;<i>
+</I>&gt;<i> 'userprofiles' will largely contain all the metadata about a user that you can see in the profile on the Linden Labs 
+</I>&gt;<i> Second Life client today (name, about, interests, 1st life, etc.).
+</I>&gt;<i>
+</I>&gt;<i> 'users' will contain the data associated with a particular account (passwordHash, passwordSalt, homeRegion, 
+</I>&gt;<i> homeLocationX, etc.)
+</I>&gt;<i>
+</I>&gt;<i> PROS
+</I>&gt;<i> * Makes it possible to create user profiles without creating user accounts.
+</I>&gt;<i> * Makes it possible to have somewhat separate profile and authentication plugins allow mix &amp; match.  However, the reuse 
+</I>&gt;<i> of avatar name as the login identifier makes things a bit awkward.
+</I>&gt;<i> * Simplifies database understandability - the only people in the 'users' table are those with actual accounts, though on 
+</I>&gt;<i> the other hand this does create 2 tables instead of 1.
+</I>&gt;<i>
+</I>&gt;<i> CONS
+</I>&gt;<i> * Short term adjustment pain for systems accessing OpenSim's databases directly
+</I>&gt;<i> * Complicates administration tasks (e.g. create user).
+</I>&gt;<i> ~~~~
+</I>&gt;<i>
+</I>&gt;<i> I suspect that archiving isn't the only potential use for this functionality.  For instance, the Hypergrid may also find 
+</I>&gt;<i> it useful to preserve user information when a user rezzes an object on a foreign system.
+</I>&gt;<i>
+</I>&gt;<i> Of the above approaches, I prefer (3) over (2) since it seems to me to be the better long term approach even if there is 
+</I>&gt;<i> some short term pain.  I'm don't think that (1) is a good option.
+</I>&gt;<i>
+</I>&gt;<i> I've reproduced most of text at <A HREF="http://opensimulator.org/wiki/Creating_profiles_not_used_for_login">http://opensimulator.org/wiki/Creating_profiles_not_used_for_login</A> for reference.
+</I>&gt;<i>
+</I>&gt;<i> Comments?
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005889.html">[Opensim-dev] RFC: Ways of creating profiles for creators who	willnever log in
+</A></li>
+	<LI>Next message: <A HREF="005892.html">[Opensim-dev] RFC: Ways of creating profiles for creators who	will	never log in
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5891">[ date ]</a>
+              <a href="thread.html#5891">[ thread ]</a>
+              <a href="subject.html#5891">[ subject ]</a>
+              <a href="author.html#5891">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

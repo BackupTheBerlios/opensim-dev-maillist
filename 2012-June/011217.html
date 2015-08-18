@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Questions about Vehicle scripting calls
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20Vehicle%20scripting%20calls&In-Reply-To=%3CCAAQTD4VHn7Cn74%2BmFJ2%3DHbRVpnnGL4%2B_QVzSJpcFvaOy3hcz6A%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011212.html">
+   <LINK REL="Next"  HREF="011189.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Questions about Vehicle scripting calls</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20Vehicle%20scripting%20calls&In-Reply-To=%3CCAAQTD4VHn7Cn74%2BmFJ2%3DHbRVpnnGL4%2B_QVzSJpcFvaOy3hcz6A%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Questions about Vehicle scripting calls">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Thu Jun  7 23:59:32 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011212.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+        <LI>Next message: <A HREF="011189.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11217">[ date ]</a>
+              <a href="thread.html#11217">[ thread ]</a>
+              <a href="subject.html#11217">[ subject ]</a>
+              <a href="author.html#11217">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Timers in opensimulator are usually limited to 0.5 seconds minimum
+duration. There is a ini setting to change it at the simulator level,
+ however, I've found that using the not_at_target() event gives better
+results as it will fire once per simulation frame which is probably what
+you would want anyway.
+
+Using llSetPos() and friends is probably not a good idea as it generates a
+*lot* of network traffic and overhead in the client stack code in the
+simulator. I've heard several LL engineers lament the use of these
+functions for motion but &quot;the cat is out of the bag now&quot; and there's not
+much they can do about it except promote the use of llSetKeyFramedMotion().
+
+I've had difficulties with the opensimulator implementation of
+llMoveToTarget() and I've written my own velocity feedback loop in LSL
+(which is kind of an abstract PID controller) and I use it on both SL and
+opensimulator. I usually only have to change one constant to get it to
+behave the same on either platform. I use not_at_target() and
+llApplyImpulse() to correct velocity at each simulation frame. I don't use
+any timers at all. It works in all 3 global axes so object rotation doesn't
+affect velocity, and motion is fairly constant and smooth. I have made
+attempts to understand the existing PID code in opensimulator but it's
+unfortunately not very well documented and has a lot of commented out code
+and much of the code uses variable names that are not very descriptive, so
+I haven't been able to successfully modify it to work as well as my LSL
+solution. I'm also somewhat hesitant to commit any changes to that code as
+I don't really have much experience with scripting LSL physics and I don't
+have confidence that I would make changes that would break other's scripts.
+I'm also not sure if any of the PID controller code affects vehicle
+functions or not, or if it just applies to llMoveToTarget() and agent
+motion.
+
+
+
+On Thu, Jun 7, 2012 at 12:09 AM, Mike Higgins &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mike at kayaker.net</A>&gt; wrote:
+
+&gt;<i>  On 6/6/12 12:48 AM, Bengt Falke wrote:
+</I>&gt;<i>
+</I>&gt;<i> I am also interested in physics for vehicles mainly for creating working
+</I>&gt;<i> yacht and for making my free moving scripted animals to work in a smooth
+</I>&gt;<i> way.
+</I>&gt;<i> If there is a way I can contribute I will try to do so.
+</I>&gt;<i>
+</I>&gt;<i>      Also at the recent OpenSim developers meeting, Andrew Hellershanks
+</I>&gt;<i> said (about llSetTImerEvent minimum time limits) &quot;Not sure why you would
+</I>&gt;<i> want to use something other [less] than 1.0&quot;. I think the developers need
+</I>&gt;<i> to know that there are 1000's of scripters in SL DESPERATELY trying to find
+</I>&gt;<i> ANY WAY to make simple things like a fish move smoothly through the water
+</I>&gt;<i> at a constant velocity. In SL you can usually get timer() events as often
+</I>&gt;<i> as once every 0.2 seconds, which is not quite often enough for smooth
+</I>&gt;<i> looking motion. timer events more often would be one way to get smoother
+</I>&gt;<i> looking motion. I've seen people write scripts that had abominations like:
+</I>&gt;<i> while (1) { moveit(); llSleep(0.05); }  The OpenSim developers need to
+</I>&gt;<i> throw these guys a bone so they will NOT DO THAT HERE!
+</I>&gt;<i>
+</I>&gt;<i>     Of course, LL only recently threw them the llSetKeyframedMotion()
+</I>&gt;<i> bone. Before that, people tried to use physics and llMoveToTarget() which
+</I>&gt;<i> was NEVER DESIGNED TO GENERATE LINEAR MOTION (it is always damped).
+</I>&gt;<i> Although you can play games with it and find reasonably linear portions of
+</I>&gt;<i> the curve. But that requires accurate llSetTimerEvent durations to stop the
+</I>&gt;<i> llMoveToTarget part way through a damped move. And in OpenSim,
+</I>&gt;<i> llMoveToTarget is damped 9 times faster than SL (mantis issue 5968) which
+</I>&gt;<i> requires pushing it nine times harder to try to capture a linear section
+</I>&gt;<i> and even more accurate llSetTimerEvent times to prevent the object from
+</I>&gt;<i> running away from you...
+</I>&gt;<i>
+</I>&gt;<i>      The only other way in SL (before llSetKeframedMotion) to get
+</I>&gt;<i> something to move smoothly at a constant velocity is to make it a vehicle.
+</I>&gt;<i> Which is sort of like using a 4 ton hydrolic press to insert thumbtacks in
+</I>&gt;<i> a cork board.  And even in SL, the vehicle functions are really squirrely.
+</I>&gt;<i>
+</I>&gt;<i>     So the major reason I am testing the OpenSim vehicle routines is to
+</I>&gt;<i> see if I can find a reliable subset of them, or a set of workarounds, that
+</I>&gt;<i> will allow me to move a fish smoothly through the water at a constant
+</I>&gt;<i> velocity.
+</I>&gt;<i>
+</I>&gt;<i>     So far I have found a few problems and some workarounds:
+</I>&gt;<i> 1) Vehicles crash and burn at the sim boundary, the workaround is to add
+</I>&gt;<i> code to detect the sim boundary before the vehicle gets there and prevent
+</I>&gt;<i> it from even getting close. But if llSetTimerEvent is not accurate, if your
+</I>&gt;<i> timer() event is not called regularly to do this check, the vehicle runs
+</I>&gt;<i> into the sim boundary and goes crazy.
+</I>&gt;<i> 2)  The angular motor rotates around the wrong axes, but you can
+</I>&gt;<i> workaround that by multiplying your vectors by llGetRot (mantis issue
+</I>&gt;<i> 6039). I'm guessing that nobody noticed this before because cars and boats
+</I>&gt;<i> and helicopters are usually horizontal and their local Z axis is aligned
+</I>&gt;<i> with the region Z axis.
+</I>&gt;<i> 3) The linear motor vector is clamped or projected onto the region XY
+</I>&gt;<i> plane. (mantis issue 6040) A car or a boat or a helicopter might never
+</I>&gt;<i> notice this, but with no Z values allowed in linear motors, how can
+</I>&gt;<i> airplanes glide up or down? Someone please tell me how to get this to work!
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20120607/57cb629b/attachment-0001.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20120607/57cb629b/attachment-0001.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011212.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+	<LI>Next message: <A HREF="011189.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11217">[ date ]</a>
+              <a href="thread.html#11217">[ thread ]</a>
+              <a href="subject.html#11217">[ subject ]</a>
+              <a href="author.html#11217">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

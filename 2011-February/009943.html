@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20Moving%20default%20inventory%20creation%20from%0A%20InventoryService%20to%20UserAccountService%20for%20viewer%202%20initial%20appearance%20code&In-Reply-To=%3C4D47698E.4010501%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009971.html">
+   <LINK REL="Next"  HREF="009946.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20Moving%20default%20inventory%20creation%20from%0A%20InventoryService%20to%20UserAccountService%20for%20viewer%202%20initial%20appearance%20code&In-Reply-To=%3C4D47698E.4010501%40googlemail.com%3E"
+       TITLE="[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Feb  1 03:01:50 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009971.html">[Opensim-dev] Best approach for Vanilla Opensim region module to	create and manipulate scene objects.
+</A></li>
+        <LI>Next message: <A HREF="009946.html">[Opensim-dev] ReactionGrid Inc. files for US Patent
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9943">[ date ]</a>
+              <a href="thread.html#9943">[ thread ]</a>
+              <a href="subject.html#9943">[ subject ]</a>
+              <a href="author.html#9943">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes, I'll take care of the no default appearance case.
+
+Only the inventory service will touch inventory data.  The service's existing AddFolder() and AddItem() calls will be 
+used to setup default inventory, rather than this being hardcoded within IInventoryService.CreateUserInventory().  An 
+AddFolderContent() could make this more efficient rather than making a call for every node.
+
+As for co-ordination, if you look at UserAccountService.CreateUser() you'll see that this service is today co-ordinating 
+user creation.  As well as creating the account, it sets the password on the authentication service, sets the home on 
+the grid user service, calls the inventory service, etc.
+
+But I agree that a metaservice could do this co-ordination instead.  UserCreationService perhaps?
+
+I'll take a look at Wifi and may well borrow some ideas or code.
+
+On 29/01/11 01:54, Melanie wrote:
+&gt;<i> Please don't ignore the case where no default appearance is desired.
+</I>&gt;<i> Also, the UserAccount service should not directly access the
+</I>&gt;<i> inventory database. That would severely break the
+</I>&gt;<i> compartmentalization ROBUST is built on.
+</I>&gt;<i>
+</I>&gt;<i> The correct way is to have the inventory created by the inventory
+</I>&gt;<i> module, as it is now.
+</I>&gt;<i>
+</I>&gt;<i> The inventory module has no business populating that, and neither
+</I>&gt;<i> does the account service. This should be done by an external
+</I>&gt;<i> service, since it is only done on account creation.
+</I>&gt;<i>
+</I>&gt;<i> A meta service, like the LLLoginService, which takes the interfaces
+</I>&gt;<i> of both the inventory and avatar services and creates the inventory
+</I>&gt;<i> AND appearance and stores it in both would be the correct solution
+</I>&gt;<i> to this problem. It would be wrong (and get a -1) to shoehorn this
+</I>&gt;<i> into the existing services.
+</I>&gt;<i>
+</I>&gt;<i> ROBUST services are designed the Unix way. Do one thing, and do it
+</I>&gt;<i> well. The inventory service is not meant to access appearance, the
+</I>&gt;<i> user account service is not meant to access inventory, and so on.
+</I>&gt;<i>
+</I>&gt;<i> Such a meta service can then be loaded by the user server, a
+</I>&gt;<i> standalone or a web service like Wifi. And, obviously, it's
+</I>&gt;<i> configurable, so people who don't want to have a default appearance
+</I>&gt;<i> created, because they for instance have already working PHP code
+</I>&gt;<i> that would be messed up by preexisting data could just not configure
+</I>&gt;<i> it and see no change to current behavior.
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> Hi there,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Today, I had an opportunity to do some more work on setting up default clothing/body parts for viewer 2 (this is in the
+</I>&gt;&gt;<i> &quot;viewer-2-initial-appearance&quot; git branch).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I've come to the realization (obvious in retrospect) that giving these items the default item IDs that the viewer wants
+</I>&gt;&gt;<i> in the absence of any other appearance data is not going to work.  This is for the simple reason that item IDs are
+</I>&gt;&gt;<i> primary keys and cannot be shared between avatars.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Therefore, I will need to use a random item ID and use this to set up a default appearance at the same time as the
+</I>&gt;&gt;<i> inventory items are created (currently, the appearance is only generated when the avatar first logs in).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The user account service co-ordinates user account creation.  It seems that the sensible thing is to move default
+</I>&gt;&gt;<i> inventory creation from the inventory service into the user account service.  Folder and item creation would take place
+</I>&gt;&gt;<i> through existing add calls.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The IInventoryService.CreateUserInventory() method would still be called but would only set up the very bare minimum
+</I>&gt;&gt;<i> structure.  In the SL case, this is just the user's root &quot;My Inventory&quot; folder.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The copy/pasted code for setting up estate managers in Scene.SetModuleInterfaces() also has to move.  The sensible thing
+</I>&gt;&gt;<i> seems to be to expose a IUserAccountService.CreateUserAccount() call which is only available to standalones (as is
+</I>&gt;&gt;<i> effectively currently the case).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Commit 50254bf3 on this branch contains a rough version of this change.  The code to set up a default appearance with
+</I>&gt;&gt;<i> random item IDs for default clothing/body parts has not yet been done.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Comments?
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009971.html">[Opensim-dev] Best approach for Vanilla Opensim region module to	create and manipulate scene objects.
+</A></li>
+	<LI>Next message: <A HREF="009946.html">[Opensim-dev] ReactionGrid Inc. files for US Patent
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9943">[ date ]</a>
+              <a href="thread.html#9943">[ thread ]</a>
+              <a href="subject.html#9943">[ subject ]</a>
+              <a href="author.html#9943">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

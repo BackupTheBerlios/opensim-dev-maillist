@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Improving LSL Script Error Handling
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2014-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Improving%20LSL%20Script%20Error%20Handling&In-Reply-To=%3C400ae81d140245f9873c664d7992f9b1%40BLUPR05MB087.namprd05.prod.outlook.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="012140.html">
+   <LINK REL="Next"  HREF="012145.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Improving LSL Script Error Handling</H1>
+    <B>David Rowe</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Improving%20LSL%20Script%20Error%20Handling&In-Reply-To=%3C400ae81d140245f9873c664d7992f9b1%40BLUPR05MB087.namprd05.prod.outlook.com%3E"
+       TITLE="[Opensim-dev] Improving LSL Script Error Handling">david at ctrlaltstudio.com
+       </A><BR>
+    <I>Sat Jan 18 23:48:50 CET 2014</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="012140.html">[Opensim-dev] Texture encoding in database
+</A></li>
+        <LI>Next message: <A HREF="012145.html">[Opensim-dev] Improving LSL Script Error Handling
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12142">[ date ]</a>
+              <a href="thread.html#12142">[ thread ]</a>
+              <a href="subject.html#12142">[ subject ]</a>
+              <a href="author.html#12142">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I've been looking at script error handling in LSL_Api.cs and propose to tidy it up.
+
+Currently, LSL script errors are handled in a variety of ways:
+- llSay(0, &quot;...&quot;): Says error in public chat, whereas the error should be shouted on the debug channel (at least for all the occurrences I've checked so far) and displayed in the Script Warning/Error dialogue box.
+- ShoutError(&quot;...&quot;): Shouts errors on the debug channel (in accordance with the LSL documentation). But these errors are not displayed in the viewer's Script Warning/Error dialogue box.
+- LSLError(&quot;...&quot;): throw new ScriptException(&quot;LSL Runtime Error: &quot; + msg); Displays a .NET exception in both the viewer's Script Warning/Error dialogue box and the OpenSim console.
+- Deprecated(&quot;...&quot;): throw new ScriptException(&quot;Command deprecated: &quot; + command); Displays a .NET exception in both the viewer's Script Warning/Error dialogue box and the OpenSim console.
+- NotImplemented(&quot;...&quot;): throw new NotImplementedException(&quot;Command not implemented: &quot; + command); Displays a .NET exception in both the viewer's Script Warning/Error dialogue box and the OpenSim console.
+- throw new Exception(...): Displays a .NET exception in both the viewer's Script Warning/Error dialogue box and the OpenSim console.
+- throw new ScriptException(...): Displays a .NET exception script in both the viewer's Script Warning/Error dialogue box and the OpenSim console.
+
+What I propose to do is consolidate things down to use just three methods (that don't produce .NET exceptions):
+- ShoutError()                    Shout the error details on the debug channel.
+- Deprecated()                  Shout &quot;Command is deprecated&quot; on the debug channel.
+- NotImplemented()      Shout &quot;Command is not implemented&quot; on the debug channel.
+
+And make all three also display the error in the viewer's Script Warning/Error dialogue box.
+
+Plus miscellaneous tidy ups such as ...
+- Don't included the LSL method's name in errors shouted on the debug channel; the LSL method's name is already included in the &quot;name&quot; parameter of the message shouted.
+- Add Deprecated() calls to deprecated LSL methods that currently do nothing or just sleep with no user feedback.
+
+And replicate this approach in OSSL_Api.cs which has similar issues.
+
+If people think that this is a good idea, I'll create a Mantis entry and proceed. Anyone interested in reviewing things as I go?
+
+David
+
+SL/OSgrid: Strachan Ofarrel
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20140118/6de3b6fd/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20140118/6de3b6fd/attachment.html</A>&gt;
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="012140.html">[Opensim-dev] Texture encoding in database
+</A></li>
+	<LI>Next message: <A HREF="012145.html">[Opensim-dev] Improving LSL Script Error Handling
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12142">[ date ]</a>
+              <a href="thread.html#12142">[ thread ]</a>
+              <a href="subject.html#12142">[ subject ]</a>
+              <a href="author.html#12142">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

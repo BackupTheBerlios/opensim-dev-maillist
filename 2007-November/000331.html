@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Terrain ---&gt; Height field code || altering	ODE.dll to remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Terrain%20---%3E%20Height%20field%20code%20%7C%7C%20altering%0A%09ODE.dll%20to%20remove%20the%20%28%28nMinX%20%3C%20nMaxX%20%7C%7C%20nMinZ%20%3C%20nMaxZ%29%29%20error&In-Reply-To=%3C335327.71120.qm%40web51303.mail.re2.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000325.html">
+   <LINK REL="Next"  HREF="000330.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Terrain ---&gt; Height field code || altering	ODE.dll to remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error</H1>
+    <B>dan miller</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Terrain%20---%3E%20Height%20field%20code%20%7C%7C%20altering%0A%09ODE.dll%20to%20remove%20the%20%28%28nMinX%20%3C%20nMaxX%20%7C%7C%20nMinZ%20%3C%20nMaxZ%29%29%20error&In-Reply-To=%3C335327.71120.qm%40web51303.mail.re2.yahoo.com%3E"
+       TITLE="[Opensim-dev] Terrain ---&gt; Height field code || altering	ODE.dll to remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error">danbmil99 at yahoo.com
+       </A><BR>
+    <I>Sun Nov  4 00:13:49 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000325.html">[Opensim-dev] Terrain ---&gt; Height field code || altering ODE.dll to	remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error
+</A></li>
+        <LI>Next message: <A HREF="000330.html">[Opensim-dev] A couple more ODE changes to help stability..
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#331">[ date ]</a>
+              <a href="thread.html#331">[ thread ]</a>
+              <a href="subject.html#331">[ subject ]</a>
+              <a href="author.html#331">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>We've semi-forked ODE for just this reason.  I already modded it to ignore
+the ubiquitous dNormalize4 errors.
+
+If you submit a patch to ODE in opensim-libs, I can check it in with
+compiled binaries for linux &amp; windows.
+
+-dan
+
+--- Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; wrote:
+
+&gt;<i> Dan
+</I>&gt;<i> 
+</I>&gt;<i> Looking at the ODE stability issue..      Excessive forces cause an error
+</I>&gt;<i> in
+</I>&gt;<i> int dCollideHeightfield( dxGeom *o1, dxGeom *o2, int flags, dContactGeom*
+</I>&gt;<i> contact, int skip ) in heightfield.cpp in ODE.
+</I>&gt;<i> 
+</I>&gt;<i> The error occurs on line 1741.
+</I>&gt;<i> 
+</I>&gt;<i> However..   looking at the code in heightfield.cpp, nMinX nMaxX, nMinZ and
+</I>&gt;<i> nMaxZ are derived from the terrain.   So, next steps on this bug parhaps
+</I>&gt;<i> are
+</I>&gt;<i> to find out if our terrain--&gt; heightfield code has errors, or if there's
+</I>&gt;<i> some kind of error in heightfield.cpp that we can simply ignore and
+</I>&gt;<i> continue
+</I>&gt;<i> by returning an int 0, for number of collisions.
+</I>&gt;<i> 
+</I>&gt;<i> CodeSample from heightfield.cpp;
+</I>&gt;<i> 
+</I>&gt;<i>     nMinX = int(dFloor(o2-&gt;aabb[0] *
+</I>&gt;<i> terrain-&gt;m_p_data-&gt;m_fInvSampleWidth));
+</I>&gt;<i>     nMaxX = int(dFloor(o2-&gt;aabb[1] *
+</I>&gt;<i> terrain-&gt;m_p_data-&gt;m_fInvSampleWidth))
+</I>&gt;<i> + 1;
+</I>&gt;<i>     nMinZ = int(dFloor(o2-&gt;aabb[4] *
+</I>&gt;<i> terrain-&gt;m_p_data-&gt;m_fInvSampleDepth));
+</I>&gt;<i>     nMaxZ = int(dFloor(o2-&gt;aabb[5] *
+</I>&gt;<i> terrain-&gt;m_p_data-&gt;m_fInvSampleDepth))
+</I>&gt;<i> + 1;
+</I>&gt;<i> 
+</I>&gt;<i>     if ( !wrapped )
+</I>&gt;<i>     {
+</I>&gt;<i>         nMinX = dMAX( nMinX, 0 );
+</I>&gt;<i>         nMaxX = dMIN( nMaxX, terrain-&gt;m_p_data-&gt;m_nWidthSamples - 1 );
+</I>&gt;<i>         nMinZ = dMAX( nMinZ, 0 );
+</I>&gt;<i>         nMaxZ = dMIN( nMaxZ, terrain-&gt;m_p_data-&gt;m_nDepthSamples - 1 );
+</I>&gt;<i> 
+</I>&gt;<i>         dIASSERT ((nMinX &lt; nMaxX) || (nMinZ &lt; nMaxZ))   // &lt;---- Generates
+</I>&gt;<i> the error
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>     }
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Best Regards
+</I>&gt;<i> 
+</I>&gt;<i> Teravus
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000325.html">[Opensim-dev] Terrain ---&gt; Height field code || altering ODE.dll to	remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error
+</A></li>
+	<LI>Next message: <A HREF="000330.html">[Opensim-dev] A couple more ODE changes to help stability..
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#331">[ date ]</a>
+              <a href="thread.html#331">[ thread ]</a>
+              <a href="subject.html#331">[ subject ]</a>
+              <a href="author.html#331">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Script not working correctly in Opensim
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Script%20not%20working%20correctly%20in%20Opensim&In-Reply-To=%3CCADBmbwg9s25iduiAV3ubRzQd9tpHiR_E79CH7GjjNOVXqbVbLQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010677.html">
+   <LINK REL="Next"  HREF="010679.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Script not working correctly in Opensim</H1>
+    <B>Fritigern Gothly</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Script%20not%20working%20correctly%20in%20Opensim&In-Reply-To=%3CCADBmbwg9s25iduiAV3ubRzQd9tpHiR_E79CH7GjjNOVXqbVbLQ%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Script not working correctly in Opensim">fritigerngothly at gmail.com
+       </A><BR>
+    <I>Thu Oct 20 09:35:46 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010677.html">[Opensim-dev] Script not working correctly in Opensim
+</A></li>
+        <LI>Next message: <A HREF="010679.html">[Opensim-dev] Script not working correctly in Opensim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10678">[ date ]</a>
+              <a href="thread.html#10678">[ thread ]</a>
+              <a href="subject.html#10678">[ subject ]</a>
+              <a href="author.html#10678">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hmmm... Why not use osTeleportAgent?
+<A HREF="http://opensimulator.org/wiki/OsTeleportAgent">http://opensimulator.org/wiki/OsTeleportAgent</A>
+
+On Thu, Oct 20, 2011 at 9:25 AM, Chris Collins &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">chris at tipodean.com</A>&gt; wrote:
+&gt;<i> I have the following script that is working within SL but does not always
+</I>&gt;<i> work in OpenSim. Sometimes it works other times it does not. Can anyone see
+</I>&gt;<i> anything that would be causing issues on Opensim
+</I>&gt;<i> vector DEST = &lt;130, 182, 36&gt;;
+</I>&gt;<i> vector SITPOS = &lt;0,0,0.5&gt;;
+</I>&gt;<i> key gAv;
+</I>&gt;<i>
+</I>&gt;<i> moveTo(vector origin, vector destination ) { // removed jumpdist
+</I>&gt;<i> &#160; &#160; float dist = llVecDist(origin, destination);
+</I>&gt;<i> &#160; &#160; integer passes = llCeil( llLog(dist/10.0) / llLog(2.0) );
+</I>&gt;<i> &#160; &#160; integer i;
+</I>&gt;<i> &#160; &#160; list params = [PRIM_POSITION, destination];
+</I>&gt;<i> &#160; &#160; for (i=0; i&lt;passes; i++) {
+</I>&gt;<i> &#160; &#160; &#160; &#160; params = (params=[]) + params + params;
+</I>&gt;<i> &#160; &#160; }
+</I>&gt;<i> &#160; &#160; llSetPrimitiveParams(params);
+</I>&gt;<i> }
+</I>&gt;<i>
+</I>&gt;<i> teleport(key av) {
+</I>&gt;<i> &#160; &#160; if (av == NULL_KEY)
+</I>&gt;<i> &#160; &#160; {
+</I>&gt;<i> &#160; &#160; &#160; &#160; return;
+</I>&gt;<i> &#160; &#160; }
+</I>&gt;<i>
+</I>&gt;<i> &#160; &#160; vector origin = llGetPos();
+</I>&gt;<i> &#160; &#160; llSetAlpha (0.0, ALL_SIDES);
+</I>&gt;<i> &#160; &#160; moveTo(origin, DEST);
+</I>&gt;<i> &#160; &#160; // no need to sleep -- llSetPrimParams has 0.2s delay
+</I>&gt;<i> &#160; &#160; llUnSit(av);
+</I>&gt;<i> &#160; &#160; moveTo(DEST, origin);
+</I>&gt;<i> &#160; &#160; llSetAlpha (1.0, ALL_SIDES);
+</I>&gt;<i> }
+</I>&gt;<i>
+</I>&gt;<i> default
+</I>&gt;<i> {
+</I>&gt;<i> &#160; &#160; state_entry()
+</I>&gt;<i> &#160; &#160; {
+</I>&gt;<i> &#160; &#160; &#160; &#160; llSetClickAction (CLICK_ACTION_SIT);
+</I>&gt;<i> &#160; &#160; &#160; &#160; llSitTarget(SITPOS,llEuler2Rot(&lt;0,0,-90&gt; * DEG_TO_RAD));
+</I>&gt;<i> &#160; &#160; }
+</I>&gt;<i>
+</I>&gt;<i> &#160; &#160; changed(integer changebits)
+</I>&gt;<i> &#160; &#160; {
+</I>&gt;<i> &#160; &#160; &#160; &#160; if (changebits &amp; CHANGED_LINK)
+</I>&gt;<i> &#160; &#160; &#160; &#160; {
+</I>&gt;<i> &#160; &#160; &#160; &#160; &#160; &#160; gAv = llAvatarOnSitTarget();
+</I>&gt;<i> &#160; &#160; &#160; &#160; &#160; &#160; if (gAv != NULL_KEY)
+</I>&gt;<i> &#160; &#160; &#160; &#160; &#160; &#160; {
+</I>&gt;<i> &#160; &#160; &#160; &#160; &#160; &#160; &#160; &#160; teleport(gAv);
+</I>&gt;<i> &#160; &#160; &#160; &#160; &#160; &#160; }
+</I>&gt;<i> &#160; &#160; &#160; &#160; }
+</I>&gt;<i> &#160; &#160; }
+</I>&gt;<i> }
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+
+-- 
+-- Friti
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010677.html">[Opensim-dev] Script not working correctly in Opensim
+</A></li>
+	<LI>Next message: <A HREF="010679.html">[Opensim-dev] Script not working correctly in Opensim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10678">[ date ]</a>
+              <a href="thread.html#10678">[ thread ]</a>
+              <a href="subject.html#10678">[ subject ]</a>
+              <a href="author.html#10678">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

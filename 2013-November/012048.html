@@ -1,0 +1,177 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Running Multiple Robust Instances errors and some questions about running in this configuration
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Running%20Multiple%20Robust%20Instances%20errors%20and%20some%0A%20questions%20about%20running%20in%20this%20configuration&In-Reply-To=%3C527C39F7.1010109%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="012047.html">
+   <LINK REL="Next"  HREF="012049.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Running Multiple Robust Instances errors and some questions about running in this configuration</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Running%20Multiple%20Robust%20Instances%20errors%20and%20some%0A%20questions%20about%20running%20in%20this%20configuration&In-Reply-To=%3C527C39F7.1010109%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Running Multiple Robust Instances errors and some questions about running in this configuration">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Nov  8 02:10:15 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="012047.html">[Opensim-dev] Variable size region progress
+</A></li>
+        <LI>Next message: <A HREF="012049.html">[Opensim-dev] Running Multiple Robust Instances errors and some questions about running in this configuration
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12048">[ date ]</a>
+              <a href="thread.html#12048">[ thread ]</a>
+              <a href="subject.html#12048">[ subject ]</a>
+              <a href="author.html#12048">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>If I look through the current Robust.HG.ini.example, then I see an asset service is referenced in [GridService] and 
+[HGAssetService].
+
+These are direct instantiations of copies of the ordinary OpenSimulator asset service class, which it's not possible to 
+redirect to SRAS.
+
+Now the one in GridService could theoretically be made to load the remote connector (RemoteAssetServiceConnector) but 
+I'm not sure how this would work for HGAssetService.  Unfortunately, this isn't something that I've tried to do and I 
+don't currently know how OSGrid handles this.
+
+On 29/10/13 23:25, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensiminfo at virtualrealmsgrid.com</A> wrote:
+&gt;<i> Hi all..
+</I>&gt;<i>
+</I>&gt;<i> I have a few questions about Running Multiple Robust services and a couple of errors..
+</I>&gt;<i>
+</I>&gt;<i> My setup is this..
+</I>&gt;<i> I have My Asset Server as a SRAS server on the same machine running on port 8004 (I followed the Instructions as
+</I>&gt;<i> per Nebadon's PDF on setting up a SRAS server).
+</I>&gt;<i> I also have a Instance of my Inventory server running on port 8005
+</I>&gt;<i> The rest of the services are on one instance of Robust running on 8003
+</I>&gt;<i> The Inventory Robust Instance and the Robust Instance share the same database.
+</I>&gt;<i> There are all on the same machine.
+</I>&gt;<i>
+</I>&gt;<i> So here a error I get from the Robust Server log when I start the Robust with or without the SRAS server running.
+</I>&gt;<i>
+</I>&gt;<i> 2013-10-29 16:26:40,479 ERROR - OpenSim.Server.Base.ServerUtils [SERVER UTILS]: Error loading plugin
+</I>&gt;<i> OpenSim.Services.Interfaces.IAssetService from OpenSim.Services.AssetService.dll. Exception: Object reference not set to
+</I>&gt;<i> an instance of an object, at System.Reflection.MonoCMethod.Invoke (System.Object obj, BindingFlags invokeAttr,
+</I>&gt;<i> System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x00000] in
+</I>&gt;<i> &lt;filename unknown&gt;:0
+</I>&gt;<i> at System.Reflection.MonoCMethod.Invoke (BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[]
+</I>&gt;<i> parameters, System.Globalization.CultureInfo culture) [0x00000] in &lt;filename unknown&gt;:0
+</I>&gt;<i> at System.Activator.CreateInstance (System.Type type, BindingFlags bindingAttr, System.Reflection.Binder binder,
+</I>&gt;<i> System.Object[] args, System.Globalization.CultureInfo culture, System.Object[] activationAttributes) [0x00000] in
+</I>&gt;<i> &lt;filename unknown&gt;:0
+</I>&gt;<i> at System.Activator.CreateInstance (System.Type type, System.Object[] args, System.Object[] activationAttributes)
+</I>&gt;<i> [0x00000] in &lt;filename unknown&gt;:0
+</I>&gt;<i> at System.Activator.CreateInstance (System.Type type, System.Object[] args) [0x00000] in &lt;filename unknown&gt;:0
+</I>&gt;<i> at OpenSim.Server.Base.ServerUtils.LoadPlugin[IAssetService] (System.String dllName, System.String className,
+</I>&gt;<i> System.Object[] args) [0x00000] in &lt;filename unknown&gt;:0
+</I>&gt;<i> 2013-10-29 16:26:40,480 ERROR - OpenSim.Server.Base.ServerUtils [SERVER UTILS]: Error loading plugin
+</I>&gt;<i> OpenSim.Services.AssetService.dll: Exception has been thrown by the target of an invocation. args.Length 1
+</I>&gt;<i>
+</I>&gt;<i> So As I look over the Robust.HG.ini file one question comes to mind (I realize that the OpenSims Instances (regions) get
+</I>&gt;<i> the server information from the GridCommon.ini), but where does the rest of the Robust services get told of the SRAS
+</I>&gt;<i> server?  And in the case of the HG connector get told of the SRAS Asset server..  For I noticed today if I Hypergrid to
+</I>&gt;<i> say the OSgrid pick up a item and bring it back to my grid I am not able to rez that item I get a error about asset not
+</I>&gt;<i> found and the error message I from the OpenSim log from that region on my grid is:
+</I>&gt;<i>
+</I>&gt;<i> OpenSim.Region.CoreModules.Framework.InventoryAccess.HGInventoryAccessModule [HGScene]: RezObject
+</I>&gt;<i> itemID=865b0725-b4c2-40d6-8c9e-ddb824e8ee72 fromTaskID=00000000-0000-0000-0000-000000000000
+</I>&gt;<i> 2013-10-29 19:14:23,520 WARN - OpenSim.Region.CoreModules.Framework.InventoryAccess.BasicInventoryAccessModule
+</I>&gt;<i> [InventoryAccessModule]: Could not find asset 45c56c10-2ef1-4d94-b523-7664de7d62a9 for item Any Size Mega Prim (boxed)
+</I>&gt;<i> 865b0725-b4c2-40d6-8c9e-ddb824e8ee72 for Todd Davis in RezObject()
+</I>&gt;<i> 2013-10-29 19:14:23,841 DEBUG - OpenSim.Services.Connectors.Hypergrid.UserAgentServiceConnector [USER AGENT CONNECTOR]:
+</I>&gt;<i> Unable to contact remote server <A HREF="http://76.212.124.49:9050/">http://76.212.124.49:9050/</A> for GetServerURLs
+</I>&gt;<i>
+</I>&gt;<i> Is this error caused by my step or is there a bug?
+</I>&gt;<i>
+</I>&gt;<i> If this is caused by my setup, I started to look over my Robust.HG.ini file one question comes to mind (I realize that
+</I>&gt;<i> the OpenSims Instances (regions) get the server information from the GridCommon.ini), but where does the rest of the
+</I>&gt;<i> Robust services get told of the SRAS server?  And in the case of the HG connector get told of the SRAS Asset server..
+</I>&gt;<i>
+</I>&gt;<i> Entries in the Robust like this makes me wonder where the Robust connectors get the information about the SRAS server..
+</I>&gt;<i>
+</I>&gt;<i> As per Nebadon's PDF on SRAS I commented these out..
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> [GridService]
+</I>&gt;<i> LocalServiceModule = &quot;OpenSim.Services.GridService.dll:GridService&quot;
+</I>&gt;<i>
+</I>&gt;<i> HypergridLinker = true
+</I>&gt;<i>
+</I>&gt;<i> ; Realm = &quot;regions&quot;
+</I>&gt;<i> ; AllowDuplicateNames = &quot;True&quot;
+</I>&gt;<i>
+</I>&gt;<i> ;; Perform distance check for the creation of a linked region
+</I>&gt;<i> ; Check4096 = &quot;True&quot;
+</I>&gt;<i>
+</I>&gt;<i> ;; Needed to display non-default map tile images for linked regions
+</I>&gt;<i> AssetService = &quot;OpenSim.Services.AssetService.dll:AssetService&quot;   &lt;--- This is not loaded because my SRAS server is the
+</I>&gt;<i> asset server
+</I>&gt;<i> ;[AssetService]
+</I>&gt;<i> ; LocalServiceModule = &quot;OpenSim.Services.AssetService.dll:AssetService&quot;
+</I>&gt;<i> ; DefaultAssetLoader = &quot;OpenSim.Framework.AssetLoader.Filesystem.dll&quot;
+</I>&gt;<i> ; AssetLoaderArgs = &quot;./assets/AssetSets.xml&quot;
+</I>&gt;<i>
+</I>&gt;<i> ; * This configuration loads the inventory server modules. It duplicates
+</I>&gt;<i> ; * the function of the legacy inventory server
+</I>&gt;<i> ; *
+</I>&gt;<i> ;[InventoryService]
+</I>&gt;<i> ; LocalServiceModule = &quot;OpenSim.Services.InventoryService.dll:XInventoryService&quot;
+</I>&gt;<i>
+</I>&gt;<i> Sorry about the length of this question just trying to get my head around the Robust connectors and Hypergrid
+</I>&gt;<i> interaction is all. And I want to make sure I did not miss something setting up different Robust instances to improve
+</I>&gt;<i> performance of my grid's Robust server.
+</I>&gt;<i>
+</I>&gt;<i> Thanks
+</I>&gt;<i> Todd
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="012047.html">[Opensim-dev] Variable size region progress
+</A></li>
+	<LI>Next message: <A HREF="012049.html">[Opensim-dev] Running Multiple Robust Instances errors and some questions about running in this configuration
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12048">[ date ]</a>
+              <a href="thread.html#12048">[ thread ]</a>
+              <a href="subject.html#12048">[ subject ]</a>
+              <a href="author.html#12048">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

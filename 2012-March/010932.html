@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3C4F52270F.2060201%40cox.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010931.html">
+   <LINK REL="Next"  HREF="010933.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service</H1>
+    <B>Chris</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3C4F52270F.2060201%40cox.net%3E"
+       TITLE="[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service">mewtwo0641 at cox.net
+       </A><BR>
+    <I>Sat Mar  3 15:13:35 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010931.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+        <LI>Next message: <A HREF="010933.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST	asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10932">[ date ]</a>
+              <a href="thread.html#10932">[ thread ]</a>
+              <a href="subject.html#10932">[ subject ]</a>
+              <a href="author.html#10932">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think it sounds like a great idea! I do have a question on this 
+approach though out of curiosity.
+
+How would this method handle assets (textures for instance) that are 
+referenced on two different objects (or perhaps referenced inside the 
+object's inventories) that are essentially the same but have different 
+UUIDs? For instance, Object A is a house and has a wallpaper texture 
+with a UUID b8982190-6537-11e1-b86c-0800200c9a66 and Object B is 
+different house that uses the same exact wallpaper texture (Shares the 
+same hash) but has a UUID of 5fa5c9f6-448f-4c9b-8d32-75f226b2173c. Would 
+de-duplication destroy one of the assets, resulting in one of the houses 
+to have no texture?
+
+An example of this situation arising would be if hypothetically I were 
+to build something on another grid using full perm and open licensed 
+textures and then export my creation using Imprudence for instance which 
+if all the permissions, creator name, and grid conditions are satisfied 
+will also export the textures with it, and then import to OpenSim using 
+its automatic texture upload and texture reassigning capabilities to 
+recreate my object with all textures intact. If these assets already 
+exist in the database at the time of upload (perhaps I've created and 
+imported something else earlier back that uses assets that share the 
+same hash but not the same UUID) will the newly created object be 
+missing textures?
+
+Would there be an option in the configuration files for one to turn this 
+feature off if needed, perhaps to avoid the above scenario?
+
+On 3/2/2012 8:51 PM, Justin Clark-Casey wrote:
+&gt;<i> Hi folks.  As we know, the space required for asset storage in 
+</I>&gt;<i> OpenSimulator grows continuously over time.
+</I>&gt;<i>
+</I>&gt;<i> I think this is inevitable in a web-like virtual world - distributed 
+</I>&gt;<i> garbage collection is practically impossible. However, the current 
+</I>&gt;<i> OpenSimulator asset service stores much more data than it needs to 
+</I>&gt;<i> since it fails to identify assets that are exact duplicates of each 
+</I>&gt;<i> other.
+</I>&gt;<i>
+</I>&gt;<i> Previous work in places such as OSGrid, which now uses Dave Coyle's 
+</I>&gt;<i> Simple Ruby Asset Service (SRAS) [1], reveals that preventing 
+</I>&gt;<i> duplicate assets has a significant effect on storage requirements (I 
+</I>&gt;<i> can't remember the exact figures but I think that it's &gt;30%).
+</I>&gt;<i>
+</I>&gt;<i> Therefore, I propose to introduce a new core asset service 
+</I>&gt;<i> (xassetservice) that will implement asset de-duplication via asset 
+</I>&gt;<i> data hashing.  This has already been shown to work by SRAS.  I regard 
+</I>&gt;<i> this feature as critical for future plans to extend IAR loading and to 
+</I>&gt;<i> improve the 3-months-out-of-the-box OpenSimulator experience.  It does 
+</I>&gt;<i> not aim to replace external projects such as SRAS for heavy users.
+</I>&gt;<i>
+</I>&gt;<i> I already have a working implementation in the xassetservice git 
+</I>&gt;<i> branch (configuration instructions at [2]).  This should not be used 
+</I>&gt;<i> in way except for testing - it is still in the prototype stage and can 
+</I>&gt;<i> change at any time.  Only a MySQL implementation exists right now.
+</I>&gt;<i>
+</I>&gt;<i> The plan would be to have xassetservice exist alongside and 
+</I>&gt;<i> independent of the existing asset service.  Only one service can be 
+</I>&gt;<i> used at a time and this is determined via config files.  After 
+</I>&gt;<i> considerable testing, xassetservice would become the default asset 
+</I>&gt;<i> service for new OpenSimulator installations.  The existing asset 
+</I>&gt;<i> service would continue alongside for a very, very, very long time.
+</I>&gt;<i>
+</I>&gt;<i> Since asset datasets are so large and critical there would be no 
+</I>&gt;<i> automatic migration between assetservice data and xassetservice.  
+</I>&gt;<i> Instead, there would be an external migration tool.
+</I>&gt;<i>
+</I>&gt;<i> I may also take this opportunity to implement other asset service 
+</I>&gt;<i> features, such as data storage on disk instead of database (possibly 
+</I>&gt;<i> nicking stuff from kcozen's previous patch for this) and maybe 
+</I>&gt;<i> compression (though I'm currently thinking that the cons of this 
+</I>&gt;<i> outweight the pros).
+</I>&gt;<i>
+</I>&gt;<i> More detail is at [3].  Comments or alternative implementation 
+</I>&gt;<i> suggestions from developers, etc., are welcome.
+</I>&gt;<i>
+</I>&gt;<i> [1] <A HREF="https://github.com/coyled/sras">https://github.com/coyled/sras</A>
+</I>&gt;<i> [2] 
+</I>&gt;<i> <A HREF="http://opensimulator.org/wiki/Feature_Proposals/Deduplicating_Asset_Service#Testing">http://opensimulator.org/wiki/Feature_Proposals/Deduplicating_Asset_Service#Testing</A>
+</I>&gt;<i> [3] 
+</I>&gt;<i> <A HREF="http://opensimulator.org/wiki/Feature_Proposals/Deduplicating_Asset_Service">http://opensimulator.org/wiki/Feature_Proposals/Deduplicating_Asset_Service</A>
+</I>&gt;<i>
+</I>
+
+-- 
+OpenSim: 9 Region Standalone on 0.7.3 Dev
+Physics: Open Dynamics Engine
+OS: Windows 7 (x64)
+CPU: AMD Phenom II X4 840 3.2 GHz
+Memory: 11 GB DDR3
+Database: MySQL 5.1.11
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010931.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+	<LI>Next message: <A HREF="010933.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST	asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10932">[ date ]</a>
+              <a href="thread.html#10932">[ thread ]</a>
+              <a href="subject.html#10932">[ subject ]</a>
+              <a href="author.html#10932">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Interop
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Interop&In-Reply-To=%3C4C7F026D.9030404%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009481.html">
+   <LINK REL="Next"  HREF="009483.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Interop</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Interop&In-Reply-To=%3C4C7F026D.9030404%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Interop">diva at metaverseink.com
+       </A><BR>
+    <I>Thu Sep  2 03:48:29 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009481.html">[Opensim-dev] Global identifiers
+</A></li>
+        <LI>Next message: <A HREF="009483.html">[Opensim-dev] Interop
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9482">[ date ]</a>
+              <a href="thread.html#9482">[ thread ]</a>
+              <a href="subject.html#9482">[ subject ]</a>
+              <a href="author.html#9482">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>[Changing the subject; long email full of technical and historical 
+details; should perhaps cross-list to vwrap, but the chair there doesn't 
+like cross-postings, understandably; I don't know how to solve that, so 
+goes here only for now...]
+
+OGP was a nice demo, and certainly had a lot of impact because it 
+pointed towards what people wanted. It was incomplete, and the agent 
+domain part was never made available for people to use on their own 
+grids. But those weren't the only problems, they weren't even the major 
+problems... The only reason why that demo worked at all was because 
+OpenSim, at the time, was a _complete_security_hole_! :D
+
+Basically, if you had a modified client that would make a certain remote 
+call into any OpenSim out there, it would create an agent on the sim, 
+without asking any questions. In other words, you could enter any grid 
+bypassing credential checks altogether. That's how logins and TPs worked 
+when I started playing with OpenSim. A couple of people noticed this at 
+some point or another, and sent us private bug reports. I'm saying this 
+now, because this affects very old versions of OpenSim that probably no 
+one is running anymore -- I hope!
+
+The very first version of HG1.0 exploited the same vulnerability. Later, 
+I added a session check across the board, which would at least verify 
+that there was some sort of authority on the sending side, and that such 
+authority would confirm the existence of that session. I'm not sure 
+people were still using OGP at this point, but OGP would have stopped 
+working with this session check, because I didn't have access to the 
+agent domain code in order to add this check to it.
+
+The Hypergrid progressed empirically by me identifying all these 
+security holes and, basically, fix them. The holes were the path to the 
+solutions -- I didn't have to make anything up!
+
+I think the people who did OGP had conscience of how broken that 
+SL/OpenSim demo was, and knew it needed a whole lot more. Documents out 
+there explain what they were thinking about (e.g. 
+<A HREF="http://wiki.secondlife.com/wiki/Structural_Design">http://wiki.secondlife.com/wiki/Structural_Design</A>).
+
+There are many similarities between what they were thinking and HG1.5. 
+What that extended protocol is missing is the authentication between the 
+multiple parties involved: what they call the Region domain (similar to 
+the Gatekeeper), what they call the Agent domain (similar to the user 
+agent service), the region itself, and the viewer. *And authentication 
+is the critical piece for making this secure.*
+
+Since they didn't seem to have any solution for the multi-party 
+authentication problem, that led to the initial idea that interop could 
+never be true S4S, but would have to have some sort of real-world 
+authority that would establish and enforce the rules of engagement in a 
+federation of VWs -- that would make the nasty problem of authentication 
+go away with the addition of lawyers!
+
+Melanie and I figured out how to make the multi-party authentication 
+work. It's basically a series of data flows and verifications that rely 
+100% on the basic Internet architecture -- DNS and TCP/IP addresses -- 
+and on the social organization that we can expect on top of this 
+architecture. Nothing fancy, really, just back to the basics. And it 
+works. This is not the only way to solve the multi-party authentication 
+problem, but it's probably the simplest.
+
+HG1.5 is fairly secure, there's only a couple of obscure corner cases. 
+It's more complicated and unsafe than it needs to be, if we had a client 
+that would cooperate and do the right things. The LL client is a major 
+fixed-point in this, it restricts a lot what we can do.
+
+But I've started to like the LL client like it is. Call it Stockholm 
+syndrome! :D
+There's an interesting thing about the LL architecture: the client talks 
+only to the server(s) that it connects to, and not to the resource 
+servers directly. We hate this, of course. But this is how web browsers 
+work too -- or at least how they are forced to work by web servers. When 
+you get a page from a site, the resources you are allowed to get via the 
+dynamic connections are only from that site, and not others (the origin 
+restriction). So if someone would ever do a Web-browser-based rendering 
+engine (something I would love to see!) we would be dealing with 
+essentially the same situation that we are dealing now. Think about it!
+
+
+Justin Clark-Casey wrote:
+&gt;<i> On 01/09/10 14:56, Mike Dickson wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> More on OGP below.
+</I>&gt;&gt;&gt;<i> Like Diva, I also think that good standards very often only come out
+</I>&gt;&gt;&gt;<i> of working implementations. Hence, though I've
+</I>&gt;&gt;&gt;<i> been following the VWRAP lists (and OGP before that) I haven't been
+</I>&gt;&gt;&gt;<i> participating since there's been a lot of
+</I>&gt;&gt;&gt;<i> hard-to-follow discussion without much real-world consequence. And as
+</I>&gt;&gt;&gt;<i> a working developer I don't have the luxury of
+</I>&gt;&gt;&gt;<i> sitting on my tush and contemplating the Platonic world of future
+</I>&gt;&gt;&gt;<i> standards all day ;) (joking).
+</I>&gt;&gt;<i> This is really the issue that has always bothered me. There's been an
+</I>&gt;&gt;<i> assertion that working code was more important than &quot;standards&quot;. Truth
+</I>&gt;&gt;<i> is, standards are hard work, its more fun to hack code. And there *was*
+</I>&gt;&gt;<i> an existing implementation. LL and IBM demonstrated some limited cross
+</I>&gt;&gt;<i> grid functionality (hence the OGP work). And asserting politics was an
+</I>&gt;&gt;<i> issue is just lame. Linden Labs put forward a *working* system as a
+</I>&gt;&gt;<i> starting point along with some jointly developed code demonstrating
+</I>&gt;&gt;<i> limited interoperability. The code was even available to the OpenSim
+</I>&gt;&gt;<i> team. So if there was a &quot;political agenda&quot; it was on both sides. LL
+</I>&gt;&gt;<i> wanting to preserve some compatibility with their existing system (but
+</I>&gt;&gt;<i> willing to consider changes) and on the HyperGrid side a desire to
+</I>&gt;&gt;<i> explore and research ideas.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> What still remains is the hard work of creating a standard that defines
+</I>&gt;&gt;<i> interoperability. It would be great to see that progress, along with the
+</I>&gt;&gt;<i> code.
+</I>&gt;<i> 
+</I>&gt;<i> I certainly agree that standards are hard work, which is why creating 
+</I>&gt;<i> them without reference to any working examples seems an almost 
+</I>&gt;<i> impossible task to me.  But that's just my own opinion which is not 
+</I>&gt;<i> burdened by decades of experience :)
+</I>&gt;<i> 
+</I>&gt;<i> I also have to echo what Dahlia said earlier.  OGP was extremely 
+</I>&gt;<i> limited, afaik being nothing beyond transporting an avatar name to a 
+</I>&gt;<i> 'default' avatar on another grid.  There was no other identity or 
+</I>&gt;<i> appearance preservation, let alone access to inventory - all extremely 
+</I>&gt;<i> tough problems to address in any scalable or secure manner.
+</I>&gt;<i> 
+</I>&gt;<i> Dahlia's phrase &quot;OpenSim community&quot; rather than &quot;OpenSim team&quot; 
+</I>&gt;<i> illuminates very well the structures in play here.  In terms of the core 
+</I>&gt;<i> group, I wouldn't say that we were a team as such but more a community 
+</I>&gt;<i> of people with a reasonably common set of interests who agree to abide 
+</I>&gt;<i> by certain norms and a few rules.  There was never really an &quot;OpenSim 
+</I>&gt;<i> team&quot; to respond to OGP proposals.  Rather, some people were interested 
+</I>&gt;<i> in it and implemented the required bits and pieces and other people were 
+</I>&gt;<i> ambivalent or more interested in alternative architectures.
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009481.html">[Opensim-dev] Global identifiers
+</A></li>
+	<LI>Next message: <A HREF="009483.html">[Opensim-dev] Interop
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9482">[ date ]</a>
+              <a href="thread.html#9482">[ thread ]</a>
+              <a href="subject.html#9482">[ subject ]</a>
+              <a href="author.html#9482">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Standardizing OpenSim data formats
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Standardizing%20OpenSim%20data%20formats&In-Reply-To=%3C34cc66250904291558q4f9b8eb7vee3d0d9cbefff413%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006358.html">
+   <LINK REL="Next"  HREF="006390.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Standardizing OpenSim data formats</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Standardizing%20OpenSim%20data%20formats&In-Reply-To=%3C34cc66250904291558q4f9b8eb7vee3d0d9cbefff413%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Standardizing OpenSim data formats">teravus at gmail.com
+       </A><BR>
+    <I>Thu Apr 30 00:58:57 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006358.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+        <LI>Next message: <A HREF="006390.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6361">[ date ]</a>
+              <a href="thread.html#6361">[ thread ]</a>
+              <a href="subject.html#6361">[ subject ]</a>
+              <a href="author.html#6361">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sculpt/flexi/light are probably stored in the ExtraParams byte array.
+ The routines for deserializing that are in PrimitiveBaseShape.
+Unfortunately this is one of those 'legacy' things that ended up that
+way.    Someone, a long time ago, exposed these options as the
+ExtraParams byte array and persisted it directly.   The two important
+methods to use for this are:
+
+void PrimitiveBaseShape.ReadInExtraPramsBytes (byte[]), and
+
+byte[] PrimitiveBaseShape.ExtraparamsToBytes()
+
+At the time, changing it would have broken all existing inventory.
+
+I think particles have their own byte array.
+
+Best Regards
+
+Teravus
+
+
+On 4/29/09, Hurliman, John &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">john.hurliman at intel.com</A>&gt; wrote:
+&gt;<i> Thank you for taking a look. Looks like I all of the &quot;ExtraData&quot; for prims, including sculpt/particles/flexi/etc. I'll see what OpenSim is doing for saving script state and add everything in a second pass. I'm hoping that this particular format captures everything needed to save simulator state to disk for OpenSim and load it back up, while being easy to create and parse by third party tools. Additional formats could be made later for more specific tasks such as saving assets offline (where things like InventorySerial definitely wouldn't matter).
+</I>&gt;<i>
+</I>&gt;<i> There could be a couple of different approaches to distinguishing between different content types. OAR loading is already doing this for terrain with a switch statement on the file extension. That works until two separate formats both decide to use the .prim or .xml extensions. Another possibility would be to require that all object serializations use the same format so a MIME type could be read from metadata embedded in the file. Using the OAR index file to store a list of filenames and content types could also work. This breaks some of the nice things about OAR files though, such as opening one up in a file viewer and dropping some content in without using special tools.
+</I>&gt;<i>
+</I>&gt;<i> John
+</I>&gt;<i>
+</I>&gt;<i> &gt;-----Original Message-----
+</I>&gt;<i> &gt;From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> &gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;<i> &gt;Sent: Wednesday, April 29, 2009 10:44 AM
+</I>&gt;<i> &gt;To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;Subject: Re: [Opensim-dev] Standardizing OpenSim data formats
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;Hurliman, John wrote:
+</I>&gt;<i> &gt;&gt; Currently, OpenSim server&lt;-&gt;server communication is primarily made up
+</I>&gt;<i> &gt;of .NET XML serialization. As a side effect of this, I've seen the wire
+</I>&gt;<i> &gt;format between simulator and grid services or grid service to grid
+</I>&gt;<i> &gt;service change many times since I started working on backend services.
+</I>&gt;<i> &gt;The OAR file format has also changed at least once while retaining the
+</I>&gt;<i> &gt;same version number because the underlying prim XML format changed. I am
+</I>&gt;<i> &gt;working on a libomv OAR reader/writer at the moment, and trying to deal
+</I>&gt;<i> &gt;with hacks for supporting pre and post change OAR files.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;OAR was intended more as a packaging mechanism than a complete format.
+</I>&gt;<i> &gt;This is partly why I didn't bump the version
+</I>&gt;<i> &gt;number when the serialization format changed.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;In principle, I think it would be good if the serializations themselves
+</I>&gt;<i> &gt;identified themselves as one format or another
+</I>&gt;<i> &gt;(as I think you've already indicated in a previous post).  Then one
+</I>&gt;<i> &gt;could have different serializations (e.g. mesh)
+</I>&gt;<i> &gt;without having to produce different OAR structures or different formats
+</I>&gt;<i> &gt;entirely.  I'm not sure how pragmatic this is -
+</I>&gt;<i> &gt;perhaps some indication of the format of serialization could be placed
+</I>&gt;<i> &gt;in the OAR control file (though even then there
+</I>&gt;<i> &gt;might be regions containing multiple different serializations).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;The XML serialization 'XML2' format was used for objects in the OAR
+</I>&gt;<i> &gt;partly just because it was already there and it
+</I>&gt;<i> &gt;worked, even if it is pretty horrible.  I feel that one nasty point
+</I>&gt;<i> &gt;about it for offline content transfer is that it
+</I>&gt;<i> &gt;doesn't contain any versioning information to identify it (necessitating
+</I>&gt;<i> &gt;heuristics I guess).  I feel that there may
+</I>&gt;<i> &gt;also come a point where an offline format will diverge from an on-the-
+</I>&gt;<i> &gt;wire format (e.g. inventory serial seems
+</I>&gt;<i> &gt;unncessary for offline purposes - though many other things will remain
+</I>&gt;<i> &gt;for the backup use case as opposed to the
+</I>&gt;<i> &gt;transfer to some one else use case).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;&gt; To increase compatibility between versions of OpenSim and with third
+</I>&gt;<i> &gt;party services I'd like to propose a standardization of (eventually) all
+</I>&gt;<i> &gt;over-the-wire communication in OpenSim. I started with an attempt at an
+</I>&gt;<i> &gt;LLIDL definition for primitives:
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; <A HREF="http://opensimulator.org/wiki/PrimitiveFormatProposal">http://opensimulator.org/wiki/PrimitiveFormatProposal</A>
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Is anything missing? Does this look like a reasonable start?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;On a quick look through, I don't see any attribute for sculpt
+</I>&gt;<i> &gt;information.  At the moment this is stored inline in the
+</I>&gt;<i> &gt;serialization.  Also, I suspect state information for scripts may have
+</I>&gt;<i> &gt;crept in recently (not sure).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;Also, at least for archiving purposes, the creator id will at some point
+</I>&gt;<i> &gt;become a string rather than a uuid in order to
+</I>&gt;<i> &gt;allow identification information to be retrieved on grids other than the
+</I>&gt;<i> &gt;one on which the archive was saved.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;--
+</I>&gt;<i> &gt;justincc
+</I>&gt;<i> &gt;Justin Clark-Casey
+</I>&gt;<i> &gt;<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> &gt;_______________________________________________
+</I>&gt;<i> &gt;Opensim-dev mailing list
+</I>&gt;<i> &gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006358.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+	<LI>Next message: <A HREF="006390.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6361">[ date ]</a>
+              <a href="thread.html#6361">[ thread ]</a>
+              <a href="subject.html#6361">[ subject ]</a>
+              <a href="author.html#6361">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

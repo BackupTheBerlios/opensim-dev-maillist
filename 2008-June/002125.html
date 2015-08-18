@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Splitting IUserService
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Splitting%20IUserService&In-Reply-To=%3C591657.58376.qm%40web23002.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002122.html">
+   <LINK REL="Next"  HREF="002127.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Splitting IUserService</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Splitting%20IUserService&In-Reply-To=%3C591657.58376.qm%40web23002.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Splitting IUserService">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Sat Jun 28 23:38:13 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002122.html">[Opensim-dev] Splitting IUserService
+</A></li>
+        <LI>Next message: <A HREF="002127.html">[Opensim-dev] Splitting IUserService
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2125">[ date ]</a>
+              <a href="thread.html#2125">[ thread ]</a>
+              <a href="subject.html#2125">[ subject ]</a>
+              <a href="author.html#2125">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I guess I should have waited longer for more replies, but as I had a hour or two today that I decided I was going to do some opensim work in. I decided to go for it and make those changes. So communications manager now has a protected IAvatarService AvatarService; 
+
+The actually implementation in the current communication managers are unchanged, those requests are sent to the user server.
+
+While I was working on it, I also started to add support for multiple inventory Services/servers. So it should now actually be possible, to set different users up to use different inventory servers. 
+
+The basic way to acheive/test this is:
+
+-Start with a grid set up as normal.
+
+-Startup another inventory server, generally on different computer to the original. Although it would be possible to have them running on them same computer, if they were &quot;given&quot; different hostnames/IP addresses. Even &quot;<A HREF="http://localhost:8004">http://localhost:8004</A>&quot; and &quot;<A HREF="http://127.0.0.1:8005">http://127.0.0.1:8005</A>&quot;, should work. 
+
+-On the region(s), use the console command &quot;Add-InventoryHost &lt;hosturl&gt;&quot; to register the extra server.
+
+-Now at the moment, the only way to do the last stage, is to manually edit the user server database. And in the userprofiles for the users you want to use the other inventory server, set that url in the &quot;userInventoryURI&quot; field. (on the urls, you need to make sure there ISN'T a / at the end )
+
+Now if it works, the next time that user logs in, the Login service will contact the new inventory server, asking for their inventory. And unless the database has been copied to that server/ or it shares the db with the original one, then it won't be found, so a new inventory set will be created. And once they are into the region(s), then all inventory functions should go to the new inventory server.
+
+All of which is most likely not that much use at the moment, but hopefully it will be the first small step towards allowing people to visit the various opensim grids and taking their inventory with them. Although of course supporting multiple asset servers is a lot more work than inventory was. 
+
+Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote: +1. Sounds like a plan to me.
+
+Melanie
+
+
+Michael Wright wrote:
+&gt;<i> Does anyone have any objections to splitting the IUserService interface, so that the Avatar Appearance and attachments are in their own interface IAvatarService ?
+</I>&gt;<i> 
+</I>&gt;<i> I really don't think we should be coupling things like we are. I'm not saying that these functions have to move off the User Server. Just on the region side, we move them into their own interface, so that if someone wants those functions to be on a different server, they can change the url of the server to be different to the user server with minor code changes. 
+</I>&gt;<i> 
+</I>&gt;<i> When I think about the various Servers, I generally think of the User server as holding account infomation. The Grid Server as being the general manager of the &quot;grid&quot;. And the Inventory and Asset servers as the general datastores. 
+</I>&gt;<i> 
+</I>&gt;<i> So to fit in with my view, the avatar appearance data would fit better on the Inventory server or even a separate server that was part of the datastore group. This is so that we could have one central User Server, but a number of Inventory and Asset servers. Each user's in-world data could be on a different set of those.
+</I>&gt;<i> 
+</I>&gt;<i> As I've said before, I really think we should have a system that allows the various backend functions to be where ever a grid admin thinks is best. But thats still a dream. 
+</I>&gt;<i> 
+</I>&gt;<i> But we can do a small change that would allow a different url to be set for the Avatar services, if a application required it.
+</I>&gt;<i> 
+</I>&gt;<i> So what I'm suggesting is we add a new interface to the CommunicationsManager, like:
+</I>&gt;<i> 
+</I>&gt;<i> public Interface IAvatarService
+</I>&gt;<i> {
+</I>&gt;<i>         AvatarAppearance GetUserAppearance(LLUUID user);
+</I>&gt;<i> 
+</I>&gt;<i>         void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
+</I>&gt;<i> 
+</I>&gt;<i>         void AddAttachment(LLUUID user, LLUUID attach);
+</I>&gt;<i> 
+</I>&gt;<i>         void RemoveAttachment(LLUUID user, LLUUID attach);
+</I>&gt;<i> 
+</I>&gt;<i>         List GetAttachments(LLUUID user);
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> The OSGrid implementation could be exactly like it is now, and send the requests to the user server. I'm not even talking about adding a new setting to the ini file, but just leaving the code so it uses the UserServer url.
+</I>&gt;<i> 
+</I>&gt;<i> So its really a minor change, but does decouple these functions from the more general user account functions. 
+</I>&gt;<i> 
+</I>&gt;<i>        
+</I>&gt;<i> ---------------------------------
+</I>&gt;<i>  Not happy with your email address?
+</I>&gt;<i>   Get the one you really want - millions of new email addresses available now at  Yahoo!
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+---------------------------------
+ Not happy with your email address?
+  Get the one you really want - millions of new email addresses available now at  Yahoo!
+       
+---------------------------------
+ Not happy with your email address?
+  Get the one you really want - millions of new email addresses available now at  Yahoo!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080628/760e8c2d/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080628/760e8c2d/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002122.html">[Opensim-dev] Splitting IUserService
+</A></li>
+	<LI>Next message: <A HREF="002127.html">[Opensim-dev] Splitting IUserService
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2125">[ date ]</a>
+              <a href="thread.html#2125">[ thread ]</a>
+              <a href="subject.html#2125">[ subject ]</a>
+              <a href="author.html#2125">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

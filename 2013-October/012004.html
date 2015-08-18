@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] How to properly enable JsonStore
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20How%20to%20properly%20enable%20JsonStore&In-Reply-To=%3C5265AA6E.7060009%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="012003.html">
+   <LINK REL="Next"  HREF="012007.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] How to properly enable JsonStore</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20How%20to%20properly%20enable%20JsonStore&In-Reply-To=%3C5265AA6E.7060009%40googlemail.com%3E"
+       TITLE="[Opensim-dev] How to properly enable JsonStore">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Oct 22 00:27:58 CEST 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="012003.html">[Opensim-dev] How to properly enable JsonStore
+</A></li>
+        <LI>Next message: <A HREF="012007.html">[Opensim-dev] How to properly enable JsonStore
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12004">[ date ]</a>
+              <a href="thread.html#12004">[ thread ]</a>
+              <a href="subject.html#12004">[ subject ]</a>
+              <a href="author.html#12004">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>As you're running on Windows, OpenSimulator 0.7.6 is constrained to using the classes/methods found in the .NET 3.5 
+profile.  This means that practically all the Json script functions won't work yet.  I would assume that's the reason, 
+though maybe there is some other issue too as the error message isn't the one Mic normally expects to see in this 
+situation.  Mono doesn't constrain available classes/methods int he same way.
+
+It just so happens that I have everything ready to update OpenSimulator .NET usage to 4.0 on git master dev code, as 
+discussed in this list earlier this year (I'm waiting for Mono to be updated on opensimulator.org so that jenkins will 
+continue to work).  However, this won't help much if you're sticking to the 0.7.6 release package.
+
+On 21/10/13 19:25, fernando balmaceda wrote:
+&gt;<i> Hi Mic,
+</I>&gt;<i>
+</I>&gt;<i> I just added a entry on mantis, with the description.
+</I>&gt;<i>
+</I>&gt;<i> Thanks!
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------------------------------------------------------
+</I>&gt;<i> Date: Mon, 21 Oct 2013 10:56:23 -0700
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] How to properly enable JsonStore
+</I>&gt;<i>
+</I>&gt;<i> Could you open a mantis entry &amp; add the compile error?
+</I>&gt;<i>
+</I>&gt;<i> --mic
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Mon, Oct 21, 2013 at 8:21 AM, phantom &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">phantom2024 at hotmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">phantom2024 at hotmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     Hi!
+</I>&gt;<i>     Im doing some tests on opensim 0.7.6, running under windows 7 64 bits, with
+</I>&gt;<i>     the OpenSim.32BitLaunch.exe. I want to use JsonStore functions on my
+</I>&gt;<i>     scripts, like JsonGetValue, or JsonGetJson. I read how to enable json store
+</I>&gt;<i>     in this site: <A HREF="http://opensimulator.org/wiki/JsonStore_Module.">http://opensimulator.org/wiki/JsonStore_Module.</A>
+</I>&gt;<i>     But i am only able to get working JsonCreateStore and JsonDestroyStore. When
+</I>&gt;<i>     i try to use JsonGetValue or JsonGetJson i get the following compile error:
+</I>&gt;<i>     The name 'JsonGetValue' does not exist in the current context.
+</I>&gt;<i>     The same goes for JsonGetJson.
+</I>&gt;<i>
+</I>&gt;<i>     The test script is:
+</I>&gt;<i>
+</I>&gt;<i>     key storeID;
+</I>&gt;<i>     default
+</I>&gt;<i>     {
+</I>&gt;<i>          touch_start(integer n)
+</I>&gt;<i>          {
+</I>&gt;<i>              storeID = JsonCreateStore(&quot;{ 'foo' : { 'bar' : 'one' } }&quot;);
+</I>&gt;<i>              llOwnerSay(JsonGetValue(storeID, &quot;foo.bar&quot;));
+</I>&gt;<i>              JsonDestroyStore(storeID);
+</I>&gt;<i>          }
+</I>&gt;<i>     }
+</I>&gt;<i>
+</I>&gt;<i>     I appreciate any help. Thanks!
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     --
+</I>&gt;<i>     View this message in context: <A HREF="http://opensim-dev.2196679.n2.nabble.com/How-to-properly-enable-JsonStore-tp7578850.html">http://opensim-dev.2196679.n2.nabble.com/How-to-properly-enable-JsonStore-tp7578850.html</A>
+</I>&gt;<i>     Sent from the opensim-dev mailing list archive at Nabble.com.
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________ Opensim-dev mailing list <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="012003.html">[Opensim-dev] How to properly enable JsonStore
+</A></li>
+	<LI>Next message: <A HREF="012007.html">[Opensim-dev] How to properly enable JsonStore
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12004">[ date ]</a>
+              <a href="thread.html#12004">[ thread ]</a>
+              <a href="subject.html#12004">[ subject ]</a>
+              <a href="author.html#12004">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Solution attempt about code duplication in	database plugins
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Solution%20attempt%20about%20code%20duplication%20in%0A%09database%20plugins&In-Reply-To=%3C20080108130235.GA20981%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000663.html">
+   <LINK REL="Next"  HREF="000659.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Solution attempt about code duplication in	database plugins</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Solution%20attempt%20about%20code%20duplication%20in%0A%09database%20plugins&In-Reply-To=%3C20080108130235.GA20981%40dague.net%3E"
+       TITLE="[Opensim-dev] Solution attempt about code duplication in	database plugins">sean at dague.net
+       </A><BR>
+    <I>Tue Jan  8 14:02:35 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000663.html">[Opensim-dev] plans for mapapi support
+</A></li>
+        <LI>Next message: <A HREF="000659.html">[Opensim-dev] Solution attempt about code duplication in database plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#656">[ date ]</a>
+              <a href="thread.html#656">[ thread ]</a>
+              <a href="subject.html#656">[ subject ]</a>
+              <a href="author.html#656">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Tue, Jan 08, 2008 at 12:41:51AM +0100, Laurent B. wrote:
+&gt;<i> Taking a close look at the plugins database, I noticed that the
+</I>&gt;<i> persistence logic was replicated in each, which must be difficult to
+</I>&gt;<i> maintain, and it may leads to ennoying bugs... That's why I started to
+</I>&gt;<i> write a plugin generic database in an attempt to find a solution to
+</I>&gt;<i> this problem.
+</I>
+We've definitely gotten here in a very organic way, which has led to a
+lot of cruft in the code.  New eyes and new approaches are definitely welcomed.
+
+&gt;<i> It consists of an additional OpenSim.Framework.Data.DbEngine assembly
+</I>&gt;<i> which contains the usual classes you know that implements
+</I>&gt;<i> IAssetProvider, IGridData, IInventoryData, IUserData. Instead of
+</I>&gt;<i> creating ADO.NET Connection, Command objects, theses classes logic
+</I>&gt;<i> relies on an IDbEngine helper that creates thoses objects and handle
+</I>&gt;<i> queries parameters.
+</I>&gt;<i> 
+</I>&gt;<i> IDbEngine is an interface that has to be implemented by as many
+</I>&gt;<i> classes as desired available database engine. This class helps to
+</I>&gt;<i> instantiate ADO.NET objects the best way the specifics of the database
+</I>&gt;<i> engine allows to.
+</I>&gt;<i>
+</I>&gt;<i> As an example of code is better than too much explanations, please
+</I>&gt;<i> find AssetData.cs here: <A HREF="http://pastebin.ca/845808">http://pastebin.ca/845808</A> and MSSQLDbEngine
+</I>&gt;<i> here: <A HREF="http://pastebin.ca/845813.">http://pastebin.ca/845813.</A> GridData.cs, InventoryData.cs,
+</I>&gt;<i> UserData.cs have also been implemented. Also SQLiteDbEngine.cs is
+</I>&gt;<i> ready.
+</I>
+Have you attempted this with the Prims tables yet?  One of the reasons
+of the current approach is that once you get 30 columns in a table you
+end up having column definition duplication a lot with the approach you
+took, which is equally bad in terms of getting code duplication.  The
+original sqlite approach was attempting to solve that, but caused other
+duplication issues in the process.
+
+&gt;<i> However, in trying to design this plugin, I encountered several
+</I>&gt;<i> problems. The first one stucks me a little...
+</I>&gt;<i> 
+</I>&gt;<i> * The structure of the database differs from a plug to another.  For
+</I>&gt;<i> example, there is a field called assets.id in MySQL plugin, although
+</I>&gt;<i> it is called assets.uuid in SQLite. The same way, some varchar field
+</I>&gt;<i> size are fixed to 255 in all SQLite tables that are generated from
+</I>&gt;<i> DataSet. What about to keep a database structure common to all
+</I>&gt;<i> plug-ins ? This would be better to keep this new approach simple.
+</I>
+There are enough differences in SQL engine implementations where field
+types may need to vary between implementations (though field names
+should not).
+
+&gt;<i> * For the moment, there is two different strategies of access to the
+</I>&gt;<i> data: one with DataSets implemented, the other with SQL queries. I
+</I>&gt;<i> think it's an opportunity to experiment other approaches, knowing that
+</I>&gt;<i> the datasets eats a lot of memory when they are well filled, and chews
+</I>&gt;<i> up performance when commit is done.  Maybe we could implement stored
+</I>&gt;<i> procedures ? The proposed approach will make possible to implement a
+</I>&gt;<i> variety of strategies, which could be activated in turn in order to
+</I>&gt;<i> choose the most effective for a given database engine.
+</I>&gt;<i> 
+</I>&gt;<i> That is, if you like the idea, I would love to hear feedback, comments
+</I>&gt;<i> and suggestions before to continue to work on it.
+</I>
+The ADO.NET approach was my idea early on to avoid duplication in the
+code base.  I consider it a failed experiment, as it didn't give nearly
+the amount of benefit as I was expecting, and it definitely through in a
+bunch of overhead that wasn't entirely anticipated.
+
+My theories on moving forward with cleaning up the database code is as
+follows (these are up for debate, just trying to show my own perspective
+here):
+
+1. take another stab at nhibernate.  There were issues with mono when
+this was attempted 6 months ago which I'm hoping we can get past.  I'm
+going to do some experiments here this week to see if nhibernate will
+work for us.
+
+2. Move out the ADO.NET implementations.  The approach we should take is
+one similar to the MySQL Assets plugin where the SQL definitions are
+done in a seperate resource file.  We can do upgrades via this model as
+well.
+
+3. Clean up the storage interfaces.  IRegionStore is really focussed on
+the way that DB4O worked (load everything at start) which I think is
+less than optimal for many of our objects.
+
+I'm still suffering from jet lag a bit (I appologize for any incoherency
+in this email because of it).  Over the next few days I should have my
+head fully back in the game to get cranking on this.  I'd love to see
+more approaches here like yours Laurent, as I think the more eyes on
+this one will help to ensure we've got a good model moving forward.
+
+     -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080108/3fd1e9dd/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080108/3fd1e9dd/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000663.html">[Opensim-dev] plans for mapapi support
+</A></li>
+	<LI>Next message: <A HREF="000659.html">[Opensim-dev] Solution attempt about code duplication in database plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#656">[ date ]</a>
+              <a href="thread.html#656">[ thread ]</a>
+              <a href="subject.html#656">[ subject ]</a>
+              <a href="author.html#656">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

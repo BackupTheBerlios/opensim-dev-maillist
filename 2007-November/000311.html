@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] physics architecture
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20physics%20architecture&In-Reply-To=%3C739784.78731.qm%40web51310.mail.re2.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000310.html">
+   <LINK REL="Next"  HREF="000313.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] physics architecture</H1>
+    <B>dan miller</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20physics%20architecture&In-Reply-To=%3C739784.78731.qm%40web51310.mail.re2.yahoo.com%3E"
+       TITLE="[Opensim-dev] physics architecture">danbmil99 at yahoo.com
+       </A><BR>
+    <I>Sat Nov  3 06:52:07 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000310.html">[Opensim-dev] asset_database=&quot;grid&quot; failures
+</A></li>
+        <LI>Next message: <A HREF="000313.html">[Opensim-dev] physics architecture
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#311">[ date ]</a>
+              <a href="thread.html#311">[ thread ]</a>
+              <a href="subject.html#311">[ subject ]</a>
+              <a href="author.html#311">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>ok, I'm trying to wrap my head around what we need wrt physics overhaul.  A
+good example of what I consider close to broken is the fact that we're
+calling AddPrimShape() in 5 places (load from storage, load from xml, rez,
+copy...)
+
+This may be all wrong in C#-land, but in my wee little C++ brain I would do
+something like this:
+
+SceneObjectGroup should be subclassed as SceneObjectGroupPhysical for any
+object that interacts physically.  This way, constructors and destructors
+can do the right thing wrt allocating &amp; cleaning up physics-engine stuff. 
+Other methods and properties such as velocity, position, resize, etc. will
+also interact with the physics engine as necessary.
+
+Support for multiple engines can be accomplished one of two ways.  1) each
+engine further subclasses SceneObjectGroupPhysical (ie SceneObjectGroupOde &amp;
+so on), or, we design an engine-agnostic physics API.  I would lean towards
+the former approach, as it is more general, and will be better suited to
+handling special cases that are different among engines.  In a sense, one
+could argue that the unimplemented methods in SceneObjectGroupPhysical,
+which are implemented by the physics engines themselves, are in effect an OO
+API.
+
+This is obviously not a fully worked out idea, but I want to get some
+initial feedback before I bother to flesh it out.
+
+-danx0r
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000310.html">[Opensim-dev] asset_database=&quot;grid&quot; failures
+</A></li>
+	<LI>Next message: <A HREF="000313.html">[Opensim-dev] physics architecture
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#311">[ date ]</a>
+              <a href="thread.html#311">[ thread ]</a>
+              <a href="subject.html#311">[ subject ]</a>
+              <a href="author.html#311">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

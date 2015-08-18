@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] RFC: Refactoring Scene.cs so that modules	directly invoke services from CommsManager
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20Refactoring%20Scene.cs%20so%20that%20modules%0A%09directly%20invoke%20services%20from%20CommsManager&In-Reply-To=%3C34cc66250812181338g3c0d2bfctb5385ed02fc55317%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004156.html">
+   <LINK REL="Next"  HREF="004158.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] RFC: Refactoring Scene.cs so that modules	directly invoke services from CommsManager</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20Refactoring%20Scene.cs%20so%20that%20modules%0A%09directly%20invoke%20services%20from%20CommsManager&In-Reply-To=%3C34cc66250812181338g3c0d2bfctb5385ed02fc55317%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] RFC: Refactoring Scene.cs so that modules	directly invoke services from CommsManager">teravus at gmail.com
+       </A><BR>
+    <I>Thu Dec 18 22:38:37 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004156.html">[Opensim-dev] RFC: Refactoring Scene.cs so that modules	directly invoke services from CommsManager
+</A></li>
+        <LI>Next message: <A HREF="004158.html">[Opensim-dev] RFC: Refactoring Scene.cs so that modules	directly invoke services from CommsManager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4157">[ date ]</a>
+              <a href="thread.html#4157">[ thread ]</a>
+              <a href="subject.html#4157">[ subject ]</a>
+              <a href="author.html#4157">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>CommsManager was originally for the Inter-region communication.  It
+wrapped Grid Comms and single instance comms under one roof.
+
+You're planning on expanding that definition to region services?
+
+Best Regards
+
+Teravus
+
+On 12/18/08, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+&gt;<i> Teravus Ovares wrote:
+</I>&gt;<i> &gt; You would think that the service wrappers would be something that
+</I>&gt;<i> &gt; should go into scenebase, the scene base class as virtual.   The idea
+</I>&gt;<i> &gt; behind this is, 1.  it would be out of Scene.cs.   2.  It would be
+</I>&gt;<i> &gt; available, if someone intends on deriving another Scene class from
+</I>&gt;<i> &gt; SceneBase.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Then again.  Maybe Scene is too complicated and encapsulates too much
+</I>&gt;<i> &gt; specific functionality to make it reasonable to expect someone to
+</I>&gt;<i> &gt; derive a separate class from SceneBase.
+</I>&gt;<i>
+</I>&gt;<i> Yeah.  I still am more in favor of switching everything to get services through CommsManager (which may be slightly
+</I>&gt;<i> misnamed).  On a little further digging, a lot of modules do this already, so we now have this inconsistent situation
+</I>&gt;<i> where some stuff is fetch through CommsManager and other things are done via CommsManager wrapping methods on Scene.
+</I>&gt;<i>
+</I>&gt;<i> It would be nice to be consistent in this.
+</I>&gt;<i>
+</I>&gt;<i> Also, going directly to CommsManager may make it easier to get services by interface in the future, instead of the
+</I>&gt;<i> existing hardcoded fields (in the same manner as interfaces are registered on Scene itself).
+</I>&gt;<i>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Best Regards
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Teravus
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On 12/18/08, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+</I>&gt;<i> &gt;&gt; In Scene.cs there are quite a few wrapper methods that appears to exist primarily to relay calls from modules to other
+</I>&gt;<i> &gt;&gt; services.  For instance, Scene.AddXmlRPCHandler() just recalls AddXmlRPCHandler() on the BaseHttpServer.  Some modules
+</I>&gt;<i> &gt;&gt; make use of this method while others use Scene.CommsManager.HttpServer.AddXmlRPCHandler()
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; I would like to refactor code such that services available through CommsManager are called directly rather than through
+</I>&gt;<i> &gt;&gt; Scene wrappers.  Although this goes against the Law of Demeter (<A HREF="http://en.wikipedia.org/wiki/Law_of_Demeter">http://en.wikipedia.org/wiki/Law_of_Demeter</A>) I think
+</I>&gt;<i> &gt;&gt; that the advantage in reducing the large number of disparate methods on the Scene is worth it.  The alternative is that
+</I>&gt;<i> &gt;&gt; the number of Scene wrapper methods continues to grow indefinitely as new service methods are introduced.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Comments?
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --
+</I>&gt;<i> &gt;&gt; justincc
+</I>&gt;<i> &gt;&gt; Justin Clark-Casey
+</I>&gt;<i> &gt;&gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> justincc
+</I>&gt;<i> Justin Clark-Casey
+</I>&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004156.html">[Opensim-dev] RFC: Refactoring Scene.cs so that modules	directly invoke services from CommsManager
+</A></li>
+	<LI>Next message: <A HREF="004158.html">[Opensim-dev] RFC: Refactoring Scene.cs so that modules	directly invoke services from CommsManager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4157">[ date ]</a>
+              <a href="thread.html#4157">[ thread ]</a>
+              <a href="subject.html#4157">[ subject ]</a>
+              <a href="author.html#4157">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

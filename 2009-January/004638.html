@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Region crossing and its requests to UGAIMs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Region%20crossing%20and%20its%20requests%20to%20UGAIMs&In-Reply-To=%3Cc5851bcf0901251327k848c784i43256ed95678bc79%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004630.html">
+   <LINK REL="Next"  HREF="004600.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Region crossing and its requests to UGAIMs</H1>
+    <B>Impalah</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Region%20crossing%20and%20its%20requests%20to%20UGAIMs&In-Reply-To=%3Cc5851bcf0901251327k848c784i43256ed95678bc79%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Region crossing and its requests to UGAIMs">impalah at gmail.com
+       </A><BR>
+    <I>Sun Jan 25 22:27:40 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004630.html">[Opensim-dev] Region crossing and its requests to UGAIMs
+</A></li>
+        <LI>Next message: <A HREF="004600.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4638">[ date ]</a>
+              <a href="thread.html#4638">[ thread ]</a>
+              <a href="subject.html#4638">[ subject ]</a>
+              <a href="author.html#4638">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Justin, thank you for the answer.
+
+I followed one of your advices and added 5 seconds pauses in the three
+functions of my ugaim.
+
+The results are what I supossed, now the avie goes beyond middle region and
+returns to the entering point when the region server receives the answer to
+&quot;update agent region&quot;.
+
+I'll test my system looking for table locks or something like that, but my
+first thinking is that the region server calls aren't completely
+asynchronous.
+
+Greetings
+
+
+2009/1/25 Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;
+
+&gt;<i> Impalah wrote:
+</I>&gt;<i> &gt; Hi everyone:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I'm developing (or trying to...) an UGAIM system over a LAMP (or WAMP)
+</I>&gt;<i> &gt; system and I have some questions about the requests sent from region
+</I>&gt;<i> &gt; servers to UGAIM (user and inventory servers). I'm using the &quot;stable&quot;
+</I>&gt;<i> &gt; 0.6 version of opensim.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; When crossing a region I have detected three requests:
+</I>&gt;<i> &gt; * Get avatar appearance
+</I>&gt;<i> &gt; * Get avatar inventory
+</I>&gt;<i> &gt; * Update region into agent data
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; These three requests make the avatar to &quot;shiver&quot; when entering a new
+</I>&gt;<i> &gt; region if the response is not fast enough (or even make the avatar move
+</I>&gt;<i> &gt; some meters while waiting the response, and then return to the point it
+</I>&gt;<i> &gt; entered).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I'm able to understand the 1st and the 3rd, well, maybe I have some
+</I>&gt;<i> &gt; doubts about the 1st... but the second (request FULL inventory) I think
+</I>&gt;<i> &gt; is what &quot;lags&quot; the region entering.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Actually (version 0.6 remember) when requesting an inventory is the FULL
+</I>&gt;<i> &gt; inventory. For testing, maybe no problem, but if I have 100 folders an
+</I>&gt;<i> &gt; 1000 items... the initial 6kbyte inventory grows to something like 100k,
+</I>&gt;<i> &gt; and the lag make my avie to walk till the middle of the region and then
+</I>&gt;<i> &gt; return back...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; My question: is really necessary to get the full inventory when crossing
+</I>&gt;<i> &gt; regions?
+</I>&gt;<i>
+</I>&gt;<i> The code to request the entire agent's inventory information (though not
+</I>&gt;<i> assets, of course) from the inventory service
+</I>&gt;<i> has been in place for quite a long time (at least a year).
+</I>&gt;<i>
+</I>&gt;<i> It does make things simpler from a coding perspective and may actually be
+</I>&gt;<i> better in making inventory more responsive to
+</I>&gt;<i> the user (an inventory request only happens once, not on every request from
+</I>&gt;<i> the client, which means latency only needs
+</I>&gt;<i> to be suffered once and the inventory server doesn't have to respond to
+</I>&gt;<i> lots of tiny requests.  I shouldn't think that
+</I>&gt;<i> the amount of data being delivered, even for an inventory with 1000s of
+</I>&gt;<i> objects, is all that large - certainly no larger
+</I>&gt;<i> than a single detailed texture).  That's not to say that this
+</I>&gt;<i> implementation won't change in the future.
+</I>&gt;<i>
+</I>&gt;<i> In theory, this latency should not cause any problems on region crossing
+</I>&gt;<i> since it is carried out asynchronously.  So any
+</I>&gt;<i> region crossing lag you are experiencing should be down to other issues.
+</I>&gt;<i>  I'd be interested to see any detailed evidence
+</I>&gt;<i> that this is not the case (probably the most controlled way would be to
+</I>&gt;<i> introduce artificial pauses for inventory
+</I>&gt;<i> responses and see what happens - anecdotal evidence is not good enough).
+</I>&gt;<i>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; And the secondary question: Is there any implemented or at least a
+</I>&gt;<i> &gt; semi-implemented method to deliver only parts of the inventory (&quot;a la SL
+</I>&gt;<i> &gt; style&quot;)?
+</I>&gt;<i>
+</I>&gt;<i> No
+</I>&gt;<i>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Greetings
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Impalah &quot;Sea of doubts&quot; Shenshou
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> justincc
+</I>&gt;<i> Justin Clark-Casey
+</I>&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090125/65fca7e6/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090125/65fca7e6/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004630.html">[Opensim-dev] Region crossing and its requests to UGAIMs
+</A></li>
+	<LI>Next message: <A HREF="004600.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4638">[ date ]</a>
+              <a href="thread.html#4638">[ thread ]</a>
+              <a href="subject.html#4638">[ subject ]</a>
+              <a href="author.html#4638">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

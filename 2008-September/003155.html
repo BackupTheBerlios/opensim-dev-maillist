@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] EventQueueGet issues with HttpListener. Solutions?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20EventQueueGet%20issues%20with%20HttpListener.%20Solutions%3F&In-Reply-To=%3C34cc66250809292227y4ff8c776l804b79426a33e0b7%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003154.html">
+   <LINK REL="Next"  HREF="003156.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] EventQueueGet issues with HttpListener. Solutions?</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20EventQueueGet%20issues%20with%20HttpListener.%20Solutions%3F&In-Reply-To=%3C34cc66250809292227y4ff8c776l804b79426a33e0b7%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] EventQueueGet issues with HttpListener. Solutions?">teravus at gmail.com
+       </A><BR>
+    <I>Tue Sep 30 07:27:13 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003154.html">[Opensim-dev] [Opensim-commits] r6567	-	trunk/OpenSim/Region/Application
+</A></li>
+        <LI>Next message: <A HREF="003156.html">[Opensim-dev] EventQueueGet issues with HttpListener. Solutions?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3155">[ date ]</a>
+              <a href="thread.html#3155">[ thread ]</a>
+              <a href="subject.html#3155">[ subject ]</a>
+              <a href="author.html#3155">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hey there,
+I've been studying the 'properly supporting EventQueueGet' problem and
+I seem to be stuck at sending a 502 message that the client will
+accept.
+One thing to note!   I can get it to work if I stick a LibOMV
+GridServer Proxy in between OpenSimulator and the client!
+So, the formats..  :
+
+
+-------LibOMV---------------
+HTTP/1.0 502 Upstream error:
+Content-Type: text/plain
+Date: Tue, 30 Sep 2008 05:15:28 GMT
+Server: Microsoft-HTTPAPI/1.0
+Content-Length: 16
+
+Upstream error:
+-------OpenSimulator------
+HTTP/1.1 502 Upstream error:
+Content-Length: 16
+Content-Type: text/plain
+Server: Microsoft-HTTPAPI/1.0
+Date: Tue, 30 Sep 2008 05:15:28 GMT
+Connection: close
+
+Upstream error:
+---------------------------------------
+
+Mind you, the libOMV response is our response run through their custom
+http server.   There are two differences in those messages.
+1. LibOMV returns HTTP/1.0 not HTTP/1.1 and no matter how hard I try,
+I'm unable to get HttpListener to return that version.
+(Context.ProtocolVersion does nothing)
+2.  HttpListener sends Connection: close.  LibOMV does not.
+
+This leaves us with very few options here.
+1. Build a custom HTTP server from a tcp socket server
+2. Find a HTTP Server that supports setting of all these low level items.
+
+Without one of the two solutions, OpenSimulator may never support
+EventQueueGet properly, and as per the new Security Fixes of the
+client, EventQueueGet became manditory as of Last Friday for
+compatibility with the Linden Client.
+
+Suggestions?
+
+Best Regards
+
+Teravus
+BCC: Core
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003154.html">[Opensim-dev] [Opensim-commits] r6567	-	trunk/OpenSim/Region/Application
+</A></li>
+	<LI>Next message: <A HREF="003156.html">[Opensim-dev] EventQueueGet issues with HttpListener. Solutions?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3155">[ date ]</a>
+              <a href="thread.html#3155">[ thread ]</a>
+              <a href="subject.html#3155">[ subject ]</a>
+              <a href="author.html#3155">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

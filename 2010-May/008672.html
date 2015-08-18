@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Some new code for your review and possible	acceptance
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20new%20code%20for%20your%20review%20and%20possible%0A%09acceptance&In-Reply-To=%3C4BF1D558.8040808%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008659.html">
+   <LINK REL="Next"  HREF="008673.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Some new code for your review and possible	acceptance</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20new%20code%20for%20your%20review%20and%20possible%0A%09acceptance&In-Reply-To=%3C4BF1D558.8040808%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Some new code for your review and possible	acceptance">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue May 18 01:46:32 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008659.html">[Opensim-dev] Some new code for your review and possible acceptance
+</A></li>
+        <LI>Next message: <A HREF="008673.html">[Opensim-dev] Some new code for your review and possible	acceptance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8672">[ date ]</a>
+              <a href="thread.html#8672">[ thread ]</a>
+              <a href="subject.html#8672">[ subject ]</a>
+              <a href="author.html#8672">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Alex.  Always great to see someone new playing with the code!  In general, our submission process has been to put patches on Mantis and then talk to developers about them in IRC - it's more work for us to have to search through remote git repositories and reduces the chance that these changes will come in.
+
+I've also made contextual comments inline.
+
+AlexRa wrote:
+&gt;<i> Hello,
+</I>&gt;<i> 
+</I>&gt;<i> I've been playing around with the database access layer of the code, especially the AssetData plugins
+</I>&gt;<i> for all 3 supported databases (Sqlite, MySql, and MS SQL) and the underlying classes, and also made
+</I>&gt;<i> a few other changes:
+</I>&gt;<i> 
+</I>&gt;<i>    <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">git at github.com</A>:AlexRa/opensim-mods-Alex.git
+</I>&gt;<i> 
+</I>&gt;<i> I'd like to invite the developers of the OpenSim team to review the proposed changes
+</I>&gt;<i> and integrate whatever looks useful into the official repository.
+</I>&gt;<i> 
+</I>&gt;<i> This repository contains the following branches that can be of interest:
+</I>&gt;<i> 
+</I>&gt;<i> The *&quot;master&quot;* contains all my the changes. It is branched off
+</I>&gt;<i> r/127730 (and with the recent flow of commits I find it difficult to
+</I>&gt;<i> continue rebasing it to keep up). There is quite a lot of stuff there,
+</I>&gt;<i> some of it more useful than the other, so if anybody wants to look at
+</I>&gt;<i> it I'd appreciate that, but that may be too much to ask.
+</I>&gt;<i> 
+</I>&gt;<i> I've been trying to separate particular features and put them into separate
+</I>&gt;<i> branches. So far, the following branches are fairly independent from
+</I>&gt;<i> the rest of the stuff and should be easy to integrate into the primary
+</I>&gt;<i> repo if the team decides to do so:
+</I>&gt;<i> 
+</I>&gt;<i> * The &quot;asset-loader&quot;  branch contains a rewrite of the AssetLoader that
+</I>&gt;<i>   uses a timestamped asset to determine which of the asset files must
+</I>&gt;<i>   be loaded. This prevents the lengthy (and unnecessary) re-loading of
+</I>&gt;<i>   all predefined assets on each server start-up, but does load any
+</I>&gt;<i>   newly added assets. Status: NOT TESTED (but the logic is quite
+</I>&gt;<i>   simple, shouldn't have much problems with it(?))
+</I>
+Sounds good.  Of course, actually testing this would be even better since that's actually the hard part.
+
+&gt;<i> 
+</I>&gt;<i> * The &quot;Migrations&quot; branch is a rewrite of the Migrations.cs to support
+</I>&gt;<i>   single-file migration histories. This way, all those endless
+</I>&gt;<i>   0xx_StoreName.sql are replaced with a single StoreName.migrations
+</I>&gt;<i>   file which is more readable and easier to maintain. The new
+</I>&gt;<i>   migration code supports stored procedures for both MySql and MS SQL.
+</I>&gt;<i>   It is also fully backward-compatible (does read the old-style
+</I>&gt;<i>   migration files as well).
+</I>&gt;<i> 
+</I>&gt;<i>   This also includes update of MySql.Data.dll to 6.2.3.0, to avoi a
+</I>&gt;<i>   known problem with defining stored procs/funcs in earlier versions.
+</I>&gt;<i> 
+</I>&gt;<i>   Status: TESTED and works in all modes.
+</I>
+I believe migrations were inspired by the Ruby on Rails way of doing things, so it would be nice to stick to this if possible (of course, your way may be completely compatible for all I know).  In the past, the migrations have been tidied up simply by bunching all the oldest ones up into a new 000 migration.
+
+&gt;<i> 
+</I>&gt;<i> * The &quot;NUnit-update&quot; touches a lot of test-related code to make it compatible
+</I>&gt;<i>   with NUnit 2.5.5+. The main advantage is that test classes can be
+</I>&gt;<i>   made generic and parameterized. This (and the BasicDataServiceTest
+</I>&gt;<i>   class included in this branch) allows to build DBMS-independent data
+</I>&gt;<i>   tests. Some samples of such tests are available in my &quot;master&quot;
+</I>&gt;<i>   branch. The idea is to keep he connection strings for the test
+</I>&gt;<i>   databases in a single INI file (rather than in each test unit), and
+</I>&gt;<i>   to keep all data tests in OpenSim.Data.Tests, totally eliminating
+</I>&gt;<i>   Data.{MySql/MSSQL/SQLite}.Tests. Test sets for a specific DB are
+</I>&gt;<i>   produced just by adding another [TestFixture(...)] attribute before
+</I>&gt;<i>   the test class.
+</I>
+It would be very good to update nunit - just today I was looking to use the throws assertion before realizing that it was only implemented in nunit 2.5.  It would be especially nice to see this work as patches, preferably separating the nunit upgrades from any other new tests.
+
+&gt;<i> 
+</I>&gt;<i> The other new stuff that is present in the &quot;master&quot; branch:
+</I>&gt;<i> 
+</I>&gt;<i> * Added Assets.CreatorID support for all dbs;
+</I>&gt;<i> 
+</I>&gt;<i> * A way to keep Asset.AccessTime updated (on MySql, a similar way
+</I>&gt;<i>   would work on MS SQL) entirely on the SQL server side, without the
+</I>&gt;<i>   performance costs of a separate UPDATE statement;
+</I>&gt;<i> 
+</I>&gt;<i> * refactored DB-access classes (more code moved to a base class, less stuff is DBMS-specific);
+</I>&gt;<i> 
+</I>&gt;<i> * configurable &quot;keep alive&quot; connection mode (for MySQL/MSSQL) - avoid
+</I>&gt;<i>   re-creating conn, keep stmts prepared (2x performance gain for MS SQL);
+</I>&gt;<i> 
+</I>&gt;<i> * performance tests for Assets;
+</I>
+These sound good.  But again, it's far easier for us, I would say, if these are submitted as discrete patches, probably best one at a time until each is accepted.  I know the codebase can change quickly but unfortunately this is sometimes a cost that has to be bourne.
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008659.html">[Opensim-dev] Some new code for your review and possible acceptance
+</A></li>
+	<LI>Next message: <A HREF="008673.html">[Opensim-dev] Some new code for your review and possible	acceptance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8672">[ date ]</a>
+              <a href="thread.html#8672">[ thread ]</a>
+              <a href="subject.html#8672">[ subject ]</a>
+              <a href="author.html#8672">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

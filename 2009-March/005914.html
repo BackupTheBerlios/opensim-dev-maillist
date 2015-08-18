@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Graceful failure or down grading for scripting.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Graceful%20failure%20or%20down%20grading%20for%20scripting.&In-Reply-To=%3Ce94c3d810903271230l4c61c5c5n641ac84fa4aa9ef9%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005937.html">
+   <LINK REL="Next"  HREF="005915.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Graceful failure or down grading for scripting.</H1>
+    <B>Michael Cortez</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Graceful%20failure%20or%20down%20grading%20for%20scripting.&In-Reply-To=%3Ce94c3d810903271230l4c61c5c5n641ac84fa4aa9ef9%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Graceful failure or down grading for scripting.">mcortez at gmail.com
+       </A><BR>
+    <I>Fri Mar 27 20:30:16 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005937.html">[Opensim-dev] Adding scripts to SceneObjectPart
+</A></li>
+        <LI>Next message: <A HREF="005915.html">[Opensim-dev] Graceful failure or down grading for scripting.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5914">[ date ]</a>
+              <a href="thread.html#5914">[ thread ]</a>
+              <a href="subject.html#5914">[ subject ]</a>
+              <a href="author.html#5914">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Currently SL is rife with scripts that use ugly expensive workarounds
+to accomplish many tasks. This is the norm, not the exception due to
+LSL being rather restrictive in some regards with what appears in some
+cases to be arbitrary decisions of its designers.
+
+We see this in scenarios ranging from sailboats where every boat in a
+regatta has to have it's own script to calculate current wind, in
+terrain shapers that must use ugly LSL workarounds for terraforming
+rented land, in scripts that &quot;chat things at you&quot; that you then have
+to copy/paste into notecards, or the xyText method of using specially
+shaped prims and bunches of textures to create the illusion of &quot;text
+on a prim object.&quot;
+
+One of the wonderful features of OSSL is that we can rectify these
+ugly problems by providing elegant, simple and efficient functions for
+scripts to use.
+
+In each of those cases, there are well known established (albeit ugly
+&amp; inefficient) ways of accomplishing the script creator's goals.  I
+would like to instead encourage the use of OSSL functions to achieve
+many of the same goals.  There are a small number of roadblocks to
+accomplish this however, all of which I think can be solved.
+
+One of these roadblocks is the current permission system built in and
+around OSSL.
+
+Currently even no threat OSSL functions are not permitted by default
+(all OSSL functions are not permitted by default via example INI.)  A
+growing number of region administrators see the benefit of some of
+some of the OSSL functions, and are going to the extra effort of
+enabling them -- but the majority of regions continue to use the
+defaults.
+
+
+As a script creator, who is looking to create highly usable, possibly
+profitable scripts, I would want to make sure that my scripts are
+usable by the largest number of people in the greatest number of
+regions possible.  I would also want to make my scripts use the best
+and most efficient methods of accomplishing the script's goal.  For
+example, using a single prim, with dynamic texture OSSL functions
+rather then a 20 prim object with 21 scripts and dozens of textures
+(large xyText displays) or allowing an event administrator access to
+set wind for a regatta so that sailboats can simply use llWind()
+rather then a wind beacon using llShout() and a separate wind
+calculation script in each sailboat.
+
+One problem though, is if I build my object to use the Dynamic Texture
+OSSL functions and the person who purchased it wants to use it in a
+region that has not enabled those functions, the script fails with an
+exception and execution of the current event halts.  This exception is
+sent out to the debug window in client viewers, and the script error
+icon appears over the object.
+
+As a script creator this would be Very Bad[tm].  Thus I am much more
+likely to just use the old established method of using xyText displays
+because they're more reliable.
+
+However if had some way  to determine if the Dynamic Texture OSSL
+functions were available, without causing script errors -- I could
+gracefully fail (with a message to the user about needing the OSSL
+function enabled), I can fall back on doing it the old established
+way, or I can simply disable the functionality that required that OSSL
+function.
+
+Currently there are some ugly ways I can determine if a function is
+available.  One of which is via the use of a timer, and a set of flag
+variables, I can set a flag that I'm *attempting* to call the
+function, if it succeeds I mark a flag indicating that it's available
+-- if it fails, then the flag isn't updated and the next time the
+timer event fires, I will know that the previous attempt failed, and I
+flag that the OSSL function isn't available.  This is an ugly kludge,
+and results in a script error icon appears as well as the exception
+being thrown to debug output.
+
+To this end I propose adding a few OSSL functions that would be
+available to script creators:
+
+bool osIsOSSLEnabled() -- this method always works regardless of all
+other OSSL settings and permissions, and returns true/false
+bool osIsPermissible(string function) -- this method checks to see if
+the current script is allowed to execute the given function.  This
+function would fail if OSSL is disabled.
+
+I have a mantis ticket currently open that has a possible
+implementation that utilizes C# attributes, so that functions can be
+tagged with threat levels at compile time.  Those threat levels can
+then be easily checked via reflection at run time to determine their
+threat level, thus enabling the creation of an &quot;Is Permissible&quot; type
+function.  It has been pointed out that sometimes reflection should be
+avoided.  The reflection look-up could be cached to reduce repetitive
+reflection look-ups, or a pro-active permissions dictionary could be
+established during region initialization instead.
+
+I'd appreciate people's comments/suggestions/feedback regarding the
+general idea, as well as feedback on the specific implementation.
+
+Thanks,
+Michael Cortez
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005937.html">[Opensim-dev] Adding scripts to SceneObjectPart
+</A></li>
+	<LI>Next message: <A HREF="005915.html">[Opensim-dev] Graceful failure or down grading for scripting.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5914">[ date ]</a>
+              <a href="thread.html#5914">[ thread ]</a>
+              <a href="subject.html#5914">[ subject ]</a>
+              <a href="author.html#5914">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] networking issues
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20networking%20issues&In-Reply-To=%3CAANLkTi%3Don51V0jkzFKFpCPYXGuVO%2BSz3Vfjwdk1H3FFj%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010063.html">
+   <LINK REL="Next"  HREF="010065.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] networking issues</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20networking%20issues&In-Reply-To=%3CAANLkTi%3Don51V0jkzFKFpCPYXGuVO%2BSz3Vfjwdk1H3FFj%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] networking issues">cmickeyb at gmail.com
+       </A><BR>
+    <I>Mon Mar 28 19:00:17 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010063.html">[Opensim-dev] Major issue with core code.
+</A></li>
+        <LI>Next message: <A HREF="010065.html">[Opensim-dev] networking issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10064">[ date ]</a>
+              <a href="thread.html#10064">[ thread ]</a>
+              <a href="subject.html#10064">[ subject ]</a>
+              <a href="author.html#10064">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Over the last several weeks, Dan Lake &amp; I have been looking some of the
+networking performance issues in opensim. As always, our concerns are with
+the problems caused by very complex scenes with very large numbers of
+avatars. However, I think some of the issues we have found will generally
+improve networking with OpenSim. Since the behavior represents a fairly
+significant change in behavior (though the number of lines of code is not
+great), I'm going to put this into a separate branch for testing (called
+queuetest) in the opensim git repository.
+
+We've found several problems with the current
+networking/prioritization code.
+
+* Reprioritization is completely broken for SceneObjectParts. On
+reprioritization, the current code uses the localid stored in the scene
+Entities list but since the scene does not store the localid for SOPs, that
+attempt always fails. So the original priority of the SOP continues to be
+used. This could be the cause of some problems since the initial
+prioritization assumes position 128,128. I don't understand all the possible
+ramifications, but suffice it to say, using the localid is causing
+problems.
+
+Fix: The sceneentity is already stored in the update, just use that instead
+of the localid.
+
+* We currently pull (by default) 100 entity updates from the entityupdate
+queue and convert them into packets. Once converted into packets, they are
+then queued again for transmissions. This is a bad thing. Under any kind of
+load, we've measured the time in the packet queue to be up to many
+hundreds/thousands of milliseconds (and to be highly variable). When an
+object changes one property and then doesn't change it again, the time in
+the packet queue is largely irrelevant. However, if the object is
+continuously changing (an avatar changing position, a physical object
+moving, etc) then the conversion from a entity update to a packet &quot;freezes&quot;
+the properties to be sent. If the object is continuously changing, then with
+fairly high probability, the packet contains old data (the properties of the
+entity from the point at which it was converted into a packet).
+
+The real problem is that, in theory, to improve the efficiency of the
+packets (fill up each message) we are grabbing big chunks of updates. Under
+load, that causes queuing at the packet layer which makes updates stale.
+That is... queuing at the packet layer is BAD.
+
+Fix: We implemented an adaptive algorithm for the number of updates to grab
+with each pass. We set a target time of 200ms for each iteration. That
+means, we are trying to bound the maximum age of any update in the packet
+queue to 200ms. The adaptive algorithm looks a lot like a TCP slow start:
+every time we complete an iteration (flush the packet queue) in less than
+200ms we increase linearly the number of updates we take in the next
+iteration (add 5 to the count) and when we don't make it back in 200ms, we
+drop the number we take quadratically (cut the number in half). In our
+experiments with large numbers of moving avatars, this algorithm works
+*very* well. The number of updates taken per iteration stabilizes very
+quickly and the response time is dramatically improved (no &quot;snap back&quot; on
+avatars, for example). One difference from the traditional slow start...
+since the number of &quot;static&quot; items in the queue is very high when a client
+first enters a region, we start with the number of updates taken at 500.
+that gets the static items out of the queue quickly (and delay doesn't
+matter as much) and the number taken is generally stable before the
+login/teleport screen even goes away.
+
+* The current prioritization queue can lead to update starvation. The
+prioritization algorithm dumps all entity updates into a single ordered
+queue. Lets say you have several hundred avatars moving around in a scene.
+Since we take a limited number of updates from the queue in each iteration,
+we will take only the updates for the &quot;closest&quot; (highest priority) avatars.
+However, since those avatars continue to move, they are re-inserted into the
+priority queue *ahead* of the updates that were already there. So... unless
+the queue can be completely emptied each iteration or the priority of the
+&quot;distant&quot; (low priority) avatars changes, those avatars will never be
+updated.
+
+Fix: We converted the single priority queue into multiple priority queues
+and use fair queuing to retrieve updates from each. Here's how it works
+(more or less)... the current metrics (all of the current prioritization
+algorithms use distance at some point for prioritization) compute a distance
+from the avatar/camera to an object. We take the log of that distance and
+use that as the index for the queue where we place the update. So close
+things go into the highest priority queue and distant things go into the
+lowest priority queue. Since the area covered by a priority queue grows as
+the square of the radius, the distant (lowest priority queues) will have the
+most objects while the highest priority queues will have a small number of
+objects. Inside each priority queue, we order the updates by the time in
+which they entered the queue. Then we pull a fixed number of updates from
+each priority queue each iteration. The result is that local updates get a
+high fraction of the outgoing bandwidth but distant updates are guaranteed
+to get at least &quot;some&quot; of the bandwidth. No starvation. The current
+prioritization algorithm we implemented is a modification of the &quot;best
+avatar responsiveness&quot; and &quot;front back&quot; in that we use root prim location
+for child prims and the priority of updates &quot;in back&quot; of the avatar is lower
+than updates &quot;in front&quot;. Our experiments show that the fair queuing does
+drain the update queue AND continues to provide a disproportionately high
+percentage of the bw to &quot;close&quot; updates.
+
+One other note on this... we should be able to improve the performance of
+reprioritization with this approach. If we know the distance an avatar has
+moved, we only have to reprioritize objects that might have changed priority
+queues. Haven't implemented this yet but have some ideas for how to do it.
+
+* The resend queue is evil. When an update packet is sent (they are marked
+reliable) it is moved to a queue to await acknowledgement. If no
+acknowledgement is received (in time), the packet is retransmitted and the
+wait time is doubled and so on... What that means is that a resend packets
+in a scene that is rapidly changing will often contain updates that are
+outdated. That is, when we resend the packet, we are just resending old data
+(and if you're having a lot of resends that means you already have a bad
+connection &amp; now you're filling it up with useless data).
+
+Fix: this isn't implemented yet (help would be appreciated)... we think that
+instead of saving packets for resend... a better solution would be to keep
+the entity updates that went into the packet. if we don't receive an ack in
+time, then put the entity updates back into the entity update queue (with
+entry time from their original enqueuing). That would ensure that we send an
+update for the object &amp; that the data sent is the most recent.
+
+* One final note... per client bandwidth throttles seem to work very well.
+however, our experiments with per-simulator throttles was not positive. it
+appeared that a small number of clients was consuming all of the bw
+available to the simulator and the rest were starved. Haven't looked into
+this any more.
+
+
+So...
+
+Feedback appreciated... there is some logging code (disabled) in the branch;
+real data would be great. And help testing. there are a number of
+attachment, deletes and so on that i'm not sure work correctly.
+
+--mic
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110328/7e3264b3/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110328/7e3264b3/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010063.html">[Opensim-dev] Major issue with core code.
+</A></li>
+	<LI>Next message: <A HREF="010065.html">[Opensim-dev] networking issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10064">[ date ]</a>
+              <a href="thread.html#10064">[ thread ]</a>
+              <a href="subject.html#10064">[ subject ]</a>
+              <a href="author.html#10064">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] nhibernate progress, baby steps
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20nhibernate%20progress%2C%20baby%20steps&In-Reply-To=%3C20080403124201.GF22178%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001359.html">
+   <LINK REL="Next"  HREF="001308.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] nhibernate progress, baby steps</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20nhibernate%20progress%2C%20baby%20steps&In-Reply-To=%3C20080403124201.GF22178%40dague.net%3E"
+       TITLE="[Opensim-dev] nhibernate progress, baby steps">sean at dague.net
+       </A><BR>
+    <I>Thu Apr  3 14:42:01 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001359.html">[Opensim-dev] Perl vs C# UGAI?
+</A></li>
+        <LI>Next message: <A HREF="001308.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1301">[ date ]</a>
+              <a href="thread.html#1301">[ thread ]</a>
+              <a href="subject.html#1301">[ subject ]</a>
+              <a href="author.html#1301">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I've starting baby steps in building an OpenSim.Data.NHibernate driver
+(I'm very close to getting NHiberate + Mono + SQLite working).  I did
+look at Impalah's work here, but that created a lot of intermediary
+objects that I wanted to avoid.  After chatting with Stephan yesterday,
+wanted to give people a flavor of how this works, as we'll need to make
+a few changes in the base to make our objects NHibernate friendly.
+
+It turns out the NHibernate + Mono + SQLite is actually the hardest
+thing to get working, as NHibernate 1.2.1 doesn't have an SQLite driver
+that works with Mono.  Step one was to write one, which I've done.  Once
+this is proofed out a bit more we'll need to do an import of NHibernate
+1.2.1 branch into opensim-libs and add in the driver.  I'll also be
+submitting the driver upstream to NHibernate in a hopes we could get a
+1.2.2 with it included so we don't have to keep our own tree here.
+
+My first test case here is Assets.  Asset storage is easy, as we just
+store AssetBase.  It's 8 fields, which include an LLUUID, a Blob, and
+some other types, which also makes it good at testing we can do all the
+types we need to do.
+
+AssetBase is what I call a &quot;naked object&quot;.  Today all access is done via
+direct attribute modification, which is actually worst practice in the
+area.  For NHibernate to work correctly we need to have all our storable
+data objects use Properties for data modification.  Honestly, we should
+have been doing this anyway.  We're going to break Grid Comms
+compatibility when we make this change, because the default
+serialization of AssetBase will change.
+
+Once this is done you create a mapping file.  This is an embedded
+resource of OpenSim.Data.NHibernate.  The AssetBase mapping file is
+here:
+<A HREF="http://opensimulator.org/hg/opensim-trunk/file/8566c030a9bf/OpenSim/Data/NHibernate/Resources/AssetBase.hbm.xml">http://opensimulator.org/hg/opensim-trunk/file/8566c030a9bf/OpenSim/Data/NHibernate/Resources/AssetBase.hbm.xml</A>
+
+<A HREF="http://opensimulator.org/hg/opensim-trunk/file/8566c030a9bf/OpenSim/Data/NHibernate/NHibernateAssetData.cs">http://opensimulator.org/hg/opensim-trunk/file/8566c030a9bf/OpenSim/Data/NHibernate/NHibernateAssetData.cs</A>
+is the Asset Store work in progress.  It should just save assets right
+now (though there is a transaction bug with sqlite I need to sort out).
+
+In order to have this code work for a different database you just change
+the driver declaration lines in 60 - 65 (can be done via runtime
+config).  Any of the ~20 databases supported by NHibernate could then be
+used instead.  Lines 68 - 71 gives you automatic db creation.  It does a
+drop/create each time it is run, so is something we'll only want for
+initial create, not used every time.
+
+Right now I'm fighting with a transaction bug with SQLite, which I've
+got a few ideas on how to get around.  Once that's fixed on store, I'll
+fill out the rest of the asset implementation.  My goal is to be running
+my Asset db on NHibernate + SQLite by end of the week, and to have all
+that work in tree so others can kick the tires.
+
+There are plenty of unanswered questions here, but having finally gotten
+my head wrapped around the space, I really like the direction this is
+headed.  The fact that NHibernate is also an actively developed project,
+and things like automatic schema upgrades are coming in the future (they
+already exist in Hibernate, the java project that NHibernate is based
+on), is something we'll definitely want to take advantage of.
+
+     -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080403/8ae54fe3/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080403/8ae54fe3/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001359.html">[Opensim-dev] Perl vs C# UGAI?
+</A></li>
+	<LI>Next message: <A HREF="001308.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1301">[ date ]</a>
+              <a href="thread.html#1301">[ thread ]</a>
+              <a href="subject.html#1301">[ subject ]</a>
+              <a href="author.html#1301">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

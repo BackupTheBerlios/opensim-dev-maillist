@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Authentication, take 2: Capabilities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%2C%20take%202%3A%20Capabilities&In-Reply-To=%3C49A9FAFB.2050404%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="005509.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Authentication, take 2: Capabilities</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%2C%20take%202%3A%20Capabilities&In-Reply-To=%3C49A9FAFB.2050404%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Authentication, take 2: Capabilities">diva at metaverseink.com
+       </A><BR>
+    <I>Sun Mar  1 04:03:23 CET 2009</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="005509.html">[Opensim-dev] Authentication and oAuth
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5508">[ date ]</a>
+              <a href="thread.html#5508">[ thread ]</a>
+              <a href="subject.html#5508">[ subject ]</a>
+              <a href="author.html#5508">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>So that you know, I have now been able to perform teleports of the user 
+using the EventQueue of a child agent in another region, another 
+machine. A total hack just to see if this was feasible. It is!
+
+This really brings into question our understanding and use of the EQ. 
+It's not just security, although security is my main focus right now; 
+the EQ is a very expensive element, as you know 
+(<A HREF="http://opensimulator.org/mantis/view.php?id=2946">http://opensimulator.org/mantis/view.php?id=2946</A>). What my hack shows 
+is that this client allows us to have one EQ per user and always in the 
+same place, if we want. As far as I can guess, the EQ, being a 
+Capability, doesn't even need to be associated with child agents; it can 
+be a resource somewhere.
+
+Crista
+
+Charles Krinke wrote:
+&gt;<i> Dear Diva:
+</I>&gt;<i>
+</I>&gt;<i> As always, I have the highest of respect for your logic and would 
+</I>&gt;<i> encourage your vision. It seems altogether reasonable to me.
+</I>&gt;<i>
+</I>&gt;<i> As we move forward, considering those use cases in the future that are 
+</I>&gt;<i> not currently very active such as standalone regions or arrays that 
+</I>&gt;<i> also participate in the HyperGrid notion is good also.
+</I>&gt;<i>
+</I>&gt;<i> On the OSGrid case, even though OSGrid is near and dear to my heart, I 
+</I>&gt;<i> have to take a logical step back and say that OpenSim should evolve in 
+</I>&gt;<i> a manner that makes it most useful for educational, scientic and 
+</I>&gt;<i> commercial applicatons and development should not be pertubated for 
+</I>&gt;<i> OSGrid's benefit.
+</I>&gt;<i>
+</I>&gt;<i> Having said that, I can also say that OSGrid desires to continue to be 
+</I>&gt;<i> right at the leading edge of OpenSim development and support that 
+</I>&gt;<i> development as much as possible while a community continues to 
+</I>&gt;<i> develop. These two OSGrid goals have a certain amount of tension 
+</I>&gt;<i> between them, but so far this has been very positive tension.
+</I>&gt;<i>
+</I>&gt;<i> Charles
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> *From:* Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+</I>&gt;<i> *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> *Sent:* Saturday, February 28, 2009 8:53:48 AM
+</I>&gt;<i> *Subject:* Re: [Opensim-dev] Authentication, take 2: Capabilities
+</I>&gt;<i>
+</I>&gt;<i> I've come full circle on this issue of security and the Linden Viewer,
+</I>&gt;<i> and I have something to propose.
+</I>&gt;<i>
+</I>&gt;<i> First, my conclusions:
+</I>&gt;<i>
+</I>&gt;<i> (1) Capabilities are a fantastic idea for secure open systems. &lt;3's it!
+</I>&gt;<i> (2) The Linden viewer, as it's going in practice, is unsafe for an open
+</I>&gt;<i> Virtual Worlds system.
+</I>&gt;<i>
+</I>&gt;<i> My proposal:
+</I>&gt;<i>
+</I>&gt;<i> (a) Let's design OpenSim around the organizing concept of capabilities.
+</I>&gt;<i> We're already half-way there, thanks to the Linden Viewer, even if it
+</I>&gt;<i> took us there kicking and screaming. Designing OpenSim around the
+</I>&gt;<i> organizing concept of capabilities means that no sensitive service
+</I>&gt;<i> should ever be exposed face-value on the web; it should always be
+</I>&gt;<i> exposed behind a capability URL. For example, the inventory access
+</I>&gt;<i> services that we have now are fundamentally unsafe. Someone tried to add
+</I>&gt;<i> an authorization step (session id), but that failed badly and was
+</I>&gt;<i> abandoned. Melanie and others doing walled-gardens rely on placing these
+</I>&gt;<i> services behind firewalls or in obscure places that only 2 or 3 people
+</I>&gt;<i> know the address. Security through obscurity works well in certain
+</I>&gt;<i> cases, but it's fragile and it simply doesn't work in open systems. It
+</I>&gt;<i> will not work for the Hypergrid.
+</I>&gt;<i>
+</I>&gt;<i> By placing the services behind capability URLs, instead of face-value
+</I>&gt;<i> URLs, we can expose the servers on the public web and still be sure that
+</I>&gt;<i> only authorized components will access them -- this, without having to
+</I>&gt;<i> verify the credentials of the caller over and over again with expensive
+</I>&gt;<i> remote calls: the simple fact that the caller knows the secret URL is
+</I>&gt;<i> enough for authorization.
+</I>&gt;<i>
+</I>&gt;<i> What this means is that regions must gain Capabilities to access both
+</I>&gt;<i> the users' agents and the users' services as the users move into them.
+</I>&gt;<i> Or not. Right now, we're giving the regions all the capabilities, some
+</I>&gt;<i> explicitly (for the users' agents), some implicitly (services). The
+</I>&gt;<i> explicit ones are those that the regions get by calling the SEED Cap URL
+</I>&gt;<i> -- which mainly serves to get the very important cap for the viewer's
+</I>&gt;<i> Event Queue. The implicit ones are those currently hard-coded: the
+</I>&gt;<i> inventory services, the asset services, IM, etc. We should make those
+</I>&gt;<i> also explicit; then it will be up to the *policies* (a separate thing)
+</I>&gt;<i> to define which components get which caps.
+</I>&gt;<i>
+</I>&gt;<i> We should create a Capabilities service, which can be run off a separate
+</I>&gt;<i> server (or the user server -- again, I wish this was configurable too!).
+</I>&gt;<i> This Caps service will be responsible for managing the capabilities
+</I>&gt;<i> pertaining to users and regions within one domain of trust (UGAIMs). So,
+</I>&gt;<i> users and regions who log in to this domain of trust will be given
+</I>&gt;<i> initial capabilities, and these may be expanded and retracted  as
+</I>&gt;<i> certain actions occur.
+</I>&gt;<i>
+</I>&gt;<i> Different domains of trust may have different capability policies. For
+</I>&gt;<i> example LCO's Cap service may very well give all of its regions all the
+</I>&gt;<i> capabilities to access the backbone services directly, as well as the
+</I>&gt;<i> capability to access all agents' Event Queues, no questions asked.
+</I>&gt;<i> OSGrid may not give its regions the capability to access the inventory
+</I>&gt;<i> service while still giving its regions the capability to access the
+</I>&gt;<i> agents' Event Queues; and for regions that are not registered in OSGrid,
+</I>&gt;<i> OSGrid may very well not give them the capability to access the users
+</I>&gt;<i> agents' Event Queues.
+</I>&gt;<i>
+</I>&gt;<i> (The EQ's are the key element in Teleports; if a region doesn't have
+</I>&gt;<i> access to the viewer's EQ, it cannot teleport the agent. The user,
+</I>&gt;<i> however, may have an agent in the home system with an open EQ to the
+</I>&gt;<i> viewer, so that Teleports can happen controlled by the home system --
+</I>&gt;<i> this is the cool new Teleport procedure that I'm going to experiment with)
+</I>&gt;<i>
+</I>&gt;<i> Capabilities have an additional positive side-effect: they force us to
+</I>&gt;<i> slice monoliths into small, independent services (&quot;capabilities&quot;)
+</I>&gt;<i> explicitly mapped to names, that can then be implemented by different
+</I>&gt;<i> components. Very much in line with our design principles.
+</I>&gt;<i>
+</I>&gt;<i> (b) With respect to the limitations of the Linden Viewer, there's only
+</I>&gt;<i> one way forward: a reference web application that replaces the
+</I>&gt;<i> security-critical functions that the Linden viewer is incapable of doing
+</I>&gt;<i> in a secure manner. These include: inventory access, agent transfers and
+</I>&gt;<i> IM. This web application should use capabilities fully and properly. It
+</I>&gt;<i> can be accessed using the embedded browser, so immersion shouldn't
+</I>&gt;<i> suffer that much.
+</I>&gt;<i>
+</I>&gt;<i> I will gladly start the work on (a) right now if there's general
+</I>&gt;<i> agreement that this is a good way forward.
+</I>&gt;<i>
+</I>&gt;<i> Crista
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090228/cab01c6a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090228/cab01c6a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="005509.html">[Opensim-dev] Authentication and oAuth
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5508">[ date ]</a>
+              <a href="thread.html#5508">[ thread ]</a>
+              <a href="subject.html#5508">[ subject ]</a>
+              <a href="author.html#5508">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

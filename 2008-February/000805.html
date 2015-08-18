@@ -1,0 +1,314 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim search
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20search&In-Reply-To=%3C970c50810802080300k85fa6adg8a01cf299002b0f5%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000804.html">
+   <LINK REL="Next"  HREF="000806.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim search</H1>
+    <B>Dalien Talbot</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20search&In-Reply-To=%3C970c50810802080300k85fa6adg8a01cf299002b0f5%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] OpenSim search">dalienta at gmail.com
+       </A><BR>
+    <I>Fri Feb  8 12:00:50 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000804.html">[Opensim-dev] OpenSim search
+</A></li>
+        <LI>Next message: <A HREF="000806.html">[Opensim-dev] OpenSim search
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#805">[ date ]</a>
+              <a href="thread.html#805">[ thread ]</a>
+              <a href="subject.html#805">[ subject ]</a>
+              <a href="author.html#805">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>In the spirit of rfc1925, I think it makes sense to split the database
+redesign discussion into a separate thread :-)
+
+I like Diva's idea of an XML file - this file can be &quot;pushed&quot; elsewhere by
+means external to opensim.
+
+Also very attractive approach from David with the delta-changes.
+
+My suggestion on how to combine those two:
+
+1) have an API which generates XML of &quot;everything which is exposed and has
+changed since timestamp X&quot; (and the other constraints according to Diva's
+mail).
+2) use this API to generate this static file, as we please - depending on
+the particular deployment scenario.
+
+The reason for suggesting not to have the command is to be able to
+externally script the invocations of it on as-needed basis.
+
+3) for the future - foresee the callback to trigger the re-generation of the
+files / notifying the search servers accordingly.
+  Simple algorithm for that: new change starts the timers T1 and T2, with T2
+&gt;&gt;<i> T1. Each subsequent change restarts the T1 - not T2. When either of the
+</I>two timers elapses, push the change through. This will ensure the small or
+bursty changes get indexed quite quickly (in T1 time), and guarantees that
+the changes will eventually be indexed (T2 time).
+
+Restricting the access to the data being indexed only to some search engines
+is a matter of simple network access control, imho. (any of the modern web
+servers does this task fairly well)
+
+XMPP is an interesting idea - however, it belongs to an implementation of
+the search engine, not to the &quot;data supplier&quot; interface on opensim, imho.
+
+As usual - the above are merely my musings, I guess it would be useful to
+hook up on irc with David and Diva and discuss this in more details - and
+then - the working implementation wins! :-)
+
+/d
+
+
+On Feb 8, 2008 10:15 AM, Impalah &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hi everybody:
+</I>&gt;<i>
+</I>&gt;<i> Sorry for my bad english, I hope you can understand what I want to say.
+</I>&gt;<i>
+</I>&gt;<i> Last days I was looking for a way to integrate NHibernate into Opensim. I
+</I>&gt;<i> have finished some integration tests and now I am working with the current
+</I>&gt;<i> Database model (8 tables by now) for making a &quot;basic&quot; change of only the
+</I>&gt;<i> database manager (ADO for NHibernate). If everything goes as I expect the
+</I>&gt;<i> change doesn't affect anything in the code and we will gain (as I say in
+</I>&gt;<i> previous posts) things like database independence, security due to
+</I>&gt;<i> transactions, speed improved by nhibernate caches, etc. etc. etc.
+</I>&gt;<i>
+</I>&gt;<i> The problem, and that's the point where my investigations joins with
+</I>&gt;<i> yours, is that we need a better database model. Maybe in the beggining of
+</I>&gt;<i> opensim the needs were to make the server work, but now the project is
+</I>&gt;<i> mature enough to have a better database model. We are talking yet of
+</I>&gt;<i> communicating servers (authorizing users in different servers), to search
+</I>&gt;<i> for things (into the user inventory, region, server...) and we expect good
+</I>&gt;<i> results, and quick. And other point is that is a bottleneck right now (just
+</I>&gt;<i> try to copy prims by thousands) and the problem is not the API, is the
+</I>&gt;<i> model, it isn't flexible enough for big needs.
+</I>&gt;<i>
+</I>&gt;<i> I am not a DBA, but I have enough experience developing architectures for
+</I>&gt;<i> ERP applications (banks, insurance companies, nuclear plants) and I did
+</I>&gt;<i> enough migrations from bad (or old) database models to new and normalized
+</I>&gt;<i> (sometimes the problems are resolved just normalizing db) to know the
+</I>&gt;<i> importance of the persistence in a big application.
+</I>&gt;<i>
+</I>&gt;<i> And if we want a good search system... why we have to do tricks to convert
+</I>&gt;<i> data to xml or something (JSON for interserver communications, i.e.) when
+</I>&gt;<i> we simply need &quot;select&quot; knowing the type of data we are looking for? Just
+</I>&gt;<i> follow KISS DRY
+</I>&gt;<i>
+</I>&gt;<i> In resume: I think we need to sit down and redesign the database, the
+</I>&gt;<i> complete persistence, before integrating more services &quot;that work with the
+</I>&gt;<i> data present in the sim&quot;.
+</I>&gt;<i>
+</I>&gt;<i> Greetingzzz
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> 2008/2/8, Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt;:
+</I>&gt;<i>
+</I>&gt;<i> &gt; Dear David:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Maybe it might be a good idea if you and Diva were to collaborate a
+</I>&gt;<i> &gt; little bit. Couldnt hurt.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Charles
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ----- Original Message ----
+</I>&gt;<i> &gt; From: David Wendt JR. &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dcrkid at yahoo.com</A>&gt;
+</I>&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; Sent: Thursday, February 7, 2008 4:00:40 PM
+</I>&gt;<i> &gt; Subject: Re: [Opensim-dev] OpenSim search
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;  Yes. I think we came up with this a few days ago on IRC, and I would
+</I>&gt;<i> &gt; like to start hammering out details. I already have some code to index
+</I>&gt;<i> &gt; parcels, but right now all it does is output parcel changes to the console
+</I>&gt;<i> &gt; since there's no API or transport protocol to expose.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; A simple exposed XML file polled at set intervals would be fine. But I
+</I>&gt;<i> &gt; would also like a way for a search service to subscribe to a sim's XML file
+</I>&gt;<i> &gt; to have it pushed (delta-compressed, of course) to the search service
+</I>&gt;<i> &gt; whenever something changes or at set intervals such that low-traffic sims
+</I>&gt;<i> &gt; get updated whenever something changes, but high-traffic sims don't flood
+</I>&gt;<i> &gt; the service with too many updates.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; So I'll be back with an XML schema idea.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ----- Original Message ----
+</I>&gt;<i> &gt; From: Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt;
+</I>&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; Sent: Thursday, February 7, 2008 1:29:02 PM
+</I>&gt;<i> &gt; Subject: Re: [Opensim-dev] OpenSim search
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;  I'll weigh in here and say that I think Diva's thoughts appear sound to
+</I>&gt;<i> &gt; me and I would like to encourage them and offer a friendly environment to
+</I>&gt;<i> &gt; test them on OSGrid as they come together.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Charles
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ----- Original Message ----
+</I>&gt;<i> &gt; From: Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+</I>&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; Sent: Thursday, February 7, 2008 9:01:05 AM
+</I>&gt;<i> &gt; Subject: [Opensim-dev] OpenSim search
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Hi all,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I've been spending some time studying the project, to see how exactly I
+</I>&gt;<i> &gt; can contribute towards enabling search engines in OpenSims/Grids. I have
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; a more concrete plan now that I'd like to share with you, and ask
+</I>&gt;<i> &gt; whether this is something you think it's worth pursuing or not. If not,
+</I>&gt;<i> &gt; then, well, never mind, it's just a plan! :-) If you think it's worth
+</I>&gt;<i> &gt; pursuing, after getting your comments I will proceed to coding this
+</I>&gt;<i> &gt; weekend, and when I'm done I'll submit my code as a patch for your
+</I>&gt;<i> &gt; assessment and consideration. The patch involved in this is relatively
+</I>&gt;<i> &gt; independent of everything that already exists, it would simply be
+</I>&gt;<i> &gt; another server command that doesn't interfere with the existing ones.
+</I>&gt;<i> &gt; Here's the details.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The very basic for a search engine to exist is the data that lives on
+</I>&gt;<i> &gt; the sims. (I'll talk more about which data and data access control in
+</I>&gt;<i> &gt; the next paragraph, but let's ignore that in this paragraph.) As such,
+</I>&gt;<i> &gt; that data has to be exposed for collection. The right way to do this is
+</I>&gt;<i> &gt; to generate an XML file representing the information on the sims, namely
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; parcel and object information. This file can then be served by the sim
+</I>&gt;<i> &gt; via, for example, http. So, a possible interface to data collection
+</I>&gt;<i> &gt; services might be as simple as this: tagus.ics.uci.edu/OpenSim Test.xml.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; My concrete proposal as a first step is to implement a command that
+</I>&gt;<i> &gt; generates this XML file, possibly called xml-snapshot.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Unlike the existing save/load commands, whose purpose is admin backups
+</I>&gt;<i> &gt; and data ports, this external exposure doesn't need so many details and
+</I>&gt;<i> &gt; must be aware of exposure controls.
+</I>&gt;<i> &gt; - Less details: children prims in objects are irrelevant -- only the
+</I>&gt;<i> &gt; root prims matter.
+</I>&gt;<i> &gt; - Exposure control: the viewer's checkbox &quot;Show in search&quot; is a good
+</I>&gt;<i> &gt; indicator of users intensions towards  external exposure. (In fact, that
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; button should really be called &quot;Expose externally&quot;). Only objects and
+</I>&gt;<i> &gt; parcels that have that marked should be exposed.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Additionally to users intensions, there can be two more layers of
+</I>&gt;<i> &gt; control, one at the sim admin level, and one at the grid admin level.
+</I>&gt;<i> &gt; - At the sim level, each sim admin should have the power to override the
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; users checkboxes. Specifically, if sim admins decide that nothing in the
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; sim should be exposed then the xml-snapshot for those sims is a no-op.
+</I>&gt;<i> &gt; - At the grid level, each grid operator should have the power to decide
+</I>&gt;<i> &gt; whether to externally serve common assets, such as textures, or not.
+</I>&gt;<i> &gt; More importanly, the grid operator should also be able to instruct the
+</I>&gt;<i> &gt; sims on that grid that they should not serve the XML file to external
+</I>&gt;<i> &gt; data collectors, only to data collectors that are &quot;authorized&quot; by the
+</I>&gt;<i> &gt; grid.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; These controls enable a variety of grids, from very open to completely
+</I>&gt;<i> &gt; closed, homogeneous, heterogeneous, and everything in between.
+</I>&gt;<i> &gt; Once this external data exposure is in place, data collection components
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; (search engines and others) can do their thing.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Note that Linden Lab has recently moved from being a closed grid to
+</I>&gt;<i> &gt; being open, with respect to sim and user data. Unfortunately, they
+</I>&gt;<i> &gt; decided to use HTML as data representation...duh.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Additionally to the xml-snapshot command, I can volunteer to implement a
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; basic Lucene-based search engine that OpenSim grid operators can run on
+</I>&gt;<i> &gt; their own grids. This is independent of any other search engines, and is
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; particularly useful in grids that are closed to the outside. The
+</I>&gt;<i> &gt; argument here is that Lucene-based text search  is 100x better than
+</I>&gt;<i> &gt; relational queries, under all aspects I can think of -- run-time
+</I>&gt;<i> &gt; performance, sim/grid load, component coupling, and relevance of search
+</I>&gt;<i> &gt; results.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Note that some parts of the search problem can still be served in the
+</I>&gt;<i> &gt; traditional way. Specifically, user search seems like a really simple
+</I>&gt;<i> &gt; thing to do with SQL, it's not like there are many Diva Canto's on the
+</I>&gt;<i> &gt; grid... So the idea of a SQL-based search service for certain kinds of
+</I>&gt;<i> &gt; data is not incompatible with what I'm proposing.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I'll wait for your comments, and, as I said, if you think this is not
+</I>&gt;<i> &gt; worth pursuing, I'll go away :-)
+</I>&gt;<i> &gt; Probably won't be able to reply until later tonight.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Diva
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; -----Inline Attachment Follows-----
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ------------------------------
+</I>&gt;<i> &gt; Be a better friend, newshound, and know-it-all with Yahoo! Mobile. Try
+</I>&gt;<i> &gt; it now.&lt;<A HREF="http://us.rd.yahoo.com/evt=51733/*http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ">http://us.rd.yahoo.com/evt=51733/*http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ</A>&gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080208/a61c760e/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080208/a61c760e/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000804.html">[Opensim-dev] OpenSim search
+</A></li>
+	<LI>Next message: <A HREF="000806.html">[Opensim-dev] OpenSim search
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#805">[ date ]</a>
+              <a href="thread.html#805">[ thread ]</a>
+              <a href="subject.html#805">[ subject ]</a>
+              <a href="author.html#805">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

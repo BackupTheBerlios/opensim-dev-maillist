@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving away from grid vs. standalone
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F8CC93.7000709%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006357.html">
+   <LINK REL="Next"  HREF="006360.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving away from grid vs. standalone</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F8CC93.7000709%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] moving away from grid vs. standalone">diva at metaverseink.com
+       </A><BR>
+    <I>Wed Apr 29 23:54:27 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006357.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+        <LI>Next message: <A HREF="006360.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6359">[ date ]</a>
+              <a href="thread.html#6359">[ thread ]</a>
+              <a href="subject.html#6359">[ subject ]</a>
+              <a href="author.html#6359">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm also noticing that the region registration with the grid happens 
+before the post-initialization of the region modules, at least as of 
+now. In other words, the design has been that Comms would be in place 
+very early on, so if we change that, it may break all sorts of random 
+things.
+
+Melanie wrote:
+&gt;<i> I have done a lot of stuff related to that. Master avatar should not 
+</I>&gt;<i> even exist in the way it still does today, that is legacy. The very same 
+</I>&gt;<i> thing can be done in another way (code-wise).
+</I>&gt;<i> So the existing master avatar stuff can be removed,if that is the only 
+</I>&gt;<i> blocker, i'll think up some new semantics for that and implement it.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;<i> I think that there is a technical obstacle to doing that: the master 
+</I>&gt;&gt;<i> avatar stuff, that happens early on in the application (OpenSimBase, 
+</I>&gt;&gt;<i> line 688), needs to have the communication code in place. I think -- 
+</I>&gt;&gt;<i> although I may be wrong -- that that happens before region modules are 
+</I>&gt;&gt;<i> in place.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie wrote:
+</I>&gt;&gt;&gt;<i> I still think all that stuff can be put in region modules....
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Melanie
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;&gt;&gt;<i> Maybe the right name for it is
+</I>&gt;&gt;&gt;&gt;<i> OpenSim.Region.ResourceServicesConnectors.dll
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;&gt;&gt;&gt;<i> Stefan Andersson wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> How about
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> ---
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> [RegionResourceServices]
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> ;GridService = OpenSim.Region.Communications.Hypergrid.dll, 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> HGGridServices
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> ;GridService = OpenSim.Region.Communications.Local.dll, 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> LocalBackEndServices
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> GridService = OpenSim.Region.Communications.OGS1.dll, 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> OGS1GridServices
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> [GridService]
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> grid_server_url = &quot;<A HREF="http://192.168.1.101:9000">http://192.168.1.101:9000</A>&quot;
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> grid_send_key = &quot;null&quot;
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> grid_recv_key = &quot;null&quot;
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> The problem with specifying dlls *in this particular case* is that 
+</I>&gt;&gt;&gt;&gt;&gt;<i> these things aren't entirely orthogonal/different. The Hypergrid 
+</I>&gt;&gt;&gt;&gt;&gt;<i> dlls are a mashup of the other two. Therefore from a source code 
+</I>&gt;&gt;&gt;&gt;&gt;<i> perspective it makes things a heck of a lot more complicated than 
+</I>&gt;&gt;&gt;&gt;&gt;<i> they need to be if we simply merge things and use conditionals on 
+</I>&gt;&gt;&gt;&gt;&gt;<i> configuration variables. For example, hyperlinks (part of grid 
+</I>&gt;&gt;&gt;&gt;&gt;<i> services) is a really simple extension to LocalGrid services.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> The issue of local vs remote services isn't entirely orthogonal 
+</I>&gt;&gt;&gt;&gt;&gt;<i> either. Some parts of OGS1 use Local services -- the well know 
+</I>&gt;&gt;&gt;&gt;&gt;<i> pattern of trying things locally first and if that doesn't work, 
+</I>&gt;&gt;&gt;&gt;&gt;<i> proceed for a remote service call (e.g. OGS1 grid services does that).
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> I see why you want this, in abstract. If another service comes 
+</I>&gt;&gt;&gt;&gt;&gt;<i> along, it can simply be added as a component. Or if someone writes, 
+</I>&gt;&gt;&gt;&gt;&gt;<i> say, a completely different inventory service, its interface can be 
+</I>&gt;&gt;&gt;&gt;&gt;<i> added as dll.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> But in this particular case, for the code we already have, I think 
+</I>&gt;&gt;&gt;&gt;&gt;<i> that having Local.dll, OGS1.dll and Hypergrid.dll is not working 
+</I>&gt;&gt;&gt;&gt;&gt;<i> well, even if the configuration process is the one you suggest. The 
+</I>&gt;&gt;&gt;&gt;&gt;<i> code is mess; things are _way_ more complicated than they need to be.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> So, maybe, what we can do is merging these two ideas. We'll have 
+</I>&gt;&gt;&gt;&gt;&gt;<i> only one dll (OpenSim.Region.ResourceServices.dll), but we'll 
+</I>&gt;&gt;&gt;&gt;&gt;<i> specify things in OpenSim.ini the way that you suggest, so that if 
+</I>&gt;&gt;&gt;&gt;&gt;<i> anyone comes along and wants to plug in a different inventory 
+</I>&gt;&gt;&gt;&gt;&gt;<i> service, he can just specify the  other dll and an entry class name 
+</I>&gt;&gt;&gt;&gt;&gt;<i> for it.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> What do you think?
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> [Security]
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> SessionAuthentication = {True|False}
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> KeyAuthentication = {True|False}
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> ---
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> The constructor is being fed a config source, so the service can 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> pick out whatever it needs.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> All the shipped grid services could move into one assembly, as 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> we're explicitly specifying the implementing calss.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> I believe this approach would get us improved flexibility.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> /Stefan
+</I>&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006357.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+	<LI>Next message: <A HREF="006360.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6359">[ date ]</a>
+              <a href="thread.html#6359">[ thread ]</a>
+              <a href="subject.html#6359">[ subject ]</a>
+              <a href="author.html#6359">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

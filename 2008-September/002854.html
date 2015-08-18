@@ -1,0 +1,269 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Can OpenSim be used for physically realistic	training simulator?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Can%20OpenSim%20be%20used%20for%20physically%0A%20realistic%09training%20simulator%3F&In-Reply-To=%3C48C004F8.9020903%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002852.html">
+   <LINK REL="Next"  HREF="002871.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Can OpenSim be used for physically realistic	training simulator?</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Can%20OpenSim%20be%20used%20for%20physically%0A%20realistic%09training%20simulator%3F&In-Reply-To=%3C48C004F8.9020903%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Can OpenSim be used for physically realistic	training simulator?">diva at metaverseink.com
+       </A><BR>
+    <I>Thu Sep  4 17:55:36 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002852.html">[Opensim-dev] Can OpenSim be used for physically realistic	training	simulator?
+</A></li>
+        <LI>Next message: <A HREF="002871.html">[Opensim-dev] Can OpenSim be used for physically realistic	training simulator?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2854">[ date ]</a>
+              <a href="thread.html#2854">[ thread ]</a>
+              <a href="subject.html#2854">[ subject ]</a>
+              <a href="author.html#2854">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Mike,
+
+Great post! I have been trying to explain this distinction between 
+simulation and visualization to a lot of people, and the role of virtual 
+worlds in this, and I must say that your post nails it. I completely 
+agree with you.
+
+Let me share my experience wrt setting up/controlling/managing 
+simulations. There are two things: (1) the front-end (user) interface; 
+and (2) the backend (simulation) interface; the virtual world sits in 
+the middle. For the front-end, I have been using OpenSim's http 
+facilities, i.e. the user controls the simulations via web pages that 
+are served by OpenSim itself, and sees the results/stats of the 
+simulation on those web pages. So, essentially, I'm using opensim as a 
+glorified web application server for that; it's as painful as any other 
+web app server -- having to assemble the http programatically from 
+pieces, some of them constant, some of them variable. Apart from that 
+well-known pain, if you run the embedded browser, everything looks well 
+integrated  -- see pictures here:
+<A HREF="http://www.ics.uci.edu/~lopes/images/traffic-control/">http://www.ics.uci.edu/~lopes/images/traffic-control/</A>
+But it would be nice to be able to assemble these web pages in some 
+other more declarative way, especially for when the output becomes more 
+elaborate with charts, etc. Being able to do Javascript or similar would 
+also help a lot -- basically a computation that opemsim would send to 
+these 2d visualization clients is what I'm looking for.
+
+I haven't played around with the backend interface yet, I've only done 
+very simple simulations directly in opensim, using the opensim API. But 
+my plan is, again, to use HTTP and/or XMLRPC and/or REST. In other 
+words, I'm seeing this as a 3-layer architecture: web browser -- opensim 
+-- simulation engine; or 2D View -- Glorified-3D-Controller-Visualizer 
+-- Model. Doing the backend interface over HTTP has its drawbacks, 
+namely on the speed, which will limit the kinds of things that can be 
+visualized inworld. Nevertheless, that is my current plan. I would like 
+to hear of other interfaces.
+
+For doing these systems, there are two interesting things in here: one 
+is deciding which data to visualize in immersive 3D and which data to 
+visualize in plain old 2D; the other one is deciding which features of 
+the backend simulation are exposed inworld and which features are not 
+exposed. There's a thin line in all of this, there is no recipe; it 
+really depends on the particular simulation and the points you want to 
+make visible, and how. The immersive 3D visualization is psychologically 
+more powerful, but not everything should be exposed there, not just 
+because of the enormous amount of simulation data and processing, but 
+also because most of the internals of simulations are very 
+uninteresting; visualizations of those internals may even be 
+misleading/disturbing when we're dealing with probabilistic models and 
+the visualization is seen by ordinary people.
+
+My main point is: interesting times ahead! :-)
+
+Crista
+
+Mike Pitman wrote:
+&gt;<i>
+</I>&gt;<i> Hello Yassir,
+</I>&gt;<i>
+</I>&gt;<i> I'm happy to hear of your interest in using the opensim platform for 
+</I>&gt;<i> realistic physical process simulation. There are several scattered 
+</I>&gt;<i> efforts that have looked at this, including a few I'm involved with. 
+</I>&gt;<i> I'll offer some thoughts on this, which are just my suggestions to 
+</I>&gt;<i> guide your approach. There is a larger discussion that should 
+</I>&gt;<i> eventually take place on opensim-dev when opensim is further along.
+</I>&gt;<i>
+</I>&gt;<i> The physics engines in opensim really are not designed to be general 
+</I>&gt;<i> purpose simulation engines for models of physically realistic 
+</I>&gt;<i> processes. Domain models will have a level of detail specific to the 
+</I>&gt;<i> model which strongly determines force calculation and integration. The 
+</I>&gt;<i> physics engine in opensim is purposed for keeping avatars from bumping 
+</I>&gt;<i> into things, (hopefully soon) vehicles, and basically running the 
+</I>&gt;<i> coarse level of everyday realism that keeps the user's mind in 
+</I>&gt;<i> connection with what is happening in world. We really wouldn't want to 
+</I>&gt;<i> push more realism on to the internal physics engine until a number of 
+</I>&gt;<i> other issues get resolved.
+</I>&gt;<i>
+</I>&gt;<i> Having said that, I'm very optimistic about opensim as a platform for 
+</I>&gt;<i> scientific work. The critical point is where you factor the workload, 
+</I>&gt;<i> and specifically what you use opensim for. I see opensim more of an 
+</I>&gt;<i> interface to backend systems that perform special simulations rather 
+</I>&gt;<i> than a tool to simulate. Simulations of physical process can produce 
+</I>&gt;<i> enormous amounts of data ( I deal with close to a petabyte of all-atom 
+</I>&gt;<i> dynamics trajectories). Most of simulation data is not interpretively 
+</I>&gt;<i> useful, and analysis of that data has to be understood well enough to 
+</I>&gt;<i> write papers with figures in them, and make simple clear points about 
+</I>&gt;<i> what you learned. Opensim's greatest role here, in my opinion, sits in 
+</I>&gt;<i> between the simulation and the paper writing, closer to the paper than 
+</I>&gt;<i> the simulation. The part where you're working collaboratively to 
+</I>&gt;<i> analyze what it means, and what you found. In my experience, this 
+</I>&gt;<i> comes down to simple models that make simple points, which could not 
+</I>&gt;<i> have been arrived at without the heavy realistic simulation.
+</I>&gt;<i>
+</I>&gt;<i> Ok, so why do I think this post belongs in opensim-dev? Because the 
+</I>&gt;<i> use case of interfacing with backend simulations is a recurring one, 
+</I>&gt;<i> and a sensible way to approach that class is to bring it to a 
+</I>&gt;<i> discussion of what interfaces are needed to set up the simulations in 
+</I>&gt;<i> world, execute and manage job queues controlling the simulation, 
+</I>&gt;<i> maintaining simulation parameters, managing output and archiving, 
+</I>&gt;<i> accessing meta data about the simulation, control the data reduction 
+</I>&gt;<i> from inworld, maintaining domain specific metrics and measurement 
+</I>&gt;<i> procedures, and then the interesting part: data visualization, 
+</I>&gt;<i> understanding, sharing and group discussions in the context of the 
+</I>&gt;<i> data. There are lots of aspects to that process where opensim can 
+</I>&gt;<i> bring real advances to the table, and genuinely lead to the dismissal 
+</I>&gt;<i> of contempory techniques for the great new way, but I feel actually 
+</I>&gt;<i> doing the simulation in opensim misses the point. Where we need to 
+</I>&gt;<i> focus in this context, is what are the use cases that drive easier 
+</I>&gt;<i> integration from inworld to backend systems, both for controlling 
+</I>&gt;<i> backend systems, and understanding the simple summaries of what 
+</I>&gt;<i> backend systems can tell us.
+</I>&gt;<i>
+</I>&gt;<i> I'll invite you to think more about how best to factor your overall 
+</I>&gt;<i> use case in a way that keeps opensim as a 'thin' layer of control and 
+</I>&gt;<i> shared coarse visualization, and discuss more specifically what the 
+</I>&gt;<i> actual requirements might look like to produce results in your domain, 
+</I>&gt;<i> and share them with others.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> -Mike Pitman/ Rez Tone
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Inactive hide details for Yasir Assam ---09/04/2008 08:08:03 
+</I>&gt;<i> AM---Hello,Yasir Assam ---09/04/2008 08:08:03 AM---Hello,
+</I>&gt;<i>
+</I>&gt;<i>                         *Yasir Assam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">yassam at gmail.com</A>&gt;*
+</I>&gt;<i>                         Sent by: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i>
+</I>&gt;<i>                         09/04/2008 04:59 AM
+</I>&gt;<i>                         Please respond to
+</I>&gt;<i>                         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>
+</I>&gt;<i> 	
+</I>&gt;<i>
+</I>&gt;<i> To
+</I>&gt;<i> 	
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>
+</I>&gt;<i> cc
+</I>&gt;<i> 	
+</I>&gt;<i>
+</I>&gt;<i> Subject
+</I>&gt;<i> 	
+</I>&gt;<i> [Opensim-dev] Can OpenSim be used for physically realistic training 
+</I>&gt;<i> simulator?
+</I>&gt;<i>
+</I>&gt;<i> 	
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> I'm considering writing modules for OpenSim to enable me to create a
+</I>&gt;<i> physically realistic training simulator.
+</I>&gt;<i>
+</I>&gt;<i> In brief, my simulator has to
+</I>&gt;<i>
+</I>&gt;<i>    * simulate &amp; render certain physical processes realistically (e.g.
+</I>&gt;<i>      weather events such as hurricanes and their effects on the
+</I>&gt;<i>      environment)
+</I>&gt;<i>    * constrain avatar movements (e.g. no flying, and impede motion on
+</I>&gt;<i>      fatigue)
+</I>&gt;<i>    * allow a privileged user to fast-forward/rewind simulation (e.g.
+</I>&gt;<i>      jump forward 6 hours in the simulation of the hurricane)
+</I>&gt;<i>    * allow a privileged user to have multiple views of simulation (I
+</I>&gt;<i>      realise this depends in part on the client app)
+</I>&gt;<i>    * be able to morph/add/remove physical objects in real-time for all
+</I>&gt;<i>      users to see and interact with
+</I>&gt;<i>    * log user actions for assessment purposes
+</I>&gt;<i>    * voice chat with simulated distance &amp; direction (someone far away
+</I>&gt;<i>      in the sim sounds distant)
+</I>&gt;<i>
+</I>&gt;<i> There's no need for the simulator to integrate with other grids (but
+</I>&gt;<i> there's no harm if it gets that capability out of the box).
+</I>&gt;<i>
+</I>&gt;<i> Is it sensible to build something like this on top of OpenSim or should
+</I>&gt;<i> I just write my own engine?
+</I>&gt;<i>
+</I>&gt;<i> Thanks,
+</I>&gt;<i> Yasir
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080904/69a8999a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080904/69a8999a/attachment.html</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/gif
+Size: 105 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080904/69a8999a/attachment.gif">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080904/69a8999a/attachment.gif</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: image/gif
+Size: 45 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080904/69a8999a/attachment-0001.gif">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080904/69a8999a/attachment-0001.gif</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002852.html">[Opensim-dev] Can OpenSim be used for physically realistic	training	simulator?
+</A></li>
+	<LI>Next message: <A HREF="002871.html">[Opensim-dev] Can OpenSim be used for physically realistic	training simulator?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2854">[ date ]</a>
+              <a href="thread.html#2854">[ thread ]</a>
+              <a href="subject.html#2854">[ subject ]</a>
+              <a href="author.html#2854">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

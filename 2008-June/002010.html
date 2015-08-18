@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] A software to connect its own region and TP in	from locally...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20software%20to%20connect%20its%20own%20region%20and%20TP%20in%0A%09from%20locally...&In-Reply-To=%3C970c50810806241348hff04646gd6055ad6a0d09632%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001908.html">
+   <LINK REL="Next"  HREF="002011.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] A software to connect its own region and TP in	from locally...</H1>
+    <B>Dalien Talbot</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20software%20to%20connect%20its%20own%20region%20and%20TP%20in%0A%09from%20locally...&In-Reply-To=%3C970c50810806241348hff04646gd6055ad6a0d09632%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] A software to connect its own region and TP in	from locally...">dalienta at gmail.com
+       </A><BR>
+    <I>Tue Jun 24 22:48:47 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001908.html">[Opensim-dev] A software to connect its own region and TP in from	locally...
+</A></li>
+        <LI>Next message: <A HREF="002011.html">[Opensim-dev] A software to connect its own region and TP in	from locally...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2010">[ date ]</a>
+              <a href="thread.html#2010">[ thread ]</a>
+              <a href="subject.html#2010">[ subject ]</a>
+              <a href="author.html#2010">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Fri, Jun 20, 2008 at 8:04 AM, Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt;
+wrote:
+
+&gt;<i>
+</I>&gt;<i> The issue you're seeing is known as the 'NAT bounce' or 'NAT
+</I>&gt;<i> loopback' issue - your router only translates and/or forwards traffic
+</I>&gt;<i> crossing the LAN-WAN border, which means that if you access your computer
+</I>&gt;<i> with the _external_ IP from _within_ the LAN, the traffic isn't 'bounced'
+</I>&gt;<i> back into the LAN, but is lost.
+</I>&gt;<i>
+</I>&gt;<i> Normally, you would solve this by simply address the computer with your
+</I>&gt;<i> _internal_ IP from the inside (typically, you have host file settings or an
+</I>&gt;<i> internal dns that serves internal ip's within the LAN)
+</I>&gt;<i>
+</I>&gt;<i> now, things are getting complicated with the Second Life viewer, as the
+</I>&gt;<i> viewer demands regions be addressed with _IP_, not host name, so the viewer
+</I>&gt;<i> never resolves anything, so host magic won't work.
+</I>&gt;<i>
+</I>&gt;<i> so, on login and teleports, when the grid tells the viewer where to start,
+</I>&gt;<i> it would have to serve you your _internal_ IP - but your _external_ ip to
+</I>&gt;<i> the rest of the world.
+</I>&gt;<i>
+</I>&gt;<i> Which gets complex.
+</I>&gt;<i>
+</I>
+I think the vast majority of the cases (in the case the outbound connections
+are masked behind the same IP as the one used for the inbound port
+redirection) could be taken care of by a modification of the grid
+registration/teleport logic:
+
+1) upon the registration, the region sends its IP &quot;as seen locally&quot;
+
+2) the grid server takes that IP (denote as privateIP), as well as the IP it
+sees as source (denote it as publicIP) and keeps in the registration
+database.
+
+3) upon the teleport request, the sending region informs the grid server
+about the IP of the client. The grid server compares this IP with publicIP -
+if they are the same, means the client is behind the home router - so the
+grid server returns the privateIP which the originating region uses to send
+the user to the target region. If the clientIP and publicIP are different -
+then the assumption is that the client and the server are on the different
+sides of the NAT - so the publicIP is used for the teleport.
+
+The (1) can be extended to also include N &quot;known public client addresses&quot;
+into the registration - so the condition for giving out the privateIP within
+the teleport packet is the equality of the client IP to any of those...
+
+any pitfalls in the above quick write up that I've missed ?
+
+/d
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080624/ed8dde1f/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080624/ed8dde1f/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001908.html">[Opensim-dev] A software to connect its own region and TP in from	locally...
+</A></li>
+	<LI>Next message: <A HREF="002011.html">[Opensim-dev] A software to connect its own region and TP in	from locally...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2010">[ date ]</a>
+              <a href="thread.html#2010">[ thread ]</a>
+              <a href="subject.html#2010">[ subject ]</a>
+              <a href="author.html#2010">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

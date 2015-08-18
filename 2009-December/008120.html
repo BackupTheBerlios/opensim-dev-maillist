@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Refactoring SceneObjectGroup - Introducing	Components
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Refactoring%20SceneObjectGroup%20-%20Introducing%0A%09Components&In-Reply-To=%3C41234.23617.qm%40web82605.mail.mud.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008118.html">
+   <LINK REL="Next"  HREF="008121.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Refactoring SceneObjectGroup - Introducing	Components</H1>
+    <B>Charles Krinke</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Refactoring%20SceneObjectGroup%20-%20Introducing%0A%09Components&In-Reply-To=%3C41234.23617.qm%40web82605.mail.mud.yahoo.com%3E"
+       TITLE="[Opensim-dev] Refactoring SceneObjectGroup - Introducing	Components">cfk at pacbell.net
+       </A><BR>
+    <I>Tue Dec 15 18:12:00 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008118.html">[Opensim-dev]	Refactoring	SceneObjectGroup	-	Introducing	Components
+</A></li>
+        <LI>Next message: <A HREF="008121.html">[Opensim-dev] Refactoring SceneObjectGroup - Introducing	Components
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8120">[ date ]</a>
+              <a href="thread.html#8120">[ thread ]</a>
+              <a href="subject.html#8120">[ subject ]</a>
+              <a href="author.html#8120">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dear Adam:
+
+This seems like a good idea as all of your ideas are and I support it. Lets move forward.
+
+Perhaps one way to move forward is to help to encourage patches that meet this vision. I am thinking of an example with notes and TODO so that others can take the example subroutine and add patches to follow your vision.
+
+Charles
+
+
+
+
+________________________________
+From: &quot;Frisby, Adam&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;
+To: &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+Sent: Tue, December 15, 2009 3:04:56 AM
+Subject: Re: [Opensim-dev] Refactoring SceneObjectGroup - Introducing Components
+
+ 
+Bumpity Bump. If I don&#8217;t hear
+any comments on this, I&#8217;m going to assume the proposal is sound and have carte
+blanche to break OpenSim at my whim. ;) 
+ 
+(find the original post for the
+attachment.)
+ 
+Regards,
+ 
+Adam
+ 
+From:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Frisby, Adam
+Sent: Friday, 11 December 2009 3:48 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: [Opensim-dev] Refactoring SceneObjectGroup - Introducing
+Components
+ 
+Hi Folks,
+ 
+I&#8217;ve got a fairly complicated proposal to deliver here today
+&#8211; the short of it is; I&#8217;d like to go ahead and replace the current Scene Object
+representation model &#8211; at a fairly comprehensive &amp; complete level. Some of
+you have had the misfortune of working with SceneObjectPart/SceneObjectGroup
+and should understand what I am talking about.
+ 
+There are several stages to this proposal &#8211; but I would like
+to talk about today the first big one (and a small outline of the larger
+project &#8211; the reason for this being some of the later details require a little
+more nutting out before I have a complete proposal for them).
+ 
+So &#8211; the larger proposal in a nutshell; I would like to:
+&#183;         Merge SceneObjectGroup &amp; SceneObjectPart
+&#183;         Enable full inheritance &amp; linking (ie,
+hierarchical linking)
+&#183;         Make programming with SceneObjects possible
+&amp; reasonable from the outside (ie have a clean API).
+&#183;         Provide the ability to extend SceneObjects with
+&#8220;components&#8221; to introduce new properties and behaviours.
+ 
+The item I&#8217;d like to talk about today would be implementing
+Components. Components are small C# classes that may be attached to any
+SceneObject arbitrarily. 
+ 
+A component is any class inheriting from IComponent &#8211;
+IComponent carries only two properties; a serialisation property (returns the
+current &#8216;state&#8217; for serialisation purposes), and a type property (which
+recognises the &#8216;type&#8217; of component that it is) &#8211; components allow you to attach
+arbitrary data to an object for the purposes of interacting with a region
+module. For instance, a &#8220;Mesh&#8221; module (which is my current best example) would
+have a MeshComponent that included all the extra data to tag an object with
+related to meshes &#8211; which would get serialised and passed around with the main
+object. When deserialized &#8211; a &#8220;Factory&#8221; handles making sure the MeshComponent
+is deserialized with the main object.
+ 
+I&#8217;ve attached a document which is my current state of the
+whole proposal which includes some examples &amp; more detail. Please note that
+Phase 2 is not finalised yet &#8211; and some decisions were discussed about changing
+two facets in particular.
+&#183;         Enabling inheritance of components+sceneobject
+to make speedy-classes for common use cases (eg PrimObject inherits
+PrimComponent and SceneObject)
+&#183;         Allowing more than one factory potentially; for
+manufacturing said speedy-classes.
+&#183;         Note that these shorthand classes would still
+use the standard .Has / .Get methods; they would just return &#8216;this&#8217; where the
+particular component type is concerned.
+ 
+To begin with &#8211; I would like to implement components as an
+extra non-serialised property of the SceneObjectPart; this will occur very
+shortly after 0.7 is tagged; which I would like to do once ROBUST covers all
+the main services (I heard something about late-december/early-jan); this first
+stage should not break anything in particular &#8211; however once that Is complete,
+I would like to migrate properties into components in order to modularised the
+codebase better.
+ 
+An example of this would be PrimData &#8211; primdata is unique to
+the Second Life use case, and irrelevant to others; in this case, we&#8217;ll move
+PrimData into a commonly accessed component (eg
+&#8220;SceneObject.Get&lt;PrimData&gt;.Hollow = 0.9f;&#8221;) &#8211; once the move to components
+is complete for the common data; then creating the final SceneObject class
+which merges SceneObjectGroup+Part should be a fairly painless process.
+ 
+Please take a read of the document attached for more
+information &#8211; and I am very keen to hear anyones thoughts as to use cases that
+this model will make more difficult; or could not support. The goal with this
+project is to make OpenSim support more with less &#8211; allowing third party
+modules to really take OpenSim as a framework to the next level; and make a
+more modular server for other clients &amp; platforms.
+ 
+Thanks!
+ 
+Adam
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20091215/432ec92d/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20091215/432ec92d/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008118.html">[Opensim-dev]	Refactoring	SceneObjectGroup	-	Introducing	Components
+</A></li>
+	<LI>Next message: <A HREF="008121.html">[Opensim-dev] Refactoring SceneObjectGroup - Introducing	Components
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8120">[ date ]</a>
+              <a href="thread.html#8120">[ thread ]</a>
+              <a href="subject.html#8120">[ subject ]</a>
+              <a href="author.html#8120">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

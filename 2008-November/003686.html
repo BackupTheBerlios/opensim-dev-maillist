@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Redesigning the Physics-Interface
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Redesigning%20the%20Physics-Interface&In-Reply-To=%3C4928295B.6060508%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003685.html">
+   <LINK REL="Next"  HREF="003687.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Redesigning the Physics-Interface</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Redesigning%20the%20Physics-Interface&In-Reply-To=%3C4928295B.6060508%40t-data.com%3E"
+       TITLE="[Opensim-dev] Redesigning the Physics-Interface">melanie at t-data.com
+       </A><BR>
+    <I>Sat Nov 22 16:46:35 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003685.html">[Opensim-dev] Redesigning the Physics-Interface
+</A></li>
+        <LI>Next message: <A HREF="003687.html">[Opensim-dev] Redesigning the Physics-Interface
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3686">[ date ]</a>
+              <a href="thread.html#3686">[ thread ]</a>
+              <a href="subject.html#3686">[ subject ]</a>
+              <a href="author.html#3686">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I was planning to do that. The idea is to create / delete / modify 
+physical composition from creation, linking, and deletion only.
+E.g. CreatePhysicsActor(IEntity), RemovePhysicsActor(IEntity), where 
+IEntity is a root entity (e.g. not a child of anything).
+Link would delete the old physics actor and then create a new one 
+from scratch after linking.
+
+Melanie
+
+
+Gerhard D&#252;nnebeil wrote:
+&gt;<i> Stefan,
+</I>&gt;<i> 
+</I>&gt;<i> sure, you are completely right.
+</I>&gt;<i> 
+</I>&gt;<i> But you should understand the ideas of the ODE. ODE knows about bodies 
+</I>&gt;<i> and geometries.
+</I>&gt;<i> 
+</I>&gt;<i> A body is something that has a mass and can move over time.
+</I>&gt;<i> A geometry describes the collision behaviour of a body but is a distinct 
+</I>&gt;<i> concept and the coupling is loose (means you can have bodies without a 
+</I>&gt;<i> geometry and geometries without a body).
+</I>&gt;<i> 
+</I>&gt;<i> An object without a geometry won't collide. If this is something 
+</I>&gt;<i> meaningful is another discussion.
+</I>&gt;<i> 
+</I>&gt;<i> A geometry without an object won't move on a collision. This is a static 
+</I>&gt;<i> object in SL speak.
+</I>&gt;<i> 
+</I>&gt;<i> It is possible to add more than one(!) geometry to one body thus 
+</I>&gt;<i> composing an object with a complex geometry but behaving as one rigid 
+</I>&gt;<i> entity.
+</I>&gt;<i> 
+</I>&gt;<i> Currently we create one geometry and one body for each prim. That is -- 
+</I>&gt;<i> as far as I understand things -- part of the instability problems. 
+</I>&gt;<i> Trying to fix that lead me into a situation where I have to reconstruct 
+</I>&gt;<i> the parent/child relationship from a lot of calls to the API. This leads 
+</I>&gt;<i> to situations where a child prim is created first -- with a geometry and 
+</I>&gt;<i> a body -- then linked to a parent so the body is destroyed again, ......
+</I>&gt;<i> 
+</I>&gt;<i> This is not only inefficient but very complex and error prone.
+</I>&gt;<i> 
+</I>&gt;<i> Things would be much easier if linked objects would be given to the 
+</I>&gt;<i> physics API as such. After all we want them to behave as exactly that: 
+</I>&gt;<i> one object.
+</I>&gt;<i> 
+</I>&gt;<i> Look at the new approach, you'll find an Orwell situation &quot;each thing is 
+</I>&gt;<i> entity but some are more entity than others&quot; as the current approach 
+</I>&gt;<i> also knows a hierachical relation ship.
+</I>&gt;<i> I just propose, this hierarchy is given to the phys engine in a 
+</I>&gt;<i> convenient way as well.
+</I>&gt;<i> 
+</I>&gt;<i> So &quot;Or, would IEntity have a 'composite mesh' that is a combination of 
+</I>&gt;<i> all child meshes?&quot; Not exactly but in a more lenient way of looking at 
+</I>&gt;<i> it, you are correct.
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Best regards
+</I>&gt;<i> Gerhard
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Stefan Andersson wrote:
+</I>&gt;&gt;<i> Errr... actually, aren't we going the exact opposite direction, with 
+</I>&gt;&gt;<i> the 'everything is IEntity' approach?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Or, would IEntity have a 'composite mesh' that is a combination of all 
+</I>&gt;&gt;<i> child meshes?
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> I guess, to be able to collide with a child, you would still have to 
+</I>&gt;&gt;<i> retain it as a separate mesh entity?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Best regards,
+</I>&gt;&gt;<i> Stefan Andersson
+</I>&gt;&gt;<i> Tribal Media AB
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Date: Sat, 22 Nov 2008 06:44:44 -0600
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">james.stallings at gmail.com</A>
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Redesigning the Physics-Interface
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hello Gerhard :D
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Unless I am sadly mistaken, something of the sort is currently in 
+</I>&gt;&gt;<i> progress.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Cheers,
+</I>&gt;&gt;<i> James
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Sat, Nov 22, 2008 at 6:37 AM, Gerhard D&#252;nnebeil 
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Gerhard.Duennebeil at chello.at</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Gerhard.Duennebeil at chello.at</A>&gt;&gt; 
+</I>&gt;&gt;<i> wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Hi
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     this is the start of a discussion about the interface to the physics
+</I>&gt;&gt;<i>     plugins.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     After having tried working on the ODE plugin, specially focussed on
+</I>&gt;&gt;<i>     linked objects I think the current interface has a severe short
+</I>&gt;&gt;<i>     coming.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     The problem I see is, that it is prim orientated while an object
+</I>&gt;&gt;<i>     orientation would better suit the needs.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Why is it so?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Currently it seems to me, the information is given to the phys engine
+</I>&gt;&gt;<i>     prim by prim. Any object information is only given in fragments.
+</I>&gt;&gt;<i>     This leads to the situation that the object relations must be
+</I>&gt;&gt;<i>     reconstructed by the phys engine and it often leads to the situation
+</I>&gt;&gt;<i>     that individual prims get constructed and shortly after get destructed
+</I>&gt;&gt;<i>     again as it turns out that the respective prim is part of a larger
+</I>&gt;&gt;<i>     link set.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     For that reason I ask your thoughts about a redesign of that
+</I>&gt;&gt;<i>     interface.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Best regards
+</I>&gt;&gt;<i>     Gerhard
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     _______________________________________________
+</I>&gt;&gt;<i>     Opensim-dev mailing list
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -- 
+</I>&gt;&gt;<i> ===================================
+</I>&gt;&gt;<i> The wind
+</I>&gt;&gt;<i> scours the earth for prayers
+</I>&gt;&gt;<i> The night obscures them
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> <A HREF="http://osgrid.org">http://osgrid.org</A> &lt;<A HREF="http://osgrid.org/">http://osgrid.org/</A>&gt;
+</I>&gt;&gt;<i> <A HREF="http://del.icio.us/SPQR">http://del.icio.us/SPQR</A>
+</I>&gt;&gt;<i> <A HREF="http://twitter.com/jstallings2">http://twitter.com/jstallings2</A>
+</I>&gt;&gt;<i> <A HREF="http://www.linkedin.com/pub/5/770/a49">http://www.linkedin.com/pub/5/770/a49</A>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003685.html">[Opensim-dev] Redesigning the Physics-Interface
+</A></li>
+	<LI>Next message: <A HREF="003687.html">[Opensim-dev] Redesigning the Physics-Interface
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3686">[ date ]</a>
+              <a href="thread.html#3686">[ thread ]</a>
+              <a href="subject.html#3686">[ subject ]</a>
+              <a href="author.html#3686">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

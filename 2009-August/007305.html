@@ -1,0 +1,193 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Minimum OpenSim mono version now 2.4? (was Re: [Opensim-commits] r10113 - trunk)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Minimum%20OpenSim%20mono%20version%20now%202.4%3F%20%28was%20Re%3A%0A%20%5BOpensim-commits%5D%20r10113%20-%20trunk%29&In-Reply-To=%3C4A7870CE.3060707%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007302.html">
+   <LINK REL="Next"  HREF="007306.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Minimum OpenSim mono version now 2.4? (was Re: [Opensim-commits] r10113 - trunk)</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Minimum%20OpenSim%20mono%20version%20now%202.4%3F%20%28was%20Re%3A%0A%20%5BOpensim-commits%5D%20r10113%20-%20trunk%29&In-Reply-To=%3C4A7870CE.3060707%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Minimum OpenSim mono version now 2.4? (was Re: [Opensim-commits] r10113 - trunk)">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Aug  4 19:33:02 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007302.html">[Opensim-dev] Minimum OpenSim mono version now 2.4? (was Re:	[Opensim-commits] r10113 - trunk)
+</A></li>
+        <LI>Next message: <A HREF="007306.html">[Opensim-dev] Minimum OpenSim mono version now 2.4? (was Re:	[Opensim-commits] r10113 - trunk)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7305">[ date ]</a>
+              <a href="thread.html#7305">[ thread ]</a>
+              <a href="subject.html#7305">[ subject ]</a>
+              <a href="author.html#7305">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I just gave current master a try under mono 2.0.1 and I get the following on startup
+
+** (OpenSim.exe:23337): WARNING **: The class System.Threading.ReaderWriterLockSlim could not be loaded, used in 
+System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+15:08:58 - [MODULES]: Could not load types for [HttpServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]. 
+Exception System.Reflection.ReflectionTypeLoadException: The classes in the module cannot be loaded.
+   at (wrapper managed-to-native) System.Reflection.Assembly:GetTypes (bool)
+   at System.Reflection.Assembly.GetTypes () [0x00000]
+   at OpenSim.Region.Framework.ModuleLoader.LoadModules (System.String dllName) [0x00000]
+
+which I presume is the problem, since it's the same one as in
+
+<A HREF="http://opensimulator.org/mantis/bug_view_page.php?bug_id=3941">http://opensimulator.org/mantis/bug_view_page.php?bug_id=3941</A>
+
+System.Threading.ReaderWriterLockSlim was only introduced in .NET 3.5 so I assume that mono 2.0.1 lacks this.  I tried 
+recompiling HttpServer under mono 2.0.1 using MonoDevelop but came up against syntax problems and compiling in Visual 
+Studio C# 2008 targeting .NET Framework 2.0 does not resolve the problem, so it looks like this issue is permanent.
+
+At least for Ubuntu, the next release (9.10) will upgrade the mono packages.
+
+Impalah wrote:
+&gt;<i> Ok, I will try it as soon as I can. I work in grid mode so maybe it will 
+</I>&gt;<i> take me some time until I can tell you something.
+</I>&gt;<i> 
+</I>&gt;<i> Greetings
+</I>&gt;<i> 
+</I>&gt;<i> 2009/8/4 Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt;&gt;
+</I>&gt;<i> 
+</I>&gt;<i>     Can I suggest something Impalah&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt;&gt;?
+</I>&gt;<i> 
+</I>&gt;<i>     Try the new OpenSimulator in a separate folder under your current
+</I>&gt;<i>     version of mono and let us know what happens.   If it works, then the
+</I>&gt;<i>     feedback that I've been getting about requiring a mono update might be
+</I>&gt;<i>     'outdated'.      If you have problems, please let us know so we can
+</I>&gt;<i>     know that we've updated the documentation correctly.    You could also
+</I>&gt;<i>     download the C# WebServer code from opensim-libs and attempt to
+</I>&gt;<i>     compile it yourself.   You might be able to get it to work with your
+</I>&gt;<i>     current version of mono successfully.
+</I>&gt;<i> 
+</I>&gt;<i>     Regards
+</I>&gt;<i> 
+</I>&gt;<i>     Teravus
+</I>&gt;<i> 
+</I>&gt;<i>     On Tue, Aug 4, 2009 at 7:30 AM, Impalah&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>      &gt; Yes, this will force me to have several mono versions in the
+</I>&gt;<i>     machines,
+</I>&gt;<i>      &gt; unless I delete the old versions, and it won't protect me against
+</I>&gt;<i>     a &quot;update
+</I>&gt;<i>      &gt; to mono version X&quot; several weeks later. So my system will be always
+</I>&gt;<i>      &gt; &quot;unstable&quot; and I won't be able to call it safe, because I don't
+</I>&gt;<i>     know if the
+</I>&gt;<i>      &gt; new mono version is &quot;secure&quot;, or use it for something more than
+</I>&gt;<i>     testing and
+</I>&gt;<i>      &gt; &quot;hey, 10000 primitives, cool!&quot;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; I'm hungry, maybe I will be more optimistic after lunch.
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; greetings
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; 2009/8/4 Dr Scofield &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt;&gt;
+</I>&gt;<i>      &gt;&gt;
+</I>&gt;<i>      &gt;&gt; Impalah wrote:
+</I>&gt;<i>      &gt;&gt; &gt; Please allow me to be cynic but... For using/developing
+</I>&gt;<i>     for/testing
+</I>&gt;<i>      &gt;&gt; &gt; trunk Opensim versions I am forced to tweak my stable and well
+</I>&gt;<i>     patched
+</I>&gt;<i>      &gt;&gt; &gt; Linux and to include an unstable mono version which I have no
+</I>&gt;<i>     guarantee
+</I>&gt;<i>      &gt;&gt; &gt; about everything will work (maybe with 2.4, maybe with 2.5,
+</I>&gt;<i>     maybe with
+</I>&gt;<i>      &gt;&gt; &gt; future 2.9)...
+</I>&gt;<i>      &gt;&gt;
+</I>&gt;<i>      &gt;&gt; hmm...not sure where the &quot;tweak my stable and well patched
+</I>&gt;<i>     linux&quot; comes
+</I>&gt;<i>      &gt;&gt; into the
+</I>&gt;<i>      &gt;&gt; game. installing mono 2.4.2 can be done in parallel to an
+</I>&gt;<i>     existing mono
+</I>&gt;<i>      &gt;&gt; tree
+</I>&gt;<i>      &gt;&gt; even. you just have to be careful to use the right one for
+</I>&gt;<i>     opensim (we
+</I>&gt;<i>      &gt;&gt; have
+</I>&gt;<i>      &gt;&gt; systems with 3 different mono version installed).
+</I>&gt;<i>      &gt;&gt;
+</I>&gt;<i>      &gt;&gt; but then again, i might be misunderstanding you. if that is the
+</I>&gt;<i>     case,
+</I>&gt;<i>      &gt;&gt; forget
+</I>&gt;<i>      &gt;&gt; what i said.
+</I>&gt;<i>      &gt;&gt;
+</I>&gt;<i>      &gt;&gt; --
+</I>&gt;<i>      &gt;&gt; dr dirk husemann ---- virtual worlds research ---- ibm zurich
+</I>&gt;<i>     research lab
+</I>&gt;<i>      &gt;&gt; SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A>
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A>&gt; ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+</I>&gt;<i>      &gt;&gt; RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A>&gt; - +41 44 724
+</I>&gt;<i>     8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+</I>&gt;<i>     &lt;<A HREF="http://www.zurich.ibm.com/%7Ehud/">http://www.zurich.ibm.com/%7Ehud/</A>&gt;
+</I>&gt;<i>      &gt;&gt; _______________________________________________
+</I>&gt;<i>      &gt;&gt; Opensim-dev mailing list
+</I>&gt;<i>      &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>      &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt; _______________________________________________
+</I>&gt;<i>      &gt; Opensim-dev mailing list
+</I>&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>      &gt;
+</I>&gt;<i>      &gt;
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007302.html">[Opensim-dev] Minimum OpenSim mono version now 2.4? (was Re:	[Opensim-commits] r10113 - trunk)
+</A></li>
+	<LI>Next message: <A HREF="007306.html">[Opensim-dev] Minimum OpenSim mono version now 2.4? (was Re:	[Opensim-commits] r10113 - trunk)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7305">[ date ]</a>
+              <a href="thread.html#7305">[ thread ]</a>
+              <a href="subject.html#7305">[ subject ]</a>
+              <a href="author.html#7305">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

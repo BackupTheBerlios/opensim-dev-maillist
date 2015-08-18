@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] varregion and the grid
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20varregion%20and%20the%20grid&In-Reply-To=%3CCAJ%3DJWqy-_Mb7mh1LHx8iX4VFSpTEWeYn9NbOFjn2NjJ6%3Db0Jmw%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="012128.html">
+   <LINK REL="Next"  HREF="012130.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] varregion and the grid</H1>
+    <B>Mister Blue</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20varregion%20and%20the%20grid&In-Reply-To=%3CCAJ%3DJWqy-_Mb7mh1LHx8iX4VFSpTEWeYn9NbOFjn2NjJ6%3Db0Jmw%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] varregion and the grid">misterblue at misterblue.com
+       </A><BR>
+    <I>Sun Dec 29 04:55:50 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="012128.html">[Opensim-dev] Index was outside the bounds of the array.	LLClientView.cs
+</A></li>
+        <LI>Next message: <A HREF="012130.html">[Opensim-dev] varregion and the grid
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12129">[ date ]</a>
+              <a href="thread.html#12129">[ thread ]</a>
+              <a href="subject.html#12129">[ subject ]</a>
+              <a href="author.html#12129">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After a brief hiatus recovering from a crashed disk and installing and
+becoming accustomed with Windows 8.1 (question to MS: what the heck were
+you thinking???), I&#8217;ve spent more time on the OpenSimulator varregion code.
+
+The code is still on the &#8216;varregion&#8217; branch of the source repository and it
+has been kept pretty close to the &#8216;master&#8217; branch. I&#8217;ve added the size
+information to a bunch of the teleport messages trying to get teleport to a
+large region working. Sadly, it crashes Singularity whenever you log into
+or teleport to a non-legacy sized region in grid mode. Works in standalone
+mode. I haven&#8217;t tested it yet, but I&#8217;m hoping adjacent standalone large
+regions (like four 512&#215;512) now border cross. It is an iffy thing, though,
+since there is &#8216;find my neighbor&#8217; logic in Scene, GridService,
+EntityTransferModule, and a few other places. That logic does need some
+cleaning up.
+
+I found that the Singularity crash when running in grid mode has to do with
+the fact that the grids out there are not running the &#8216;varregion&#8217; code. In
+particular, OSGrid&#8217;s grid service is not storing and returning the region
+size. This means that Singularity gets told the destination region is zero
+by zero which is assumes means that region is legacy sized (256&#215;256). The
+simulator, though, thinks the region is larger and sends terrain patches to
+Singularity for the larger region. Singularity doesn&#8217;t like that and it
+crashes complaining about bad terrain patches.
+
+The fix is to get the grid services updated. To that end, I added a new
+commit to &#8216;master&#8217; that adds the size accounting to RegionInfo, RegionData,
+and GridRegion classes. Since the database code already knows about storing
+the region sizes, this makes for a downward compatible update to the
+&#8216;master&#8217; branch that does not change any APIs or change any functionality
+except for passing around and storing the region size along with its
+location.
+
+Once that patch is distributed or cherry-picked
+(commit 6869633d76b2a6664743a608e4284b8dd7df85a6), testing will continue.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20131228/e5c80372/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20131228/e5c80372/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="012128.html">[Opensim-dev] Index was outside the bounds of the array.	LLClientView.cs
+</A></li>
+	<LI>Next message: <A HREF="012130.html">[Opensim-dev] varregion and the grid
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12129">[ date ]</a>
+              <a href="thread.html#12129">[ thread ]</a>
+              <a href="subject.html#12129">[ subject ]</a>
+              <a href="author.html#12129">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

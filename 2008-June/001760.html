@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] On Mantis #1370 (avatar persistence)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3C20080609155630.GA2712%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001750.html">
+   <LINK REL="Next"  HREF="001761.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] On Mantis #1370 (avatar persistence)</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3C20080609155630.GA2712%40dague.net%3E"
+       TITLE="[Opensim-dev] On Mantis #1370 (avatar persistence)">sean at dague.net
+       </A><BR>
+    <I>Mon Jun  9 17:56:30 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001750.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+        <LI>Next message: <A HREF="001761.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1760">[ date ]</a>
+              <a href="thread.html#1760">[ thread ]</a>
+              <a href="subject.html#1760">[ subject ]</a>
+              <a href="author.html#1760">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Fri, Jun 06, 2008 at 04:07:18PM +0900, Johan Berntsson wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> We have discussed #1370 and looked at the code and we are a bit 
+</I>&gt;<i> confused. Currently these events seems to occur when a client logs onto 
+</I>&gt;<i> a region:
+</I>&gt;<i> 
+</I>&gt;<i> Region receives UseCircuitCode packet, and calls GetAppearance(). 
+</I>&gt;<i> GetAppearance needs InventoryFolder which has not yet been created, and 
+</I>&gt;<i> fails every time.
+</I>&gt;<i> 
+</I>&gt;<i> A bit later the region receives a CompletedAgentMovement packet, and 
+</I>&gt;<i> calls GetInventory(). It then calls GetAppearance() once again. If 
+</I>&gt;<i> GetInventory succeeded, then GetAppearance() also succeeds, and avatar 
+</I>&gt;<i> persistence works.
+</I>&gt;<i> 
+</I>&gt;<i> Here are some ideas/questions:
+</I>&gt;<i> 
+</I>&gt;<i> 1. GetInventory() is asynchronous but GetAppearance() doesn't check if 
+</I>&gt;<i> it has been completed or not. This probably explains why some people 
+</I>&gt;<i> experience #1370 while it works for others (the unlucky guys have slow 
+</I>&gt;<i> computers/networks).
+</I>
+Ok, that's a good catch.  There was a random sleep in the code before,
+which might have been trying to alleviate this (which is the bad
+approach).  It would be good to come up with a good way of delaying the
+response here.
+
+&gt;<i> 2. GetAppearance() is using InventoryFolder to get asset IDs even though 
+</I>&gt;<i> the inventory asset IDs are available in 'avatarappearance' in the DB. 
+</I>&gt;<i> The information seems to be duplicated. Can't we use the DB IDs 
+</I>&gt;<i> directly? In that case we don't need to synchronize GetInventory() and 
+</I>&gt;<i> GetAppearance().
+</I>
+This was added to deal with the &quot;Can't find your clothes&quot; issue.  It
+turns out that we were missing an update on appearance editing that
+meant the asset ids were out of date.  It seemed more logical to look it
+up via inventory.  If we can track down where we were loosing that
+update, we could rely on the asset fields again.
+
+&gt;<i> 3. One of the GetAppearance() calls seem redundant, but which? Should we 
+</I>&gt;<i> call GetApperance after UseCircuitCode or CompletedAgentMovement?
+</I>&gt;<i> 
+</I>&gt;<i> We think it would work if we removed the GetInventory() dependency in 
+</I>&gt;<i> GetAppearance() and the second call to GetApperance(), but we are 
+</I>&gt;<i> reluctant to commit the change since we don't understand the design 
+</I>&gt;<i> completely. Hope you can enlighten us.
+</I>
+Honestly, I don't understand the design completely either. :)  And worse
+than that, confirming that it works on Standalone + Grid / accross
+multiple dbs tends to show that one approach doesn't work in one of
+those environments.  At this point, any help in getting this pulled
+together would be appreciated.
+
+    -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080609/7e425611/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080609/7e425611/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001750.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+	<LI>Next message: <A HREF="001761.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1760">[ date ]</a>
+              <a href="thread.html#1760">[ thread ]</a>
+              <a href="subject.html#1760">[ subject ]</a>
+              <a href="author.html#1760">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

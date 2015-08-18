@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Shaping the user services
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Shaping%20the%20user%20services&In-Reply-To=%3C4A3F6D24.8060708%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006851.html">
+   <LINK REL="Next"  HREF="006856.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Shaping the user services</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Shaping%20the%20user%20services&In-Reply-To=%3C4A3F6D24.8060708%40t-data.com%3E"
+       TITLE="[Opensim-dev] Shaping the user services">melanie at t-data.com
+       </A><BR>
+    <I>Mon Jun 22 13:38:12 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006851.html">[Opensim-dev] Exceptions on Lbsa Plaza
+</A></li>
+        <LI>Next message: <A HREF="006856.html">[Opensim-dev] Shaping the user services
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6855">[ date ]</a>
+              <a href="thread.html#6855">[ thread ]</a>
+              <a href="subject.html#6855">[ subject ]</a>
+              <a href="author.html#6855">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After breaking my head over this for a few weeks, I believe I have 
+figured out how to do this in a sane way.
+
+The fallacy was to assume that the login server and the user server 
+would be one entity. That makes things overcomplicated and breaks 
+the architecture all over the place.
+
+Now, here is what I have come up with:
+
+User Server:
+- Resolve name to key queries
+- Resolve key to name queries
+- Provide avatar picker lists
+- Manage home region data
+
+Authentication server
+- Create and manage authentication handles (string) and session keys 
+(UUID)
+- Check passwords or other forms of authentication
+
+Login server
+- Provide the interface for the Linden viewer to log into a grid. 
+Uses the services above, but doesn't contain them.
+
+Presence server
+- Manages last position data
+- Keeps list of logged in avatars and their locations
+
+Alongside with this, a new database is needed. This will not be an 
+upgrade path, but a parallel development with a migration tool.
+
+Profile information has no place in this architecture and will be 
+handled exclusively by the profiles module.
+
+The user table will specifically be designed to accommodate 
+additional fields and allow getting/setting of such fields.
+
+With all user data, a scope identifier will be passed. This will be 
+UUID.Zero in the most common case (Standalone or single grid) but 
+will allow sharing of server processes between multiple logical grids.
+
+Comments are welcome.
+
+Melanie
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006851.html">[Opensim-dev] Exceptions on Lbsa Plaza
+</A></li>
+	<LI>Next message: <A HREF="006856.html">[Opensim-dev] Shaping the user services
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6855">[ date ]</a>
+              <a href="thread.html#6855">[ thread ]</a>
+              <a href="subject.html#6855">[ subject ]</a>
+              <a href="author.html#6855">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

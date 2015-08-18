@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] DEM -&gt; Raw
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20DEM%20-%3E%20Raw&In-Reply-To=%3C46266.17568.qm%40web57808.mail.re3.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001627.html">
+   <LINK REL="Next"  HREF="001631.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] DEM -&gt; Raw</H1>
+    <B>dan miller</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20DEM%20-%3E%20Raw&In-Reply-To=%3C46266.17568.qm%40web57808.mail.re3.yahoo.com%3E"
+       TITLE="[Opensim-dev] DEM -&gt; Raw">danbmil99 at yahoo.com
+       </A><BR>
+    <I>Sun May 25 23:29:10 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001627.html">[Opensim-dev] DEM -&gt; Raw
+</A></li>
+        <LI>Next message: <A HREF="001631.html">[Opensim-dev] DEM -&gt; Raw
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1630">[ date ]</a>
+              <a href="thread.html#1630">[ thread ]</a>
+              <a href="subject.html#1630">[ subject ]</a>
+              <a href="author.html#1630">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I know I've been out of the loop for a while, but I think it's worth noting that last I looked at terrain, there was an odd issue.
+
+The terrain maps are 256x256, but to generate accurate terrain with interpolation across a 256x256 region, you actually need 257 x 257 numbers.  Otherwise, you can't properly interpolate one column and one row.  If you have access to the adjacent region's data, you could use that, but in general I don't think that's possible (certainly not in grid mode).
+
+When I looked at this late last year, I seem to recall that the rendering software and the physics both did funny things along two borders because of this issue.  Just a heads-up in case anyone is looking into it.
+
+
+-danx0r
+
+
+--- On Sat, 5/24/08, Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; wrote:
+
+&gt;<i> From: Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;
+</I>&gt;<i> Subject: Re: [Opensim-dev] DEM -&gt; Raw
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Date: Saturday, May 24, 2008, 3:32 PM
+</I>&gt;<i> Formats are:
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> RAW = LLRAW (documented on the SL wiki) - terrible format
+</I>&gt;<i> best avoided
+</I>&gt;<i> unless you want to have artists edit the files by hand.
+</I>&gt;<i> 
+</I>&gt;<i> R32/F32 - float[256,256] - read directly into/out of the
+</I>&gt;<i> heightmap with
+</I>&gt;<i> a conversion to/from doubles (we store all intermediary
+</I>&gt;<i> values as
+</I>&gt;<i> doubles internally, but save to/from files and DBs in
+</I>&gt;<i> single precision)
+</I>&gt;<i> 
+</I>&gt;<i> BMP, PNG, GIF, WMF - saves to/from 256 colour grayscale
+</I>&gt;<i> image, uses IIRC
+</I>&gt;<i> a scale from 1-128m so each shade is 0.5m (may be 1-511, I
+</I>&gt;<i> forget. Test.
+</I>&gt;<i> Only really for exporting, importing is going to be lossy)
+</I>&gt;<i> 
+</I>&gt;<i> JPEG - exports a false-colour coloured heightmap similar to
+</I>&gt;<i> the above.
+</I>&gt;<i> Same as the world map image.
+</I>&gt;<i> 
+</I>&gt;<i> TER - Load-only, Terragen - 16bit precision.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> I personally recommend R32/F32 as most if not all terrain
+</I>&gt;<i> editing
+</I>&gt;<i> software can understand it. 
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Re: USGS DEM (Important distinction as there are several
+</I>&gt;<i> varieties of
+</I>&gt;<i> DEM, including JDEM, EUDEM, etc) - I have been working on a
+</I>&gt;<i> supplemental
+</I>&gt;<i> terrain library for OpenSim which has support for USGS DEM
+</I>&gt;<i> files (and a
+</I>&gt;<i> variety of other more esoteric formats), however it is
+</I>&gt;<i> highly highly
+</I>&gt;<i> untested - use at own risk. Contact me if you want a beta
+</I>&gt;<i> copy.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Regards,
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of
+</I>&gt;<i> Diva Canto
+</I>&gt;<i> Sent: Friday, 23 May 2008 10:28 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: [Opensim-dev] DEM -&gt; Raw
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> I have a couple of questions about terrains. Where can I
+</I>&gt;<i> get more
+</I>&gt;<i> information about these raw formats that OpenSim
+</I>&gt;<i> understands? I tried
+</I>&gt;<i> Googling, but couldn't really figure it out. Are these
+</I>&gt;<i> 32-bit floating
+</I>&gt;<i> points, one per what?
+</I>&gt;<i> 
+</I>&gt;<i> Has anyone tried to produce RAW format files from DEM
+</I>&gt;<i> files?
+</I>&gt;<i> (<A HREF="http://en.wikipedia.org/wiki/USGS_DEM">http://en.wikipedia.org/wiki/USGS_DEM</A>)
+</I>&gt;<i> 
+</I>&gt;<i> Any info appreciated!
+</I>&gt;<i> 
+</I>&gt;<i> Thanks,
+</I>&gt;<i> 
+</I>&gt;<i> Diva /
+</I>&gt;<i> Crista_______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001627.html">[Opensim-dev] DEM -&gt; Raw
+</A></li>
+	<LI>Next message: <A HREF="001631.html">[Opensim-dev] DEM -&gt; Raw
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1630">[ date ]</a>
+              <a href="thread.html#1630">[ thread ]</a>
+              <a href="subject.html#1630">[ subject ]</a>
+              <a href="author.html#1630">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

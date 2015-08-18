@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection string
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Opensim%200.7%20tidying%20up%20the%20MySQL%20DB%20connection%0A%20string&In-Reply-To=%3C4C1BE0FA.2050909%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008798.html">
+   <LINK REL="Next"  HREF="008794.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection string</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Opensim%200.7%20tidying%20up%20the%20MySQL%20DB%20connection%0A%20string&In-Reply-To=%3C4C1BE0FA.2050909%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection string">diva at metaverseink.com
+       </A><BR>
+    <I>Fri Jun 18 23:11:22 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008798.html">[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection	string
+</A></li>
+        <LI>Next message: <A HREF="008794.html">[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection	string
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8791">[ date ]</a>
+              <a href="thread.html#8791">[ thread ]</a>
+              <a href="subject.html#8791">[ subject ]</a>
+              <a href="author.html#8791">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>AlexRa,
+
+Since you were the one who wrote the newly introduced MySqlMigrations 
+class, which uses the MySqlScript class, can you please explain how we 
+can get around the issue that Frank is talking about? It looks like the 
+MySqlScript class has some hardcoded timeouts. Frank says that we might 
+be able to specify a timeout between 0 and 1 hour, but not more. Some DB 
+migrations, especially assets, might take more than 1 hour.
+
+I'm really considering rolling back to using the old driver because this 
+one is causing too much grief and confusion at this critical time when 
+we want things to be stable.
+
+Any light on this new driver, especially its limitations/bugs, and how 
+we can overcome them, would be very much appreciated so that we can try 
+to continue to use it in dev code.
+
+Thanks.
+Crista
+
+
+On 6/18/2010 10:57 AM, Frank Nichols wrote:
+&gt;<i> The use of the MysqlScript class is at the heart of most of the 
+</I>&gt;<i> problems I have seen with the migration of mysql databases from 0.6.9 
+</I>&gt;<i> to 0.7.0. The problem seems to be that the default command timeout 
+</I>&gt;<i> value for processing a sql statement with this class is 30 seconds, 
+</I>&gt;<i> which is far to short to alter a table inserting a column when there 
+</I>&gt;<i> are hundreds of thousands of rows in that table.
+</I>&gt;<i>
+</I>&gt;<i> In researching this it appears that the devart version of the new 
+</I>&gt;<i> MySql.data.dll has a version of the MysqlScript which allows you to 
+</I>&gt;<i> set the command timeout programmatically, however the mysql version of 
+</I>&gt;<i> this library does not have this property available. As far as I could 
+</I>&gt;<i> see there is currently no way to set the command timeout. So, it would 
+</I>&gt;<i> appear that automatic migrations are doomed to fail in any case where 
+</I>&gt;<i> they take more than 30 seconds.
+</I>&gt;<i>
+</I>&gt;<i> Frank
+</I>&gt;<i>
+</I>&gt;<i> On Fri, Jun 18, 2010 at 7:13 AM, Michael Cerquoni 
+</I>&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">nebadon2025 at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">nebadon2025 at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     I have to say so far this new MySQL connector has been absolutely
+</I>&gt;<i>     nothing but trouble for Frank Nichols and myself testing Migration
+</I>&gt;<i>     from 0.6.9 to 0.7,  All throughout the testing we have had nothing
+</I>&gt;<i>     but failure after failure from this new MySQL connector that has
+</I>&gt;<i>     been introduced.  It has been nearly impossible to move forward on
+</I>&gt;<i>     to 0.7 because of this,  I have no doubt that this will be a major
+</I>&gt;<i>     problem for everyone to migrate over if you have even what seems
+</I>&gt;<i>     like the most minimal amounts of data.   At this time i really
+</I>&gt;<i>     have to give this new connector a -1.   Can someone please explain
+</I>&gt;<i>     to me why the Original MySQL connector that seemed to work
+</I>&gt;<i>     perfectly for years has now been replaced with one that constantly
+</I>&gt;<i>     times out during migrations and gives nothing but trouble with
+</I>&gt;<i>     DNS, requires us to use additional connection string settings, and
+</I>&gt;<i>     basiclly makes moving on to 0.7 impossible for myself and
+</I>&gt;<i>     others??  I must be missing something here!
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     On Fri, Jun 18, 2010 at 6:06 AM, AlexRa &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">info at adeptsql.com</A>
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">info at adeptsql.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         AA&gt; But I note that I has &quot;pooling=false;&quot; in my own string
+</I>&gt;<i>         though its
+</I>&gt;<i>         AA&gt; not been in the example ini files for a while.  Anyone
+</I>&gt;<i>         know what this
+</I>&gt;<i>         AA&gt; does and if its wise to keep it in the string if I had a
+</I>&gt;<i>         working
+</I>&gt;<i>         AA&gt; 0.6.9 system with it there before?
+</I>&gt;<i>
+</I>&gt;<i>         Hello Ai,
+</I>&gt;<i>
+</I>&gt;<i>         Can't tell you why the &quot;pooling=false;&quot; was there in the 1st
+</I>&gt;<i>         place, but
+</I>&gt;<i>         I've noticed that it did cause connection failures on a
+</I>&gt;<i>         Windows box during
+</I>&gt;<i>         performance testing (thousands mySQL requests in a loop, each with
+</I>&gt;<i>         connect/disconnect). The error didn't happen without the
+</I>&gt;<i>         &quot;pooling=false;&quot;
+</I>&gt;<i>         option. I don't know if that affects mySQL on Linux as well.
+</I>&gt;<i>
+</I>&gt;<i>         Best regards,
+</I>&gt;<i>
+</I>&gt;<i>         Alex
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         _______________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     -- 
+</I>&gt;<i>     Michael Emory Cerquoni - Nebadon Izumi @ <A HREF="http://osgrid.org">http://osgrid.org</A>
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>    
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20100618/7ac1fbd1/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20100618/7ac1fbd1/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008798.html">[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection	string
+</A></li>
+	<LI>Next message: <A HREF="008794.html">[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection	string
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8791">[ date ]</a>
+              <a href="thread.html#8791">[ thread ]</a>
+              <a href="subject.html#8791">[ subject ]</a>
+              <a href="author.html#8791">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

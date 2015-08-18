@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] RegionReady
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RegionReady&In-Reply-To=%3C4DE15DE2.6010900%40bluewallgroup.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010247.html">
+   <LINK REL="Next"  HREF="010256.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] RegionReady</H1>
+    <B>BlueWall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RegionReady&In-Reply-To=%3C4DE15DE2.6010900%40bluewallgroup.com%3E"
+       TITLE="[Opensim-dev] RegionReady">jamesh at bluewallgroup.com
+       </A><BR>
+    <I>Sat May 28 22:41:06 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010247.html">[Opensim-dev] OpenSImulator 0.7.1.1 released
+</A></li>
+        <LI>Next message: <A HREF="010256.html">[Opensim-dev] RegionReady
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10255">[ date ]</a>
+              <a href="thread.html#10255">[ thread ]</a>
+              <a href="subject.html#10255">[ subject ]</a>
+              <a href="author.html#10255">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Hello,
+
+I have worked on the RegionReady module to add a couple of features to
+help prevent logins to regions until the scripts are loaded. We also
+have an alert system to post status to an external service. An example
+is listed below.
+
+A couple of configuration changes to enable things. They are in
+OpenSimDefaults.ini...
+
+login_disable and alert_uri
+
+Setting login_disable = true will prevent logins until scripts are loaded
+
+alert_uri = &quot;<A HREF="http://mygridmonitor.net/ready.php/alert/">http://mygridmonitor.net/ready.php/alert/</A>&quot;
+setting this to empty disables it.
+
+
+sample alert handler...
+
+&lt;?php
+
+// ready.php
+// (c) 2011 BlueWall Information Technologies, LLC
+// Apache License version 2
+// <A HREF="http://www.apache.org/licenses/LICENSE-2.0.html">http://www.apache.org/licenses/LICENSE-2.0.html</A>
+
+$method = $_SERVER[&quot;PATH_INFO&quot;];
+
+if ($method == &quot;/alert/&quot;)
+{
+  $msg = json_decode($HTTP_RAW_POST_DATA, true);
+  $alert = $msg['alert'];
+  $login = $msg['login'];
+  $region = $msg['region_name'];
+  $id = $msg['region_id'];
+
+  $file = fopen(&quot;/tmp/LoginAlerts.txt&quot;,a);
+  fwrite($file,&quot;*******************************\n&quot;.
+                  &quot;ALERT: &quot;.$alert.
+                  &quot;  REGION: &quot;.$region.
+                  &quot;  LOGIN STATUS: &quot;.$login.&quot;\n&quot;.
+                  &quot;REGION ID: &quot;.$id.&quot;\n&quot;);
+  fclose($file);
+
+}
+
+?&gt;
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010247.html">[Opensim-dev] OpenSImulator 0.7.1.1 released
+</A></li>
+	<LI>Next message: <A HREF="010256.html">[Opensim-dev] RegionReady
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10255">[ date ]</a>
+              <a href="thread.html#10255">[ thread ]</a>
+              <a href="subject.html#10255">[ subject ]</a>
+              <a href="author.html#10255">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

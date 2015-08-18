@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] llDetectedType and NPC's
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20llDetectedType%20and%20NPC%27s&In-Reply-To=%3C4FF95D91.7020603%40archimuh.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011277.html">
+   <LINK REL="Next"  HREF="011279.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] llDetectedType and NPC's</H1>
+    <B>Argus</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20llDetectedType%20and%20NPC%27s&In-Reply-To=%3C4FF95D91.7020603%40archimuh.de%3E"
+       TITLE="[Opensim-dev] llDetectedType and NPC's">argus at archimuh.de
+       </A><BR>
+    <I>Sun Jul  8 12:14:41 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011277.html">[Opensim-dev] osNPCxxx functions vs security
+</A></li>
+        <LI>Next message: <A HREF="011279.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11278">[ date ]</a>
+              <a href="thread.html#11278">[ thread ]</a>
+              <a href="subject.html#11278">[ subject ]</a>
+              <a href="author.html#11278">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi.
+
+  I have a problem with the way that NPCs might be implemented in 
+llDetectedType. A patch can be found in Mantis 6066.
+
+  In the events touch, collision and sensor one can use the function 
+llDetectedType which return some basic infos on what type of 
+object/agent... has been detected by the event. To complete this 
+function, we still need to add NPCs as type. Sofar, so good...
+
+  NPC do however also have the possebility to be created using 
+OS_NPC_SENCE_AS_AGENT. This was implemented sothat NPCs would work with 
+sensor events ( without changing the lsl script). At that time NPCs were 
+not implemented to llDetectedType which one could have easely used to 
+change the lsl script to work with NPCs and/OR agents instead of 
+implementing OS_NPC_SENCE_AS_AGENT. The result is, that using 
+OS_NPC_SENCE_AS_AGENT would return an agent when using llDetected AND 
+that there is NO way to know if the event was triggered by an agent or 
+NPC without forcing the users to enable osIsNPC for everybody,  and I do 
+realy mean everybody. For me and some other projects I know of, this 
+will have fatal sideeffects.
+
+
+
+   Let look at our 3 avatar type, normal agent, liblibomv bot and NPC's 
+and how these can be used for identification.
+
+Situation 1) A closed grid with hypergrid disabled.
+
+- Normal agent = registered at grid, unique uuid + name within grid, 
+controled by human
+- Bots = basicaly same as agent, registered at grid,  with unique uuid + 
+name within grid, but remotly controled by software
+- NPC = NOT registered, unique uuid within grid, ANY fictional OR 
+existing name possible and like bots remotly controled.
+
+If llDetectedType return agent for NPCs using OS_NPC_SENSE_AGENT we only 
+could detect the NPC using llRequestAgentData to see if we get a 
+posetive respone via DATA_NAME (unless the region itself detects the 
+online NPC as agent and returns the NPC data, havnt tested that yet.) In 
+any case, the uuid remains unique and can always be used to identify a 
+single agent/npc/bot
+
+Situation 2) Multigrid system with hypergrid enabled.
+
+- Normal agent = registered at grid, unique uuid + name within grid, 
+controled by human, surname changes with hypergrid, name supplies 
+griddata on hypergrid travels
+- Bots = basicaly same as agent, registered at grid,  with unique uuid + 
+name within grid, but remotly controled by software, surname changes 
+with hypergrid, name supplies griddata on hypergrid travels
+- NPC = NOT registered, unique uuid within grid, ANY fictional OR 
+existing name possible and like bots remotly controled.
+
+  The uuid - name relation is still unique WITHIN a grid, but the same 
+uuid-name relationship can be used in multiple grids by DIFFRENT users. 
+However when hypergrid traveling the name changes and one can extract 
+the agents origin grid sothat one recieves a unique uuid+name+grid 
+relationship. In a multigrid system were llDetectedType return agent for 
+NPCs using OS_NPC_SENSE_AGENT there is NO method using plain lsl to get 
+the unique uuid+name+grid relationship,  llRequestAgentData is not 
+available in all grids from the hypergrid visitor. The names of NPCs are 
+NOT unique within a grid AND the uuid could already exist in another 
+grid for an agent. The uuid alone CAN'T be used to identify a single 
+agent/bot/npc in a multi grid system which is hypergrid enabled.
+
+  Short summary: In a mutligrid system with hypergrid each agent/bot has 
+a unique uuid - name - grid relationship were 2 elements are needed for 
+identification, in a single grid without hypergrid the uuid is enough to 
+identify each agent/bot/npc. In a multigrid system NPC have to be 
+identified as NPC sothat one can identify the NPC using uuid + grid.
+
+
+
+As mentioned there is no plain lsl method for identification in a 
+multiple grid system with hypergrid if llDetectedType returns an Agent 
+for NPCs using OS_NPC_SENSE_AGENT. In Opensim we do have OSSL function 
+which could be used to help to distinguish between a registered agent 
+and a NPC, eg. osIsNPC. The problem is however, that a multigrid system 
+would have to have multiple scripts available for all sorts of ossl 
+combinations.
+
+a) No NPCs allowed for anyone - script does not need any NPCs and all 
+event can only be triggered by agents.
+b) NPCs allowed  for 1 or more users, osIsNPC not enabled - Our script 
+CAN'T recognize an NPC, so the service has to be excluded and may not be 
+used on that region
+c) NPC allowed for 1 or more users, osIsNPC enabled for those users - 
+Our script CAN'T recognize an NPC if the script is owned by someone not 
+enabled to use osIsNPC, so the service has to be excluded and may not be 
+used on that region.
+d) NPC allowed for 1 or more users, osIsNPC enabled for everyone - Our 
+script can now use osIsNPC nowmatter who the owner is, only now we can 
+recognize NPCs
+
+So if your offering a multigrid service, were we need 2 elements for 
+identification, it is required to have atleast 2 script. 1 script for 
+regions were noone can use NPCs and another were osIsNPC is enabled for 
+everyone. This means that atleast 2 scripts need to be maintained by the 
+scriptor and a huge support team which has to personaly speak to each 
+customer to explain what script to use etc etc. Latest after 1 year the 
+customer has forgotten everything and changes the NPC settings, which 
+messes up the agent identification or the region owner changes something 
+without notifying the parcelwoners because he himself only wants to try 
+something.
+
+  Now if the script is in a hud, then we never know what region settings 
+are configured on the region we visit. So as we dont know anything about 
+the settings, our entire uuid+name+grid relation is useless and we have 
+NO method atall for identification in a multigrid system with hypergrid 
+enabled. All ossl that could be used for NPC detection must be 
+considered not avialble while NPC can be used by others.
+
+One could create extra modules to help us, but latest if a closed grid 
+is involved we are not able to run our additional module. So thats also 
+not an option.
+
+
+R&#233;sum&#233;: The only method that would help in a multigrid system is, if 
+llDetectedType ALWAYS returns NPC nomatter what settings is used and 
+AGENT for any agent/bot. Enabling OS_NPC_SENSE_AGENT to alow 
+llDetectedType to return agent makes all 3rd party systems in a 
+multigrid hypergrid enabled enviroment virtualy impossible to handle.
+
+
+It was thus also my intention to get this issue solved prior to 
+implementation of osNPCTouch, but for that it is to late now anyway :(.
+
+Michelle Argus
+
+
+
+
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011277.html">[Opensim-dev] osNPCxxx functions vs security
+</A></li>
+	<LI>Next message: <A HREF="011279.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11278">[ date ]</a>
+              <a href="thread.html#11278">[ thread ]</a>
+              <a href="subject.html#11278">[ subject ]</a>
+              <a href="author.html#11278">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

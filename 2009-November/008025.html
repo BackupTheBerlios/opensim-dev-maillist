@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim 0.6.8 post-fixes Testing
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%200.6.8%20post-fixes%20Testing&In-Reply-To=%3C4b13fc07.05ae660a.66e5.ffffffff%40mx.google.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008024.html">
+   <LINK REL="Next"  HREF="008102.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim 0.6.8 post-fixes Testing</H1>
+    <B>Ai Austin</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%200.6.8%20post-fixes%20Testing&In-Reply-To=%3C4b13fc07.05ae660a.66e5.ffffffff%40mx.google.com%3E"
+       TITLE="[Opensim-dev] OpenSim 0.6.8 post-fixes Testing">ai.ai.austin at googlemail.com
+       </A><BR>
+    <I>Mon Nov 30 18:08:15 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008024.html">[Opensim-dev] Implemented oar merge facility
+</A></li>
+        <LI>Next message: <A HREF="008102.html">[Opensim-dev] OpenSim 0.6.8 post-fixes Testing
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8025">[ date ]</a>
+              <a href="thread.html#8025">[ thread ]</a>
+              <a href="subject.html#8025">[ subject ]</a>
+              <a href="author.html#8025">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin, I just got things up and running by starting the Opensim,.exe 
+command on its own rather than through my usual script which just 
+starts up Opensim.exe up with -hypergrid=true as one parameter.
+
+Any idea if there is something different about the parameters that 
+must be given?  I use the attached script to start everything up.  It 
+seems to be the line near the end o run Opensim.exe that is the problem.
+
+-------------------
+
+If I start up with a script that just starts Opensim.exe in the 
+correct directory with a single parameter -hypergrid=true, then 
+Opensim.exe always crashes with:
+
+2009-11-30 15:31:20,713 ERROR - OpenSim.Application [APPLICATION]:
+APPLICATION EXCEPTION DETECTED: System.UnhandledExceptionEventArgs
+
+Exception: System.UriFormatException: Invalid URI: The URI is empty.
+    at System.Uri.CreateThis(String uri, Boolean dontEscape, UriKind uriKind)
+    at System.Uri..ctor(String uriString)
+    at System.Net.WebRequest.Create(String requestUriString)
+    at Nwc.XmlRpc.XmlRpcRequest.Send(String url, Int32 timeout)
+    at 
+OpenSim.Region.CoreModules.Avatar.InstantMessage.PresenceModule.NotifyMessageServerOfStartup(Scene 
+scene) in 
+d:\Temp\OpenSim\Region\CoreModules\Avatar\InstantMessage\PresenceModule.cs:line 
+346
+    at 
+OpenSim.Region.CoreModules.Avatar.InstantMessage.PresenceModule.Initialise(Scene 
+scene, IConfigSource config) in 
+d:\Temp\OpenSim\Region\CoreModules\Avatar\InstantMessage\PresenceModule.cs:line 
+86
+    at 
+OpenSim.Region.Framework.ModuleLoader.InitialiseSharedModules(Scene 
+scene) in d:\Temp\OpenSim\Region\Framework\ModuleLoader.cs:line 93
+    at OpenSim.OpenSimBase.CreateRegion(RegionInfo regionInfo, 
+Boolean portadd_flag, Boolean do_post_init, IScene&amp; mscene) in 
+d:\Temp\OpenSim\Region\Application\OpenSimBase.cs:line 368
+    at OpenSim.OpenSimBase.CreateRegion(RegionInfo regionInfo, 
+Boolean portadd_flag, IScene&amp; scene) in 
+d:\Temp\OpenSim\Region\Application\OpenSimBase.cs:line 314
+    at 
+OpenSim.ApplicationPlugins.LoadRegions.LoadRegionsPlugin.PostInitialise() 
+in d:\Temp\OpenSim\ApplicationPlugins\LoadRegions\LoadRegionsPlugin.cs:line 127
+    at OpenSim.OpenSimBase.StartupSpecific() in 
+d:\Temp\OpenSim\Region\Application\OpenSimBase.cs:line 203
+    at OpenSim.OpenSim.StartupSpecific() in 
+d:\Temp\OpenSim\Region\Application\OpenSim.cs:line 151
+    at OpenSim.Framework.Servers.BaseOpenSimServer.Startup() in 
+d:\Temp\OpenSim\Framework\Servers\BaseOpenSimServer.cs:line 291
+    at OpenSim.Application.Main(String[] args) in 
+d:\Temp\OpenSim\Region\Application\Application.cs:line 158
+
+Application is terminating: True
+
+-------------------
+
+After 5 minutes of running though, I got the same error I had 
+reported on the 0.6.7 post-fixes version, but that does not occur in 
+weeks of continuous running on 0.6.6.  The messaging server reports (in red):
+
+Unable to connect to server <A HREF="http://virtual.aiai.ed.ac,uk:8002.">http://virtual.aiai.ed.ac,uk:8002.</A> Server 
+not running?
+
+The user server on 8002 is running, and shows no error messages at all.
+
+-----------------
+
+By the way... the current Opensim.ini file does not have default 
+entries for WebStats.. which it would be useful to add even though 
+they are off by default... perhaps adding a section as as follows:
+
+
+[WebStats]
+; See <A HREF="http://opensimulator.org/wiki/FAQ#Region_Statistics_on_a_Web_Page">http://opensimulator.org/wiki/FAQ#Region_Statistics_on_a_Web_Page</A>
+; Use a web browser and type in the &quot;Login URI&quot; + &quot;/SStats/&quot;
+; For example- <A HREF="http://127.0.0.1:9000/SStats/">http://127.0.0.1:9000/SStats/</A>
+; enabled=false
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008024.html">[Opensim-dev] Implemented oar merge facility
+</A></li>
+	<LI>Next message: <A HREF="008102.html">[Opensim-dev] OpenSim 0.6.8 post-fixes Testing
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8025">[ date ]</a>
+              <a href="thread.html#8025">[ thread ]</a>
+              <a href="subject.html#8025">[ subject ]</a>
+              <a href="author.html#8025">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

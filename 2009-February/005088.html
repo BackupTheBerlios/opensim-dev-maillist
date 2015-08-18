@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Please do not revert fixes	without	careful	comtemplation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Please%20do%20not%20revert%20fixes%0A%09without%09careful%09comtemplation&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE664735055FD3EE%40winxbeus19.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005084.html">
+   <LINK REL="Next"  HREF="005090.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Please do not revert fixes	without	careful	comtemplation</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Please%20do%20not%20revert%20fixes%0A%09without%09careful%09comtemplation&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE664735055FD3EE%40winxbeus19.exchange.xchg%3E"
+       TITLE="[Opensim-dev] Please do not revert fixes	without	careful	comtemplation">adam at deepthink.com.au
+       </A><BR>
+    <I>Mon Feb 16 12:04:56 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005084.html">[Opensim-dev] Please do not revert fixes without	careful	comtemplation
+</A></li>
+        <LI>Next message: <A HREF="005090.html">[Opensim-dev] Please do not revert fixes without careful	comtemplation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5088">[ date ]</a>
+              <a href="thread.html#5088">[ thread ]</a>
+              <a href="subject.html#5088">[ subject ]</a>
+              <a href="author.html#5088">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have a CableBeach provider which does just this (and more!), I'm testing it at the moment for deployment onto OSGrid. It's a little more complicated since it's part of a distributed hash table, but yeah.
+
+Adam
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Stefan Andersson
+Sent: Monday, 16 February 2009 12:52 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>; Mike Mazur
+Subject: Re: [Opensim-dev] Please do not revert fixes without careful comtemplation
+
+Coming in a bit from the side here,
+
+we have, for some time, discussed to separate out the binary blog out of the metadata for an entirely different reason, namely to be able to weed out binary duplicates.
+
+If there was a way for us to separate out the binary parts, into something like 'binaryassetId, hashData[256], binarydata' and then just have the asset table referencing that row, I think it would help a lot.
+
+I realize it's a separate discussion, just chipping in my two cents.
+
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+
+
+
+________________________________
+Date: Sat, 14 Feb 2009 17:49:22 +0200
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>
+CC: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Please do not revert fixes without careful comtemplation
+Hello,
+
+On second though we could keep the current structure and expose all fields also through AssetBase properties. Then we could save / load the AssetBase with nhibernate as a single object and leave out the Metadata  property from NHibernate mapping. Does this sound good?
+
+regards,
+Tommi
+On Sat, Feb 14, 2009 at 5:06 PM, Mike Mazur &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt;&gt; wrote:
+Hi,
+
+On Sat, Feb 14, 2009 at 4:05 PM, Tommi Laukkanen
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>&gt;&gt; wrote:
+&gt;<i> I was talking with mikkopa and he suggested we should create two tables to
+</I>&gt;<i> cover AssetBase to solve this issue properly. Namely AssetMetadata for
+</I>&gt;<i> metadata information and AssetData for blobs to avoid situation where we end
+</I>&gt;<i> up accessing also the blob data just to read metadata.
+</I>I was hoping not to have to do that.
+
+It should be straightforward to support the current
+AssetBase/AssetMetadata composition in the existing OpenSim data
+layers, but as sdague warned me earlier, by mapping multiple classes
+to one table I was entering a world of pain. Seems that's exactly
+what's happening with NHibernate.
+
+The reason I introduced the AssetMetadata class is to supply metadata
+information only for some requests that Cable Beach, the new asset
+server, supports. Now I realize that this was probably a premature
+optimization.
+
+Instead of modifying the DB schema, we could have AssetBase inherit
+from AssetMetadata, as I outlined before[1]. Alternatively, we could
+get rid of AssetMetadata altogether and store everything in AssetBase
+as before, splitting out the metadata sometime in the future when a
+use case warrants it.
+
+What do you think?
+
+Thanks,
+Mike
+
+
+[1] <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2009-February/004918.html">https://lists.berlios.de/pipermail/opensim-dev/2009-February/004918.html</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090216/1700ba09/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090216/1700ba09/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005084.html">[Opensim-dev] Please do not revert fixes without	careful	comtemplation
+</A></li>
+	<LI>Next message: <A HREF="005090.html">[Opensim-dev] Please do not revert fixes without careful	comtemplation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5088">[ date ]</a>
+              <a href="thread.html#5088">[ thread ]</a>
+              <a href="subject.html#5088">[ subject ]</a>
+              <a href="author.html#5088">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

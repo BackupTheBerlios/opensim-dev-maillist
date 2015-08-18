@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] .net serialization of SOGs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.net%20serialization%20of%20SOGs&In-Reply-To=%3C4CB25502.9070905%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009636.html">
+   <LINK REL="Next"  HREF="009638.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] .net serialization of SOGs</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.net%20serialization%20of%20SOGs&In-Reply-To=%3C4CB25502.9070905%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] .net serialization of SOGs">diva at metaverseink.com
+       </A><BR>
+    <I>Mon Oct 11 02:06:26 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009636.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+        <LI>Next message: <A HREF="009638.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9637">[ date ]</a>
+              <a href="thread.html#9637">[ thread ]</a>
+              <a href="subject.html#9637">[ subject ]</a>
+              <a href="author.html#9637">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Adam ping!
+How's the SOG/SOP refactor coming along? This is coming very close to 
+the need for the refactoring...
+
+On 10/10/2010 4:45 PM, Justin Clark-Casey wrote:
+&gt;<i> On 09/10/10 19:05, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;<i> Dear devs,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I'm pulling my hair here with the serialization of scene objects. This
+</I>&gt;&gt;<i> is horrible! Using .Net serialization for something as important as this
+</I>&gt;&gt;<i> is the worst idea ever. We're completely frozen. I'm trying to add an
+</I>&gt;&gt;<i> additional field for the creator info, and I'm stuck in all sorts of
+</I>&gt;&gt;<i> ways: I can't compute the value of that field at serialization-time, and
+</I>&gt;&gt;<i> then there are the issues of compatibility with previous versions of the
+</I>&gt;&gt;<i> SOP class.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I'd like to understand all the implications of doing an entirely
+</I>&gt;&gt;<i> different serialization procedure, one that does not use reflection, and
+</I>&gt;&gt;<i> that allows for processing-during-serialization. What will break, and
+</I>&gt;&gt;<i> therefore needs fixing?
+</I>&gt;<i>
+</I>&gt;<i> Grovelling back through the archives, I found the e-mail where I
+</I>&gt;<i> proposed this very thing back in June 2009!
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2009-June/006805.html">https://lists.berlios.de/pipermail/opensim-dev/2009-June/006805.html</A>
+</I>&gt;<i>
+</I>&gt;<i> And here's the old patch which partially implemented write.
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2009-July/006954.html">https://lists.berlios.de/pipermail/opensim-dev/2009-July/006954.html</A>
+</I>&gt;<i>
+</I>&gt;<i> As you wrote later, some equivalent code was later put in libOMV, though
+</I>&gt;<i> I would test it carefully (at the time I vaguely recall thinking that it
+</I>&gt;<i> didn't deal with some serialization cases, but this may well have been
+</I>&gt;<i> addressed).
+</I>&gt;<i>
+</I>&gt;<i> I'm not excited about whether this code remains in libOMV or is placed
+</I>&gt;<i> in OpenSim if it's going to act as a legacy format in some way.
+</I>&gt;<i>
+</I>&gt;<i> As far as I recall, there are no implications of doing this manually as
+</I>&gt;<i> long as the XML ends up being the same.
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I understand all archiving related to previous versions will break, so
+</I>&gt;&gt;<i> we need to keep supporting the existing serialization 'disease' for the
+</I>&gt;&gt;<i> foreseeable future. I also understand that TPs/crossings between sims
+</I>&gt;&gt;<i> that talk different SOG serializations will break, but that's not so bad.
+</I>&gt;<i>
+</I>&gt;<i> If the SOG serialization is going to change in an incompatible manner, I
+</I>&gt;<i> absolutely need to bump the OAR/IAR version numbers at the same time in
+</I>&gt;<i> order to maintain confidence in the archiving. I also need to write the
+</I>&gt;<i> code to stop old OpenSims trying to load these new versions.
+</I>&gt;<i>
+</I>&gt;<i> Please can we co-ordinate this in a branch?
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Anything else I should be aware of before I go off and redo this?
+</I>&gt;<i>
+</I>&gt;<i> Although .net auto-serialization is fatal if you want to make type
+</I>&gt;<i> changes to existing fields, it has been very convenient for adding new
+</I>&gt;<i> fields, since extraneous xml elements are simply ignored on
+</I>&gt;<i> deserialization. I think it's almost essential that a new format behave
+</I>&gt;<i> in the same way.
+</I>&gt;<i>
+</I>&gt;<i> Also, are you going to put version numbers in the new serializations so
+</I>&gt;<i> that any future incompatible can be dealt with in some manner?
+</I>&gt;<i>
+</I>&gt;<i> Is it worth considering whether other virtual environments might store
+</I>&gt;<i> completely different object serializations?
+</I>&gt;<i>
+</I>&gt;<i> For any new format, I agree with Dahlia in that something OSD-like may
+</I>&gt;<i> be worth looking at, perhaps just a simple map as I was considering for
+</I>&gt;<i> the 'dynamic attributes' in SOP. In fact, this could allow that to fit
+</I>&gt;<i> in nicely.
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009636.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+	<LI>Next message: <A HREF="009638.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9637">[ date ]</a>
+              <a href="thread.html#9637">[ thread ]</a>
+              <a href="subject.html#9637">[ subject ]</a>
+              <a href="author.html#9637">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

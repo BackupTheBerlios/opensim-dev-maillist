@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] another little can of worms: attachments :-)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20another%20little%20can%20of%20worms%3A%20attachments%20%3A-%29&In-Reply-To=%3CBLU134-W9BCDEB81A02226E1F49B2D54C0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000644.html">
+   <LINK REL="Next"  HREF="000645.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] another little can of worms: attachments :-)</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20another%20little%20can%20of%20worms%3A%20attachments%20%3A-%29&In-Reply-To=%3CBLU134-W9BCDEB81A02226E1F49B2D54C0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] another little can of worms: attachments :-)">stefan at tribalmedia.se
+       </A><BR>
+    <I>Fri Jan  4 22:00:43 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000644.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+        <LI>Next message: <A HREF="000645.html">[Opensim-dev] Facebook as 2D social backend for Second Life (and	Opensim)?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#643">[ date ]</a>
+              <a href="thread.html#643">[ thread ]</a>
+              <a href="subject.html#643">[ subject ]</a>
+              <a href="author.html#643">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>And a happy new 2008 to you!
+I've actually not looked at attachments in detail, but for discussions sake, I'll offer my pre-grok thoughts; 1) attachments == sceneobjects (but we need to work on sceneobjects) - we already have a mechanism in place to exempt objects from backup, but that need to be worked on some more. Yes, LL has been very thorough with regards to the viewer being authoritative on avatar appearance; the server can't initiate _anything_ to happen to the clients avatar.MW and I has been fretting over the LL avatar/prim model (that is, that everything is listed in a 'flat' model, with 'root prims' and 'the avatar becomes the root') as we (maybe mostly me) leads to all kinds of perverse workarounds for the system, application or script programmer alike, where the code has to take into account whether the prim is a standalone, root or child in a link set, attached or not, which leads to a hell of a lot of if-cases if you're writing generic code. (Or server code)The Group/Part architecture was our last approach to creating a compromise; it's in NO WAY ideal, and needs to be re-thought when we're talking about attachments. I think the avatar should be thought of as a type of objectgroup, holding attachments that are a type of objectgroups as well; and that everything is represented as offsets, with helper functions to find and work with world coordinates. This hybrid thing we have now as a SL legacy is a pain in the butt.
+ 
+After discussing things with MW I'm willing to kill my pet peeve (that the children shouldn't have links to their parents) so the calculations should be easy enough.
+ 
+2) There is really nothing saying we can't send Region.Environment types into the Client Stack; the ObjectUpdate could get a ref to the Avatar and a list of Objects that should change, and build the packet from that.
+ 
+Then again, that packet builder thing (would probably work something like a stringbuilder) could be a nice generalized way to build combined packets. In that case, only the interface would be public, and the concrete class would be internal to the Client Stack. (We want to keep the Packets well hidden; our long-term goal is to have libsl types confined to the Client Stack)
+ 
+We have two things that we should revise in the Client Stack (for 0.6, as I think attachments is a worthy 0.6 goal) ; we should introduce EventArgs for the events, and normalize the API so that it uses a set of base objects instead of long parameter lists.
+ 
+Yes, I was the one to advocate long parameter lists, as that is a great way of enumerating what is ACTUALLY used by a function (decouples the method from the types, helps you see what is affected by a certain change, and lets you dodge type changes that don't really concern the method) but at some point, you need to introduce a 'parameter object'; and over time, that grows into something very similar to the base objects that you tried to avoid to begin with. I think we are at that point now; and at this point, normalization is more important than decoupling.
+ 
+(Also, we need to start breaking our base objects apart; scene, group and part are doing way too much)
+ 
+/Stefan
+
+
+Date: Thu, 3 Jan 2008 01:51:01 +0100From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dalienta at gmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: [Opensim-dev] another little can of worms: attachments :-)hi all, first of all - happy 2008! as I've had a bit of time today, I decided to dig into the intrinsics of attaching stuff. The AttachObject method which is somewhere in the code is incorrect -  the packet it tries to send to client is originated by the client in the first place, the command to &quot;attach stuff&quot; to the viewer is the ObjectUpdate packet with not one but two elements of ObjectData - the first one being the one for Avatar, and the second one being for the Thing being attached (suspected: root prim :). (there's also &quot;attach multiple prims&quot; which i did not dig yet). The result of these experiments is a super ugly proof of concept which is not worth committing, but which I think shows up a problem... : <A HREF="http://opensim.be/dalien/attachment-proof-of-concept.patch">http://opensim.be/dalien/attachment-proof-of-concept.patch</A> Actually, two problems:1) attachments != sceneobjects (I think) - well, at least they should not be saved into backups, etc... (and not sure how they should interact with the ODE &amp; all - I think they should not) For the &quot;wear from the ground&quot; it is less of a problem - but for wearing from inventory (which i did not write anywhere beyond pointless junk) - reusing the existing rezz code might be a plus - otherwise there is a loooot of copypaste. 2) the ObjectUpdate needs to combine low-level update for both Avatar and Prim - which with layered approach (packet sending stuff being in lower layer relative to InnerScene) will result in a function with a bazillion parameters. A lesser evil that I was thinking about is to expose the &quot;partial builder&quot; functions on the IClientAPI level, which would return parts of the packets, which could subsequently passed to other IClientAPI packet building functions. Thoughts ?/d
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080104/120756b2/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080104/120756b2/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000644.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+	<LI>Next message: <A HREF="000645.html">[Opensim-dev] Facebook as 2D social backend for Second Life (and	Opensim)?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#643">[ date ]</a>
+              <a href="thread.html#643">[ thread ]</a>
+              <a href="subject.html#643">[ subject ]</a>
+              <a href="author.html#643">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

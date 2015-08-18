@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Capabilities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Capabilities&In-Reply-To=%3C4DC21C8E.4090602%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010171.html">
+   <LINK REL="Next"  HREF="010143.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Capabilities</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Capabilities&In-Reply-To=%3C4DC21C8E.4090602%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Capabilities">diva at metaverseink.com
+       </A><BR>
+    <I>Thu May  5 05:42:06 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010171.html">[Opensim-dev] Phantom and Physical Prim  (to Mantis or not)
+</A></li>
+        <LI>Next message: <A HREF="010143.html">[Opensim-dev] SSL for management applications in ssl-dev branch
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10151">[ date ]</a>
+              <a href="thread.html#10151">[ thread ]</a>
+              <a href="subject.html#10151">[ subject ]</a>
+              <a href="author.html#10151">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>FYI, the branch has been merged.
+
+On 5/4/2011 7:17 AM, Diva Canto wrote:
+&gt;<i> The caps branch is ready to be merged to master. It would be great if 
+</I>&gt;<i> a couple of core devs would take a look before I merge it. Highlights:
+</I>&gt;<i>
+</I>&gt;<i> - New section [ClientStack.LindenCaps] in OpenSimDefaults.ini that 
+</I>&gt;<i> allows the specification of where each capability is served from.
+</I>&gt;<i>
+</I>&gt;<i> - New dll: OpenSim.Region.ClientStack.LindenCaps.dll. Contains all the 
+</I>&gt;<i> capability-related modules that were previously in CoreModules, except 
+</I>&gt;<i> one. The exception is CapabilitiesModule that is now in 
+</I>&gt;<i> CoreModules.Framework and that holds the generic dictionary of 
+</I>&gt;<i> per-client caps object and triggers the OnRegisterCaps event.
+</I>&gt;<i>
+</I>&gt;<i> - New dll: OpenSim.Capabilities.Handlers.dll: contains some of the 
+</I>&gt;<i> handlers. I didn't extract them all because some capabilities might 
+</I>&gt;<i> never be served from anywhere but the simulator (?).
+</I>&gt;<i>
+</I>&gt;<i> - The old Caps.cs (in OpenSim.Capabilities) has been slashed. It now 
+</I>&gt;<i> holds only a dictionary mapping capability names and to handlers. The 
+</I>&gt;<i> handlers themselves are in the other dlls.
+</I>&gt;<i>
+</I>&gt;<i> From here on, the rule would be that any new capability of the Linden 
+</I>&gt;<i> viewer to be implemented in core would be, in principle, split into 
+</I>&gt;<i> the handler itself placed in OpenSim.Capabilities.Handlers.dll, and a 
+</I>&gt;<i> module that registers that capability with the simulator in 
+</I>&gt;<i> OpenSim.Region.ClientStack.LindenCaps.
+</I>&gt;<i>
+</I>&gt;<i> On 5/1/2011 10:28 AM, Diva Canto wrote:
+</I>&gt;&gt;<i> FYI, I pushed the new caps branch. Nothing in there works yet, it 
+</I>&gt;&gt;<i> just compiles. For the moment, it's a scratchpad, things are fairly 
+</I>&gt;&gt;<i> incomplete, and I expect it to go through a few major changes. If 
+</I>&gt;&gt;<i> interested, please take a look. Things worth noticing:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> - The additional [ClientStack.LindenCaps] in OpenSimDefaults.ini. 
+</I>&gt;&gt;<i> This is how I envision making these services configurable. I took 
+</I>&gt;&gt;<i> that big list from here: 
+</I>&gt;&gt;<i> <A HREF="http://wiki.secondlife.com/wiki/Current_Sim_Capabilities">http://wiki.secondlife.com/wiki/Current_Sim_Capabilities</A> (I 
+</I>&gt;&gt;<i> understand OpenSim doesn't provide for all of those) The idea being 
+</I>&gt;&gt;<i> that if that is set to localhost we do what we currently do, but if 
+</I>&gt;&gt;<i> set to a URL we use that URL string as is, possibly appended with the 
+</I>&gt;&gt;<i> authorization token when that mechanism works.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> - The new OpenSim.Region.ClientStack.Linden, replacing 
+</I>&gt;&gt;<i> OpenSim.Region.ClientStack.LindenUDP, which now contains 2 parts: UDP 
+</I>&gt;&gt;<i> and Caps
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> - The new OpenSim.Capabilities.Handlers, which for the moment 
+</I>&gt;&gt;<i> contains only the GetTexture handler. I'm using that one as the model 
+</I>&gt;&gt;<i> for how to do this in general.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Again, things are incomplete. But I want to share this right now, so 
+</I>&gt;&gt;<i> that ppl have the chance to influence how this is going.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 4/30/2011 7:44 AM, Diva Canto wrote:
+</I>&gt;&gt;&gt;<i> I'm going to do this work on a branch called caps. This is mostly 
+</I>&gt;&gt;&gt;<i> refactoring, not new development; it can go through a few iterations 
+</I>&gt;&gt;&gt;<i> until we're all happy with the result.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On 4/29/2011 3:01 PM, Diva Canto wrote:
+</I>&gt;&gt;&gt;&gt;<i> On 4/29/2011 2:37 PM, Melanie wrote:
+</I>&gt;&gt;&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Caps as such are a a generic concept, they are not a Lindenism,
+</I>&gt;&gt;&gt;&gt;&gt;<i> IMHO. Linden didn't invent them and I believe that the CAPS
+</I>&gt;&gt;&gt;&gt;&gt;<i> mechanism as such should remain in the normal namespace.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> The idea is generic; our implementation is not; it's full of 
+</I>&gt;&gt;&gt;&gt;<i> LL-specific things, like LLSD, and it is serving the Linden clients 
+</I>&gt;&gt;&gt;&gt;<i> specifically. Other uses of capabilities will probably look quite 
+</I>&gt;&gt;&gt;&gt;<i> different.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Also, modules already use CAPS, if CAPS were in the client stack,
+</I>&gt;&gt;&gt;&gt;&gt;<i> they would be much harder to access,, since the client stack is
+</I>&gt;&gt;&gt;&gt;&gt;<i> somewhat isolated from modules.
+</I>&gt;&gt;&gt;&gt;<i> We can have modules in any dll. The proposal here is to move all 
+</I>&gt;&gt;&gt;&gt;<i> CAPs-related modules out of the core dlls, and have them in a 
+</I>&gt;&gt;&gt;&gt;<i> Linden dll, because they are designed to serve the Linden clients.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> I believe that it should be possible to re-route caps to other
+</I>&gt;&gt;&gt;&gt;&gt;<i> destinations, ROBUST or external servers, but not by moving all
+</I>&gt;&gt;&gt;&gt;&gt;<i> handlers into the Servers namespace, that is not what it was meant
+</I>&gt;&gt;&gt;&gt;&gt;<i> for. That would bloat and pollute it. This warrants more discussion.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> I agree. We can place them in some other Server.Handlers-like dll. 
+</I>&gt;&gt;&gt;&gt;<i> How about OpenSim.Server.Capabilities.dll?
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Crista
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010171.html">[Opensim-dev] Phantom and Physical Prim  (to Mantis or not)
+</A></li>
+	<LI>Next message: <A HREF="010143.html">[Opensim-dev] SSL for management applications in ssl-dev branch
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10151">[ date ]</a>
+              <a href="thread.html#10151">[ thread ]</a>
+              <a href="subject.html#10151">[ subject ]</a>
+              <a href="author.html#10151">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

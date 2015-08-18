@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Baked Texture persistence?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Baked%20Texture%20persistence%3F&In-Reply-To=%3CCAJaF1_GK6-hw%3D7MC_D0_y-i57db6oQrngYdS8i_sPRDrw4BSGA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010534.html">
+   <LINK REL="Next"  HREF="010541.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Baked Texture persistence?</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Baked%20Texture%20persistence%3F&In-Reply-To=%3CCAJaF1_GK6-hw%3D7MC_D0_y-i57db6oQrngYdS8i_sPRDrw4BSGA%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Baked Texture persistence?">cmickeyb at gmail.com
+       </A><BR>
+    <I>Sun Sep 25 20:38:23 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010534.html">[Opensim-dev] Baked Texture persistence?
+</A></li>
+        <LI>Next message: <A HREF="010541.html">[Opensim-dev] Baked Texture persistence?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10540">[ date ]</a>
+              <a href="thread.html#10540">[ thread ]</a>
+              <a href="subject.html#10540">[ subject ]</a>
+              <a href="author.html#10540">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I will carefully disagree with Justin on this one. The viewer doesn't upload
+textures by default. It only uploads the textures if it believes something
+has changed. OpenSim doesn't currently respond correctly to the v2/v3
+packets for cached appearance and earlier versions of the viewer can be told
+that that appearance parameters haven't changed so that textures are never
+uploaded (this saves a lot of bw... remember that if you upload textures
+they have to be sent out to everyone in the scene so it isn't the upload
+bw... its like putting new textures on objects every time the sim starts).
+In practice, people change appearance so infrequently that the baked
+textures do not fill up the asset database. And even when the do, so long as
+you don't get stuck in the &quot;assets can never be deleted&quot; way of thinking...
+(baked textures are marked as temporary anyway)... its pretty easy to clean
+up the asset db based on a reasonable set of policies.
+
+
+
+On Sun, Sep 25, 2011 at 1:25 AM, Neil Canham &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">neil at knowsense.co.uk</A>&gt; wrote:
+
+&gt;<i> Ah - I hadn't appreciated that NPCs need to be cloned from a logged in AV.
+</I>&gt;<i>  That makes sense.
+</I>&gt;<i>
+</I>&gt;<i> As for the persistence, like Mic I think there is potentially an argument
+</I>&gt;<i> for it, as an option, for closed private sims for example, or sims where you
+</I>&gt;<i> expect a lot of people to log in at roughly the same time.  However, I
+</I>&gt;<i> appreciate that would be a big change so thanks for clarifying how it
+</I>&gt;<i> operates now.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Sat, Sep 24, 2011 at 11:18 PM, Justin Clark-Casey &lt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> For ordinary avatars, baked textures don't need permanent persistence
+</I>&gt;&gt;<i> since the avatar uploads them on every login or when any body part/wearable
+</I>&gt;&gt;<i> is changed.  This will have no effect on slow rezzing or cloudiness - if a
+</I>&gt;&gt;<i> viewer is in the region it should always have uploaded the textures that it
+</I>&gt;&gt;<i> bakes.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Indeed, there's little value in persisting these since the client will
+</I>&gt;&gt;<i> upload them on every login/region entrance. Persisting baked textures would
+</I>&gt;&gt;<i> bloat the asset service more than is already the case.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> An NPC, on the other hand, has no viewer from which these baked textures
+</I>&gt;&gt;<i> are uploaded.  So they have to be disk persisted at the point from which it
+</I>&gt;&gt;<i> is cloned from a 'live' avatar.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 24/09/11 19:28, Neil Canham wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I confess that I am puzzled.  I found this fantastic description from Mic
+</I>&gt;&gt;&gt;<i> of how 0.7 appearance works
+</I>&gt;&gt;&gt;<i> <A HREF="http://opensim-dev.2196679.n2.**nabble.com/What-I-ve-Learned-**">http://opensim-dev.2196679.n2.**nabble.com/What-I-ve-Learned-**</A>
+</I>&gt;&gt;&gt;<i> About-AvatarAppearance-**td5655933.html&lt;<A HREF="http://opensim-dev.2196679.n2.nabble.com/What-I-ve-Learned-About-AvatarAppearance-td5655933.html">http://opensim-dev.2196679.n2.nabble.com/What-I-ve-Learned-About-AvatarAppearance-td5655933.html</A>&gt;and it fits with what I
+</I>&gt;&gt;&gt;<i> see analysing the packets against 0.7.1.  So that seems quite clearly to
+</I>&gt;&gt;&gt;<i> say that baked textures are never persisted,
+</I>&gt;&gt;&gt;<i> and that would explain the slow rezzing and 'cloudiness' of avatars that
+</I>&gt;&gt;&gt;<i> I see regularly.  However, the new npc code
+</I>&gt;&gt;&gt;<i> seems to require that a baked texture is available to copy from. So are
+</I>&gt;&gt;&gt;<i> baked textures now persisted in the latest code?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;&gt;<i> <A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+</I>&gt;&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110925/b8273a89/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110925/b8273a89/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010534.html">[Opensim-dev] Baked Texture persistence?
+</A></li>
+	<LI>Next message: <A HREF="010541.html">[Opensim-dev] Baked Texture persistence?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10540">[ date ]</a>
+              <a href="thread.html#10540">[ thread ]</a>
+              <a href="subject.html#10540">[ subject ]</a>
+              <a href="author.html#10540">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

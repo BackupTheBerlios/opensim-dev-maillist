@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] A modest proposal
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20modest%20proposal&In-Reply-To=%3C773975.90189.qm%40web23003.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000047.html">
+   <LINK REL="Next"  HREF="000052.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] A modest proposal</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20modest%20proposal&In-Reply-To=%3C773975.90189.qm%40web23003.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] A modest proposal">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Sun Sep 23 13:26:30 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000047.html">[Opensim-dev] A modest proposal
+</A></li>
+        <LI>Next message: <A HREF="000052.html">[Opensim-dev] A modest proposal
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#51">[ date ]</a>
+              <a href="thread.html#51">[ thread ]</a>
+              <a href="subject.html#51">[ subject ]</a>
+              <a href="author.html#51">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+As it always seems this week, I'm pressed for time right now, so will give my initial answers now but give the more thought out ones later.
+
+I think a lot of our problems might be down to confusion over the use of some of the terms. &quot;ChildAgent&quot; being the main area of confusion I think. As I say in answer to the last question. I think we need to clear up these terms and add one or two more. I Think Agent should be considered a client to server connection. The connection to the main region is called the MainAgent, while the connection to neighbouring regions are ChildAgents. We should complete the RegionManager/service to be deal with Agents connected to a region. So Agents have no in world relevance, no position etc, they are just a client connection. Then in the Scene we have entities that are connected to the agents. Each agent should have two entities connected to it... A scenePresence and a camera entity. The mainagent's scenePresence has a avatar body, while the childagent's scenePresence don't so are in effect &quot;ghostentities&quot;, kind of like the camera entity always will be. 
+
+Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:    .hmmessage P { margin:0px; padding:0px } body.hmmessage { FONT-SIZE: 10pt; FONT-FAMILY:Tahoma }  I think these questions are pivotal on how we move forward:
+  
+   * Is the 'child agent' position the camera position?
+
+ I'm not sure how LL handle this, but I'd say no that the &quot;child agent&quot; position should be the avatar position. At the moment we don't really handle the positions of childagents at all. But the way I would see it happening is the childagent position being the avatars position (so it won't actually be within the local region's 256x256 area) and also the neighbouring regions having a &quot;camera agent&quot; as well that is the camera position. I think there most likely needs to be both as even in neighbouring regions, we need to filter different updates according the the right position. Prim/avatar updates should be filtered to camera position, but things like chat should be relevant to avatar position.
+
+   * Is the 'camera agent' position always the same globally, but recalculated for each agent locally? (Or does different camera agents have different global positions?)
+
+Will come back to this as not completely sure I'm understanding what you are asking.
+
+   * Is there an 'avatar agent' AND an 'camera agent' in the region the avatar is in?
+
+At the moment there isn't, but yes I think we will need to have it like that. And then as said in neighbouring regions we have &quot;child agent&quot; and &quot;camera agent&quot;
+
+   * How is the camera position communicated?
+
+The info from the client is sent in the same packet as the avatar movement is . The agentupdate packet (think thats the name, will need to check though)
+ 
+   * Is the avatar position communicated form the client, or is it server generated?
+
+Its server generated, the client sends the movements (or actually key presses).
+
+
+   * How much of the routing work is done by the viewer? (For example, is chat close to borders sent to all regions within range?)
+
+Not as far as I know. It will just send the chat packet to the region it is in. As far as I know all that sort of thing has to be done on the server.
+
+About the only thing the client will do that might be thought of as it acting intelligent (in a very slight way) is that if you are on the edge of a region, and start editing/moving a prim that is in the neighbouring region, then the edit packets are sent to the correct region (ie the neighbouring one that the prim is in)
+
+
+   * How is a udp 'connection' teared down orderly?
+
+Will come back to this one too.
+  
+ My guess right now (what makes the most sense to me) is that it works something like this:
+  
+  * The viewer communicates a change event (move forward, left, up etc)
+
+yes
+
+  * The server recalculates avatar position and sends it to the client
+
+yes
+
+  * The viewer moves avatar object and recalculates camera angle and position
+  * The viewer communicates this camera angle and position to relevant regions
+
+as far as I know it will only update the main region. Avatar and camera updates are not sent to neighbouring regions. LL (as far as I know) have it so the main region has to update neighbouring regions of such changes (ie tell them that a avatar/camera has moved so they can update the position of the childagent for that avatar/camera.
+
+I too thought that it most likely would have been better for the client to do some of that updating to the other regions. But there would most likely be some security concerns with that...ie never trust the client. 
+
+And its generally better to have one master controller for each avatar. If the updates from the client were sent to each neighbouring region than each would have to do their own calculations on how those updates effect the positions and could lead to things getting out of sync. The way it works with the main region updating the other regions is that it makes sure it is the &quot;master authority&quot; for calculating positions. Also saves the neighbouring regions having to do any type of phsyics for child agents. If the key presses were sent to them then they need to at least do basic interpolation for avatar movement. 
+
+  * These regions update their camera angle and position, and communicates relevant scene changes based on that
+
+yes basically. 
+  
+ *If this is correct, the 'agents' are homogenous and decoupled from the avatar on the server side, the 'root agent' being calculated from avatar position.
+  
+I think there is most likely some confusion in the use of the term agent. I believe that LL actually use the term agent for a client connected to a server. But not related to the avatar , camera or anything that has a position. Just the name for the connection. So a client has a Main Agent connection to the region that the avatar is in. Then has child agent connections to the neighbouring regions. 
+
+The main agent connection would be &quot;tied&quot; to the avatar and camera position in that region. Then the child agent connections would have some sort of &quot;ghost avatar&quot; and camera position in the regions that they are connected to. (of course don't know exactly how LL handle the fine details like this)
+
+Globally all ghost avatar positions should be exactly the same position as the main avatar's (ie where on the grid the avatar is), of course their actual position would be in local region terms (so either /or both X and Y would have a minus value). 
+
+The same for camera positions, Globally they would all be the same just converted to local region values. 
+
+
+So I think it most likely would help to think in terms of AvatarEntites/GhostEntities and  CameraEntities. Each region has a  ScenePresence and a  CameraEntity for each connected client. If the client connection is a Main agent then the ScenePresence &quot;has&quot; a body, if the connection is a childagent then it doesn't have  a body and is a &quot;ghost&quot; (only &quot;sees&quot; the world/region to sent to the client, but isn't seen itself).
+ 
+So yeah I think we have confusion because we have this childagent term connected to the scenePresence. I think it is really just a term used for a client to server connection. If we had a &quot;region  Manager/service&quot; then that would deal in terms of agents (both main agent and child agent connections) then would create in the scene the relevant entities for that agent. So the Region manager/service (and Region modules) would deal with non scene related updates from a agent , like inventory /asset related requests. Then the scene/ and the ScenePresence /camera entities in the scene that are connected to the agent, would deal with scene related requests.  
+
+
+ /Stefan
+ 
+
+
+
+ 
+  
+---------------------------------
+ Date: Fri, 21 Sep 2007 14:17:04 +0100
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>
+Subject: Re: [Opensim-dev] A modest proposal
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>
+CC: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+
+Here is my first quick initial thoughs (bit pressed for time right now).
+
+The idea of childagents not getting a Scenepresence is okay I guess if we didn't want to do any sort of management of what prims/avatars a client is informed/updated about, in a region. But I think we do, certainly for child agents. It might be okay to just do a blanket broadcast in a users main region (ie everything happening in that region gets sent to every Avatar) but doing that with childagents is going to be a big issue I feel. 
+
+The way LL do it is that childagents have a position and the region processes update each other about the position of childagents, so a child agent will have the same global position as the main avatar (so in its local region a childagent will actually (I believe) have a position outside the regions 256X256 area. Then it is possible to only send updates related to that position (ie when it gets near the border it will get more info sent to the child agent). We do don't updating of postion between regions for childagents, but I think it is something we most likely will have to do.
+
+Trying to do blanket broadcasting for all the child agents would lead to all events in 9 regions (if the main region has all 8 neighbours) getting sent, this I think will be a major bandwidth issue ,if nothing else.
+
+A lot of people have noticed in the current code that you don't see prims in a neighbouring region until you have visited it at least once. This isn't really so much a bug as that I left it like that so that we don't get the problem of 9 regions always sending all their updates to a user.
+
+I also think that by not having the childagents as part of scene in some way, that it makes things more complicated. A childagent is really like a ghost entity, it sees what is going on in a scene/region, just can't be seen itself. So I think if we stop using the idea of ScenePresence (which was named that way to show that it was a presence in a scene, but not always a Avatar, so may or may not have a body), then we need to add some other concept to Scene, like Observer?
+
+Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:   .ExternalClass .EC_hmmessage P {padding:0px;} .ExternalClass EC_body.hmmessage {font-size:10pt;font-family:Tahoma;}  After rummaging thru the Connectivity/Scene/Agent/InterRegion code, I have a proposal for a restructuring. Of course, it's quite core, but feel free to comment anyway.
+ 
+I propose that we leave the if( ChildAgent ) model and split the whole core into a Scene and a Region layer, right thru the Agent.
+ 
+The 'Region' layer will be responsible for low-level agent administration; instead of a 'child agent', every agent has a number of 'RegionPresence's - these have no local coord, but merely indicates that certain region-wide operations will be echoed to the RegionPresences corresponding IClientAPI.
+ 
+The 'Scene' layer will handle objects (prims and avatars) and for every connected Viewer, there is a 'ScenePresence' which in turn has one SceneObject, the Avatar - the ScenePresence has two local coords, the Avatar and the Camera and these are used to discern what operations are echoed to the ScenePrescenses corresponding IClientAPI.
+ 
+On every connect, there would be created a RegionPresence but only on MoveAvatarIntoRegion would it get a ScenePresence. That ScenePresence would simply be handed over to another Scene if a regioncrossing occurs within the instance.
+ 
+So, we have two quite different areas of functionality; the Region layer that will organize stuff like region crossing, and the Scene Layer that will handle stuff like physics.
+ 
+The RegionManager administrates all regions within the instance, and the SceneManager all the Scenes.
+ 
+When we're at it, introducing one global PhysicsScene will probably make physics somewhat more cooperative; The mapping back and forth would be fairly straightforward, and it would mean that the creation and destruction of PhysActors would be less cumbersome. This would play well with the notion of a SceneManager.
+ 
+These two restructurings will probably smooth out quite a lot of the bushiness in the code as it stands today.
+ 
+/Stefan
+ 
+ 
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+  
+---------------------------------
+ Yahoo! Answers - Get better answers from someone who knows. Try it now.
+
+       
+---------------------------------
+ For ideas on reducing your carbon footprint visit Yahoo! For Good this month.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20070923/d95861e9/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20070923/d95861e9/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000047.html">[Opensim-dev] A modest proposal
+</A></li>
+	<LI>Next message: <A HREF="000052.html">[Opensim-dev] A modest proposal
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#51">[ date ]</a>
+              <a href="thread.html#51">[ thread ]</a>
+              <a href="subject.html#51">[ subject ]</a>
+              <a href="author.html#51">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

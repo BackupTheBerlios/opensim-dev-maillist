@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Change module interface to indicate	replacable modules
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Change%20module%20interface%20to%20indicate%0A%09replacable%20modules&In-Reply-To=%3C34cc66250907101705l21a6d2b3o4fa9fd2c16cb5ca6%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007107.html">
+   <LINK REL="Next"  HREF="007114.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Change module interface to indicate	replacable modules</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Change%20module%20interface%20to%20indicate%0A%09replacable%20modules&In-Reply-To=%3C34cc66250907101705l21a6d2b3o4fa9fd2c16cb5ca6%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Proposal: Change module interface to indicate	replacable modules">teravus at gmail.com
+       </A><BR>
+    <I>Sat Jul 11 02:05:23 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007107.html">[Opensim-dev] Proposal: Change module interface to indicate	replacable modules
+</A></li>
+        <LI>Next message: <A HREF="007114.html">[Opensim-dev] Proposal: Change module interface to	indicate	replacable modules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7109">[ date ]</a>
+              <a href="thread.html#7109">[ thread ]</a>
+              <a href="subject.html#7109">[ subject ]</a>
+              <a href="author.html#7109">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Example:
+
+Diva created a world map module, but the one in the OpenSimulator
+distribution wouldn't let Diva's module run so she had to create a
+configuration flag to turn the module in the OpenSimulator
+distribution off.   Now, there's a complicated configuration option
+for the world map module where you have to type out the object
+namespace.
+
+The groups module in OpenSimulator's distribution is a stub.   We do
+not intend people to use it out of the box.   Therefore it makes sense
+to have an implicit way to ensure that it doesn't run when there is a
+replacement loaded.
+
+Melanie doesn't think the 'replaceable modules' architecture is
+maintainable and so she proposed this idea to solve the 3 goals I had
+for it;
+
+1. Explicitly declare opensim core developer's intentions for the
+module to be replaceable and that we intend on users replacing the
+stub with a module that is more full featured
+
+2. Be implicit so no configuration files or options need to be managed
+by the end user.   This makes packaging binaries easier.  You tell the
+user to download a dll, and put it in the bin folder.   No need to
+modify the opensim.ini or the config-include folder.   This is a step
+in the direction of a console module downloader and loader.
+
+3. Be resource friendly.   Currently even modules that are not running
+are loaded in memory.   The objects are.   They may not be using much
+memory..  but they're still there.
+
+My method of reaching those goals was to create stub projects in
+separate dlls where the dll contains only the module.  The reason for
+it being a single module in the dll is that it can be overwritten with
+a dll provided by someone else.   I called them the
+ReplaceableModules.    Melanie doesn't think this is maintainable
+though with the number of modules that are stuck in various 'catch
+all' dlls.    I'm open to other solutions as long as they accomplish
+the 3 goals :).    Melanie's solution does accomplish those three
+goals.
+
+
+Regards
+
+Teravus
+
+
+
+On Fri, Jul 10, 2009 at 6:28 PM, Kyle Hamilton&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">aerowolf at gmail.com</A>&gt; wrote:
+&gt;<i> money.
+</I>&gt;<i>
+</I>&gt;<i> -Kyle H
+</I>&gt;<i>
+</I>&gt;<i> On Fri, Jul 10, 2009 at 2:09 PM, Justin
+</I>&gt;<i> Clark-Casey&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> Melanie wrote:
+</I>&gt;&gt;&gt;<i> The intent of this change is to let a module indicate that it wishes
+</I>&gt;&gt;&gt;<i> it's load to be deferred until all modules have been scanned and
+</I>&gt;&gt;&gt;<i> initialized, and to indicate that it wishes to ot be initialized if
+</I>&gt;&gt;&gt;<i> another module has already registered it's interface.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> This will allow automatically disabling modules the developer has
+</I>&gt;&gt;&gt;<i> marked as &quot;stub&quot; modules without full functionality, so that
+</I>&gt;&gt;&gt;<i> replacement 3rd party modules can simply be dropped into the binary
+</I>&gt;&gt;&gt;<i> distribution and get picked up and run instead of that stub.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Could you give an example of what kind of module we'd be talking about here? &#160;Wouldn't this apply to all modules anyway
+</I>&gt;&gt;<i> (since in principle it should be possible to replace anything)?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> justincc
+</I>&gt;&gt;<i> Justin Clark-Casey
+</I>&gt;&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007107.html">[Opensim-dev] Proposal: Change module interface to indicate	replacable modules
+</A></li>
+	<LI>Next message: <A HREF="007114.html">[Opensim-dev] Proposal: Change module interface to	indicate	replacable modules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7109">[ date ]</a>
+              <a href="thread.html#7109">[ thread ]</a>
+              <a href="subject.html#7109">[ subject ]</a>
+              <a href="author.html#7109">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

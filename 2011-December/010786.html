@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Sit position changes in OpenSimulator b6df9e9 (Sat	5th Nov 2011)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Sit%20position%20changes%20in%20OpenSimulator%20b6df9e9%20%28Sat%0A%095th%20Nov%202011%29&In-Reply-To=%3C4ED9496B.2080602%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010781.html">
+   <LINK REL="Next"  HREF="010791.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Sit position changes in OpenSimulator b6df9e9 (Sat	5th Nov 2011)</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Sit%20position%20changes%20in%20OpenSimulator%20b6df9e9%20%28Sat%0A%095th%20Nov%202011%29&In-Reply-To=%3C4ED9496B.2080602%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Sit position changes in OpenSimulator b6df9e9 (Sat	5th Nov 2011)">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Dec  2 22:55:55 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010781.html">[Opensim-dev] OAR - Group Handling Across Grids
+</A></li>
+        <LI>Next message: <A HREF="010791.html">[Opensim-dev] Sit position changes in OpenSimulator b6df9e9 (Sat 5th Nov 2011)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10786">[ date ]</a>
+              <a href="thread.html#10786">[ thread ]</a>
+              <a href="subject.html#10786">[ subject ]</a>
+              <a href="author.html#10786">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>OpenSimulator commit b6df9e9 (dev code) changed the sit target adjustment to better match that used in Second Life.
+
+Unfortunately, this has the effect of making all existing sit positions set by scripts using llSitTarget() inaccurate 
+(e.g. avatar ends up hovering above a chair).
+
+ From a user/scripter point of view this is a bad thing.  Not only do existing objects with user inventory/prim 
+inventory now have wrong values, but positions loaded from OARs/IARs will now be wrong without adjustment, and OARs/IARs 
+saved in dev code or future 0.7.3 will have wrong sit values when loaded into older OpenSim releases.
+
+However, I believe that's it's practically impossible to have old objects correctly use the old sit adjustment and new 
+objects the new one.  Here are the alternative courses of action and my considered pros/cons of each
+
+1.  Change sit adjustment with no other action.
+PROS: llSitTarget() is now implemented correctly.  No legacy mess in the code.  No extra complexity required.  No 
+development work required.
+CONS: Without adjustment, all region, inventory objects and scripts now use wrong sit values.  Wrong sit values in OARs 
+and IARs.  Wrong sit values when OARs/IARs/objects moved between dev/future 0.7.3 versions and older OpenSim versions.
+
+2.  Provide a tool to correct sit values in scripts
+CONS: Too difficult since requires massive amount of script analysis.  Might be possible in a limited way to catch 80/20 
+cases.
+
+3.  Use different sit adjustment depending on prim creation date (pre Sat 5 Nov 2011 use old value).
+PROS: Stops older sit positions from being wrong.  Doesn't require much code change.
+CONS: A user has to know an opaque magic date when the sit position changed.  Somewhat messy legacy code.  Future 
+upgraders from 0.7.2 will get some prims with 'wrong' sit positions and others with 'right' depending on when they were 
+created, which is in the long term possibly more confusing than everything needing adjustment.
+
+4.  Revert llSitTarget() behave and create an osSitTarget() using the new adjustment instead.
+PROS: All existing sit targets continue to be 'correct', and old scripts still work correctly in new objects.
+CONS: llSitTarget() remains wrong for all time (could warn on use and eventually change, but users don't pay attention 
+to such warnings).
+
+5.  Store new sit positions in a different field on SOP and use this if present with new sit adjustment, otherwise use 
+old field with old sit adjustment.
+PROS: Works invisibly as long as old scripts don't set new values.
+CONS: Messy legacy code.  Old scripts probably will set new values - then would need to act differently on script item 
+creation date, with same issues as 3.
+
+6.  Provide a config switch to use old sit adjustment or new.
+PROS: Administrator controllable.  In a future OpenSim release, admin can decide when they are going to flip to using 
+the 'new' value.  This might be done anyway for the use case where OpenSim is being used with content in isolation from 
+elsewhere.
+CONS: Encourages the creation of more objects using the old sit values, encouraging a continuous mix of old and new 
+values which can't both be used on the same region.
+
+Doubtless there are other strategies, but on the face of it there doesn't seem to be an ideal solution.  It's made much 
+more difficult by the fact that these values can only be scripts rather than as properties on the part (a decision which 
+I find hard to swallow).
+
+On the whole, I think that it's better to accept the pain of change as early as possible and move to a world where all 
+values are correct rather than remain with one where things are incorrect or a mish-mash in the long term.  As I said to 
+Akira, the alpha nature of OpenSim is meant to be a signal that these things can change as bugs are fixed.
+
+However, I'm certainly happy to hear alternative opinions or well-researched and intelligent alternative proposals.
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010781.html">[Opensim-dev] OAR - Group Handling Across Grids
+</A></li>
+	<LI>Next message: <A HREF="010791.html">[Opensim-dev] Sit position changes in OpenSimulator b6df9e9 (Sat 5th Nov 2011)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10786">[ date ]</a>
+              <a href="thread.html#10786">[ thread ]</a>
+              <a href="subject.html#10786">[ subject ]</a>
+              <a href="author.html#10786">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

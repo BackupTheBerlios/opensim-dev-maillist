@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] IRegisterInterface for extending scene entities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IRegisterInterface%20for%20extending%20scene%20entities&In-Reply-To=%3CAAE09D093609C24B8163782ABA2A418225B13E4A%40FMSMSX102.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011583.html">
+   <LINK REL="Next"  HREF="011585.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] IRegisterInterface for extending scene entities</H1>
+    <B>Adams, Robert</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IRegisterInterface%20for%20extending%20scene%20entities&In-Reply-To=%3CAAE09D093609C24B8163782ABA2A418225B13E4A%40FMSMSX102.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] IRegisterInterface for extending scene entities">robert.adams at intel.com
+       </A><BR>
+    <I>Fri Jan  4 19:01:58 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011583.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+        <LI>Next message: <A HREF="011585.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11584">[ date ]</a>
+              <a href="thread.html#11584">[ thread ]</a>
+              <a href="subject.html#11584">[ subject ]</a>
+              <a href="author.html#11584">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Don't mean to be too much of a contrarian, but this has Bad Idea written all over it. I can see someone a year from now not finding that one wiki page which defines these conventions and just doing their own thing. Chaos ensues.
+
+My proposal attached object instances to the SOPs. This has two advantages over a simple key/value store:
+	1) the variables and types are defined -- anyone knows what is there and what type they should be.  A key/value store will get into all the &quot;how do you store a float value&quot; issues (string? Float? Is the requestor wants a float and finds a string, should it be converted? Opps. Module A does the string to float conversion but Module B doesn't! Etc. Etc.)
+	2) there can be actions/methods on the attached instance -- functions like &quot;return the mesh representation of this object&quot; could be a call to the meshmerizer or a cache lookup or whatever. A key/value store would require all logic to be outside in another wrapper instance class that was associated with the SOP somehow.
+
+The problem with attaching instances is serialization/deserialization. Serialization could be the job of the instance (must implement ISerializable or maybe even ISerializableSOPParasite). Deserialization would require finding the class definition. All that C# reflection magic allows searching for the DLLs and if the defining DLL is not there, well, the code that would be using that function couldn't work anyway.
+
+Anyway, my vote is -1 for an arbitrary key/value store. Especially one that requires naming conventions and logic for understanding what's in that store scattered everywhere.
+
+-- ra
+
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Oren Hurvitz
+Sent: Thursday, January 03, 2013 9:48 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] IRegisterInterface for extending scene entities
+
+For namespacing we can take a pointer from MIME types:
+1. Keys used by core OpenSim will have no prefix, e.g. &quot;media&quot; or &quot;prop.attr&quot;.
+2. Keys created outside core OpenSim will use the &quot;vnd.&quot; prefix, followed by the name of the creating entity. For example: &quot;vnd.acme.myprop&quot;.
+
+We should stick to storing the data in a single field. Database access is much slower than in-memory string manipulation, so for any reasonable amount of data it would be faster to read and write it as part of the existing &quot;prims&quot; table rather than adding additional SQL operations on another table (&quot;primattr&quot;?). And of course, a separate table would be much more complicated to handle and I do like the simple life :)
+
+I did consider a different change: replacing OSD with JSON, which I like because of its simplicity and ubiquity. But I decided that it wouldn't make much of a difference; certainly not worth rewriting working code.
+
+Oren
+
+
+
+--
+View this message in context: <A HREF="http://opensim-dev.2196679.n2.nabble.com/IRegisterInterface-for-extending-scene-entities-tp7578406p7578423.html">http://opensim-dev.2196679.n2.nabble.com/IRegisterInterface-for-extending-scene-entities-tp7578406p7578423.html</A>
+Sent from the opensim-dev mailing list archive at Nabble.com.
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011583.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+	<LI>Next message: <A HREF="011585.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11584">[ date ]</a>
+              <a href="thread.html#11584">[ thread ]</a>
+              <a href="subject.html#11584">[ subject ]</a>
+              <a href="author.html#11584">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

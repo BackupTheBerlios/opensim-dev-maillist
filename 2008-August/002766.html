@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] switch gears a bit, thoughts on the state of the database in OpenSim
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20switch%20gears%20a%20bit%2C%0A%20thoughts%20on%20the%20state%20of%20the%20database%20in%20OpenSim&In-Reply-To=%3CBLU134-W180DE492C1E025C9C1317FD5630%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002747.html">
+   <LINK REL="Next"  HREF="002783.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] switch gears a bit, thoughts on the state of the database in OpenSim</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20switch%20gears%20a%20bit%2C%0A%20thoughts%20on%20the%20state%20of%20the%20database%20in%20OpenSim&In-Reply-To=%3CBLU134-W180DE492C1E025C9C1317FD5630%40phx.gbl%3E"
+       TITLE="[Opensim-dev] switch gears a bit, thoughts on the state of the database in OpenSim">stefan at tribalmedia.se
+       </A><BR>
+    <I>Fri Aug 29 10:00:42 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002747.html">[Opensim-dev] switch gears a bit,	thoughts on the state of the database in OpenSim
+</A></li>
+        <LI>Next message: <A HREF="002783.html">[Opensim-dev] switch gears a bit, thoughts on the state of the database in OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2766">[ date ]</a>
+              <a href="thread.html#2766">[ thread ]</a>
+              <a href="subject.html#2766">[ subject ]</a>
+              <a href="author.html#2766">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sean,
+ 
+may I then revoke my earlier suggestion to drop the OpenSim.Data.Base, and instead suggest we concentrate on that, since that WAS a stab at getting reasonably cheap and customizable cross-db functionality? Converting current db providers to the Base framework really should be a breeze.
+It does give us things like seamless LLUUID, vector and rotation handling, as well as the possibility to write specialized queries. It also isolates connection factoring so that that we can have much more detailed control over it for various environments.
+ 
+If the migration framework could be added to that, I think we would have something really simple, compact and efficient that will last us until we get something better on rails?
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+&gt;<i> Date: Thu, 28 Aug 2008 15:06:59 -0400&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] switch gears a bit, thoughts on the state of the database in OpenSim&gt; &gt; Over the past couple of months I've been working on an nhibernate&gt; provider in between random bug fixes and other clean ups. For those&gt; that don't know, nhibernate is a generic db mapping layer that helps&gt; smooth out differences between database engines.&gt; &gt; There are a few things I found in this process.&gt; &gt; First off, it took progressively longer to do the Asset -&gt; Inventory -&gt;&gt; User (never quite finished) -&gt; Region (very partial) stores for&gt; nhibernate. Those paying attention will note that basically that&gt; corresponds to the reverse chronological order of those&gt; interfaces/objects. As we go back in time to how our objects were&gt; defined, cruft levels and inconsistencies spring up. When mapping all&gt; of this out with custom code, these just get code around with more&gt; custom code. When trying to push through a more standard interface,&gt; these inconsistencies become much more evident and time sinking.&gt; &gt; Secondly, a lot of our older objects definitely don't follow best&gt; practices of having properties, and a lot of refactoring was done along&gt; the way.&gt; &gt; Thirdly, after tuning some of the mysql tables, the nhibernate bits&gt; definitely seemed a bit slower than they should be. We are using 1.2&gt; (2.0 is soon to be out). While this is most likely something we can&gt; actually make better, there is an bit of a hit in the naive case for&gt; doing this approach.&gt; &gt; Forthly, nhibernate can't do automated table upgrades (even in 2.0).&gt; The lack of this was the reason for writing the Migrations framework&gt; which seems to be working out quite well across all our data sources.&gt; This was something I was hoping to get for free which we didn't, sadly.&gt; This also has let us do data optimization (like the fixed length&gt; uuids), and add indexes sanely.&gt; &gt; Finally, prevailing feeling in the community right now is that we've got&gt; sqlite for easy startup, and most people are using mysql for serious&gt; work. I think with moving towards addons we'll actually be able to have&gt; out of tree drop ins for other data sources.&gt; &gt; All of this has led me to a slight change of gears.... I'm going to be&gt; putting the nhibernate stuff on the back burner for now and focus on a&gt; few other things that I think will be of more near term use (and will&gt; make completion of nh or other db drivers easier).&gt; &gt; * Some clean up of the scene object model. We iterate over entities&gt; way too often in scene, which is an issue from both program correctness&gt; and performance.&gt; * The rest of the UUID cleanup in the existing db drivers. We're down&gt; to 2 formats for UUID, but we really need to get to one. That's a chunk&gt; of time.&gt; * Normalizing the various data driver interfaces. It's sort of amazing&gt; how different each of those is in both flavor and naming convention,&gt; which causes substantial confusion.&gt; * Experiment with the possibility of doing SOP recursively and getting&gt; rid of SOG. Before anyone freaks out, this will just be an experiment,&gt; and will be presented to the group for review prior to anything that&gt; extensive going into trunk.&gt; &gt; I think that a lot of this is pretty critical right now for a couple of&gt; reasons. Firstly, that doing a new db driver requires a bit too much&gt; work, which is bad for all of us. Secondly, if we are going to actually&gt; standardize on an XML3 export format (which I think is a really&gt; important thing to do this fall), it would be really good if some of the&gt; base objects we use today we a bit more normalized and encapsulated.&gt; &gt; Anyway, I wanted to at least let folks know where my head was at, and&gt; what I'm planning on focusing in the near term (given time as the&gt; biggest limited resource). If anyone else wants to dig in on what's&gt; left on nhibernate to do, I'd be happy to point you in the right&gt; direction. I've learned a lot about the way the system works, and most&gt; of the gotchas. Finishing it off isn't rocket science, it's just time.&gt; &gt; -Sean&gt; &gt; -- &gt; Sean Dague / Neas Bade&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>&gt; <A HREF="http://dague.net">http://dague.net</A>&gt; &gt; 
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080829/ae3aaad1/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080829/ae3aaad1/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002747.html">[Opensim-dev] switch gears a bit,	thoughts on the state of the database in OpenSim
+</A></li>
+	<LI>Next message: <A HREF="002783.html">[Opensim-dev] switch gears a bit, thoughts on the state of the database in OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2766">[ date ]</a>
+              <a href="thread.html#2766">[ thread ]</a>
+              <a href="subject.html#2766">[ subject ]</a>
+              <a href="author.html#2766">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

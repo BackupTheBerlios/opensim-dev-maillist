@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Ini file(s) loading
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ini%20file%28s%29%20loading&In-Reply-To=%3C49B13B85.1070905%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005598.html">
+   <LINK REL="Next"  HREF="005602.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Ini file(s) loading</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ini%20file%28s%29%20loading&In-Reply-To=%3C49B13B85.1070905%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Ini file(s) loading">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Mar  6 16:04:37 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005598.html">[Opensim-dev] Ini file(s) loading
+</A></li>
+        <LI>Next message: <A HREF="005602.html">[Opensim-dev] Ini file(s) loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5599">[ date ]</a>
+              <a href="thread.html#5599">[ thread ]</a>
+              <a href="subject.html#5599">[ subject ]</a>
+              <a href="author.html#5599">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Melanie wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Jeff Ames wrote:
+</I>&gt;&gt;<i> Melanie wrote:
+</I>&gt;&gt;&gt;<i> read [the config directory] first
+</I>&gt;&gt;&gt;<i> then read the inimaster
+</I>&gt;&gt;&gt;<i> then read the inifile
+</I>&gt;<i> 
+</I>&gt;<i> This is because the config/* files would hold the defaults, they 
+</I>&gt;<i> must be read first.
+</I>&gt;<i> 
+</I>&gt;<i> [...]
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Then we could break up and move OpenSim.ini.example entirely to
+</I>&gt;&gt;<i> config/*.ini.example files, and when the user wants to change a value,
+</I>&gt;&gt;<i> create foo.ini based on foo.ini.example (copying the whole file if
+</I>&gt;&gt;<i> they want everything, or only adding the options they want to
+</I>&gt;&gt;<i> explicitly set).
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>&gt;<i> I was suggesting to get away from *.example files. Instead, I am 
+</I>&gt;<i> proposing to break up OpenSim.ini into *.ini files that provide the 
+</I>&gt;<i> defaults. The in-code defaults are a requirement of Nini, but they 
+</I>&gt;<i> are not functional, just ignore that they're there. The requirement 
+</I>&gt;<i> for an OpenSim.ini file in code needs to be dropped, of course.
+</I>
+If/when we split up OpenSim,ini then we do largely need to get away from .example files - renaming lots of 
+config/*.ini.example files is obviously a no go.
+
+If we get rid of OpenSim.ini entirely, then when a new user wants to change their storage/network settings (which I 
+suspect pretty much everyone does sooner or later), they will either
+
+(a)  Follow some instructions to copy config/storage.ini to OpenSim.ini and then tweak it or
+(b)  Change config/storage.ini directly
+
+Even if we encouraged (a), I think that realistically people will just end up doing (b).  If config/storage.ini ends up 
+in SVN, then when it changes we will wreck their configuration.  I think that overriding default storage settings would 
+also be confusing to users.
+
+So I would argue that we should retain mandatory OpenSim.ini/OpenSim.ini.example just for storage and other absolutely 
+basic settings (e.g. gridmode).  This would also mean that many users wouldn't need to worry at all about the contents 
+of config/
+
+I acknowledge this may be a pita for those supplying configuration purely over the network, though maybe there could be 
+some extra setting that switches off a mandatory OpenSim.ini in these situations.
+
+&gt;<i> 
+</I>&gt;<i> That is why the config directory needs to be read first - it 
+</I>&gt;<i> provides the defaults! Inimaster would be rendered useless by the 
+</I>&gt;<i> load order you're proposing!
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Then I guees the load order would be:
+</I>&gt;&gt;<i>  - read inimaster (if present)
+</I>&gt;&gt;<i>  - read config/*.ini (if present)
+</I>&gt;&gt;<i>  - use defaults in code for anything not set
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>&gt;<i> See above, this won't serve the users' needs. In your scenario, if 
+</I>&gt;<i> the config/*.example changes, they'd still need to merge.
+</I>&gt;<i> 
+</I>&gt;<i> What I propose, to reiterate, is this:
+</I>&gt;<i> 
+</I>&gt;<i> Break up Opensim.ini.example into config/*.ini. Uncomment all the 
+</I>&gt;<i> options so they serve as defaults.
+</I>&gt;<i> Remove the explicit requirement for an ini file.
+</I>&gt;<i> This way, sitewide changes from the provided defaults go to 
+</I>&gt;<i> inimaster, and machine/instance settings go to opensim.ini.
+</I>&gt;<i> The files in config/ can remain unchanged and can be updated on 
+</I>&gt;<i> every svn update, without manual merging.
+</I>&gt;<i> 
+</I>&gt;<i> Of course, many other use cases are possible, including 
+</I>&gt;<i> modifications to config/*.ini if desired, or omitting either 
+</I>&gt;<i> configuration source.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005598.html">[Opensim-dev] Ini file(s) loading
+</A></li>
+	<LI>Next message: <A HREF="005602.html">[Opensim-dev] Ini file(s) loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5599">[ date ]</a>
+              <a href="thread.html#5599">[ thread ]</a>
+              <a href="subject.html#5599">[ subject ]</a>
+              <a href="author.html#5599">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

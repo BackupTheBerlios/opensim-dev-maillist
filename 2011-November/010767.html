@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Supporting shell environment variables
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Supporting%20shell%20environment%20variables&In-Reply-To=%3C4ECDA549.20204%40bluewallgroup.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010766.html">
+   <LINK REL="Next"  HREF="010768.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Supporting shell environment variables</H1>
+    <B>BlueWall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Supporting%20shell%20environment%20variables&In-Reply-To=%3C4ECDA549.20204%40bluewallgroup.com%3E"
+       TITLE="[Opensim-dev] Supporting shell environment variables">jamesh at bluewallgroup.com
+       </A><BR>
+    <I>Thu Nov 24 03:00:41 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010766.html">[Opensim-dev] Supporting shell environment variables
+</A></li>
+        <LI>Next message: <A HREF="010768.html">[Opensim-dev] Supporting shell environment variables
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10767">[ date ]</a>
+              <a href="thread.html#10767">[ thread ]</a>
+              <a href="subject.html#10767">[ subject ]</a>
+              <a href="author.html#10767">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 11/23/2011 05:54 PM, Justin Clark-Casey wrote:
+&gt;<i> Hi BlueWall. Nice work. I do have some comments
+</I>&gt;<i>
+</I>&gt;<i> * Will this work with all config sections, not just Environment? (e.g.
+</I>&gt;<i> ${DataService|ConnectionString}
+</I>&gt;<i>
+</I>
+The [Environment] section is actually created internally by nini when 
+the EnvConfigSource is created. It is only a place for the user to set 
+the keys that will be read from the environment, and that section will 
+maintain them.
+
+Now, you are able to use any key in it's own section, or any other. You 
+could do something like...
+
+[Network]
+SRV_HOST=&quot;<A HREF="http://ascent.bluewallgroup.com">http://ascent.bluewallgroup.com</A>&quot;
+
+[InventoryService]
+InventoryServerURI = ${Network|SRV_HOST}:8003
+
+[AvatarService]
+AvatarServerURI = ${Network|SRV_HOST}:8003
+
+[PresenceService]
+PresenceServerURI = ${Network|SRV_HOST}:8003
+
+... We could have been doing that all along. It was already part of Nini.
+
+
+&gt;<i> * Wouldn't it be more natural to use . as the separator rather than |
+</I>&gt;<i> (e.g. ${DatabaseService.ConnectionString}?
+</I>&gt;<i>
+</I>
+The syntax for the replaceable keys is part of the original Nini. See 
+the Nini docs for more on that 
+(<A HREF="http://nini.sourceforge.net/Manual/NiniManual-2.htm#KeyValueExpanding">http://nini.sourceforge.net/Manual/NiniManual-2.htm#KeyValueExpanding</A>} 
+. The pipe is also used by Nini to separate terms in a list. See: &quot;3.3 
+Key Value Lists&quot; @ 
+<A HREF="http://nini.sourceforge.net/Manual/NiniManual-3.htm#AdvancedTopics">http://nini.sourceforge.net/Manual/NiniManual-3.htm#AdvancedTopics</A>
+
+&gt;<i> * What happens now if somebody actually wants to use a literal
+</I>&gt;<i> ${&lt;something&gt;} string? Is the $ escapable?
+</I>&gt;<i>
+</I>
+It will probably be empty when the keys are expanded. I'll look into 
+that to see what happens. I can escape it if it's not already doing it.
+
+&gt;<i> * Is the [Environment] section really necessary with explicit imports
+</I>&gt;<i> (which look pretty hacky)? Wouldn't it be simpler to implicitly create
+</I>&gt;<i> an [Environment] section? I feel this is more along the approach taken
+</I>&gt;<i> by other languages/systems which make the whole Environment space
+</I>&gt;<i> available.
+</I>&gt;<i>
+</I>
+Any program would need to select the variables it is interested in at 
+some point. And in this case, we are opening up the ability for the user 
+to define the keys that we will fetch the shell values for instead of 
+having them hard-coded. The first place I thought of putting them was a 
+separate file, but that is too detached and another ini file is probably 
+the last thing we need. It seems pretty convenient to place them in a 
+section. That section should give the keys a significance that they are 
+treated differently as a group. And haveing them in a section also 
+connects them in the user's mind to that purpose. The syntax for the pla 
+might be a little bit awkward first time through using the 
+${Section|Key} syntax, but that is (and had been forever) Nini's syntax 
+for expanding keys. We should have been using that by now to define 
+repetitive values in our configuration files.
+
+A [Environment] section is created internally (in Nini) when the 
+EnvConfigSource is created and it holds the variables picked from the 
+shell on the system facing side. And on the OpenSim side, that is the 
+name of the section that is read to look for keys that will correspond 
+to shell variables. And we can use that opportunity to set a default 
+value (although it doesn't yet have the means - WIP) at the key's 
+definition...
+
+OpenSim ConfigurationLoader
+<A HREF="https://github.com/opensim/opensim/blob/master/OpenSim/Region/Application/ConfigurationLoader.cs#L199">https://github.com/opensim/opensim/blob/master/OpenSim/Region/Application/ConfigurationLoader.cs#L199</A>
+
+
+Nini EnvConfigSource
+<A HREF="https://github.com/BlueWall/Nini-Dev/blob/master/Source/Config/EnvConfigSource.cs#L72">https://github.com/BlueWall/Nini-Dev/blob/master/Source/Config/EnvConfigSource.cs#L72</A>
+
+There is probably lots of room for improvement and bug fixes (hopefully 
+not so many bugs :) I'll especially be watching all the channels for 
+activity concerning this to fix/add documentation etc. as needed.
+
+Thanks!
+BlueWall
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010766.html">[Opensim-dev] Supporting shell environment variables
+</A></li>
+	<LI>Next message: <A HREF="010768.html">[Opensim-dev] Supporting shell environment variables
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10767">[ date ]</a>
+              <a href="thread.html#10767">[ thread ]</a>
+              <a href="subject.html#10767">[ subject ]</a>
+              <a href="author.html#10767">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

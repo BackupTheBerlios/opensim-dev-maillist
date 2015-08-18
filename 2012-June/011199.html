@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Questions about Vehicle scripting calls
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20Vehicle%20scripting%20calls&In-Reply-To=%3C4FD027C1.2040701%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011198.html">
+   <LINK REL="Next"  HREF="011208.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Questions about Vehicle scripting calls</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20Vehicle%20scripting%20calls&In-Reply-To=%3C4FD027C1.2040701%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Questions about Vehicle scripting calls">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Jun  7 06:02:09 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011198.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+        <LI>Next message: <A HREF="011208.html">[Opensim-dev] Simborder crossings and disapearing regions.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11199">[ date ]</a>
+              <a href="thread.html#11199">[ thread ]</a>
+              <a href="subject.html#11199">[ subject ]</a>
+              <a href="author.html#11199">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I can confirm that the behaviour of both of these differs compared to the LL grid, as Mike has described.
+
+I don't immediately see any good reason for the different behaviour.  I may take a look at these myself but it will take 
+me some time to get up to speed with the ODE vehicle code (not a huge amount contained in ODEDynamics and ODEPrim but it 
+does involve math), so if anybody else wants to leap in with patches then please do.
+
+On 06/06/12 00:46, Mike Higgins wrote:
+&gt;<i> I was talking to Justin Clark-Casey at the OpenSim developers meeting this morning, and he suggested that the mailing
+</I>&gt;<i> lists would be the easiest way to have a conversation about vehicle physics on OpenSim. Justin you there? Is this where
+</I>&gt;<i> you meant? Anyone else want to talk about vehicle scripting in OpenSim?
+</I>&gt;<i>
+</I>&gt;<i> I am in the process of testing the OpenSim vehicle scripting calls and trying to find out what works and what can be
+</I>&gt;<i> worked around. I am submitting mantis reports when I think I see a true bug, issue numbers 0006039
+</I>&gt;<i> &lt;<A HREF="http://opensimulator.org/mantis/view.php?id=6039">http://opensimulator.org/mantis/view.php?id=6039</A>&gt; and 0006040 &lt;<A HREF="http://opensimulator.org/mantis/view.php?id=6040">http://opensimulator.org/mantis/view.php?id=6040</A>&gt; for
+</I>&gt;<i> starters. Instead of submitting 1000 line vehicle scripts that do not work, I am writing small 10-line scripts that
+</I>&gt;<i> demonstrate a particular problem.
+</I>&gt;<i>
+</I>&gt;<i> Issue 0006040 &lt;<A HREF="http://opensimulator.org/mantis/view.php?id=6040">http://opensimulator.org/mantis/view.php?id=6040</A>&gt; is particularly interesting because if my hypothesis is
+</I>&gt;<i> correct, the linear motor direction is being actively projected onto the global XY plane. I cannot get an airplane to
+</I>&gt;<i> glide up, or a balloon to rise using the linear motor. (Hover height works with balloons, but not the linear motor even
+</I>&gt;<i> with hover height disabled). The interesting thing about this is that my hypothesis suggests that there is extra code
+</I>&gt;<i> doing this projection onto the XY plane. I checked the vehicle flags and there isn't one that should force this extra
+</I>&gt;<i> projection into the calculations. Vehicle type balloon is supposed to have all the flags removed, but just to be sure I
+</I>&gt;<i> used the remove call to clear them all. The linear motor still cannot go up. Can someone familiar with the code look at
+</I>&gt;<i> the linear motor and tell me why this is happening and if there is a way to disable it? (I tried turning flags like
+</I>&gt;<i> VEHICLE_FLAG_NO_DEFLECTION_UP on to see if this flag was inverted, and if it applied to the motor instead of deflection,
+</I>&gt;<i> but no luck).
+</I>&gt;<i>
+</I>&gt;<i> The fun thing is that I can write one kind of vehicle that works well -- assuming this bug is there. I built a vehicle
+</I>&gt;<i> that has the linear motor set to &lt;0,0,20&gt;, pointing straight up. When the vehicle is perfectly horizontal, the
+</I>&gt;<i> projection of this motor onto XY is &lt;0,0,0&gt; and the vehicle does nothing. But then when you tilt the vehicle in any
+</I>&gt;<i> direction, the projection of the linear motor on XY becomes non-zero and causes it to start moving in the direction of
+</I>&gt;<i> tilt. This feels a lot like an RL helicopter, so I used the control keys to pitch down/up to move forward/backwards,
+</I>&gt;<i> added yaw left and right, and used page-up/down to increase/decrease the hover height. I put it in a hacked together
+</I>&gt;<i> helicopter build and it is a lot of fun!
+</I>&gt;<i>
+</I>&gt;<i> I'm looking for work-arounds for the current vehicle routine behaviors. One work-around for an airplane is to turn on
+</I>&gt;<i> hover height, check the airplane speed and pitch once a second in timer(), calculate what altitude the plane should get
+</I>&gt;<i> to in the next second, and set hover height to that altitude. The things we do to get stuff working!
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011198.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+	<LI>Next message: <A HREF="011208.html">[Opensim-dev] Simborder crossings and disapearing regions.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11199">[ date ]</a>
+              <a href="thread.html#11199">[ thread ]</a>
+              <a href="subject.html#11199">[ subject ]</a>
+              <a href="author.html#11199">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

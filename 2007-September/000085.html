@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%22Friendly%20teleports%22%20between%20the%20standalone%20sims&In-Reply-To=%3C970c50810709271251v143fa7caq54eb16abe728ccf6%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000082.html">
+   <LINK REL="Next"  HREF="000086.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims</H1>
+    <B>Dalien Talbot</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%22Friendly%20teleports%22%20between%20the%20standalone%20sims&In-Reply-To=%3C970c50810709271251v143fa7caq54eb16abe728ccf6%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims">dalienta at gmail.com
+       </A><BR>
+    <I>Thu Sep 27 21:51:04 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000082.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+        <LI>Next message: <A HREF="000086.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#85">[ date ]</a>
+              <a href="thread.html#85">[ thread ]</a>
+              <a href="subject.html#85">[ subject ]</a>
+              <a href="author.html#85">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 9/27/07, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i> On Thu, Sep 27, 2007 at 08:39:11AM +0200, Tleiades wrote:
+</I>&gt;<i> &gt;   just for a laugh, I've implemented so that the OGS Grid comms now have
+</I>&gt;<i> a Local Grid comm, and forwards all requests to it to see if it can be
+</I>&gt;<i> handled locally, if not, it accesses the grid.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; One second thought, I think we should be very carefull about the levels
+</I>&gt;<i> of indirections
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The comms manager already has a lot, most of the various base classes
+</I>&gt;<i> &gt; in the inheritance chain try to implement complex logic, user simpler
+</I>&gt;<i> &gt; - and multiple - methods to the genric comms (be it the local or the
+</I>&gt;<i> &gt; OGS one), when the comms layer needs database access you will again
+</I>&gt;<i> &gt; see a lot of indirections.
+</I>&gt;<i>
+</I>&gt;<i> Agreed.  I think we've got a couple too many layers of inheritance in
+</I>&gt;<i> the current chain.  I'm always happy when people remove some of them. :)
+</I>
+
+partially agreed :) the question is how much would we want to optimize and
+when. From my studies the calls to the backend services are only happening
+during the region changes - from my SL experience this is a tiny fraction of
+the time spent. As such - isn't it a premature optimization in this case ?
+
+I would see the backend services model (backend services not as &quot;UGA infra&quot;
+but as a specific class which is mostly responsible for the inter-region
+movement) as possibly being three layers:
+
+layer 1: &quot;my&quot; instance. Handles all the interregion stuff for this running
+instance of the sim. (since we can have multiple regions)
+layer 2: &quot;this administrative domain&quot;. This is either a no-op in the case of
+a standalone mode (since this administrative domain == this instance), or
+OGS in the case of grid services.
+layer 3: &quot;interdomain&quot;. This handles either inter-sim or inter-grid or
+inter-sim-grid operations.
+
+interdomain might have some similar operations do the lower layers, but this
+is merely at the initial phase when the inventory / identity are not dealt
+with. Afterwards it is a distinctly separate layer, possibly with its own
+protocol.
+
+UGA-wise, there are probably only 2 layers:
+
+layer 1: this administrative domain
+[layer 2: interdomain] - as i mentioned - not considered so far.
+
+&gt;<i> We have 2-3-4 different DB plugins (SQLLite and MySQL probably being
+</I>&gt;<i> &gt; more complete and stable), If you examine both the MySql and SQLite
+</I>&gt;<i> &gt; plugins, they are again staggered into a hierarchy of logic.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; So if you tweak the local comms layer to attempt a local access first,
+</I>&gt;<i> and then divert to OGS in case you fail, you risk:
+</I>&gt;<i> &gt; 1) Duplicating the decision of wheter to uses local or OGS in two
+</I>&gt;<i> different layers of the application
+</I>&gt;<i> &gt; 2) Introduce - atleast increased -latency in the network
+</I>&gt;<i> &gt; communications, and that will cause the lag monster to appear.
+</I>&gt;<i>
+</I>&gt;<i> Agreed.  I think our current model on walking through a list of loaded
+</I>&gt;<i> plugins to do calls around the DB stuff is not good.  We really need to
+</I>&gt;<i> pick one at load time, and that's our guy.
+</I>
+
+I think Tleiades had a different notion in mind, which  I have hopefully
+clarified with the above layout. The current stuff we are playing with is
+highly proof of concept, and needs to be shaped. Not sure how the folks feel
+about the 3-level model, but IMHO it leaves very little room for the
+confusion on where to use the OGS.
+
+
+&gt;<i> &gt; I am pretty worried, we have a very flexible engine, with a lot of
+</I>&gt;<i> &gt; dynamically loaded assemblies, which - atleast on Microsoft -  will
+</I>&gt;<i> &gt; produce less than optimum compiled code, and we generally use a very
+</I>&gt;<i> &gt; inefficient network comms protocol (XML-RPC and REST). How can we get
+</I>&gt;<i> &gt; that to perform well?
+</I>
+
+Again - I have a feeling we are doing the premature optimization here. :)
+The reason I thought that the interdomain teleport is an important thing, is
+that
+I do have some questions about the UGA being a single point of failure.
+Indeed someone might host a highly redundant and powerful grid, but then I
+have some doubts whether it will remain *free*. And it seems we already have
+LL being the candidates for that post anyway :)
+
+
+
+&gt;<i> Does the JIT really care if you are loading code on runtime?  Any
+</I>&gt;<i> reference to performance information there would be appreciated.
+</I>&gt;<i>
+</I>&gt;<i> &gt; I would suggest that we:
+</I>&gt;<i> &gt; 1) Use .NET remoting for all our communications, out of the box .NET
+</I>&gt;<i> &gt; comes with TCP, HTTP and IPC channels. IPC is designed to be a local
+</I>&gt;<i> &gt; machine interprocess communications protocol. TCP and HTTP should be
+</I>&gt;<i> &gt; pretty self explanatory. The format of the messages can be controlled
+</I>&gt;<i> &gt; via formatters, out of the box .NET supports binary and SOAP, but an
+</I>&gt;<i> &gt; XML-RPC formatter is freely available.
+</I>&gt;<i>
+</I>&gt;<i> The LL model is going to evolve into REST for communication to the Agent
+</I>&gt;<i> Domain / Region Domain communication
+</I>&gt;<i> (<A HREF="http://wiki.secondlife.com/wiki/Proposed_Architecture">http://wiki.secondlife.com/wiki/Proposed_Architecture</A>).  Using .NET
+</I>&gt;<i> remoting for things outside of that (like Region &lt;-&gt; Region
+</I>&gt;<i> communication) is a win, but we want to make sure not to evolve in a
+</I>&gt;<i> completely incompatible way with where LL is going.
+</I>&gt;<i>
+</I>&gt;<i> &gt; 2) Drop local mode.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; If we switch to a complete remoting based communications protocol, it
+</I>&gt;<i> will be possible to use high performance IPC remoting if we are running in
+</I>&gt;<i> stand alone mode, and stil delegate communications on a per server basis via
+</I>&gt;<i> the config files.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; This way stand alone mode, is merely a question of using the right
+</I>&gt;<i> &gt; configuration. The gains are that we reduce the comlexity of the
+</I>&gt;<i> &gt; codebase by removing all the local comms stuff. and remove one layer
+</I>&gt;<i> &gt; of abstraction.
+</I>&gt;<i>
+</I>&gt;<i> +1 on this approach.  If we can get local IPC fast enough, getting rid
+</I>&gt;<i> of an extra layer of logic for us would be a good thing.
+</I>
+
+depending on whether the above hierarchy is interesting or not, there could
+be differing approaches. Maybe I misunderstood something (after all, I do
+remember myself being a strong advocate for doing everything via the
+loopback networking *only* in grid mode in the first place :) - but maybe
+the discussion again goes into the direction of question of UGA - while I
+was talking about the very specific component, responsible for inter-region
+movement of agents.
+
+the interdomain functionality is something that we could turn on/off based
+on the configuration setting - but imho it is still different from the
+functionality from the same-domain which the whole LL grid essentially is.
+
+Optimization-wise, I think it is important to first make it well-structured
+and clear. We can always collapse the layers for the performance sake later
+on.
+
+If we feel the certain path of code is badly suboptimal, may be interesting
+to profile the code based on the typical usage pattern and see where we do
+need to do the optimization, and where we do not.
+
+Just my 0.002 euros.
+
+/d
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20070927/e2a2cb7b/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20070927/e2a2cb7b/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000082.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+	<LI>Next message: <A HREF="000086.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#85">[ date ]</a>
+              <a href="thread.html#85">[ thread ]</a>
+              <a href="subject.html#85">[ subject ]</a>
+              <a href="author.html#85">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

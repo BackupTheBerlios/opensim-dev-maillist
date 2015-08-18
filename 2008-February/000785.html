@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] DB - NHibernate tests (part 1)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20DB%20-%20NHibernate%20tests%20%28part%201%29&In-Reply-To=%3Cc5851bcf0802070140y4b6c830fpccb348849a5536ce%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000784.html">
+   <LINK REL="Next"  HREF="000786.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] DB - NHibernate tests (part 1)</H1>
+    <B>Impalah</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20DB%20-%20NHibernate%20tests%20%28part%201%29&In-Reply-To=%3Cc5851bcf0802070140y4b6c830fpccb348849a5536ce%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] DB - NHibernate tests (part 1)">impalah at gmail.com
+       </A><BR>
+    <I>Thu Feb  7 10:40:27 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000784.html">[Opensim-dev] DB - NHibernate tests (part 1)
+</A></li>
+        <LI>Next message: <A HREF="000786.html">[Opensim-dev] DB - NHibernate tests (part 1)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#785">[ date ]</a>
+              <a href="thread.html#785">[ thread ]</a>
+              <a href="subject.html#785">[ subject ]</a>
+              <a href="author.html#785">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sorry I made a mistake in the sql file.
+
+The good one is copied below.
+
+I'm working now on the &quot;persistence&quot; layer, creating the basic utilities (
+i.e. factories) and testing selects, updates and deletes.
+
+I hope in 2 or 3 days to have something &quot;insertable&quot; into the actual
+opensim.
+
+
+
+CREATE DATABASE `opensimtest` /*!40100 DEFAULT CHARACTER SET latin1 */;
+
+DROP TABLE IF EXISTS `opensimtest`.`osprimitive_type`;
+CREATE TABLE  `opensimtest`.`osprimitive_type` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `name` varchar(45) NOT NULL,
+  `params` varchar(45) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
+
+
+DROP TABLE IF EXISTS `opensimtest`.`ostexture`;
+CREATE TABLE  `opensimtest`.`ostexture` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `uuid` varchar(45) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `path` varchar(45) NOT NULL,
+  `data` blob NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `opensimtest`.`osuser`;
+CREATE TABLE  `opensimtest`.`osuser` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `uuid` varchar(45) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `surname` varchar(45) NOT NULL,
+  `last_position` varchar(45) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+
+
+
+DROP TABLE IF EXISTS `opensimtest`.`osfaces`;
+CREATE TABLE  `opensimtest`.`osfaces` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `face` varchar(45) NOT NULL,
+  `id_texture` int(10) unsigned zerofill NOT NULL default '0000000000',
+  `params` varchar(45) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `FK_ostexture_faces_texture` (`id_texture`),
+  CONSTRAINT `FK_ostexture_faces_texture` FOREIGN KEY (`id_texture`)
+REFERENCES `ostexture` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `opensimtest`.`osprimitive`;
+CREATE TABLE  `opensimtest`.`osprimitive` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `name` varchar(45) default NULL,
+  `description` varchar(45) default NULL,
+  `uuid` varchar(45) NOT NULL,
+  `id_primitive_type` int(10) unsigned NOT NULL,
+  `id_creator` int(10) unsigned NOT NULL,
+  `id_owner` int(10) unsigned NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `FK_osprimitive_type` (`id_primitive_type`),
+  KEY `FK_osprimitive_creator` (`id_creator`),
+  KEY `FK_osprimitive_owner` (`id_owner`),
+  CONSTRAINT `FK_osprimitive_type` FOREIGN KEY (`id_primitive_type`)
+REFERENCES `osprimitive_type` (`id`),
+  CONSTRAINT `FK_osprimitive_creator` FOREIGN KEY (`id_creator`) REFERENCES
+`osuser` (`id`),
+  CONSTRAINT `FK_osprimitive_owner` FOREIGN KEY (`id_owner`) REFERENCES
+`osuser` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+
+
+
+2008/2/7, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt;:
+&gt;<i>
+</I>&gt;<i> On Wed, Feb 06, 2008 at 11:06:14PM +0100, Impalah wrote:
+</I>&gt;<i> &gt; Hi everyone:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I've uploaded a file to my web page with a c# project testing
+</I>&gt;<i> NHibernate:
+</I>&gt;<i> &gt;
+</I>&gt;<i> <A HREF="http://ai-designstudio.net/index.php?option=com_docman&amp;task=doc_details&amp;gid=40&amp;Itemid=88889037&amp;lang=en">http://ai-designstudio.net/index.php?option=com_docman&amp;task=doc_details&amp;gid=40&amp;Itemid=88889037&amp;lang=en</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Please, does not expect a miracle right now, it's just only a massive
+</I>&gt;<i> &gt; insertion test for checking if everything runs ok.
+</I>&gt;<i>
+</I>&gt;<i> Thanks for all of this work.  I just pulled the source and am going to
+</I>&gt;<i> poke it a bunch tomorrow.  More comments as I get up to speed on this.
+</I>&gt;<i>
+</I>&gt;<i>      -Sean
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> Sean Dague                                       Mid-Hudson Valley
+</I>&gt;<i> sean at dague dot net                            Linux Users Group
+</I>&gt;<i> <A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;<i>
+</I>&gt;<i> There is no silver bullet.  Plus, werewolves make better neighbors
+</I>&gt;<i> than zombies, and they tend to keep the vampire population down.
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> -----BEGIN PGP SIGNATURE-----
+</I>&gt;<i> Version: GnuPG v1.4.6 (GNU/Linux)
+</I>&gt;<i>
+</I>&gt;<i> iD8DBQFHqnZgSamXem9TdyYRApuZAJ9dzX9sZn5CYb5GYu4xQkTRI6XWLACfTHxf
+</I>&gt;<i> wditTaO4gROrub+bL0rPI2w=
+</I>&gt;<i> =fqU2
+</I>&gt;<i> -----END PGP SIGNATURE-----
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080207/4e3b1a7a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080207/4e3b1a7a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000784.html">[Opensim-dev] DB - NHibernate tests (part 1)
+</A></li>
+	<LI>Next message: <A HREF="000786.html">[Opensim-dev] DB - NHibernate tests (part 1)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#785">[ date ]</a>
+              <a href="thread.html#785">[ thread ]</a>
+              <a href="subject.html#785">[ subject ]</a>
+              <a href="author.html#785">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

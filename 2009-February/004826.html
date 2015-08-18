@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20a%20cleanup/correction%20of%0A%20the%09region-module%20system&In-Reply-To=%3C498603C4.6060001%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004819.html">
+   <LINK REL="Next"  HREF="004834.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal for a cleanup/correction of the	region-module system</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20a%20cleanup/correction%20of%0A%20the%09region-module%20system&In-Reply-To=%3C498603C4.6060001%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Proposal for a cleanup/correction of the	region-module system">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sun Feb  1 21:19:16 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004819.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+        <LI>Next message: <A HREF="004834.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4826">[ date ]</a>
+              <a href="thread.html#4826">[ thread ]</a>
+              <a href="subject.html#4826">[ subject ]</a>
+              <a href="author.html#4826">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Homer Horwitz wrote:
+&gt;<i> Ok, I'll try to summarize a bit:
+</I>&gt;<i> 
+</I>&gt;<i> Sean had the great idea to use a dialect-independent way of naming our
+</I>&gt;<i> methods: I'll use Init and PostInit :-)
+</I>&gt;<i> 
+</I>&gt;<i> Justin wondered whether we need an Init* method at all or if we just
+</I>&gt;<i> could init on first region-add. The benefit of a separate Init +
+</I>&gt;<i> PostInit method is, that you can do things before any region has been
+</I>&gt;<i> added, but after all the (shared) modules have been initialized. I
+</I>&gt;<i> don't know whether that's necessary, but on the other hand, it doesn't
+</I>&gt;<i> hurt to have that possibility. It doesn't cost anything, after all. I
+</I>&gt;<i> could add some abstract base classes with default implementations, so
+</I>&gt;<i> you don't have to add an empty Init-method if you don't need it, but
+</I>&gt;<i> that's more or less syntactic sugar...
+</I>
+Fair enough - though I think I was messing about more with the need for Init() and Close() at all.  But this was 
+something of a mental experiment - it does make things more readable and reduce the need for conditions if there are 
+such explicit methods.
+
+&gt;<i> 
+</I>&gt;<i> About the configuration: I don't like the idea of getting the config
+</I>&gt;<i> from the scene much, because (at least currently), configuration is
+</I>&gt;<i> owned by the server, not by one of its regions/scenes. While I
+</I>&gt;<i> understand that some modules won't need a configuration, having to add
+</I>&gt;<i> the Nini reference for a fresh region-module doesn't seem too
+</I>&gt;<i> difficult to me (the currently available ones already have that
+</I>&gt;<i> reference, so no change there). Even if we change that and will have
+</I>&gt;<i> region-specific parts of the configuration, the config as a whole will
+</I>&gt;<i> still be in the responsibility of the server, not the region, in my
+</I>&gt;<i> opinion.
+</I>
+Also fair enough from my perspective.
+
+&gt;<i> 
+</I>&gt;<i> We need a possibility to disable modules  (preferably without first
+</I>&gt;<i> loading them) without removing the *.dll; and there were some wishes
+</I>&gt;<i> about the loader, pro and contra Mono.Addins. I think I'll have a look
+</I>&gt;<i> at Mono.Addins (including the IPlugin interface and the
+</I>&gt;<i> disable-by-config); it's the one we use already, and I agree that we
+</I>&gt;<i> should use only one loader, if possible without having to use too many
+</I>&gt;<i> workarounds. If not, ExtensionLoader might win ;-)
+</I>
+I feel that using ExtensionLoader here is effectively the same decision as using it everywhere, since in the long term I 
+really don't think that we want multiple module systems.
+
+&gt;<i> 
+</I>&gt;<i> &quot;what happens to avatars that are in a region that you want to restart
+</I>&gt;<i> then? are they kicked out first? should they stay?&quot;
+</I>&gt;<i> As the region goes down, they can't stay. So, either they will be
+</I>&gt;<i> moved away (TP home, maybe?) or they will be kicked out. Kicking them
+</I>&gt;<i> out might be the easier thing (and consistent with the SL behavior,
+</I>&gt;<i> too); TP home might be difficult if it is the home-region that is
+</I>&gt;<i> restarted.
+</I>&gt;<i> 
+</I>&gt;<i> I plan to do the move in an as compatible way as possible; if
+</I>&gt;<i> everything works as intended, the &quot;old&quot; modules will continue to work
+</I>&gt;<i> for a time. The move will happen in several steps
+</I>&gt;<i> - Implementation of the new module system (while keeping the old one functional)
+</I>&gt;<i> - Marking the old one as deprecated
+</I>&gt;<i> - Moving over all the available core region modules to the new system
+</I>&gt;<i> - Removing the old region module system
+</I>&gt;<i> 
+</I>&gt;<i> Especially the third part will take some time (not because it is hard,
+</I>&gt;<i> I don't think it is, but because we have quite a few modules)...
+</I>&gt;<i> 
+</I>&gt;<i> Thanks for all the contributions :-)
+</I>&gt;<i> 
+</I>&gt;<i> Any last comments?
+</I>
+Go Homer!
+
+&gt;<i> 
+</I>&gt;<i> Cheers,
+</I>&gt;<i>   Homer
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004819.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+	<LI>Next message: <A HREF="004834.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4826">[ date ]</a>
+              <a href="thread.html#4826">[ thread ]</a>
+              <a href="subject.html#4826">[ subject ]</a>
+              <a href="author.html#4826">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Profiler installed on osgrid plazas server and profiler dump now available
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Profiler%20installed%20on%20osgrid%20plazas%20server%20and%0A%20profiler%20dump%20now%20available&In-Reply-To=%3CBLU134-W51E97B2BD60CE9928FFD4ED5ED0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001378.html">
+   <LINK REL="Next"  HREF="001375.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Profiler installed on osgrid plazas server and profiler dump now available</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Profiler%20installed%20on%20osgrid%20plazas%20server%20and%0A%20profiler%20dump%20now%20available&In-Reply-To=%3CBLU134-W51E97B2BD60CE9928FFD4ED5ED0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Profiler installed on osgrid plazas server and profiler dump now available">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Apr  9 18:15:28 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001378.html">[Opensim-dev] Question about Threads Use in OpenSim ...
+</A></li>
+        <LI>Next message: <A HREF="001375.html">[Opensim-dev] Proposed Instant Message / Presence Service Flow
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1373">[ date ]</a>
+              <a href="thread.html#1373">[ thread ]</a>
+              <a href="subject.html#1373">[ subject ]</a>
+              <a href="author.html#1373">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin,
+ 
+overall, I think we might have a problem with our approach of 'dumping' data on the outgoing queues.
+ 
+With 'dumping', I mean, for example, responding to an asset request by creating and placing all the assets packets on the outgoing queue in one operation.
+ 
+If the asset operation is being aborted (for an array of perfectly reasonable reasons, AFAIK it's actually part of the protocol that the viewer can cancel a texture download, if it's no longer 'interesting', or if it wants another level of detail) the packets are still there, kind of orphaned, and definitively wasting bandwith.
+ 
+With 'sweeping' I mean making timer-paced sweeps to look for updates, then 'dump' them directly on the outgoing queues.
+ 
+If a queue becomes throttled, a second sweep will place another update on the queue, even if there's actually already one waiting to get thru. Again, wasting bandwith.
+ 
+I believe we need to move away from 'sweeping' and 'dumping', towards something more asynchronous and handshaking.
+ 
+I was toying with the idea of registering callbacks for acked/nacked packets; that would actually make it possible to choose to remove the packet from the queue or  re-create the packet with new information.
+ 
+Also, A texture transfer could send like 10 initial packets, then wait for ack/nack to send new ones.
+ 
+/Stefan
+
+
+
+&gt;<i> Date: Fri, 22 Feb 2008 22:00:00 +0000&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] Profiler installed on osgrid plazas server and profiler dump now available&gt; &gt; This afternoon (with a bit of haxoring) I installed the mono heap-shot &gt; profiler on the OSGrid plazas server in pursuit of current memory &gt; leaks. heap-shot will take a dump while in operation when it receives a &gt; signal. More details on it can be found here.&gt; &gt; <A HREF="http://www.mono-project.com/HeapShot">http://www.mono-project.com/HeapShot</A>&gt; &gt; Now that it's installed it's very easy to run, if anyone with access to &gt; the plazas wants to take further dumps.&gt; &gt; I started the profile on Wright Plaza with just me on it. &gt; Interestingly, that was enough to cause memory to continuously grow. &gt; This was associated with continuous requests for the same assets (which &gt; do not exist) on the console. This in itself, though bad, should not be &gt; enough to cause the memory leak. I took several dumps, the smallest of &gt; which (along with the log file) can be downloaded from&gt; &gt; <A HREF="http://opensimulator.org/dump/OpenSim-at-595mb-one-avatar-with-scripts-wright.zip">http://opensimulator.org/dump/OpenSim-at-595mb-one-avatar-with-scripts-wright.zip</A>&gt; &gt; On a very preliminary analysis of the dump, it looked like the major &gt; problem is data building up in the outgoing texture packet queue. This &gt; is why I created extra statistical information which prints out the &gt; number of packets in the different queue types for each agent (which can &gt; be seen by typing 'show stats' on the console). Hopefully this should &gt; reveal whether this is really where the issue is (I'm not yet convinced &gt; I'm interpreting the dump information correctly).&gt; &gt; I very probably won't have any time now to work on this until next week &gt; - I thought I would make the data available for general interest and in &gt; case anyone wanted to take a shot at it.&gt; &gt; --&gt; justincc&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080409/34c56349/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080409/34c56349/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001378.html">[Opensim-dev] Question about Threads Use in OpenSim ...
+</A></li>
+	<LI>Next message: <A HREF="001375.html">[Opensim-dev] Proposed Instant Message / Presence Service Flow
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1373">[ date ]</a>
+              <a href="thread.html#1373">[ thread ]</a>
+              <a href="subject.html#1373">[ subject ]</a>
+              <a href="author.html#1373">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

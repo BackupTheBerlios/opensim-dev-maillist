@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SceneGraph data access refactoring
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SceneGraph%20data%20access%20refactoring&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD805C306B29%40orsmsx502.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008501.html">
+   <LINK REL="Next"  HREF="008504.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SceneGraph data access refactoring</H1>
+    <B>Lake, Dan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SceneGraph%20data%20access%20refactoring&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD805C306B29%40orsmsx502.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] SceneGraph data access refactoring">dan.lake at intel.com
+       </A><BR>
+    <I>Fri Mar 19 14:19:16 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008501.html">[Opensim-dev] SceneGraph data access refactoring
+</A></li>
+        <LI>Next message: <A HREF="008504.html">[Opensim-dev] How is region creation going to change? (was [Opensim-commits] [OpenSim Git Master Repository] master branch	updated. r/12464])
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8502">[ date ]</a>
+              <a href="thread.html#8502">[ thread ]</a>
+              <a href="subject.html#8502">[ subject ]</a>
+              <a href="author.html#8502">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Based on feedback, I am putting in an updated patch this morning on the scene presence access refactoring.
+
+1. Scene.GetScenePresence() will stay with the caveat that the caller must check for null. It's my understanding that this is the pattern preferred by core. There is a variant for UUID, localID and first/last name. 
+
+2. TryGetAvatar() will also remain on SceneManager, SceneBase, Scene and SceneGraph but has been renamed TryGetScenePresence(UUID) since that is what it does and returns a boolean. The same variants exist as for GetScenePresence. (Note: If this is non-prefered then it can be removed unless there is a technical reason that it must stay. The TryGet pattern is used in places for other data such as appearance also.)
+
+3. GetAvatars() and GetScenePresences() have been removed from Scene. To iterate over presences, pass a delegate to Scene.ForEachScenePresence().
+
+Dan lake
+Intel Labs
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>
+
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Lake, Dan
+Sent: Thursday, March 18, 2010 4:38 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: [Opensim-dev] SceneGraph data access refactoring
+
+I am committing a set of patches this week which make data access and locking of presences within the scene graph more consistent. There are currently many ways to get presence data from the scene graph and/or iterate over it. To name a few, there are GetScenePresence, TryGetAvatar, GetScenePresences and ForEachScenePresence.&#160; Unfortunately, some of these have relied on the callers locking the list or checking for null references which was missing in many places.
+
+The patches move all locking into SceneGraph, eliminate GetScenePresence in favor of TryGetAvatar, and consolidates the two different presence iteration patterns. Instead of calling GetScenePresences() and iterating over the result, modules and other code should call ForEachScenePresence(Action&lt;ScenePresence&gt;) and let SceneGraph do the parallel work. Eventually this will also mean that the list does not need to be copied or locked in order to iterate since it changes infrequently but is iterated my many callers simultaneously.
+
+The goal is to move SceneGraph toward a self-supporting container of entities with properties and a small lightweight interface for adding, removing, and performing actions on the container through the use of properties/components, filters, and delegates. Supporting or allowing a module to grab a reference to the internal array of presences and lock it so that no other thread may add/remove/iterate is seriously limiting scalability and has introduced reliability issues and races between the scene and some modules.
+
+Dan lake
+Intel Labs
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008501.html">[Opensim-dev] SceneGraph data access refactoring
+</A></li>
+	<LI>Next message: <A HREF="008504.html">[Opensim-dev] How is region creation going to change? (was [Opensim-commits] [OpenSim Git Master Repository] master branch	updated. r/12464])
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8502">[ date ]</a>
+              <a href="thread.html#8502">[ thread ]</a>
+              <a href="subject.html#8502">[ subject ]</a>
+              <a href="author.html#8502">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

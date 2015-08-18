@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal for using OpenID in OpenSim - Detailed	Explanation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20using%20OpenID%20in%20OpenSim%20-%20Detailed%0A%09Explanation&In-Reply-To=%3Cb046ff2a0803280227i1c7e5b87v62a8e5096b0fe2ce%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001257.html">
+   <LINK REL="Next"  HREF="001272.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal for using OpenID in OpenSim - Detailed	Explanation</H1>
+    <B>liu xiaolu</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20using%20OpenID%20in%20OpenSim%20-%20Detailed%0A%09Explanation&In-Reply-To=%3Cb046ff2a0803280227i1c7e5b87v62a8e5096b0fe2ce%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Proposal for using OpenID in OpenSim - Detailed	Explanation">lulurun at gmail.com
+       </A><BR>
+    <I>Fri Mar 28 10:27:39 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001257.html">[Opensim-dev] Proposal for using OpenID in OpenSim
+</A></li>
+        <LI>Next message: <A HREF="001272.html">[Opensim-dev] OpenSim Needs an Official Forum for its software users
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1264">[ date ]</a>
+              <a href="thread.html#1264">[ thread ]</a>
+              <a href="subject.html#1264">[ subject ]</a>
+              <a href="author.html#1264">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sorry for the unclear PDF confused you.
+Here, I want to explan my idea in detail.
+
+First, I did not say any a word about to make user server to support
+OpenID login only, I am sure I think OpenID should remain an option, just
+like today a lot of websites already have been doing.
+And, Thanks very much to Ryan McDougall's opinion about the asset security
+problem,
+&gt;<i> Anyone who can read your data can copy or modify it
+</I>I am agree with you.
+AssetDataPortability's main purpose is to enable user bringing their
+&quot;appearance&quot; across different VWs. It dose not mean they can freely
+add/modify/take things(prims, assets) on your region without your
+permission.
+
+I wrote a more detailed PDF file,
+<A HREF="http://lulurun.sakura.ne.jp/Data%20Portability%20in%20VirtualWorld.pdf">http://lulurun.sakura.ne.jp/Data%20Portability%20in%20VirtualWorld.pdf</A>
+including some comments, wish this can give you a better image.
+
+The purpose of my idea is to do 3 things:
+1. Enable Avatar portability
+2. Enable Asset Data portability
+3. Facilitate a future &quot;metaverse&quot; of many small or large interoperable
+Virtual World systems across the Internet.
+
+Avatar portability means that one person can use one credential
+(name/password key) across all interoperable VWs.
+
+Asset data portability means that that Avatar retains the same assets
+(clothing, hair, animations) across each VW he can log into.
+
+And to do the above, means to fundamentally alter the current state of
+affairs, where each VW is a walled garden.
+
+1. The problem with Avatar portability is obvious: if you register with
+VW X, you have to reregister with VW Y in order to enter Y.
+
+OpenID provides a solution to this problem by delegating authentication
+to a trusted 3rd party, ie the OpenID server.
+
+To implement OpenID to solve 1., we offer the user an alternate method
+of authentication by providing a dialog box where the user can input his
+preregistered OpenID (in addition to the old name/pass method).
+
+Using HTTP, we redirect viewer's HTML renderer to the OpenID escrow,
+they do old-fashioned challenge-response, and when the escrow is
+satisfied, it returns 200, OK to the User server.
+
+2. The problem with Avatar Asset portability is also obvious: since we
+have no centralized means of specifying how to get assets, even well
+intended region servers cannot get access to your Avatar's assets.
+
+To enable Avatar Asset portability, we suggest that assets be stored in
+one URL accessible server, that is attached to your Avatar's OpenID as a
+set of attributes, which various VWs can access when you authenticate
+with them.
+
+The immediate problem is that currently, there is bad data portability
+among VWs, so for the time being, we will either assume:
+ a. Assets are stored in a portable format which all VWs can read
+ b. All VWs in question are OpenSimulator
+
+This limitation naturally leads us to a discussion of:
+
+3. How can we make this scheme work outside of OpenSim? What will a
+&quot;metaverse&quot; of VWs look like under such a scheme?
+
+There will be a new VW independent &quot;User server&quot; implemented as a thin
+web service, and pointing to the grid it serves.
+
+ 1. The client viewer directs users to their User server, which is
+rendered as an HTML page.
+
+ 2. The user server authenticates using OpenID using the preferred
+OpenID server.
+
+ 3. The OpenID server returns the 200,OK, as well as a list of
+attributed, specifically the URL for the Avatar's Asset server.
+
+ 4. The User server then returns a CircuitCode, or as its know in SL
+parlance, a capability, to the viewer and region/grid server.
+
+In order to manage this, it obviously takes a lot of modifications to
+the current infrastructure, but the most serious issues are the
+following:
+
+* OpenID 2.0 only supports fixed attributes, and sreg.AssetServerUrl is
+not one of them. We can:
+ - run our own VW OpenID server that hijacks an existing attribute
+ - modify an existing OpenID server to add our pet attribute
+ - modify an existing OpenID server to add custom attributes
+
+* How do we encourage other VWs to join our system?
+* How do we handle non-OS VW data formats? Common data formats:
+ - dataportability.org
+ - collada.org
+
+I think a lot of people are having the same sort of ideas as I am, and
+we are thinking in a common direction, but what we need to do now is
+move from head-nodding into some sort of detail, and then hopefully into
+prototypes for testing.
+
+I wrote a more detailed PDF file,
+<A HREF="http://lulurun.sakura.ne.jp/Data%20Portability%20in%20VirtualWorld.pdf">http://lulurun.sakura.ne.jp/Data%20Portability%20in%20VirtualWorld.pdf</A>
+including some comments, wish this can give you a better image.
+
+Can we have some discussion on this matter, so we can move forward into
+an implementation?
+
+Look forward to hearing your concerns and opinions.
+
+Cheers,
+lulurun
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080328/5317f892/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080328/5317f892/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001257.html">[Opensim-dev] Proposal for using OpenID in OpenSim
+</A></li>
+	<LI>Next message: <A HREF="001272.html">[Opensim-dev] OpenSim Needs an Official Forum for its software users
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1264">[ date ]</a>
+              <a href="thread.html#1264">[ thread ]</a>
+              <a href="subject.html#1264">[ subject ]</a>
+              <a href="author.html#1264">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

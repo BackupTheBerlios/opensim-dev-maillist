@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Towards 0.5, what's left?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Towards%200.5%2C%20what%27s%20left%3F&In-Reply-To=%3CBLU134-W5AB85A8C0EB5EE86D2AC4D55D0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000541.html">
+   <LINK REL="Next"  HREF="000604.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Towards 0.5, what's left?</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Towards%200.5%2C%20what%27s%20left%3F&In-Reply-To=%3CBLU134-W5AB85A8C0EB5EE86D2AC4D55D0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Towards 0.5, what's left?">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Dec 20 12:57:20 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000541.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+        <LI>Next message: <A HREF="000604.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#605">[ date ]</a>
+              <a href="thread.html#605">[ thread ]</a>
+              <a href="subject.html#605">[ subject ]</a>
+              <a href="author.html#605">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Impalah,
+ 
+I know too little about your project to be able to make any comment, but you (and others) might be interested to know that the 'public' prim/shape definition offered by LL thru the build gui and LSL llGetPrimitiveParams() are very different from the 'internal' prim/shape definition that is communicated thru the packets.
+ 
+Simply put, LL converts the values to and from LSL, and then back again when they show them to the user.
+ 
+I have done quite a lot of work with this - you need to convert almost all parameters, and not just in scale, but in type as well. (for example, there IS no BOX or CYLINDER, those types are just combinations of other parameters)
+ 
+Actually, OpenSim can probably produce shapes that is not possible to create thru the GUI or SetParams, just because we use this 'deeper' shape definitions based on 'profile and extrusion'.
+ 
+/Stefan
+
+
+Date: Thu, 13 Dec 2007 20:06:08 +0100From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: Re: [Opensim-dev] Towards 0.5, what's left?Hi everyone,I don't know OS enough &quot;internally&quot; to tell you how to do it but , from the point of view of a &quot;Utility developer&quot; I think the 3rd point of Sean's list is the most interesting. Yeah, maybe is a egoist point of view but just ask you if you want a really Open (and not only open source) server. Actually I am developing a xml format for my Henshin project (CAD/3D to SL). It's not perfect, and maybe it is much &quot;Second Life dependant&quot; but maybe could serve you as a start point. I have developed a DOM .NET object to have easy access to the data I want. Ah, and remember, OS can use it's own xml format, the translation to Collada is made with a single XSLT. The only thing we need is to have the information accesible (for example, string paths for textures, xml attributes or elements for modifiers... please, don't use byte arrays and similars...). Here is the first version of the DTD I am using... Forget the layer information, it's only for Autocad compatibility and add a LINK list with every object.&lt;?xml encoding=&quot;UTF-8&quot;?&gt;&lt;!ELEMENT slxml (primdef, layers)&gt;    &lt;!ELEMENT primdef (primitive+)&gt;        &lt;!ELEMENT primitive (dimensions+, modifiers*)&gt;        &lt;!ATTLIST primitive        name ID #REQUIRED        type (BOX|CYLINDER|PRISM|SPHERE|TORUS|TUBE|RING|SCULPT) #REQUIRED         &gt;        &lt;!ELEMENT dimensions (size,rotation)&gt;            &lt;!ELEMENT size (#PCDATA)&gt;            &lt;!ELEMENT rotation (#PCDATA)&gt;            &lt;!ATTLIST rotation            spec (VECTOR|QUATERNION) #REQUIRED             &gt;        &lt;!ELEMENT modifiers (modifier*)&gt;            &lt;!ELEMENT modifier EMPTY&gt;            &lt;!ATTLIST modifier            name (CUT|HOLLOW|TWIST|TAPER|TOPSHEAR|DIMPLE|HOLESIZE|PROFILECUT|REVOLUTIONS|RADIUSOFFSET|SKEW|SCULPTEXTURE|SCULPTSHAPE|OBJECTNAME) #REQUIRED             value CDATA #REQUIRED            &gt;    &lt;!ELEMENT layers (layer+)&gt;        &lt;!ELEMENT layer (textures*,objects*)&gt;        &lt;!ATTLIST layer        name ID #REQUIRED        visible (YES|NO) #REQUIRED        &gt;            &lt;!ELEMENT textures (texture+)&gt;                &lt;!ELEMENT texture EMPTY&gt;                &lt;!ATTLIST texture                side (ALL|0|1|2|3|4|5|6) #REQUIRED                 key CDATA #REQUIRED                name CDATA #REQUIRED                transparency CDATA #IMPLIED                fullbright (YES|NO) #IMPLIED                mapping (DEFAULT|PLANAR) #IMPLIED                 shininess (NONE|LOW|MEDIUM|HIGH) #IMPLIED                bumpiness (NONE|BRIGHTNESS|DARKNESS|WOODGRAN|BARK|BRICKS|CHECKER) #IMPLIED                rotation CDATA #IMPLIED                repeats CDATA #IMPLIED                 offset CDATA #IMPLIED                &gt;            &lt;!ELEMENT objects (object+)&gt;                &lt;!ELEMENT object EMPTY&gt;                &lt;!ATTLIST object                name ID #REQUIRED                 type IDREF #REQUIRED                position CDATA #REQUIRED                size CDATA #REQUIRED                rotation_vector CDATA #IMPLIED                rotation_quaternion CDATA #IMPLIED                 &gt;
+2007/12/13, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt;:
+On Thu, Dec 13, 2007 at 03:43:04PM +0000, Justin Clark-Casey wrote:&gt; So to take up the webpage analogy, the serialization you're talking&gt; about is just the pure 'html'?  The various bits of binary data which &gt; make up the page/prim (e.g. pngs and gifs for webpages, textures,&gt; scripts and sounds for second life), are represented by uris/asset ids&gt; in the exported xml.&gt;&gt; Just as in a 'full' webpage format, a full sl export would also export &gt; those resources in a separate 'package'/'region'/'directory' to which&gt; the asset ids could resolve.&gt;&gt; Was actual texture data exported in byte[] format before the libsl &gt; change?  I apologise for my ignorance on this point.Well, two issues.  First off, yes the Texture field is coming out as abyte[].  But that is just the texturing description.  The assetrepresenting actually used textures is in asset land, and isn't exported.My recent thoughts on the save/load model is the following.1.  It should be a seperate program, OpenSimDump.exe (or something), so    that you can run it while OpenSim is running, or when OpenSim isn't     running, and have no fear that OpenSim might alter the data in some    way while it is coming up.2.  It should read OpenSim.ini for the data sources for assets and    primstorage.  This would let you use 2 different OpenSim.ini files    to dump from sqlite and move everything to mysql (for instance).3.  It should create what it does in an on disk directory, that would    look something like:    dump/         prims.xml        assets.xml        UUID-UUID-UUID.jp2        UUID-UUID-UUID.xyz    Basically, appropriate metadata would end up in xml files.  When    dealing with binary data we translate back to appropriate binary     files named by UUID.4.  It should support a mode that dumps ALL assets, or one that dumps    only assets referenced by prims.For right now, there will be no guaruntee of compatibility betweenOpenSim revisions.  I think it will take a couple of iterations beforewe get an at rest definition that makes sense.  I really doubt colladais that right at rest definition, as it seems pretty heavy for what weneed (though supporting a collada import in the future would bedefinitely interesting).I'm going to start hacking on this tomorrow, though it likely won'tfinish prior to me heading away for vacation.  I'll check in stuff daily if not more frequently so other folks can look and help if they areinterested.        -Sean--__________________________________________________________________Sean Dague                                       Mid-Hudson Valley sean at dague dot net                            Linux Users <A HREF="Grouphttp://dague.net">Grouphttp://dague.net</A>                                 <A HREF="http://mhvlug.orgThere">http://mhvlug.orgThere</A> is no silver bullet.  Plus, werewolves make better neighbors than zombies, and they tend to keep the vampire population down.__________________________________________________________________-----BEGIN PGP SIGNATURE-----Version: GnuPG v1.4.6 (GNU/Linux)iD8DBQFHYXtlSamXem9TdyYRAo6eAKCvkydQjGNPNIXipeh58rCempPgSwCgoZxv E3tStYFPqvw1jxVGeHGFn8I==3Xqj-----END PGP SIGNATURE-----_______________________________________________Opensim-dev mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.de</A> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071220/2771365b/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071220/2771365b/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000541.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+	<LI>Next message: <A HREF="000604.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#605">[ date ]</a>
+              <a href="thread.html#605">[ thread ]</a>
+              <a href="subject.html#605">[ subject ]</a>
+              <a href="author.html#605">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

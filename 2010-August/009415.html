@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Global identifiers
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D0126416801%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009414.html">
+   <LINK REL="Next"  HREF="009417.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Global identifiers</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D0126416801%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Global identifiers">john.hurliman at intel.com
+       </A><BR>
+    <I>Mon Aug 30 22:45:08 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009414.html">[Opensim-dev] Global identifiers
+</A></li>
+        <LI>Next message: <A HREF="009417.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9415">[ date ]</a>
+              <a href="thread.html#9415">[ thread ]</a>
+              <a href="subject.html#9415">[ subject ]</a>
+              <a href="author.html#9415">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>My interpretation (please correct me if I'm wrong) is that there is rough consensus on the overall strategy, but an open question of how to encode global identities when cross-grid communication (or out-of-grid archiving) happens. There is probably also a hidden question of how to mark a local account as linked to a foreign identity, which may solve the friending issue. If I am friends with your avatar and we are both on grid B but your avatar actually originated from grid A, that link in the profile is what can tip off the presence service to try a remote presence check (assuming the user is not online in the local grid). My only interest in these low level questions like how the global identifiers and profile links look is what the final decision is so I can implement it in the OpenSim SimianGrid connectors.
+
+John
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> Sent: Monday, August 30, 2010 1:36 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Cc: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">vwrap at ietf.org</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Global identifiers
+</I>&gt;<i> 
+</I>&gt;<i> I have different answers than Melanie.
+</I>&gt;<i> 
+</I>&gt;<i> &gt; An open question with this approach is whether you need to use global
+</I>&gt;<i> identifiers when dealing with cross-grid scenarios, or whether there is
+</I>&gt;<i> always enough context to derive a global identifier. Some examples:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; * A HyperGrid user is teleporting from grid A to grid B. Does grid B
+</I>&gt;<i> have enough information to build the global identifier &quot;gridA/user&quot;?
+</I>&gt;<i> 
+</I>&gt;<i> Yes. It already does that on the spot. We don't need persistent global
+</I>&gt;<i> identifiers for agents.
+</I>&gt;<i> 
+</I>&gt;<i> The issue we are now talking about is if someone in grid B makes
+</I>&gt;<i> friends
+</I>&gt;<i> with this user. In this case, we need to add an entry to grid B's
+</I>&gt;<i> Friends service referring to an external user, and vice-versa. That's
+</I>&gt;<i> when we need global identifier for this user (not its agent).
+</I>&gt;<i> 
+</I>&gt;<i> &gt; * A HyperGrid user rezzes an object into grid B that exists in their
+</I>&gt;<i> inventory on grid A. The object has a creator that is unrecognized to
+</I>&gt;<i> grid B. Should grid B pull the creator profile from grid A (which may
+</I>&gt;<i> actually be storing a local copy of the real creator identity from grid
+</I>&gt;<i> X)? Note that this isn't a question about trust because we're already
+</I>&gt;<i> trusting grid A to provide creator information for the object, it's
+</I>&gt;<i> just about where we pull profile info from.
+</I>&gt;<i> 
+</I>&gt;<i> Yes, it should. And since the code that does that is exactly the same
+</I>&gt;<i> code that prepares inventory items for archiving, this should be no
+</I>&gt;<i> different than archiving itself.
+</I>&gt;<i> 
+</I>&gt;<i> &gt; * An OAR file is loaded and contains an unrecognized identity. Should
+</I>&gt;<i> identities in OAR files be encoded as global identifiers, or a header
+</I>&gt;<i> added to the OAR file to say &quot;all of this content came from grid A&quot;, or
+</I>&gt;<i> the full profiles of all the identities in the OAR embedded right into
+</I>&gt;<i> the archive?
+</I>&gt;<i> 
+</I>&gt;<i> I don't think it can be bulk in the general case, although that could
+</I>&gt;<i> be
+</I>&gt;<i> option in some cases. I'm looking at my inventory right now and it's a
+</I>&gt;<i> rainbow of stuff I got from all sorts of places.
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009414.html">[Opensim-dev] Global identifiers
+</A></li>
+	<LI>Next message: <A HREF="009417.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9415">[ date ]</a>
+              <a href="thread.html#9415">[ thread ]</a>
+              <a href="subject.html#9415">[ subject ]</a>
+              <a href="author.html#9415">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

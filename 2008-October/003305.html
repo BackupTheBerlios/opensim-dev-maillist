@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SDAGUE: Spelunking the bug where avatar appearance reverts across server restarts
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SDAGUE%3A%20Spelunking%20the%20bug%20where%20avatar%0A%20appearance%20reverts%20across%20server%20restarts&In-Reply-To=%3C4908C709.5030107%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003289.html">
+   <LINK REL="Next"  HREF="003290.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SDAGUE: Spelunking the bug where avatar appearance reverts across server restarts</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SDAGUE%3A%20Spelunking%20the%20bug%20where%20avatar%0A%20appearance%20reverts%20across%20server%20restarts&In-Reply-To=%3C4908C709.5030107%40googlemail.com%3E"
+       TITLE="[Opensim-dev] SDAGUE: Spelunking the bug where avatar appearance reverts across server restarts">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed Oct 29 21:26:49 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003289.html">[Opensim-dev] SDAGUE: Spelunking the bug where avatar appearance reverts across server restarts
+</A></li>
+        <LI>Next message: <A HREF="003290.html">[Opensim-dev] we're having trouble connecting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3305">[ date ]</a>
+              <a href="thread.html#3305">[ thread ]</a>
+              <a href="subject.html#3305">[ subject ]</a>
+              <a href="author.html#3305">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I actually started tracking this down myself.  The major cause appeared to be that we weren't keeping a hold of the 
+asset appearance textures (which we are now doing, though in a somewhat crude way that could potentially be optimized), 
+so this may be resolved in r7003.
+
+However, it's certainly not impossible that there are race conditions out there that are causing problems (I didn't 
+investigate this aspect of things too closely).  So further feedback (via Mantis preferably) is welcome.
+
+Pixelcat Schroedinger wrote:
+&gt;<i> sdague, justincc suggested you were the best one to give me suggestions 
+</I>&gt;<i> on this...
+</I>&gt;<i> 
+</I>&gt;<i> So I've been doing some spelunking, the last couple of nights, chasing 
+</I>&gt;<i> the reason why avatar appearance reverts to default across server 
+</I>&gt;<i> restarts.  I haven't nailed it yet but I thought I'd mention what I've 
+</I>&gt;<i> seen so that perhaps someone can shed light on the subject for me.
+</I>&gt;<i> 
+</I>&gt;<i> Through lots of single-stepping and breakpoints, I've convinced myself 
+</I>&gt;<i> that the problem is happening at save rather than load.
+</I>&gt;<i> 
+</I>&gt;<i> I've managed to discover that there is a race condition at 
+</I>&gt;<i> appearance-change time and the window of overlap for the race condition 
+</I>&gt;<i> is just a couple of seconds long.  In particular a wait during update of 
+</I>&gt;<i> the avatar_appearance will cause changes to not be saved.  
+</I>&gt;<i> 
+</I>&gt;<i> In fact just by repeatedly wearing and  unwearing a shirt and varying 
+</I>&gt;<i> the pause time of the breakpoint in update avatar appearance, I was able 
+</I>&gt;<i> to get the client to become confused about state, to have the appearance 
+</I>&gt;<i> values become reverted and to actually lose several of the assets 
+</I>&gt;<i> permanently.  I also managed to get the simulator confused about whether 
+</I>&gt;<i> the avatar agent was logged in or not.
+</I>&gt;<i> 
+</I>&gt;<i> Conversely, I observed no race condition during appearance load time, 
+</I>&gt;<i> which leads me to conclude that the the thread contention on update 
+</I>&gt;<i> appearance is not intentional.
+</I>&gt;<i> 
+</I>&gt;<i> Can someone give me a quickie noob-lesson on the intended threading 
+</I>&gt;<i> model so I can understand better the behavior I'm tracing?
+</I>&gt;<i> 
+</I>&gt;<i> Thanks much,
+</I>&gt;<i> 
+</I>&gt;<i> -- Pixelcat
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003289.html">[Opensim-dev] SDAGUE: Spelunking the bug where avatar appearance reverts across server restarts
+</A></li>
+	<LI>Next message: <A HREF="003290.html">[Opensim-dev] we're having trouble connecting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3305">[ date ]</a>
+              <a href="thread.html#3305">[ thread ]</a>
+              <a href="subject.html#3305">[ subject ]</a>
+              <a href="author.html#3305">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

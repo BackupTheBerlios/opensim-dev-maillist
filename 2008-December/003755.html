@@ -1,0 +1,193 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Lockless Lists?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3CD34F5C5E193B4144AD333BBBB940A528736A3E%40exchange1.lan.konge.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003754.html">
+   <LINK REL="Next"  HREF="003756.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Lockless Lists?</H1>
+    <B>Tedd Hansen</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3CD34F5C5E193B4144AD333BBBB940A528736A3E%40exchange1.lan.konge.net%3E"
+       TITLE="[Opensim-dev] Lockless Lists?">tedd at nimbustech.no
+       </A><BR>
+    <I>Tue Dec  2 23:37:58 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003754.html">[Opensim-dev] Lockless Lists?
+</A></li>
+        <LI>Next message: <A HREF="003756.html">[Opensim-dev] Lockless Lists?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3755">[ date ]</a>
+              <a href="thread.html#3755">[ thread ]</a>
+              <a href="subject.html#3755">[ subject ]</a>
+              <a href="author.html#3755">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I was thinking in the lines of
+perl -pi -e '
+s/Monitor(?&lt;=\.(Enter|Exit))/global::MyCool.ThreadMon/gs;
+s/(?![a-zA-Z0-9])Lock(?&lt;=\s+\()/global::MyCool.ThreadLok/gs;
+' *
+
+(not committing change)
+LockTimes method is of course a bit more sophisticated (and exact). :)
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Hurliman,
+John
+Sent: 2. desember 2008 21:42
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">homer.horwitz at gmail.com</A>
+Subject: Re: [Opensim-dev] Lockless Lists?
+
+LockTime already provides the second feature. The first could be
+implemented by replacing Monitor.Enter() calls with
+Monitor.TryEnter(200) and printing out an error if that returns false.
+Easier to modify the bytecode with a program than replace all of the
+locks in the source code.
+
+My post on LockTime is up now at
+<A HREF="http://software.intel.com/en-us/blogs/2008/12/02/timing-locks-in-c/">http://software.intel.com/en-us/blogs/2008/12/02/timing-locks-in-c/</A>
+
+John
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev- 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Tedd Hansen
+</I>&gt;<i> Sent: Monday, December 01, 2008 9:38 AM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">homer.horwitz at gmail.com</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Lockless Lists?
+</I>&gt;<i> 
+</I>&gt;<i> Hi
+</I>&gt;<i> 
+</I>&gt;<i> You could create your own implementation of lock and mutex commands,
+</I>&gt;<i> and do all solution wide replacement of all their usages.
+</I>&gt;<i> Then use these custom implementations to identify deadlock situations.
+</I>&gt;<i> Using these you could also time how long each lock lasts, and print
+</I>&gt;<i> some debug containing &quot;StackFrame.GetFrame().GetMethod().Name&quot; when
+</I>&gt;<i> lock exceeds a certain time span.
+</I>&gt;<i> Should give a fairly good picture of trouble spots. :)
+</I>&gt;<i> 
+</I>&gt;<i> - Tedd
+</I>&gt;<i> 
+</I>&gt;<i> -----Original Message----- From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Hurliman,
+</I>&gt;<i> John Sent: 26. november 2008 02:19 To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">homer.horwitz at gmail.com</A> Subject: Re: [Opensim-dev] Lockless Lists?
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> -----Original Message----- From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Christopher
+</I>&gt;<i> Yeoh Sent: Tuesday, November 25, 2008 3:26 PM To:
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">homer.horwitz at gmail.com</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> Subject: Re:
+</I>&gt;<i> [Opensim-dev] Lockless Lists?
+</I>&gt;<i> 
+</I>&gt;<i> On Mon, 24 Nov 2008 20:43:09 +0100
+</I>&gt;<i> &quot;Homer Horwitz&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">homerhorwitz at googlemail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> So, I'm not sure if we really should do that move. If at all, I'm
+</I>&gt;&gt;<i> for a very slow move to lock-free versions from a rather stable
+</I>&gt;&gt;<i> software base (which we currently don't have in trunk), so errors
+</I>&gt;&gt;<i> that are introduced during that move are more easily identifiable,
+</I>&gt;&gt;<i> with much testing in-between. Even then, I'm absolutely sure we will
+</I>&gt;&gt;<i> get a lot of Heisenbugs in the process, which will take us weeks to
+</I>find.
+&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Perhaps what is really needed here is some performance benchmarks
+</I>&gt;<i> which highlight existing problems? So for individual changes to
+</I>&gt;<i> lockless versions we better see what improvements we'd get on both
+</I>&gt;<i> small and large SMP machines and whether its worth the increase in
+</I>complexity.
+&gt;<i> 
+</I>&gt;<i> I did some debugging of a deadlock a couple of weeks ago and found it
+</I>&gt;<i> already pretty complicated. Any suggestions on how other people
+</I>approach
+&gt;<i> these problems with OpenSim? I sprinkled lots of console messages
+</I>around
+&gt;<i> as mdb doesn't seem to work for me, but in retrospect it would have
+</I>been
+&gt;<i> really handy to have been able to just turn on a lock debugging flag
+</I>and
+&gt;<i> have debug output when locks are taken and released.
+</I>&gt;<i> 
+</I>&gt;<i> Regards,
+</I>&gt;<i> 
+</I>&gt;<i> Chris
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> One idea I've tossed around is using Mono.Cecil to inject some code
+</I>&gt;<i> for profiling locks. Since
+</I>&gt;<i> 
+</I>&gt;<i> lock (lockObject)
+</I>&gt;<i> {
+</I>&gt;<i>         ...
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> Gets expanded out by the compiler to:
+</I>&gt;<i> 
+</I>&gt;<i> Monitor.Enter(lockObject);
+</I>&gt;<i> try
+</I>&gt;<i> {
+</I>&gt;<i>         ...
+</I>&gt;<i> }
+</I>&gt;<i> finally
+</I>&gt;<i> {
+</I>&gt;<i>         Monitor.Exit(lockObject);
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> It shouldn't be too difficult to follow up any Monitor.Enter() calls
+</I>&gt;<i> by storing current ticks, and do a check in the finally if current
+</I>&gt;<i> ticks - stored ticks &gt; lock_warn_const. Then we could scan any binary
+</I>&gt;<i> for long- held locks.
+</I>&gt;<i> 
+</I>&gt;<i> John _______________________________________________ Opensim-dev
+</I>mailing
+&gt;<i> list <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________ Opensim-dev mailing
+</I>list
+&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003754.html">[Opensim-dev] Lockless Lists?
+</A></li>
+	<LI>Next message: <A HREF="003756.html">[Opensim-dev] Lockless Lists?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3755">[ date ]</a>
+              <a href="thread.html#3755">[ thread ]</a>
+              <a href="subject.html#3755">[ subject ]</a>
+              <a href="author.html#3755">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

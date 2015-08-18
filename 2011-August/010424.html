@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] BulletSim on 64-bit Linux
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20BulletSim%20on%2064-bit%20Linux&In-Reply-To=%3C20110810021250.GA3293%40schumann%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010423.html">
+   <LINK REL="Next"  HREF="010425.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] BulletSim on 64-bit Linux</H1>
+    <B>Robert A. Knop Jr.</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20BulletSim%20on%2064-bit%20Linux&In-Reply-To=%3C20110810021250.GA3293%40schumann%3E"
+       TITLE="[Opensim-dev] BulletSim on 64-bit Linux">rknop at pobox.com
+       </A><BR>
+    <I>Wed Aug 10 04:12:50 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010423.html">[Opensim-dev] Welcoming Nebadon and Snoopy to the core OpenSimulator dev team
+</A></li>
+        <LI>Next message: <A HREF="010425.html">[Opensim-dev] Plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10424">[ date ]</a>
+              <a href="thread.html#10424">[ thread ]</a>
+              <a href="subject.html#10424">[ subject ]</a>
+              <a href="author.html#10424">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I was able to get this to &quot;just work&quot;.
+
+I downloaded bullet-2.78-r2387.tgz.  Inside there, I did
+
+  ./configure
+  make
+  make install
+
+(A slight lie; I am actually anal.  I did
+
+  ./configure --prefix=/usr/local/bullet-2.78
+
+When make install was done I dropped symbolic links in /usr/local/lib to
+stuff in /usr/local/bullet-2.78/lib.  It amounts to the same thing in
+the end.  (I do this sort of thing so that I can keep track of where all
+the crap in /usr/local/lib came from.))
+
+Then, inside opensim-libs/trunk/unmanaged/BulletSim I ran &quot;make&quot;.
+
+That created for me a libBulletSim.so that is 64-bit:
+
+  schumann:[BulletSim]$ file libBulletSim.so 
+  libBulletSim.so: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, not stripped
+
+I copied that to opensim/bin (replacing the libBulletSim.so that is
+already there, and is a 32-bit version).  I configured &quot;physics =
+BulletSim&quot; in OpenSim.ini.  Everything ran and was happy.
+
+(Well, mostly.  The avatar had trouble walking around on the ground.  On
+top of a big prim, it could walk around, but couldn't walk over the
+edge; it treated the edge it should have walked off as if it were a
+wall.  If I switch back to OpenDynamicsEngine, things work as expected.)
+
+I *would* note that my libBulletSim.so is dynamically linked to the
+bullet libraries I have installed in /usr/local/lib.  So, this way of
+creating a libBulletSim.so won't make a shared library that could be
+distributed with OpenSim.  But, it did seem to work without having to do
+anything particularly special.  Presumably, one could create .a
+libraries for bullet that libBulletSim.so would pull into itself.  At
+some point, I will see if I can make that work with a minimum of pain.
+It's probably as simple as editing BULLETLIBS to replace the &quot;-lBullet*&quot;
+with just &quot;Bullet*.a&quot; and -lLinearMath with LinearMath.a.  (I can't
+remember if there is any Make or g++ magic to tell it to prefer static
+rather than shared libraries when both are available other than just
+specifing the static library as a linker object.  I'm sure there is
+something.)
+
+I'm on a 64-bit Linux machine, so it just naturally built everything
+64-bit.  I suppose that one could tell it instead to build 32-bit
+things, but it would probably be much easier to just make those on a
+32-bit Linux machine somewhere.....
+
+-Rob
+
+-- 
+--Rob Knop
+  E-mail:    <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">rknop at pobox.com</A>
+  Home Page: <A HREF="http://www.pobox.com/~rknop/">http://www.pobox.com/~rknop/</A>
+  Blog:      <A HREF="http://scientopia.org/blogs/galacticinteractions/">http://scientopia.org/blogs/galacticinteractions/</A>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 190 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110809/0c03f8f6/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110809/0c03f8f6/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010423.html">[Opensim-dev] Welcoming Nebadon and Snoopy to the core OpenSimulator dev team
+</A></li>
+	<LI>Next message: <A HREF="010425.html">[Opensim-dev] Plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10424">[ date ]</a>
+              <a href="thread.html#10424">[ thread ]</a>
+              <a href="subject.html#10424">[ subject ]</a>
+              <a href="author.html#10424">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

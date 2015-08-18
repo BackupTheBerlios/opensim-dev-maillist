@@ -1,0 +1,364 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-commits] r6426 - in trunk/OpenSim:	ApplicationPlugins/Rest/Inventory ApplicationPlugins/Rest/Inventory/tests	Region/ClientStack/LindenUDP Region/Environment/Scenes
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r6426%20-%20in%0A%20trunk/OpenSim%3A%09ApplicationPlugins/Rest/Inventory%0A%20ApplicationPlugins/Rest/Inventory/tests%09Region/ClientStack/LindenUDP%0A%20Region/Environment/Scenes&In-Reply-To=%3C48D78825.9050308%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003116.html">
+   <LINK REL="Next"  HREF="003119.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-commits] r6426 - in trunk/OpenSim:	ApplicationPlugins/Rest/Inventory ApplicationPlugins/Rest/Inventory/tests	Region/ClientStack/LindenUDP Region/Environment/Scenes</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r6426%20-%20in%0A%20trunk/OpenSim%3A%09ApplicationPlugins/Rest/Inventory%0A%20ApplicationPlugins/Rest/Inventory/tests%09Region/ClientStack/LindenUDP%0A%20Region/Environment/Scenes&In-Reply-To=%3C48D78825.9050308%40t-data.com%3E"
+       TITLE="[Opensim-dev] [Opensim-commits] r6426 - in trunk/OpenSim:	ApplicationPlugins/Rest/Inventory ApplicationPlugins/Rest/Inventory/tests	Region/ClientStack/LindenUDP Region/Environment/Scenes">melanie at t-data.com
+       </A><BR>
+    <I>Mon Sep 22 13:57:25 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003116.html">[Opensim-dev] [Opensim-commits] r6426 - in trunk/OpenSim:	ApplicationPlugins/Rest/Inventory ApplicationPlugins/Rest/Inventory/tests	Region/ClientStack/LindenUDP Region/Environment/Scenes
+</A></li>
+        <LI>Next message: <A HREF="003119.html">[Opensim-dev] OpenSim.Region.Environment.dll
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3117">[ date ]</a>
+              <a href="thread.html#3117">[ thread ]</a>
+              <a href="subject.html#3117">[ subject ]</a>
+              <a href="author.html#3117">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi DrSco,
+
+the concept of having that check in the perms module is good. However, 
+it needs it's own method, since the permission to edit inventory is 
+independent from permission to edit the object.
+
+There are a number of conditions that would cause an object to be 
+editable, yet the inventory to be uneditable, and unfortunately, they 
+are enforced by the viewer.
+
+So, we need to match the viewer policies to avoid unexpected results. I 
+will update it in a bit.
+
+So, I'll just add a CanEditObjectInventory method in a bit.
+
+Melanie
+
+
+Dr Scofield wrote:
+&gt;<i> justin,
+</I>&gt;<i> 
+</I>&gt;<i> could you check the Scene.Inventory patch that i just applied? the
+</I>&gt;<i> problem we encountered and which this patch fixes is that while it was
+</I>&gt;<i> possible for avatars to edit an object (with the appropriate permissions
+</I>&gt;<i> enabled), like change the texture, etc, they could not add object to the
+</I>&gt;<i> inventory of that object which was a bit confusing and counterintuitive.
+</I>&gt;<i> 
+</I>&gt;<i>     cheers,
+</I>&gt;<i>     dr scofield
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at opensimulator.org</A> wrote:
+</I>&gt;&gt;<i> Author: drscofield
+</I>&gt;&gt;<i> Date: 2008-09-22 04:20:09 -0700 (Mon, 22 Sep 2008)
+</I>&gt;&gt;<i> New Revision: 6426
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified:
+</I>&gt;&gt;<i>    trunk/OpenSim/ApplicationPlugins/Rest/Inventory/Rest.cs
+</I>&gt;&gt;<i>    trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestAppearanceServices.cs
+</I>&gt;&gt;<i>    trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestAssetServices.cs
+</I>&gt;&gt;<i>    trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestInventoryServices.cs
+</I>&gt;&gt;<i>    trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestTestServices.cs
+</I>&gt;&gt;<i>    trunk/OpenSim/ApplicationPlugins/Rest/Inventory/tests/Remote.cs
+</I>&gt;&gt;<i>    trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs
+</I>&gt;&gt;<i>    trunk/OpenSim/Region/Environment/Scenes/Scene.Inventory.cs
+</I>&gt;&gt;<i> Log:
+</I>&gt;&gt;<i> cleanups in inventory REST code. also, disables digest authentications
+</I>&gt;&gt;<i> for inventory REST calls for the time being, as firefox, curl, and
+</I>&gt;&gt;<i> also python's urllib2 cannot authenticate using digest auth.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> fix permission checking for prim inventory to be the same as for
+</I>&gt;&gt;<i> normal edit ops.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified: trunk/OpenSim/ApplicationPlugins/Rest/Inventory/Rest.cs
+</I>&gt;&gt;<i> ===================================================================
+</I>&gt;&gt;<i> --- trunk/OpenSim/ApplicationPlugins/Rest/Inventory/Rest.cs	2008-09-22 11:18:49 UTC (rev 6425)
+</I>&gt;&gt;<i> +++ trunk/OpenSim/ApplicationPlugins/Rest/Inventory/Rest.cs	2008-09-22 11:20:09 UTC (rev 6426)
+</I>&gt;&gt;<i> @@ -392,7 +392,7 @@
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>          /// Supported Digest algorithms
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> -        public const string Digest_MD5                    = &quot;MD5&quot;; // assumedd efault if omitted
+</I>&gt;&gt;<i> +        public const string Digest_MD5                    = &quot;MD5&quot;; // assumed default if omitted
+</I>&gt;&gt;<i>          public const string Digest_MD5Sess                = &quot;MD5-sess&quot;;
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>          public const string Qop_Auth                      = &quot;auth&quot;;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified: trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestAppearanceServices.cs
+</I>&gt;&gt;<i> ===================================================================
+</I>&gt;&gt;<i> --- trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestAppearanceServices.cs	2008-09-22 11:18:49 UTC (rev 6425)
+</I>&gt;&gt;<i> +++ trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestAppearanceServices.cs	2008-09-22 11:20:09 UTC (rev 6426)
+</I>&gt;&gt;<i> @@ -45,7 +45,7 @@
+</I>&gt;&gt;<i>      public class RestAppearanceServices : IRest
+</I>&gt;&gt;<i>      {
+</I>&gt;&gt;<i>          private static readonly int PARM_USERID = 0;
+</I>&gt;&gt;<i> -        //private static readonly int PARM_PATH   = 1;
+</I>&gt;&gt;<i> +        // private static readonly int PARM_PATH   = 1;
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>          private bool       enabled = false;
+</I>&gt;&gt;<i>          private string     qPrefix = &quot;appearance&quot;;
+</I>&gt;&gt;<i> @@ -166,6 +166,9 @@
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              try
+</I>&gt;&gt;<i>              {
+</I>&gt;&gt;<i> +                // digest scheme seems borked: disable it for the time
+</I>&gt;&gt;<i> +                // being
+</I>&gt;&gt;<i> +                rdata.scheme = Rest.AS_BASIC;
+</I>&gt;&gt;<i>                  if (!rdata.IsAuthenticated)
+</I>&gt;&gt;<i>                  {
+</I>&gt;&gt;<i>                      rdata.Fail(Rest.HttpStatusCodeNotAuthorized,String.Format(&quot;user \&quot;{0}\&quot; could not be authenticated&quot;, rdata.userName));
+</I>&gt;&gt;<i> @@ -335,7 +338,8 @@
+</I>&gt;&gt;<i>              AvatarAppearance old = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
+</I>&gt;&gt;<i>              rdata.userAppearance = new AvatarAppearance();
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> -            rdata.userAppearance.Owner = old.Owner;
+</I>&gt;&gt;<i> +            rdata.userAppearance.Owner  = old.Owner;
+</I>&gt;&gt;<i> +            rdata.userAppearance.Serial = old.Serial;
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              if (GetUserAppearance(rdata))
+</I>&gt;&gt;<i>              {
+</I>&gt;&gt;<i> @@ -343,6 +347,11 @@
+</I>&gt;&gt;<i>                  created  = !modified;
+</I>&gt;&gt;<i>                  Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+</I>&gt;&gt;<i>              }
+</I>&gt;&gt;<i> +            else
+</I>&gt;&gt;<i> +            {
+</I>&gt;&gt;<i> +                created  = true;
+</I>&gt;&gt;<i> +                Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+</I>&gt;&gt;<i> +            }
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              if (created)
+</I>&gt;&gt;<i>              {
+</I>&gt;&gt;<i> @@ -383,11 +392,13 @@
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              rdata.userAppearance = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> -            if (GetUserAppearance(rdata))
+</I>&gt;&gt;<i> +            // If the user exists then this is considered a modification regardless
+</I>&gt;&gt;<i> +            // of what may, or may not be, specified in the payload.
+</I>&gt;&gt;<i> +
+</I>&gt;&gt;<i> +            if (rdata.userAppearance != null)
+</I>&gt;&gt;<i>              {
+</I>&gt;&gt;<i> -                modified = rdata.userAppearance != null;
+</I>&gt;&gt;<i> -                created  = !modified;
+</I>&gt;&gt;<i> -                Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+</I>&gt;&gt;<i> +				modified = true;
+</I>&gt;&gt;<i> +				Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+</I>&gt;&gt;<i>              }
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              if (created)
+</I>&gt;&gt;<i> @@ -465,6 +476,16 @@
+</I>&gt;&gt;<i>                                      rdata.userAppearance.AvatarHeight = (float) Convert.ToDouble(xml.Value);
+</I>&gt;&gt;<i>                                      indata = true;
+</I>&gt;&gt;<i>                                  }
+</I>&gt;&gt;<i> +                                if (xml.MoveToAttribute(&quot;Owner&quot;))
+</I>&gt;&gt;<i> +                                {
+</I>&gt;&gt;<i> +                                    rdata.userAppearance.Owner = xml.Value;
+</I>&gt;&gt;<i> +                                    indata = true;
+</I>&gt;&gt;<i> +                                }
+</I>&gt;&gt;<i> +                                if (xml.MoveToAttribute(&quot;Serial&quot;))
+</I>&gt;&gt;<i> +                                {
+</I>&gt;&gt;<i> +                                    rdata.userAppearance.Serial = Convert.ToInt32(xml.Value);
+</I>&gt;&gt;<i> +                                    indata = true;
+</I>&gt;&gt;<i> +                                }
+</I>&gt;&gt;<i>                              break;
+</I>&gt;&gt;<i>                              case &quot;Body&quot; :
+</I>&gt;&gt;<i>                                  if (xml.MoveToAttribute(&quot;Item&quot;))
+</I>&gt;&gt;<i> @@ -687,6 +708,8 @@
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              rdata.writer.WriteStartElement(&quot;Appearance&quot;);
+</I>&gt;&gt;<i>              rdata.writer.WriteAttributeString(&quot;Height&quot;, rdata.userAppearance.AvatarHeight.ToString());
+</I>&gt;&gt;<i> +            rdata.writer.WriteAttributeString(&quot;Owner&quot;, rdata.userAppearance.Owner.ToString());
+</I>&gt;&gt;<i> +            rdata.writer.WriteAttributeString(&quot;Serial&quot;, rdata.userAppearance.Serial.ToString());
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              rdata.writer.WriteStartElement(&quot;Body&quot;);
+</I>&gt;&gt;<i>              rdata.writer.WriteAttributeString(&quot;Item&quot;,rdata.userAppearance.BodyItem.ToString());
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified: trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestAssetServices.cs
+</I>&gt;&gt;<i> ===================================================================
+</I>&gt;&gt;<i> --- trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestAssetServices.cs	2008-09-22 11:18:49 UTC (rev 6425)
+</I>&gt;&gt;<i> +++ trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestAssetServices.cs	2008-09-22 11:20:09 UTC (rev 6426)
+</I>&gt;&gt;<i> @@ -130,6 +130,9 @@
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              try
+</I>&gt;&gt;<i>              {
+</I>&gt;&gt;<i> +                // digest scheme seems borked: disable it for the time
+</I>&gt;&gt;<i> +                // being
+</I>&gt;&gt;<i> +                rdata.scheme = Rest.AS_BASIC;
+</I>&gt;&gt;<i>                  if (!rdata.IsAuthenticated)
+</I>&gt;&gt;<i>                  {
+</I>&gt;&gt;<i>                      rdata.Fail(Rest.HttpStatusCodeNotAuthorized, String.Format(&quot;user \&quot;{0}\&quot; could not be authenticated&quot;));
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified: trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestInventoryServices.cs
+</I>&gt;&gt;<i> ===================================================================
+</I>&gt;&gt;<i> --- trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestInventoryServices.cs	2008-09-22 11:18:49 UTC (rev 6425)
+</I>&gt;&gt;<i> +++ trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestInventoryServices.cs	2008-09-22 11:20:09 UTC (rev 6426)
+</I>&gt;&gt;<i> @@ -167,6 +167,9 @@
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              try
+</I>&gt;&gt;<i>              {
+</I>&gt;&gt;<i> +                // digest scheme seems borked: disable it for the time
+</I>&gt;&gt;<i> +                // being
+</I>&gt;&gt;<i> +                rdata.scheme = Rest.AS_BASIC;
+</I>&gt;&gt;<i>                  if (!rdata.IsAuthenticated)
+</I>&gt;&gt;<i>                  {
+</I>&gt;&gt;<i>                      rdata.Fail(Rest.HttpStatusCodeNotAuthorized,String.Format(&quot;user \&quot;{0}\&quot; could not be authenticated&quot;, rdata.userName));
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified: trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestTestServices.cs
+</I>&gt;&gt;<i> ===================================================================
+</I>&gt;&gt;<i> --- trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestTestServices.cs	2008-09-22 11:18:49 UTC (rev 6425)
+</I>&gt;&gt;<i> +++ trunk/OpenSim/ApplicationPlugins/Rest/Inventory/RestTestServices.cs	2008-09-22 11:20:09 UTC (rev 6426)
+</I>&gt;&gt;<i> @@ -235,7 +235,7 @@
+</I>&gt;&gt;<i>                                  ci = t.GetConstructor(parms);
+</I>&gt;&gt;<i>                                  ht = ci.Invoke(args);
+</I>&gt;&gt;<i>                                  tests.Add((ITest)ht);
+</I>&gt;&gt;<i> -                                Rest.Log.WarnFormat(&quot;{0} Test {1} added&quot;, MsgId, t);
+</I>&gt;&gt;<i> +                                Rest.Log.InfoFormat(&quot;{0} Test {1} added&quot;, MsgId, t);
+</I>&gt;&gt;<i>                              }
+</I>&gt;&gt;<i>                          }
+</I>&gt;&gt;<i>                          catch (Exception e)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified: trunk/OpenSim/ApplicationPlugins/Rest/Inventory/tests/Remote.cs
+</I>&gt;&gt;<i> ===================================================================
+</I>&gt;&gt;<i> --- trunk/OpenSim/ApplicationPlugins/Rest/Inventory/tests/Remote.cs	2008-09-22 11:18:49 UTC (rev 6425)
+</I>&gt;&gt;<i> +++ trunk/OpenSim/ApplicationPlugins/Rest/Inventory/tests/Remote.cs	2008-09-22 11:20:09 UTC (rev 6426)
+</I>&gt;&gt;<i> @@ -65,7 +65,7 @@
+</I>&gt;&gt;<i>          public void Initialize()
+</I>&gt;&gt;<i>          {
+</I>&gt;&gt;<i>              enabled = true;
+</I>&gt;&gt;<i> -            Rest.Log.InfoFormat(&quot;{0} Remote services initialize&quot;, MsgId);
+</I>&gt;&gt;<i> +            Rest.Log.InfoFormat(&quot;{0} Remote services initialized&quot;, MsgId);
+</I>&gt;&gt;<i>          }
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>          // Called by the plug-in to halt REST processing. Local processing is
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified: trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs
+</I>&gt;&gt;<i> ===================================================================
+</I>&gt;&gt;<i> --- trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs	2008-09-22 11:18:49 UTC (rev 6425)
+</I>&gt;&gt;<i> +++ trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs	2008-09-22 11:20:09 UTC (rev 6426)
+</I>&gt;&gt;<i> @@ -5200,6 +5200,7 @@
+</I>&gt;&gt;<i>                          }
+</I>&gt;&gt;<i>                          break;
+</I>&gt;&gt;<i>                      case PacketType.UpdateTaskInventory:
+</I>&gt;&gt;<i> +                        m_log.DebugFormat(&quot;[AMW] UpdateTaskInventory request&quot;);
+</I>&gt;&gt;<i>                          UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
+</I>&gt;&gt;<i>                          if (OnUpdateTaskInventory != null)
+</I>&gt;&gt;<i>                          {
+</I>&gt;&gt;<i> @@ -5266,7 +5267,7 @@
+</I>&gt;&gt;<i>                          break;
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>                      case PacketType.RezScript:
+</I>&gt;&gt;<i> -
+</I>&gt;&gt;<i> +						m_log.DebugFormat(&quot;[AMW] RezScript&quot;);
+</I>&gt;&gt;<i>                          //Console.WriteLine(Pack.ToString());
+</I>&gt;&gt;<i>                          RezScriptPacket rezScriptx = (RezScriptPacket)Pack;
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified: trunk/OpenSim/Region/Environment/Scenes/Scene.Inventory.cs
+</I>&gt;&gt;<i> ===================================================================
+</I>&gt;&gt;<i> --- trunk/OpenSim/Region/Environment/Scenes/Scene.Inventory.cs	2008-09-22 11:18:49 UTC (rev 6425)
+</I>&gt;&gt;<i> +++ trunk/OpenSim/Region/Environment/Scenes/Scene.Inventory.cs	2008-09-22 11:20:09 UTC (rev 6426)
+</I>&gt;&gt;<i> @@ -1186,12 +1186,22 @@
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>              if (part != null)
+</I>&gt;&gt;<i>              {
+</I>&gt;&gt;<i> -                if (part.OwnerID != remoteClient.AgentId)
+</I>&gt;&gt;<i> -                    return;
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> -                if ((part.OwnerMask &amp; (uint)PermissionMask.Modify) == 0)
+</I>&gt;&gt;<i> -                    return;
+</I>&gt;&gt;<i> +                // replacing the following two checks with the
+</I>&gt;&gt;<i> +                // ExternalChecks.ExternalChecksCanEditObject(...)
+</I>&gt;&gt;<i> +                // call
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> +                // if (part.OwnerID != remoteClient.AgentId)
+</I>&gt;&gt;<i> +                //     return;
+</I>&gt;&gt;<i> +
+</I>&gt;&gt;<i> +                // if ((part.OwnerMask &amp; (uint)PermissionMask.Modify) == 0)
+</I>&gt;&gt;<i> +                //     return;
+</I>&gt;&gt;<i> +
+</I>&gt;&gt;<i> +                if (!ExternalChecks.ExternalChecksCanEditObject(part.UUID, remoteClient.AgentId))
+</I>&gt;&gt;<i> +				{
+</I>&gt;&gt;<i> +					return;
+</I>&gt;&gt;<i> +				}
+</I>&gt;&gt;<i> +
+</I>&gt;&gt;<i>                  TaskInventoryItem currentItem = part.GetInventoryItem(itemID);
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>                  if (currentItem == null)
+</I>&gt;&gt;<i> @@ -1283,12 +1293,24 @@
+</I>&gt;&gt;<i>                          SceneObjectPart part = GetSceneObjectPart(localID);
+</I>&gt;&gt;<i>                          if (part != null)
+</I>&gt;&gt;<i>                          {
+</I>&gt;&gt;<i> +
+</I>&gt;&gt;<i> +							/*
+</I>&gt;&gt;<i>                              if (part.OwnerID != remoteClient.AgentId)
+</I>&gt;&gt;<i> +                            {
+</I>&gt;&gt;<i>                                  return;
+</I>&gt;&gt;<i> +                            }
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>                              if ((part.OwnerMask &amp; (uint)PermissionMask.Modify) == 0)
+</I>&gt;&gt;<i> +                            {
+</I>&gt;&gt;<i>                                  return;
+</I>&gt;&gt;<i> +                            }
+</I>&gt;&gt;<i> +							*/
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> +							if (!ExternalChecks.ExternalChecksCanEditObject(part.UUID, remoteClient.AgentId))
+</I>&gt;&gt;<i> +							{
+</I>&gt;&gt;<i> +								return;
+</I>&gt;&gt;<i> +							}
+</I>&gt;&gt;<i> +
+</I>&gt;&gt;<i>                              part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
+</I>&gt;&gt;<i>                              // TODO: set this to &quot;true&quot; when scripts in inventory have persistent state to fire on_rez
+</I>&gt;&gt;<i>                              part.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine);
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-commits mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-commits at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-commits">https://lists.berlios.de/mailman/listinfo/opensim-commits</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003116.html">[Opensim-dev] [Opensim-commits] r6426 - in trunk/OpenSim:	ApplicationPlugins/Rest/Inventory ApplicationPlugins/Rest/Inventory/tests	Region/ClientStack/LindenUDP Region/Environment/Scenes
+</A></li>
+	<LI>Next message: <A HREF="003119.html">[Opensim-dev] OpenSim.Region.Environment.dll
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3117">[ date ]</a>
+              <a href="thread.html#3117">[ thread ]</a>
+              <a href="subject.html#3117">[ subject ]</a>
+              <a href="author.html#3117">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

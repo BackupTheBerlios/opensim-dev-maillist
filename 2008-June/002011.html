@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] A software to connect its own region and TP in	from locally...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20software%20to%20connect%20its%20own%20region%20and%20TP%20in%0A%09from%20locally...&In-Reply-To=%3C6b9359640806241408q14762c6cg6d2e19236356ed6b%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002010.html">
+   <LINK REL="Next"  HREF="002054.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] A software to connect its own region and TP in	from locally...</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20software%20to%20connect%20its%20own%20region%20and%20TP%20in%0A%09from%20locally...&In-Reply-To=%3C6b9359640806241408q14762c6cg6d2e19236356ed6b%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] A software to connect its own region and TP in	from locally...">aerowolf at gmail.com
+       </A><BR>
+    <I>Tue Jun 24 23:08:23 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002010.html">[Opensim-dev] A software to connect its own region and TP in	from locally...
+</A></li>
+        <LI>Next message: <A HREF="002054.html">[Opensim-dev] A software to connect its own region and TP in	from locally...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2011">[ date ]</a>
+              <a href="thread.html#2011">[ thread ]</a>
+              <a href="subject.html#2011">[ subject ]</a>
+              <a href="author.html#2011">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>No real problem at all, except the idea that at that point you're
+exposing details of the network-behind-the-NAT to the public internet,
+which may provide information useful in an attack.
+
+-Kyle H
+
+On Tue, Jun 24, 2008 at 1:48 PM, Dalien Talbot &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dalienta at gmail.com</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Fri, Jun 20, 2008 at 8:04 AM, Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt;
+</I>&gt;<i> wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The issue you're seeing is known as the 'NAT bounce' or 'NAT
+</I>&gt;&gt;<i> loopback' issue - your router only translates and/or forwards traffic
+</I>&gt;&gt;<i> crossing the LAN-WAN border, which means that if you access your computer
+</I>&gt;&gt;<i> with the _external_ IP from _within_ the LAN, the traffic isn't 'bounced'
+</I>&gt;&gt;<i> back into the LAN, but is lost.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Normally, you would solve this by simply address the computer with your
+</I>&gt;&gt;<i> _internal_ IP from the inside (typically, you have host file settings or an
+</I>&gt;&gt;<i> internal dns that serves internal ip's within the LAN)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> now, things are getting complicated with the Second Life viewer, as the
+</I>&gt;&gt;<i> viewer demands regions be addressed with _IP_, not host name, so the viewer
+</I>&gt;&gt;<i> never resolves anything, so host magic won't work.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> so, on login and teleports, when the grid tells the viewer where to start,
+</I>&gt;&gt;<i> it would have to serve you your _internal_ IP - but your _external_ ip to
+</I>&gt;&gt;<i> the rest of the world.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Which gets complex.
+</I>&gt;<i>
+</I>&gt;<i> I think the vast majority of the cases (in the case the outbound connections
+</I>&gt;<i> are masked behind the same IP as the one used for the inbound port
+</I>&gt;<i> redirection) could be taken care of by a modification of the grid
+</I>&gt;<i> registration/teleport logic:
+</I>&gt;<i>
+</I>&gt;<i> 1) upon the registration, the region sends its IP &quot;as seen locally&quot;
+</I>&gt;<i>
+</I>&gt;<i> 2) the grid server takes that IP (denote as privateIP), as well as the IP it
+</I>&gt;<i> sees as source (denote it as publicIP) and keeps in the registration
+</I>&gt;<i> database.
+</I>&gt;<i>
+</I>&gt;<i> 3) upon the teleport request, the sending region informs the grid server
+</I>&gt;<i> about the IP of the client. The grid server compares this IP with publicIP -
+</I>&gt;<i> if they are the same, means the client is behind the home router - so the
+</I>&gt;<i> grid server returns the privateIP which the originating region uses to send
+</I>&gt;<i> the user to the target region. If the clientIP and publicIP are different -
+</I>&gt;<i> then the assumption is that the client and the server are on the different
+</I>&gt;<i> sides of the NAT - so the publicIP is used for the teleport.
+</I>&gt;<i>
+</I>&gt;<i> The (1) can be extended to also include N &quot;known public client addresses&quot;
+</I>&gt;<i> into the registration - so the condition for giving out the privateIP within
+</I>&gt;<i> the teleport packet is the equality of the client IP to any of those...
+</I>&gt;<i>
+</I>&gt;<i> any pitfalls in the above quick write up that I've missed ?
+</I>&gt;<i>
+</I>&gt;<i> /d
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002010.html">[Opensim-dev] A software to connect its own region and TP in	from locally...
+</A></li>
+	<LI>Next message: <A HREF="002054.html">[Opensim-dev] A software to connect its own region and TP in	from locally...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2011">[ date ]</a>
+              <a href="thread.html#2011">[ thread ]</a>
+              <a href="subject.html#2011">[ subject ]</a>
+              <a href="author.html#2011">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

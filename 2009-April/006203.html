@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Springs, Torques, joints , friction, questions and Vehicles oh my
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Springs%2C%20Torques%2C%20joints%20%2C%20friction%2C%0A%20questions%20and%20Vehicles%20oh%20my&In-Reply-To=%3C49E722F0.2090608%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006190.html">
+   <LINK REL="Next"  HREF="006200.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Springs, Torques, joints , friction, questions and Vehicles oh my</H1>
+    <B>Michael Cortez</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Springs%2C%20Torques%2C%20joints%20%2C%20friction%2C%0A%20questions%20and%20Vehicles%20oh%20my&In-Reply-To=%3C49E722F0.2090608%40gmail.com%3E"
+       TITLE="[Opensim-dev] Springs, Torques, joints , friction, questions and Vehicles oh my">mcortez at gmail.com
+       </A><BR>
+    <I>Thu Apr 16 14:22:08 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006190.html">[Opensim-dev] Springs, Torques, joints , friction,	questions and  Vehicles oh my
+</A></li>
+        <LI>Next message: <A HREF="006200.html">[Opensim-dev] The essence of &quot;grid&quot;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6203">[ date ]</a>
+              <a href="thread.html#6203">[ thread ]</a>
+              <a href="subject.html#6203">[ subject ]</a>
+              <a href="author.html#6203">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Teravus Ovares wrote:
+&gt;<i> Looking at the LSL Vehicle API, it seems clear that there is at least
+</I>&gt;<i> an angular motor and a linear motor involved.   There may be two
+</I>&gt;<i> angular motors, one for the angular movement and one for the vertical
+</I>&gt;<i> attractor(which may just be a jacobian constraint).  In ODE, angular
+</I>&gt;<i> motors are implemented as springs.    Sometimes this can cause
+</I>&gt;<i> instability and vibration.     The truth is, using ODE's angular motor
+</I>&gt;<i> may or may not be the best solution.   
+</I>I had attempted to implement the vertical attractor, and was only partly 
+successful.
+
+My attempt which is now a little stale can be found here:
+
+<A HREF="http://code.google.com/p/flotsam/downloads/detail?name=vehicle.3.patch">http://code.google.com/p/flotsam/downloads/detail?name=vehicle.3.patch</A>
+
+Some of the things that I found:
+
+* dAMotorEuler is not appropriate.  I could not find a any set of 
+parameters for the aMotor that would even begin to remotely approximate 
+the behavior for a vertical attractor, I had to instead turn to using 
+dAMotorUser.  dAMotorUser requires that at each step, you specify at 
+what angle(s) the joint is at, rather then having the ODE attempt to 
+calculate it automatically.  I also ran into gimbal lock issues with 
+aMotorEuler, since the vertical attractor needs to work with 2 or 3 
+axises with a full 360 deg range of motion.
+
+* The closest approximation I could get was to essentially set the stops 
+at near 0 degs of movement, and then adjust CFM, StopCFM and ERP values 
+to control how much the aMotor would attempt to correct the angles 
+beyond the stops.
+
+* FudgeFactor and Bounce had little to no visible effect during my 
+experiments
+
+* FMax appeared not to affect CFM/ERP behavior, and only seemed to be 
+used when you use Vel
+
+
+The best results I could get adjusting CFM/ERP values had the following 
+results:
+
++ If you manually rotated a physical object out of vertical using the 
+editor and then &quot;let go&quot; -- it would more or less smoothly return to 
+vertical, although sometimes it would move past vertical and then 
+oscillate back and forth, usually taking minutes to come to a rest, 
+sometimes never coming to a rest.
+
++ If I set an object to float (either via buoyancy or the HoverHeight 
+PID) and I &quot;bumped&quot; the object with my avatar to impart rotation, it 
+would nearly always wildly oscillate, usually obtain vertical on one or 
+two axis, and then rarely coming to a rest on the third.  Occasionally 
+it would rotate violently, launching my avatar either 1000's of meters 
+vertically, under ground, or out of the region.
+
+I was tempted to push what I had to the main SVN, but was unhappy with 
+the results so I never got around to it -- then got distracted by Sun, 
+Wind, Groups, etc...
+
+--
+Michael Cortez
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006190.html">[Opensim-dev] Springs, Torques, joints , friction,	questions and  Vehicles oh my
+</A></li>
+	<LI>Next message: <A HREF="006200.html">[Opensim-dev] The essence of &quot;grid&quot;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6203">[ date ]</a>
+              <a href="thread.html#6203">[ thread ]</a>
+              <a href="subject.html#6203">[ subject ]</a>
+              <a href="author.html#6203">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,331 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Feature Request ...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Feature%20Request%20...&In-Reply-To=%3C4FAB7FFE55062A45BECB2489AE4D80B90E6241%40hercules.Gadern.home%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004213.html">
+   <LINK REL="Next"  HREF="004218.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Feature Request ...</H1>
+    <B>Develope</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Feature%20Request%20...&In-Reply-To=%3C4FAB7FFE55062A45BECB2489AE4D80B90E6241%40hercules.Gadern.home%3E"
+       TITLE="[Opensim-dev] Feature Request ...">Develope at Ashuan.de
+       </A><BR>
+    <I>Sun Dec 21 10:42:58 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004213.html">[Opensim-dev] Feature Request ...
+</A></li>
+        <LI>Next message: <A HREF="004218.html">[Opensim-dev] Feature Request ...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4216">[ date ]</a>
+              <a href="thread.html#4216">[ thread ]</a>
+              <a href="subject.html#4216">[ subject ]</a>
+              <a href="author.html#4216">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>@Kyle
+You&#180;re right my &quot;bad hack&quot;.
+But stopping a Service is not equal in killing a process/thread. In memory management there is a different doing that.
+Stopping a Service is the time for the dev to release all resources, closing things ... After stop is complete the system is now going to remove your process in ROT etc...
+But I know in this case we don't use the &quot;little&quot; different. Killing the Process is enough for OpenSim and the System cleans resources.
+
+
+I'm 'healed&quot; from Linux and my interests in mono is low .. means my knowledge in mono is bad :)
+But what's this ?
+<A HREF="http://www.go-mono.com/archive/1.2/">http://www.go-mono.com/archive/1.2/</A>
+
+The &quot;LasdtIndex&quot; Issue is simple call the &quot; System.IO.Path.AltDirectorySeparatorChar&quot; Property to get what's system Folder delimiter.
+
+Okay : That means for me ..... 
+	-Including in Forge a new Project which gets an Service implementation?
+	-Evaluate and push the best Method to interact with them
+
+
+Greetz
+
+Kai
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Kyle Hamilton
+Sent: Sonntag, 21. Dezember 2008 09:52
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Feature Request ...
+
+System.ServiceProcess does not exist on Mono.  And, technically,
+srvany is just as much of a wrapper as what Stefan's suggesting.  It
+just loads the target process into the service process, then sets the
+Service thread to start the entry point of the executable and runs it.
+
+It also handles Stop events, by killing the thread that it started.
+
+I'm not sure what Pause should do, since I've only rarely seen
+services that implement it.
+
+Also, that 'LastIndexOf' example that Stefan suggested won't work on
+any UNIX, since it relies on the backslash being the directory
+separator.  It should check for one, then the other (I suggest
+checking for '/' first, since that's also a reserved character in
+NTFS).
+
+And: you may not be able to use the Main class directory, but you've
+implemented your wrapper.  You can load the assembly from your
+wrapper, then do exactly what you're doing now in your &quot;bad hack&quot;.
+
+-Kyle H
+
+On Sat, Dec 20, 2008 at 11:31 PM, Develope &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Develope at ashuan.de</A>&gt; wrote:
+&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> thank you for answering so fast ...
+</I>&gt;<i>
+</I>&gt;<i> @Kyle Hamilton
+</I>&gt;<i> 1. You can also use srvany.exe from Microsoft to turn any .exe into a
+</I>&gt;<i> service.  <A HREF="http://www.iopus.com/guides/srvany.htm">http://www.iopus.com/guides/srvany.htm</A> has information.
+</I>&gt;<i>
+</I>&gt;<i> ---     If you do that, you are not able to control your service like
+</I>&gt;<i> OnStart(). The Memoryallocation in &quot;real&quot; Services (ServiceBase) is much
+</I>&gt;<i> faster  than them doing under srvany. There are many other drawbacks
+</I>&gt;<i> using srvany.exe (Logging, dependencies, rightsmanagement, installation
+</I>&gt;<i> ...)
+</I>&gt;<i>
+</I>&gt;<i> @ Stefan Andersson
+</I>&gt;<i> 2) To be able to do so, you should implement the services as 'wrappers',
+</I>&gt;<i> separate applications that _use_ the Main Classes, not change or expand
+</I>&gt;<i> on them, like for example for the grid service wrapper:
+</I>&gt;<i>
+</I>&gt;<i>    partial class GridServ : ServiceBase
+</I>&gt;<i>    {
+</I>&gt;<i>        private GridServerBase m_gridApplication;
+</I>&gt;<i>
+</I>&gt;<i>        protected override void OnStart(string[] args)
+</I>&gt;<i>        {
+</I>&gt;<i>            // Define working directory (For a service, this is set to
+</I>&gt;<i> System dir by default...)
+</I>&gt;<i>            Process pc = Process.GetCurrentProcess();
+</I>&gt;<i>            string useDirectory = pc.MainModule.FileName.Substring(0,
+</I>&gt;<i> pc.MainModule.FileName.LastIndexOf(@&quot;\&quot;));
+</I>&gt;<i>            Directory.SetCurrentDirectory(useDirectory);
+</I>&gt;<i>            log4net.Config.XmlConfigurator.Configure();
+</I>&gt;<i>            m_gridApplication = new GridServerBase();
+</I>&gt;<i>            m_gridApplication.Startup();
+</I>&gt;<i>        }
+</I>&gt;<i>   }
+</I>&gt;<i>
+</I>&gt;<i> (This snippet taken from Tribal Medias proprietary service wrappers -
+</I>&gt;<i> feel free to copy+paste.)
+</I>&gt;<i>
+</I>&gt;<i> ---     It is impossible to not change the main applications, cause they
+</I>&gt;<i> all went into
+</I>&gt;<i>          public void Work()
+</I>&gt;<i>        {
+</I>&gt;<i>            m_console.Notice(&quot;Enter help for a list of commands\n&quot;);
+</I>&gt;<i>
+</I>&gt;<i>            while (true)
+</I>&gt;<i>            {
+</I>&gt;<i>                m_console.Prompt();
+</I>&gt;<i>            }
+</I>&gt;<i>        }
+</I>&gt;<i>
+</I>&gt;<i>        Holding a Service into a loop or in console.readline make the
+</I>&gt;<i> OnStart() not responsable for the machine and nothing runs.
+</I>&gt;<i>
+</I>&gt;<i> ---  Is the System.ServiceProcess not implemented in Mono ? If so there
+</I>&gt;<i> is no problem doing this. In my solution all executables are running as
+</I>&gt;<i> service and doing well (Win 2003). I try to evaluate how it works in
+</I>&gt;<i> mono.
+</I>&gt;<i>
+</I>&gt;<i> --- My implementation is:
+</I>&gt;<i>        Here is the first bad hack
+</I>&gt;<i>            public /*abstract*/ class BaseOpenSimServer :
+</I>&gt;<i> System.ServiceProcess.ServiceBase
+</I>&gt;<i>                {
+</I>&gt;<i>                ...
+</I>&gt;<i>                        public static void RunService(BaseOpenSimServer
+</I>&gt;<i> pInstance, string[] args)
+</I>&gt;<i>                        {
+</I>&gt;<i>                        ...
+</I>&gt;<i>                        }
+</I>&gt;<i>                ...
+</I>&gt;<i>                }
+</I>&gt;<i>
+</I>&gt;<i>        In case of Gridserver ...
+</I>&gt;<i>        public static void Main(string[] args)
+</I>&gt;<i>        {
+</I>&gt;<i>            XmlConfigurator.Configure();
+</I>&gt;<i>
+</I>&gt;<i>            GridServerBase.RunService(new GridServerBase(), args);
+</I>&gt;<i>
+</I>&gt;<i>            //GridServerBase app = new GridServerBase();
+</I>&gt;<i>
+</I>&gt;<i>                //app.Startup();
+</I>&gt;<i>                //app.Work();
+</I>&gt;<i>        }
+</I>&gt;<i>                Thats all.
+</I>&gt;<i> ---     You can now start your application with parameter '/Install' or
+</I>&gt;<i> '/unistall' to create this service or to uninstall it.
+</I>&gt;<i> --- You chose if it starts as a service and how its name an dependencies
+</I>&gt;<i> only in app.config of the diffrent projects.
+</I>&gt;<i>        If you dont want to run this as service switch in app.config.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Greetz
+</I>&gt;<i>
+</I>&gt;<i> Kai
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Kyle Hamilton
+</I>&gt;<i> Sent: Sonntag, 21. Dezember 2008 00:24
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Feature Request ...
+</I>&gt;<i>
+</I>&gt;<i> You can also use srvany.exe from Microsoft to turn any .exe into a
+</I>&gt;<i> service.  <A HREF="http://www.iopus.com/guides/srvany.htm">http://www.iopus.com/guides/srvany.htm</A> has information.
+</I>&gt;<i>
+</I>&gt;<i> -Kyle H
+</I>&gt;<i>
+</I>&gt;<i> On Sat, Dec 20, 2008 at 1:13 PM, Stefan Andersson
+</I>&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:
+</I>&gt;&gt;<i> Excellent! We really need windows service wrappers for the various
+</I>&gt;<i> exe's.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> A couple of pointers:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 1) Since this is (in practice) a windows-only project, you should
+</I>&gt;<i> implement
+</I>&gt;&gt;<i> this as a 'forge' project;
+</I>&gt;&gt;<i> <A HREF="http://forge.opensimulator.org/gf/">http://forge.opensimulator.org/gf/</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 2) To be able to do so, you should implement the services as
+</I>&gt;<i> 'wrappers',
+</I>&gt;&gt;<i> separate applications that _use_ the Main Classes, not change or
+</I>&gt;<i> expand on
+</I>&gt;&gt;<i> them, like for example for the grid service wrapper:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     partial class GridServ : ServiceBase
+</I>&gt;&gt;<i>     {
+</I>&gt;&gt;<i>         private GridServerBase m_gridApplication;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         protected override void OnStart(string[] args)
+</I>&gt;&gt;<i>         {
+</I>&gt;&gt;<i>             // Define working directory (For a service, this is set to
+</I>&gt;&gt;<i> System dir by default...)
+</I>&gt;&gt;<i>             Process pc = Process.GetCurrentProcess();
+</I>&gt;&gt;<i>             string useDirectory = pc.MainModule.FileName.Substring(0,
+</I>&gt;&gt;<i> pc.MainModule.FileName.LastIndexOf(@&quot;\&quot;));
+</I>&gt;&gt;<i>             Directory.SetCurrentDirectory(useDirectory);
+</I>&gt;&gt;<i>             log4net.Config.XmlConfigurator.Configure();
+</I>&gt;&gt;<i>             m_gridApplication = new GridServerBase();
+</I>&gt;&gt;<i>             m_gridApplication.Startup();
+</I>&gt;&gt;<i>         }
+</I>&gt;&gt;<i>    }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> (This snippet taken from Tribal Medias proprietary service wrappers -
+</I>&gt;<i> feel
+</I>&gt;&gt;<i> free to copy+paste.)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 3) When you've done the wrappers, the next step is to add a method to
+</I>&gt;&gt;<i> communicate with the consoles. One way to go about it is to have the
+</I>&gt;<i> service
+</I>&gt;&gt;<i> process redirect the console in and output to a named pipe, and then
+</I>&gt;<i> supply
+</I>&gt;&gt;<i> a console app that listens/writes to those pipes.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Best regards,
+</I>&gt;&gt;<i> Stefan Andersson
+</I>&gt;&gt;<i> Tribal Media AB
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ________________________________
+</I>&gt;&gt;<i> Date: Sat, 20 Dec 2008 19:53:32 +0100
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Develope at Ashuan.de</A>
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: [Opensim-dev] Feature Request ...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi Friends,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> i wish to implement the feature to run all Gridcomponents (Userserver,
+</I>&gt;&gt;<i> Assetserver ....) as a Service.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> My work is now only to evaluate how easy or not it is ... it is easy
+</I>&gt;<i> .. but
+</I>&gt;&gt;<i> ...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I must add an Reference to the System.ServiceProcess in several
+</I>&gt;<i> Project.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Now my question ...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Is there a Problem doing this?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> And second how do i include an reference into a .patch-File?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Kai
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004213.html">[Opensim-dev] Feature Request ...
+</A></li>
+	<LI>Next message: <A HREF="004218.html">[Opensim-dev] Feature Request ...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4216">[ date ]</a>
+              <a href="thread.html#4216">[ thread ]</a>
+              <a href="subject.html#4216">[ subject ]</a>
+              <a href="author.html#4216">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

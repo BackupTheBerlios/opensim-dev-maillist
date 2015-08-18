@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] what to use for serializing structures?	LLSD?	XmlSerializer? JSON?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20what%20to%20use%20for%20serializing%20structures%3F%0A%09LLSD%3F%09XmlSerializer%3F%20JSON%3F&In-Reply-To=%3CBLU134-W25E753B8F5B31EB9164F20D5CF0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001540.html">
+   <LINK REL="Next"  HREF="001543.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] what to use for serializing structures?	LLSD?	XmlSerializer? JSON?</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20what%20to%20use%20for%20serializing%20structures%3F%0A%09LLSD%3F%09XmlSerializer%3F%20JSON%3F&In-Reply-To=%3CBLU134-W25E753B8F5B31EB9164F20D5CF0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] what to use for serializing structures?	LLSD?	XmlSerializer? JSON?">stefan at tribalmedia.se
+       </A><BR>
+    <I>Tue May 13 20:28:18 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001540.html">[Opensim-dev] what to use for serializing structures?	LLSD?	XmlSerializer? JSON?
+</A></li>
+        <LI>Next message: <A HREF="001543.html">[Opensim-dev] what to use for serializing structures?	LLSD?	XmlSerializer? JSON?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1538">[ date ]</a>
+              <a href="thread.html#1538">[ thread ]</a>
+              <a href="subject.html#1538">[ subject ]</a>
+              <a href="author.html#1538">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>* LLSD is just awful - a hodgepodge compromise between doing the old thing and doing the right thing. Let's _please_ stay well clear of that.
+* JSON is really really cool for browser-oriented apps, but is there a schema for it?
+* XML is XML. Industry standard, well proven, and actually has stuff like XML Schema, which is what you'd use to add type information to data; schema or not, the serializer infers type from the serialized class.
+We at Tribal are using a Serialized Command Object approach, where we POST XmlSerialized &quot;Command Objects&quot;, which can reference any other serializable type. Kind of an Ultralight Web Service. Easy as pie to produce output, and a pice of cake to parse it. Not any more wordy than what's needed to have human-readable datagrams with extensible semantics.
+ 
+Works like a charm.
+ 
+I believe this approach is part of what MW talked about in his posts on services from a while back.
+ 
+/Stefan
+
+
+
+&gt;<i> Date: Tue, 13 May 2008 19:25:55 +0200&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] what to use for serializing structures? LLSD? XmlSerializer? JSON?&gt; &gt; hi,&gt; &gt; we are currently looking at adding REST support to the RemoteAdmin &gt; plugin (other stuff to follow) --- the idea being that we can get &gt; information about (as well as change state of) a running OpenSim &gt; instance not only via XmlRpc but also via REST.&gt; &gt; looking at the way we currently deal with serialization we either&gt; &gt; * use LLSD where mandated by secondlife (e.g., CAPS)&gt; * use System.Xml.XmlSerializer&gt; * use XmlRpc serialization (which goes back to System.Xml)&gt; &gt; LLSD is being used by linden lab's and is proposed by LL/SLAWG as the &gt; serialization protocol of choice (IIUC). in my opinion it suffers from &gt; being a bit verbose and not really easy to parse.&gt; &gt; XmlSerializer is &quot;built in&quot;. on the other hand it's wordy and more &gt; complex to parse; also, it doesn't distinguish between the number 4711 &gt; and the string &quot;4711&quot; --- you have to know that a certain tag contains a &gt; string (or a number).&gt; &gt; JSON is lean, and easy to use from AJAX apps as well as python scripts &gt; (and the likes). it requires an additional DLL. it does however &gt; distinguish between strings and numbers. using a library like &gt; jsonexserializer (<A HREF="http://code.google.com/p/jsonexserializer/">http://code.google.com/p/jsonexserializer/</A> --- BSD &gt; license) makes it easy to use from C#.&gt; &gt; personally, i've started to like JSON because it's lean and easy to use &gt; --- but i'd like to hear from you guys what you think about this.&gt; &gt; cheers,&gt; dr scofield&gt; &gt; -- &gt; dr dirk husemann, mathmatics and computer science, ibm zurich research lab&gt; SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>&gt; RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>&gt; &gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080513/66288539/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080513/66288539/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001540.html">[Opensim-dev] what to use for serializing structures?	LLSD?	XmlSerializer? JSON?
+</A></li>
+	<LI>Next message: <A HREF="001543.html">[Opensim-dev] what to use for serializing structures?	LLSD?	XmlSerializer? JSON?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1538">[ date ]</a>
+              <a href="thread.html#1538">[ thread ]</a>
+              <a href="subject.html#1538">[ subject ]</a>
+              <a href="author.html#1538">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

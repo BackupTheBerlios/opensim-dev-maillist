@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] New SQLiteNG database module for using SQLite	with mono 2.6 and above
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20New%20SQLiteNG%20database%20module%20for%20using%20SQLite%0A%09with%20mono%202.6%20and%20above&In-Reply-To=%3Cm2t6b9359641004231809m753718a7j929bb4684c20cb35%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008586.html">
+   <LINK REL="Next"  HREF="008588.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] New SQLiteNG database module for using SQLite	with mono 2.6 and above</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20New%20SQLiteNG%20database%20module%20for%20using%20SQLite%0A%09with%20mono%202.6%20and%20above&In-Reply-To=%3Cm2t6b9359641004231809m753718a7j929bb4684c20cb35%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] New SQLiteNG database module for using SQLite	with mono 2.6 and above">aerowolf at gmail.com
+       </A><BR>
+    <I>Sat Apr 24 03:09:05 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008586.html">[Opensim-dev] New SQLiteNG database module for using SQLite	with mono 2.6 and above
+</A></li>
+        <LI>Next message: <A HREF="008588.html">[Opensim-dev] [libsl-dev] T pose issue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8587">[ date ]</a>
+              <a href="thread.html#8587">[ thread ]</a>
+              <a href="subject.html#8587">[ subject ]</a>
+              <a href="author.html#8587">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>OSX's ld has a problem that's discussed in the PROBLEMS file of the
+OpenSSL distribution, and may be the root cause of OSX's problem noted
+by Diva.  I don't know if this is appropriate to put into the Mono
+bugzilla; if anyone feels it is, please feel free to put it there.
+
+-Kyle H
+
+==beginquote==
+* System libcrypto.dylib and libssl.dylib are used by system ld on MacOS X.
+
+    NOTE: The problem described here only applies when OpenSSL isn't built
+    with shared library support (i.e. without the &quot;shared&quot; configuration
+    option).  If you build with shared library support, you will have no
+    problems as long as you set up DYLD_LIBRARY_PATH properly at all times.
+
+This is really a misfeature in ld, which seems to look for .dylib libraries
+along the whole library path before it bothers looking for .a libraries.  This
+means that -L switches won't matter unless OpenSSL is built with shared
+library support.
+
+The workaround may be to change the following lines in apps/Makefile and
+test/Makefile:
+
+  LIBCRYPTO=-L.. -lcrypto
+  LIBSSL=-L.. -lssl
+
+to:
+
+  LIBCRYPTO=../libcrypto.a
+  LIBSSL=../libssl.a
+
+It's possible that something similar is needed for shared library support
+as well.  That hasn't been well tested yet.
+
+Another solution that many seem to recommend is to move the libraries
+/usr/lib/libcrypto.0.9.dylib, /usr/lib/libssl.0.9.dylib to a different
+directory, build and install OpenSSL and anything that depends on your
+build, then move libcrypto.0.9.dylib and libssl.0.9.dylib back to their
+original places.  Note that the version numbers on those two libraries
+may differ on your machine.
+
+As long as Apple doesn't fix the problem with ld, this problem building
+OpenSSL will remain as is.
+
+==endquote==
+
+
+On Fri, Apr 23, 2010 at 3:03 PM, Justin Clark-Casey
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+&gt;<i> Hi folks,
+</I>&gt;<i>
+</I>&gt;<i> Today I put code into master that should allow OpenSim to be used with
+</I>&gt;<i> SQLite again if you're running mono 2.6 or later.
+</I>&gt;<i>
+</I>&gt;<i> Unfortunately, due to compatibility issues between mono 2.4 and 2.6 I had to
+</I>&gt;<i> create an entirely new module, called OpenSim.Data.SQLiteNG.dll.
+</I>&gt;<i>
+</I>&gt;<i> I would be very grateful if people running &gt;mono 2.6 and the very latest
+</I>&gt;<i> OpenSim master could try it out. &#160;To use it, you'll need to change your
+</I>&gt;<i> database settings in two places. &#160;In OpenSim.ini you'll need to change
+</I>&gt;<i>
+</I>&gt;<i> storage_plugin = &quot;OpenSim.Data.SQLite.dll&quot; to storage_plugin =
+</I>&gt;<i> &quot;OpenSim.Data.SQLiteNG.dll&quot;
+</I>&gt;<i>
+</I>&gt;<i> and in config-include/storage you'll need to change
+</I>&gt;<i>
+</I>&gt;<i> Include-Storage = &quot;config-include/storage/SQLiteStandalone.ini&quot; to
+</I>&gt;<i> &#160;Include-Storage = &quot;config-include/storage/SQLiteNGStandalone.ini&quot;
+</I>&gt;<i>
+</I>&gt;<i> This information is also in OpenSim.ini.example and
+</I>&gt;<i> StandaloneCommon.ini.example.
+</I>&gt;<i>
+</I>&gt;<i> As ever, I recommend backing up all your *.db database files first if
+</I>&gt;<i> there's any valuable information in them.
+</I>&gt;<i>
+</I>&gt;<i> Unfortunately, I've heard a report from Diva that this module doesn't work
+</I>&gt;<i> on the Mac because the version of sqlite3.so in Mac OS X doesn't export the
+</I>&gt;<i> sqlite3_column_origin_name symbol. &#160;This is probably the issue shown at
+</I>&gt;<i> <A HREF="https://bugzilla.novell.com/show_bug.cgi?id=380252#c3.">https://bugzilla.novell.com/show_bug.cgi?id=380252#c3.</A> &#160;Linux and Mac don't
+</I>&gt;<i> actually appear to use the .so library that comes with OpenSim which does
+</I>&gt;<i> export that symbol.
+</I>&gt;<i>
+</I>&gt;<i> However, I'd still be interested to know if this works on other Linux
+</I>&gt;<i> distributions - I've only tested with my own Ubuntu. &#160;SQLiteNG.dll also
+</I>&gt;<i> appears to work fine on Windows.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008586.html">[Opensim-dev] New SQLiteNG database module for using SQLite	with mono 2.6 and above
+</A></li>
+	<LI>Next message: <A HREF="008588.html">[Opensim-dev] [libsl-dev] T pose issue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8587">[ date ]</a>
+              <a href="thread.html#8587">[ thread ]</a>
+              <a href="subject.html#8587">[ subject ]</a>
+              <a href="author.html#8587">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

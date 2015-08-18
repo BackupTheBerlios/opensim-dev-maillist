@@ -1,0 +1,389 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Concerning recent grid instability	and	inconsistency
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Concerning%20recent%20grid%20instability%0A%09and%09inconsistency&In-Reply-To=%3C1204254493.7142.344.camel%40localhost.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000957.html">
+   <LINK REL="Next"  HREF="000962.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Concerning recent grid instability	and	inconsistency</H1>
+    <B>Brian Wolfe</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Concerning%20recent%20grid%20instability%0A%09and%09inconsistency&In-Reply-To=%3C1204254493.7142.344.camel%40localhost.localdomain%3E"
+       TITLE="[Opensim-dev] Concerning recent grid instability	and	inconsistency">brianw at terrabox.com
+       </A><BR>
+    <I>Fri Feb 29 04:08:13 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000957.html">[Opensim-dev] Concerning recent grid instability and	inconsistency
+</A></li>
+        <LI>Next message: <A HREF="000962.html">[Opensim-dev] Concerning recent grid instability and	inconsistency
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#961">[ date ]</a>
+              <a href="thread.html#961">[ thread ]</a>
+              <a href="subject.html#961">[ subject ]</a>
+              <a href="author.html#961">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>inline responses follow. ;) Please use a block of salt as you read my
+opinions.
+
+On Fri, 2008-02-29 at 01:27 +0100, Dalien Talbot wrote:
+&gt;<i> Hiro,
+</I>&gt;<i> 
+</I>&gt;<i> excellent post. 
+</I>&gt;<i> comments inline.
+</I>&gt;<i> 
+</I>&gt;<i> On Wed, Feb 27, 2008 at 6:59 PM, James Stallings II
+</I>&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">james.stallings at gmail.com</A>&gt; wrote:
+</I>&gt;<i>         
+</I>&gt;<i>         Early this morning there was (yet another) instance where
+</I>&gt;<i>         certain regions could be readily accessed by some and could
+</I>&gt;<i>         not be accessed at all by others.
+</I>&gt;<i>         
+</I>&gt;<i>         This led to an insightfull discussion on IRC this morning,
+</I>&gt;<i>         which I will attach for your convenience.
+</I>&gt;<i>         
+</I>&gt;<i>         Here are some high points:
+</I>&gt;<i>         
+</I>&gt;<i>         Various users were able to access WP reliably last night while
+</I>&gt;<i>         others were completely unable to do so. The consistent
+</I>&gt;<i>         relevant factor was a high ping time from the affected clients
+</I>&gt;<i>         to the region server in question. A properly executed
+</I>&gt;<i>         traceroute revealed that the network fault lay with level3
+</I>&gt;<i>         networks, between the affected clients and the region server
+</I>&gt;<i>         in question.
+</I>&gt;<i>         
+</I>&gt;<i>         recently I was graced with the company of many new neighbors
+</I>&gt;<i>         on the grid. With the new neighbors came complete instability
+</I>&gt;<i>         with respect to my region server. Some of the instabilities
+</I>&gt;<i>         were my own doing. Fixing them did not completely address the
+</I>&gt;<i>         problem. A subsequent relocation to a neighbor-free location
+</I>&gt;<i>         on the grid did.
+</I>&gt;<i> 
+</I>&gt;<i> I wonder if this is inter-region comms, or region-grid comms, or
+</I>&gt;<i> region-client comms that were the issue - do we know by chance what of
+</I>&gt;<i> them were the culprits ? Or the sequence of events that would help to
+</I>&gt;<i> pinpoint this ?
+</I>
+We really need to do some work in isolating the source of the problem
+before we attempt to solve it. Otherwise we're shooting in the dark and
+probably rewriting things that don't need rewriting.
+
+I do have good resources available to do some network diagnostics if you
+want to plug a region into my grid and debug that way. If so feel free
+to ping me online or via email to setup a plan for tracking this beast
+down.
+
+&gt;<i>  
+</I>&gt;<i>         
+</I>&gt;<i>         one of our newer contributors has audited much of the
+</I>&gt;<i>         low-level packet handling code and found it to be in want of
+</I>&gt;<i>         some rearchitecting in the interest of efficiency. This is a
+</I>&gt;<i>         salient point; if the communications code upon which the grid
+</I>&gt;<i>         relies for region&lt;&gt;region and client&lt;&gt;region communications is
+</I>&gt;<i>         not optimum, we cannot count on operations to be optimum. This
+</I>&gt;<i>         also has profound implications for troubleshooting, as all
+</I>&gt;<i>         diagnostic data arrives via the conduits implemented by this
+</I>&gt;<i>         low-level comms code.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> I thought region&lt;-&gt;region was not working by means of packet handling,
+</I>&gt;<i> and it was primarily for region&lt;-&gt;client comms - do we have any more
+</I>&gt;<i> specifics ?
+</I>
+Region &lt;-&gt; region is handled via .NET remoting so far as I know (aka
+XMLRPC). Only the region &lt;_&gt; client connection uses udp packet handling.
+As such, there shouldn't be any evilly complex packet switching to cause
+issues here. What I do see having problems with is the remoting code
+being cpu heavy or inefficient in speed or validation. From a VERY
+cursory glance over the code to date I didn't see very much error
+catching logic. 8-( There is definitly much cleaning and security yet to
+be applied to the remoting methods.
+
+&gt;<i>  
+</I>&gt;<i>         
+</I>&gt;<i>         adjacent misconfigured regions have been demonstrated to have
+</I>&gt;<i>         a significant impact on a given region's stability. Something
+</I>&gt;<i>         needs to be done to address this.
+</I>&gt;<i> 
+</I>&gt;<i> again, first thing to do imho is to find out what is the trigger.
+</I>&gt;<i>  
+</I>&gt;<i> (I will save my usual rant that the &quot;centralized&quot; model is not
+</I>&gt;<i> scalable in a &quot;large&quot; (as in &quot;millions of regions&quot; deployment model -
+</I>&gt;<i> we did have some discussion with Ahzz on this but did not have the
+</I>&gt;<i> time yet to make the sifnificant progress... The only thing I did is
+</I>&gt;<i> for now importing a bsd-licensed DNS resolver code - we were agreeing
+</I>&gt;<i> that (ab)using the TXT records in DNS is certainly a good way to go
+</I>&gt;<i> towards a more scalable system.
+</I>
+:<i>) Yes, there does need to be a way to fragment a grid without relying
+</I>on artificial constructs as a routing reverse http proxy, or load
+blancing SQL partitioning magic. I've never understood why linden labs
+didn't take steps to fragment their infrastructure a long time ago
+instead of taking the monlithic approach that has proven time and again
+to impose severe performance and scalability limitations one somethign
+that is supoed to &quot;replace&quot; the majority of the internet. ;) One would
+have thought that this feature would have been designed in from the
+start. But hey, no one is perfect eh?
+
+&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>         
+</I>&gt;<i>         I will present some talking points in terms of these roles and
+</I>&gt;<i>         their goals.
+</I>&gt;<i>         
+</I>&gt;<i>         The set of roles and goals of the OSGrid may be summarized as
+</I>&gt;<i>         a brief mission statement which I characterise as follows:
+</I>&gt;<i>         
+</I>&gt;<i>                 OSGrid exists as a multirole support operation
+</I>&gt;<i>                 supporting and conducting testing pursuant to the
+</I>&gt;<i>                 development of OpenSim virtual reality/telepresence
+</I>&gt;<i>                 software. Further, it exists to provide a free parking
+</I>&gt;<i>                 service for the development and testing community,
+</I>&gt;<i>                 both for pure testing and content hosting. Finally,
+</I>&gt;<i>                 OSGrid exists to develop and drive development of
+</I>&gt;<i>                 grid-related tools and/or code, whether as
+</I>&gt;<i>                 freestanding utilities or source for contribution to
+</I>&gt;<i>                 the codebase of OpenSim.
+</I>&gt;<i>         
+</I>&gt;<i>         
+</I>&gt;<i>         Pursuant to fulfillment of these roles, a course of action
+</I>&gt;<i>         needs be devised which facilitates all of these objectives
+</I>&gt;<i>         simultaneously. Here is a plan which seeks to accomplish this.
+</I>&gt;<i>         Note that some key points are short term; others, less so:
+</I>&gt;<i>         
+</I>&gt;<i>         Packet handling technology critique. Involve directly those
+</I>&gt;<i>         who have worked on this code in the past with those who are
+</I>&gt;<i>         interested in carrying the work forward. Get either a
+</I>&gt;<i>         commitment from it's original authors to return to active
+</I>&gt;<i>         development, or alternatively an informal hand-off of the work
+</I>&gt;<i>         to this group. Then perform a systematic audit on this code,
+</I>&gt;<i>         as a group. Document it as we go. Explaining how code works to
+</I>&gt;<i>         a piece of paper can show up just as many flaws as a trial
+</I>&gt;<i>         run. There's the side benefit of generating thorough
+</I>&gt;<i>         documentation.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> again - packet handling, afaik, pertains largely to client&lt;-&gt;region
+</I>&gt;<i> communications - please correct me if I am wrong. Indeed this should
+</I>&gt;<i> become the area of focus if we determine it is the botteneck, but I
+</I>&gt;<i> would think the troubles like in the region&lt;-&gt;region, and
+</I>&gt;<i> region&lt;-&gt;grid server comms, which are done by other means.
+</I>
+There's many things that can be done to improve the efficiency. I do
+have to point out that we need stability before efficiency. The
+UserThreadPool branch was done as a means of freeing up threads and
+reducing context switching on heavy use regions so that we could then
+concentrate on the annoyign bugs that it uncovers through exposing
+multi-thread access conflicts, which I was guessing is the core of MANY
+issues that still remain. Fortunately thread concurrent access is being
+heavilly worked on by Ter and others. :) 
+
+&gt;<i> 
+</I>&gt;<i>         
+</I>&gt;<i>         One sequence of events currently in progress with respect to
+</I>&gt;<i>         this, is that several of our commercial contributors are about
+</I>&gt;<i>         to introduce a major set of stability and load balancing
+</I>&gt;<i>         patches. This set of patches might well replace or repair the
+</I>&gt;<i>         affected code, so this may in fact become a non-issue.
+</I>&gt;<i>         
+</I>&gt;<i>         This does not mean we can afford to sit and wait for them to
+</I>&gt;<i>         make the drop. What we can take immediate action on, is to
+</I>&gt;<i>         prepare to profile the performance impact in quantitative ways
+</I>&gt;<i>         once this code has been dropped. In this interest, ChrisD will
+</I>&gt;<i>         be placing some regions alongside mine out in the open; our
+</I>&gt;<i>         intention is to maintain a seperate 'island', where we can
+</I>&gt;<i>         excercise fine-grained control over who our neighbors are (and
+</I>&gt;<i>         more importantly, fine-grained control of the neighbor
+</I>&gt;<i>         configuration) for testing purposes. 
+</I>&gt;<i> 
+</I>&gt;<i> yes - so pertaining to my comments above - narrowing down what exactly
+</I>&gt;<i> is the trigger for the slowness is the key.
+</I>
+Sounds like a plan to me. Let us know what develops. I would go a step
+further and use a firewall between your regions to introduce artificial
+drops, latency, etc to see if things are beeing too sensitive in that
+reguard.
+
+&gt;<i>  
+</I>&gt;<i>         
+</I>&gt;<i>         We also hope to be able to prove our theory about brokenly
+</I>&gt;<i>         configured adjacent regions. If you bring up a region adjacent
+</I>&gt;<i>         to us, we will likely ask you to move it or remove it
+</I>&gt;<i>         ourselves if we are unable to reach you.
+</I>&gt;<i>         
+</I>&gt;<i>         Set up an automated vetting process for incoming regions on
+</I>&gt;<i>         the grid. Say, submit region xml files via HTTP/POST, and have
+</I>&gt;<i>         them programatically checked for syntactical correctness,
+</I>&gt;<i>         geographical collisions, network reachability, port
+</I>&gt;<i>         configuration consistency, completness of information, etc.
+</I>&gt;<i>         before allowing a final connection with grid services. 
+</I>&gt;<i> 
+</I>&gt;<i> +1. Once we understand what kind of misconfigurations are causing the
+</I>&gt;<i> issues - maybe we should go even further and address the root causes
+</I>&gt;<i> of them, rather than checking the configuration.
+</I>
+Hmm. I don't know if I would do that externally. The grid server should
+be rejecting outright any misconfigurations itself since it IS the
+master of the grid after all. The heartbeat code could be used to
+perform an initial reachability test.
+
+&gt;<i>  
+</I>&gt;<i>         
+</I>&gt;<i>         This also introduces a logical point for a payment
+</I>&gt;<i>         collection/verification process for that day when we have a
+</I>&gt;<i>         salable service, for those who are interested in providing
+</I>&gt;<i>         for-pay grid services at that time.
+</I>&gt;<i> 
+</I>&gt;<i> This would provide a roadblock. The payment should still be a hook
+</I>&gt;<i> outside of the &quot;automated&quot; process. (like, providing a crypto token of
+</I>&gt;<i> sorts, which would be checked at the time of the region coming up)
+</I>
+*nod* If you want to controll grid connectivity based on payment status
+then you I think it would be more apropriate to make use of the existing
+send and recv keypairs in the regions table. the region_login RPC method
+does check these and it would be rather simple for your external website
+to change the keypair so that the customer no longer has the valid pair
+and thus can't hook up to the grid.
+
+I do like the idea of usign the keypair as a set of pub/priv encryption
+keys in order to secure our inter-region communications content. An
+alternative is to use them as x.509 certs to compare on the ssl layer.
+
+&gt;<i>  
+</I>&gt;<i>         
+</I>&gt;<i>         Establish an effective heartbeat mechanism between region
+</I>&gt;<i>         servers and grid server. If the heartbeat goes away, the
+</I>&gt;<i>         region table entry is appropriately updated to reflect the
+</I>&gt;<i>         region state, and except for geographic purposes and region
+</I>&gt;<i>         heartbeat response, the region would be ignored by grid
+</I>&gt;<i>         services (as if it were not there). If/when the region
+</I>&gt;<i>         produces new signs of life, it would then be returned to
+</I>&gt;<i>         active participation with grid services. This could be taken a
+</I>&gt;<i>         step further with longterm monitoring of the region
+</I>&gt;<i>         heartbeat. 
+</I>&gt;<i> 
+</I>&gt;<i> I think Ahzz had some patch in mantis and his git repo on this. Since
+</I>&gt;<i> I am not much into centralized grid comms, I did not commit it - I 
+</I>&gt;<i> think it was introducing some changes to the SQL tables...
+</I>
+Yep. It added the basics of online and lastSeen to the regions table
+specificaly for osgrid's use in trackign which regions have logged in
+recently and which are awol for an extended period.
+
+&gt;<i>  
+</I>&gt;<i>         
+</I>&gt;<i>         Logic is implied that after some configurable long period
+</I>&gt;<i>         without a heartbeat the region could be made available for
+</I>&gt;<i>         purging from the tables completely, either automatically or
+</I>&gt;<i>         with operator intervention. The benefits in bandwidth and
+</I>&gt;<i>         cycles recovered from retry requests and threads locked while
+</I>&gt;<i>         waiting on unresponsive regions would far exceed the
+</I>&gt;<i>         relatively minor hit taken in producing and servicing a
+</I>&gt;<i>         heartbeat. 
+</I>&gt;<i> 
+</I>&gt;<i> I did start early experiments with using the DHT as a &quot;grid service&quot; -
+</I>&gt;<i> I've installed a couple of bamboo DHT instances. Although obviously
+</I>&gt;<i> this drags a few other issues (like the questions of &quot;trust&quot; between
+</I>&gt;<i> the operators of instances of DHT, etc. Maybe having the DNS records
+</I>&gt;<i> that are periodically updated, could be a better solution. We were
+</I>&gt;<i> discussing that kind of stuff with Ahzz.. Again, the time issue :(
+</I>
+I still haven't looked at bambo. 8-( My primary concerns are load and
+response times, as well as record concurrency between replicated nodes
+on updates. DNS is already a beautifully distributed system. However
+it's not so hot on concurrency updates. I was thinking of DNS more for
+the &quot;where can I get X?&quot; questioning instead of asset_server =
+<A HREF="http://blah.blah.blah:9003/">http://blah.blah.blah:9003/</A>&quot; type config file entries.
+
+On the note of the heartbeat I do want to add a way for regions to
+report to the grid server that another region was &quot;unresponsive&quot; so that
+the grid server can then say to any inquiring regions &quot;oh, 5 of 5 tries
+died, hmm, it's dead Jim! Pass the red marker!&quot; and get that bad boy
+marked as offline and stop sending it out as a living and breathing
+region.
+
+&gt;<i> 
+</I>&gt;<i> My personal opinion is that having a &quot;pay-to-join-the-grid&quot; is the
+</I>&gt;<i> wrong business model as it forces the competition between the grid
+</I>&gt;<i> operators. It should be &quot;pay-to-store-your-identity&quot; or
+</I>&gt;<i> &quot;pay-to-store-your-assets-and-other-junk&quot; or &quot;pay-to-store-your-sim&quot; -
+</I>&gt;<i> and the architecture should be driven around that, rather than the
+</I>&gt;<i> central control point (aka single point of failure:) that the grid
+</I>&gt;<i> services really are.
+</I>
+This is where i see things happening as well. I suspect that
+pay-to-connect grids are going to be more of a flash in the pan type
+event than a real business model in the future. I also think there will
+be several orders of magnitude more money in simply hosting the data or
+services than in providing a gated colony. The people that will really
+win will be the ones that provide a grid that's interconnected with any
+other grid as we have today with the world wide web. Cross promotion and
+&quot;friend site&quot; forging will continue to drive visitors on top of
+uniqueness of content and word of mouth. Cool will always trump paid any
+day of the week in my book.
+
+As for why a gated grid will fail.... the best comparison that I can
+think of is what happened with the BBS' of the 80's. Most started out as
+pay to use since they absolutely had to cover their costs of phone lines
+and computers. They got away with it for a while because everyone
+charged, except for the underground boards. Over time the free boards
+slowly took over because, well.... they were free! And they promoted
+each other like mad. I forsee the same thing happening to LL and any
+other company that atempts to continue the old paid board business
+model. We can also see this model slowly taking over in the web content
+space today. Why people keep trying to run the old models that are time
+and again trumped by the free models, I don't know. Maybe it's nostalgia
+for the old days of AOL and CompuServe! *grin* They certainly were cool,
+until people figured out that they too could create things for others to
+see. ;)
+
+&gt;<i> 
+</I>&gt;<i> But all of this is a more long-term view, for the short term the most
+</I>&gt;<i> important thing is to try to figure out what exactly is the reason for
+</I>&gt;<i> the issues - and try to address it.
+</I>
+Agreed 100%!!
+
+&gt;<i> 
+</I>&gt;<i> /d
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000957.html">[Opensim-dev] Concerning recent grid instability and	inconsistency
+</A></li>
+	<LI>Next message: <A HREF="000962.html">[Opensim-dev] Concerning recent grid instability and	inconsistency
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#961">[ date ]</a>
+              <a href="thread.html#961">[ thread ]</a>
+              <a href="subject.html#961">[ subject ]</a>
+              <a href="author.html#961">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

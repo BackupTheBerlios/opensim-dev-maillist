@@ -1,0 +1,232 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal to subdivide the assets table
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20to%20subdivide%20the%20assets%20table&In-Reply-To=%3C4863D01E.4080106%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002064.html">
+   <LINK REL="Next"  HREF="002077.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal to subdivide the assets table</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20to%20subdivide%20the%20assets%20table&In-Reply-To=%3C4863D01E.4080106%40t-data.com%3E"
+       TITLE="[Opensim-dev] Proposal to subdivide the assets table">melanie at t-data.com
+       </A><BR>
+    <I>Thu Jun 26 19:21:34 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002064.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+        <LI>Next message: <A HREF="002077.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2065">[ date ]</a>
+              <a href="thread.html#2065">[ thread ]</a>
+              <a href="subject.html#2065">[ subject ]</a>
+              <a href="author.html#2065">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I'm sorry, but I don't see this being possible in quite the way 
+described. Actually, there are quite a few good points there, though.
+
+Pros:
+- Decrease network traffic
+- Decrease dependency on external servers
+- Increase reliability
+- Increase responsiveness
+- Save space on asset server
+
+Cons:
+- Prim crossings are much more difficult
+- ID space management is near impossible
+- Asset transfer between sims becomes a large issue
+- UUID referencing in scripts is no longer possible
+
+Well, to make a long story short: Regions don't own assets. Regions 
+use assets. Users own assets.
+
+So, a centralized asset storage is certainly needed, tied into the 
+concepts around asset portability, possibly several centralized 
+asset servers.
+
+But assets are immutable and a region is a finite space. This makes 
+it an ideal situation for a persistent cache. While we cannot 
+totally remove centralized asset storage, almost all the above 
+points can be achieved by locally caching a region's used assets on 
+disk. This cache can be two-tiered:
+
+Tier 1: referenced assets, indefinite retention
+Tier 2: unreferenced assets, short term retention
+
+This means, that textures on a prim would be cached locally forever, 
+but textures that make up the clothing of an avatar passing through 
+would be purged after a day or so.
+For sounds, playing them would re-trigger the retention period, so 
+that looped sounds will effectively be retained forever as well. 
+Same goes for any frequently used asset, however, we should probably 
+not cache object assets.
+
+The one thing that this doesn't address is the issue of asset server 
+disk space usage. However, with the proposed approach of hashing and 
+de-duping, this becomes a much smaller problem already.
+
+However, because of the ability to reference an asset by it's UUID, 
+letting a region &quot;own&quot; an asset is still not possible.
+
+Assume a texture, which I uploaded.
+I placed it on a prim, then, later, deleted the uploaded texture 
+from my inventory.
+Technically, one could say that a region now holds the only 
+reference, and the texture would be owned by that region. It could 
+be removed from the central server as soon as it is no longer 
+referenced by any _agent_ inventory links.
+
+But, now there are three scenarios:
+
+1) The prim is pushed across a region boundary. The destination 
+region requests the texture from the asset server and fails. The 
+prim will turn gray.
+
+2) The prim has previously been &quot;take&quot;n. A copy exists in egent 
+inventory, but the list of the resources needed to reconstitute this 
+&quot;object&quot; is hidden in the asset, actually, multiple asset records. 
+If the texture has been removed from the central server, rezzing 
+this object in any region where the texture is not in use will fail.
+
+3) If i deleted the texture, there is no guarantee that I have also 
+lost it's UUID. I may have a notecard with all my texture UUIDs and 
+use them in scripts. Such scripts, taken to other regions, would fail.
+
+Issue 1 could be addressed by transferring the needed resources 
+along with the object, however, on a distributed grid like OSGrid, 
+this can be time-consuming, as home DSL may be involved.
+
+Issue 3 could be addressed by creating a list of resources needed at 
+the time of the &quot;take&quot; and making that part of the inventory record. 
+This would significantly bloat the inventory table, as each prim's 
+inventory, face textures and all sounds/animations it might play are 
+listed in the database.
+
+Issue 3 cannot be reasonably addressed.
+
+Therefore, caching, which is something I have looked into and am 
+going to write some code for, is an absolutely viable solution for 
+many of the raised issues, but weeding the central server's contents 
+in such a way seems to be impracticable.
+
+Melanie
+
+liu xiaolu wrote:
+&gt;<i> Hi everyone,
+</I>&gt;<i> 
+</I>&gt;<i> my proposal is to subdivide current assets table into 2 tables:
+</I>&gt;<i> user_assets  : for user owned assets (mainly in inventory, appearance, 
+</I>&gt;<i> attachment, ...)
+</I>&gt;<i>   user_asset is used by UGAI servers
+</I>&gt;<i> region_assets: for region owned assets, sounds, textures(including sun, 
+</I>&gt;<i> moon, ...)
+</I>&gt;<i>   region_asset is used by region servers
+</I>&gt;<i> 
+</I>&gt;<i> I wrote the whole, detailed idea at:
+</I>&gt;<i> <A HREF="http://opensimulator.org/wiki/User:Lulurun#proposal_to_subdivide_the_assets_table">http://opensimulator.org/wiki/User:Lulurun#proposal_to_subdivide_the_assets_table</A>
+</I>&gt;<i> Please have a look at it, here is only a brief introduction.
+</I>&gt;<i> 
+</I>&gt;<i> This could bring us many advantages such as:
+</I>&gt;<i> 0. increase the dispersity of asset data, clarify the responsibility of 
+</I>&gt;<i> each server.
+</I>&gt;<i> Currently, all of the asset data is stored in assets table, managed by 
+</I>&gt;<i> assetserver.
+</I>&gt;<i> This would cause some problems:
+</I>&gt;<i>  1. assets table keeps growing in a fast pace.
+</I>&gt;<i>  2. hard to determine which asset is belongs to inactive regions (when 
+</I>&gt;<i> you want to &quot;clean&quot;
+</I>&gt;<i> the assets table).
+</I>&gt;<i>  3. assetserver not only serves users' data but also regions' data, if 
+</I>&gt;<i> something happened to
+</I>&gt;<i> assetserver both of avatar and prims will become gray.
+</I>&gt;<i> To separate assets table can not only solve these problems, but also 
+</I>&gt;<i> brings minor benefits
+</I>&gt;<i> such like: reduce the responsibility of assetserver, disperse the asset 
+</I>&gt;<i> requests(especially
+</I>&gt;<i> for big grid service), lower the risk of losing data, ...
+</I>&gt;<i> 
+</I>&gt;<i> 1. for Data Portability in virtual world
+</I>&gt;<i> For grid admin,
+</I>&gt;<i>  * you can concentrate on managing only user(not region owner) relavent 
+</I>&gt;<i> information
+</I>&gt;<i>    like &quot;users, avatarappearance, inventory&quot;
+</I>&gt;<i>  * it can reduce the vulnerability caused by foreign assets.
+</I>&gt;<i>  * when a region leaves your grid, you don't have to worry about its 
+</I>&gt;<i> assets becoming garbage.
+</I>&gt;<i>   - on the other hand, this also good for region owners.
+</I>&gt;<i> For when a user registers their region server with a grid,
+</I>&gt;<i>  * When you want to switch your sim to a new grid, &quot;prims, primshapes, 
+</I>&gt;<i> terrain, region_asset&quot;
+</I>&gt;<i>    are always tied-up together. the only thing you need to do is to edit 
+</I>&gt;<i> UGAI servers URI in
+</I>&gt;<i>    your OpenSim.ini
+</I>&gt;<i> 
+</I>&gt;<i> For more advantages, please have a look at
+</I>&gt;<i> <A HREF="http://opensimulator.org/wiki/User:Lulurun#Advantages">http://opensimulator.org/wiki/User:Lulurun#Advantages</A>
+</I>&gt;<i> 
+</I>&gt;<i> If this is a good way to go, not so many changes is needed:
+</I>&gt;<i> * UGAI servers would remain as they used to be.
+</I>&gt;<i> * VW user won't feel anything different.
+</I>&gt;<i> * Of course this should be a option in OpenSim.ini so that we can 
+</I>&gt;<i> enable/disable/config
+</I>&gt;<i> * Just need to add supports for a new table &quot;RegionAssets&quot; with the same 
+</I>&gt;<i> structure as &quot;assets&quot;.
+</I>&gt;<i> * AssetClient in RegionServer should be improved to be able to get 
+</I>&gt;<i> assets from mutilple servers.
+</I>&gt;<i> 
+</I>&gt;<i> For more detailed plan of the implementation, please have a look at
+</I>&gt;<i> <A HREF="http://opensimulator.org/wiki/User:Lulurun#Implementation">http://opensimulator.org/wiki/User:Lulurun#Implementation</A>
+</I>&gt;<i> 
+</I>&gt;<i> Any advice, comment, thought is appreciate.
+</I>&gt;<i> 
+</I>&gt;<i> -- 
+</I>&gt;<i> Lulurun
+</I>&gt;<i> regards
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002064.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+	<LI>Next message: <A HREF="002077.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2065">[ date ]</a>
+              <a href="thread.html#2065">[ thread ]</a>
+              <a href="subject.html#2065">[ subject ]</a>
+              <a href="author.html#2065">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

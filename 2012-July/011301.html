@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: IntegrationService for Robust
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20IntegrationService%20for%20Robust&In-Reply-To=%3C5000C278.2070308%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011291.html">
+   <LINK REL="Next"  HREF="011299.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: IntegrationService for Robust</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20IntegrationService%20for%20Robust&In-Reply-To=%3C5000C278.2070308%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Proposal: IntegrationService for Robust">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sat Jul 14 02:51:04 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011291.html">[Opensim-dev] Proposal: IntegrationService for Robust
+</A></li>
+        <LI>Next message: <A HREF="011299.html">[Opensim-dev] Implementation of llSetRegionPos()
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11301">[ date ]</a>
+              <a href="thread.html#11301">[ thread ]</a>
+              <a href="subject.html#11301">[ subject ]</a>
+              <a href="author.html#11301">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi James.  I took a look at the code and added your repo but didn't get to install the plugin - it looks like 
+IntegrationService.HandleConsoleInstallPlugin is always existing if cmd.Length != 2, but the first two strings are 
+always going to be &quot;install&quot; and &quot;plugin&quot; so nothing will ever happen.  I'll leave you to fix that :).  But I liked the 
+bits I saw up until that point.
+
+Here's a grab-bag of comments from a first pass.  Sorry, there are a lot of them.
+
+* How mature is the Mono.Addins package, is it going to hold up for us?  I see it's getting some love (just hit v1.0 
+[1]) but I find the need to insert a Thread.Sleep(300) in LoadRegionsPlugin() very fragile - I think we would need to 
+find out what is really going wrong here.
+
+* On IntegrationService, I would far rather see the &quot;web&quot; methods return the mono addin classes directly that the 
+IntegrationServerHandler would then be response for serializing, rather than returning byte[] directly.  Then these 
+methods could lose their &quot;web&quot; monikers and potentially be much more easily be used programatically in other places.  It 
+would also be more in keeping with the structure of the other handlers and services, I believe.
+
+* The same goes for handling console arguments.  At the moment, these are fed directly into PluginManager which would 
+make it harder to call that programatically.  Perhaps another class is warranted explicitly for registering and handling 
+console input.
+
+* Can the console commands give more feedback in both success and failure cases?  There was no feedback for me on a 
+successful repo add or repo enable.
+
+* How would this structure play with the existing interfaces?  How hard would it be to ship 'core' plugins?  Would this 
+need an existing local repo?
+
+* What stability benefit does this approach confer?  The existing OpenSimulator service interfaces change extremely 
+rarely, if at all.  Also, how much can this approach protect against internal database or code changes?
+
+* Could you add some method/class doc to IIntegrationService?
+
+* Could the defaults paths for PluginRegistryLocation and IntegrationConfig be inside the OpenSimulator tree rather than 
+outside (but not just bin/ for god's sake!  Maybe we could even avoid bin/ altogether and put it in opensim/etc)? 
+Having them be full paths is going to require everybody to reconfigure to use them.
+
+* Could you rename IUtils to IntegrationUtils or similar?  IUtils makes it look like an interface.
+
+* Some methods have a space between the name and the args (e.g. HandleWebDisableRepository (OSDMap request)).
+
+[1] <A HREF="https://github.com/mono/mono-addins">https://github.com/mono/mono-addins</A>
+On 11/07/12 02:41, James Hughes wrote:
+&gt;<i> Thanks Justin, sure, I'll comb through it and change those. Also, when you look at it, please look at the command names
+</I>&gt;<i> and comment about those. They are a little scattered and maybe need to use &quot;show&quot; as opposed to &quot;list&quot; etc.
+</I>&gt;<i>
+</I>&gt;<i> Thanks for the feedback!
+</I>&gt;<i>
+</I>&gt;<i> BlueWall
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 07/10/2012 08:02 PM, Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> Hi BlueWall. Interesting stuff! I will certainly take a look though I
+</I>&gt;&gt;<i> might not get sufficient spare time until Friday.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> One small point, I see various methods are taking a UUID s_sessionID
+</I>&gt;&gt;<i> argument. Could we change this to secureSessionID? The code standard in
+</I>&gt;&gt;<i> OpenSimulator is not to have underscores in variable names (as per the
+</I>&gt;&gt;<i> MSDN C# coding conventions).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 10/07/12 21:16, James Hughes wrote:
+</I>&gt;&gt;&gt;<i> I have been working on some things, for a while now, revolving around
+</I>&gt;&gt;&gt;<i> the idea of making external applications
+</I>&gt;&gt;&gt;<i> integration easier and helping provide a place to buffer between the
+</I>&gt;&gt;&gt;<i> changes that can happen in core and external
+</I>&gt;&gt;&gt;<i> applications that depend on stability. The proposal can be found at:
+</I>&gt;&gt;&gt;<i> <A HREF="http://opensimulator.org/wiki/IntegrationService">http://opensimulator.org/wiki/IntegrationService</A>
+</I>&gt;&gt;&gt;<i> with additional material at <A HREF="http://bluewallvirtual.com/node/46">http://bluewallvirtual.com/node/46</A> . Code
+</I>&gt;&gt;&gt;<i> is in the OpenSim repository under the integration
+</I>&gt;&gt;&gt;<i> branch or may be seen at
+</I>&gt;&gt;&gt;<i> <A HREF="https://github.com/BlueWall/opensim/tree/integration.">https://github.com/BlueWall/opensim/tree/integration.</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> The bulk of the code is in
+</I>&gt;&gt;&gt;<i> <A HREF="https://github.com/BlueWall/opensim/tree/integration/OpenSim/Services/IntegrationService">https://github.com/BlueWall/opensim/tree/integration/OpenSim/Services/IntegrationService</A>
+</I>&gt;&gt;&gt;<i> and
+</I>&gt;&gt;&gt;<i> some at
+</I>&gt;&gt;&gt;<i> <A HREF="https://github.com/BlueWall/opensim/tree/integration/OpenSim/Server/Handlers/Integration">https://github.com/BlueWall/opensim/tree/integration/OpenSim/Server/Handlers/Integration</A>
+</I>&gt;&gt;&gt;<i> . Some example code is
+</I>&gt;&gt;&gt;<i> here...
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> landtool using a plugin to retrieve data needed for land sales:
+</I>&gt;&gt;&gt;<i> <A HREF="https://github.com/BlueWall/IntegrationHelper">https://github.com/BlueWall/IntegrationHelper</A> with the
+</I>&gt;&gt;&gt;<i> php here: <A HREF="http://pastebin.com/yUGph1aD">http://pastebin.com/yUGph1aD</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> It is working for test purposes and has some supporting facilities
+</I>&gt;&gt;&gt;<i> setup for testing with more details at:
+</I>&gt;&gt;&gt;<i> <A HREF="http://bluewallvirtual.com/node/46">http://bluewallvirtual.com/node/46</A> . I will be getting some additional
+</I>&gt;&gt;&gt;<i> documentation together about developing the
+</I>&gt;&gt;&gt;<i> plugins and setting up repositories. I have set some time aside to be
+</I>&gt;&gt;&gt;<i> responsive to working on this and would appreciate
+</I>&gt;&gt;&gt;<i> input. I am interested in getting more eyes on it and getting it ready
+</I>&gt;&gt;&gt;<i> to include in core under an experimental status.
+</I>&gt;&gt;&gt;<i> After that, I would be interested in helping develop a stable/basic
+</I>&gt;&gt;&gt;<i> API for integration with the plugins and helping get
+</I>&gt;&gt;&gt;<i> the API into popular language libraries.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Thanks!
+</I>&gt;&gt;&gt;<i> BlueWall
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011291.html">[Opensim-dev] Proposal: IntegrationService for Robust
+</A></li>
+	<LI>Next message: <A HREF="011299.html">[Opensim-dev] Implementation of llSetRegionPos()
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11301">[ date ]</a>
+              <a href="thread.html#11301">[ thread ]</a>
+              <a href="subject.html#11301">[ subject ]</a>
+              <a href="author.html#11301">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

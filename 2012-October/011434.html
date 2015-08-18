@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Update for group module &amp; flotsam
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3C50789E1D.20500%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011432.html">
+   <LINK REL="Next"  HREF="011436.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Update for group module &amp; flotsam</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3C50789E1D.20500%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Update for group module &amp; flotsam">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sat Oct 13 00:47:57 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011432.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+        <LI>Next message: <A HREF="011436.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11434">[ date ]</a>
+              <a href="thread.html#11434">[ thread ]</a>
+              <a href="subject.html#11434">[ subject ]</a>
+              <a href="author.html#11434">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Michelle.  I've now had some more time to think about this.  In fact, I established a proposal summary page at [1] 
+which I'll change as we go along (or please feel free to change yourself).  We do need to fix this problem of group IM 
+taking massive time with groups that aren't that big.
+
+I do like the approach of caching online status (and login time) in the groups service.
+
+1.  It's reasonably simple.
+2.  One network call to fetch online group members per IM.
+3.  May allow messaging across multiple OpenSimulator installations.
+
+However, this approach does mean
+
+1.  Independently updating the groups services on each login/logout.  I'm not saying this is a problem, particularly if 
+it saves traffic later on.
+2.  Groups service has to deal with extra information.  Again, this is fairly simple so not necessarily a fatal issue 
+though it does mean every groups implementations needs to do this in some manner.
+3.  Online cache is not reusable by other services in the future.
+
+On a technical note, the XmlRpc groups module does in theory cache data for 30 seconds by default, so a change in online 
+status may not be seen for upto 30 seconds.  I personally think that this is a reasonable tradeoff.
+
+Rather, of the above cons, 3 is the one I'm finding most serious.  If other services would also benefit from online 
+status caching in the future, they would have to implement their own caches (and be updated from simulators).
+
+I do agree that making a GridUser.LoggedIn() call for every single group member on every single IM is unworkable.  Even 
+if this is only done once and cached for a certain period of time it could be a major issue for large groups.
+
+So an alternative approach could be to add a new call to GridUser service (maybe LoggedIn(List&lt;UUID&gt;) that will only 
+return GridInfo for those that are logged in.  This could then be cached simulator-side for a certain period of time 
+(e.g. 30 seconds like the groups information) and used for group IM.
+
+This has the advantages that
+
+1.  Groups and future services don't need to do their own login caching.
+2.  Future services can use the same information and code rather than have to cache login information themselves.
+
+However, it does
+
+1.  Require GridUserInfo caching simulator-side, I would judge this to be a more complex approach.
+2.  Mean that during the cache period, new online group messages will not receive messages.  (this is going to happen 
+with GetGroupMembers() caching anyway).
+3.  Traffic is still generated to the GridUser service at the end of every simulator-side caching period.  This is 
+probably not a huge burden.
+
+So right now, I'm somewhat more in favour of a GridUserInfo simulator-side caching approach than caching login 
+information within the groups service.  However, unlike you, I haven't actually tried to implement this approach so 
+there may well be issues that I haven't seen.
+
+What do you think, Michelle (or anybody else)?
+
+On 10/10/12 19:47, Michelle Argus wrote:
+&gt;<i> <A HREF="http://code.google.com/p/flotsam/">http://code.google.com/p/flotsam/</A> is the the current flotsam version and points to the github repro which I forked and
+</I>&gt;<i> then patched.
+</I>&gt;<i>
+</I>&gt;<i> None of the changes I proposed in my git fork have been implemented, neither in opensim nor in flotsam.
+</I>&gt;<i>
+</I>&gt;<i>   Consider my proposal as a quick fix for the time beeing which does not solve all other issues mentioned by later
+</I>&gt;<i> mailings.
+</I>&gt;<i>
+</I>&gt;<i> Am 09.10.2012 10:24, schrieb Ai Austin:
+</I>&gt;&gt;<i> Michelle Argus on Wed Oct 3 18:00:23 CEST 2012:
+</I>&gt;&gt;&gt;<i> I have added some changes to the group module of OpenSim and the flotsam server.
+</I>&gt;&gt;&gt;<i> ...
+</I>&gt;&gt;&gt;<i> The changes can be found in the 2 gits here: &lt;<A HREF="https://github.com/MAReantals">https://github.com/MAReantals</A>&gt;<A HREF="https://github.com/MAReantals">https://github.com/MAReantals</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> NB: Both changes to flotsam and opensim are backward compatible and do
+</I>&gt;&gt;&gt;<i> not require that both parts are updated. If some simulators are not
+</I>&gt;&gt;&gt;<i> updated it can happen that some groupmembers do not receive
+</I>&gt;&gt;&gt;<i> groupmessages as their online status is not updated correctly. In a grid
+</I>&gt;&gt;&gt;<i> like OSgrid my recomendation would thus be to first update the
+</I>&gt;&gt;&gt;<i> simulators and at a later stage flotsam.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hi Michelle... I am looking at what is needed to update the Openvue grid which is using the flotsam XmlRpcGroups
+</I>&gt;&gt;<i> module.  the GITHub repository has the changes from a few days ago... but I wonder if there has been an update/commit
+</I>&gt;&gt;<i> into the main Opensim Github area already.  I cannot see a  related commit looking back over the last week or so.  Is
+</I>&gt;&gt;<i> the core system updated so this module is up to date in that?  I also note that the Opensim.ini.example file contains
+</I>&gt;&gt;<i> a reference to <A HREF="http://code.google.com/p/flotsam/">http://code.google.com/p/flotsam/</A> for details of how to install the service.. but that seems to be
+</I>&gt;&gt;<i> pointing at an out of date version?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I think for the flotsam php end it is straightforward and I obtained the changed groups.sql and xmlrpc.php files
+</I>&gt;&gt;<i> needed.  But note that people are still pointed via the opensim.ini.example comments at the old version on
+</I>&gt;&gt;<i> <A HREF="http://code.google.com/p/flotsam/">http://code.google.com/p/flotsam/</A> so that either needs updating to teh latest version, or the comment in
+</I>&gt;&gt;<i> opensim.ini.exmaple needs to be changed.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> To avoid mistakes, I wonder if you can clarify where to go for the parts needed and at what revision/date of OpenSim
+</I>&gt;&gt;<i> 0.7.5 dev master this was introduced, what to get and what to change for an existing service in terms of the data base
+</I>&gt;&gt;<i> tables, OpenSim.exe instance and the web support php code areas?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks Michelle, Ai
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011432.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+	<LI>Next message: <A HREF="011436.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11434">[ date ]</a>
+              <a href="thread.html#11434">[ thread ]</a>
+              <a href="subject.html#11434">[ subject ]</a>
+              <a href="author.html#11434">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

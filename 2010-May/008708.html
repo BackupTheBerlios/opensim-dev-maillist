@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Adding an assembly reference to make available	via script
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Adding%20an%20assembly%20reference%20to%20make%20available%0A%09via%20script&In-Reply-To=%3CAANLkTilGrBaeyubXP31StX5U7qUN_bzjW3R0TX4FVXgW%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008653.html">
+   <LINK REL="Next"  HREF="008709.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Adding an assembly reference to make available	via script</H1>
+    <B>J Lothian</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Adding%20an%20assembly%20reference%20to%20make%20available%0A%09via%20script&In-Reply-To=%3CAANLkTilGrBaeyubXP31StX5U7qUN_bzjW3R0TX4FVXgW%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Adding an assembly reference to make available	via script">rhalin at gmail.com
+       </A><BR>
+    <I>Thu May 27 22:28:41 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008653.html">[Opensim-dev] Adding an assembly reference to make available via	script
+</A></li>
+        <LI>Next message: <A HREF="008709.html">[Opensim-dev] Adding an assembly reference to make available via script
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8708">[ date ]</a>
+              <a href="thread.html#8708">[ thread ]</a>
+              <a href="subject.html#8708">[ subject ]</a>
+              <a href="author.html#8708">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin,
+
+Thanks for pointing me in a direction, this was -very- helpful.  It wasn't
+nearly as straightforward as I was expecting, but it did give me the
+opportunity/excuse to get my hands dirty and dig into the projects and code
+a bit.  I'm going to document the process a bit here, so it gets archived
+for future reference.  I'm pretty sure I've narrowed down the steps needed.
+The actual project that needs the assembly reference added to it is
+OpenSim.Region.ScriptEngine.Shared.CodeTools, but this is just the start.
+This gets the assembly detectable by the compiler.  The next step is adding
+the reference to the script being compiled.  In
+OpenSim.Region.ScriptEngine.Shared.CodeTools.Compiler (Compiler.cs), in the
+function CompileFromDotNetText, there is a section where
+ReferencedAssemblies are added to the compiler as parameters, and the
+assembly needs to be added here as well.  For example, to add a standard
+library, the following line would be used:
+
+parameters.ReferencedAssemblies.Add(&quot;System.dll&quot;);
+
+Which, it turns out, I needed to do, as System.dll isn't added by default,
+and our test script included a try/catch where Exception was not detected as
+a type.  To add something like the MySql dll that comes with OpenSim, it
+would look like this:
+
+parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,&quot;MySql.Data.dll&quot;
+));
+The script engine automatically wraps scripts in boilerplate code to put
+them inside a class and make them compilable.  This has the side-effect of
+making &quot;using&quot; or &quot;import&quot; statements inside scripts impossible, so these
+also need to be added to the code.
+For example, if your script is C#, then the function to alter is
+CreateCSCompilerScript
+(in the same Compile.cs), adding the using statement to the list inside this
+function.
+
+If I get the chance later this summer, I may try to develop a more robust
+system that attempts to (at the very least) detect the default mono/.net
+libraries and automatically adjust this boilerplate to include them...
+
+Again, thanks for the help!
+
+--Jeremy Lothian
+
+On Fri, May 14, 2010 at 9:19 PM, Justin Clark-Casey &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+
+&gt;<i> J Lothian wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Greetings,
+</I>&gt;&gt;<i>  I'm a developer working on a research project that we are migrating from
+</I>&gt;&gt;<i> Second Life to OpenSim.  We're currently exploring options and new features
+</I>&gt;&gt;<i> that may be available in OpenSim that we did not have in Second Life.  One
+</I>&gt;&gt;<i> of these items is the ability to add a custom assembly reference to be
+</I>&gt;&gt;<i> available for scripts within the scripting engine (in C# mode).  I am very
+</I>&gt;&gt;<i> unfamiliar with the mono/nant build process.  I searched for this question a
+</I>&gt;&gt;<i> bit and couldn't find anything very related.  Could someone point me towards
+</I>&gt;&gt;<i> which files I should be looking at to add an assembly reference?  Is this
+</I>&gt;&gt;<i> even possible?  Also, apologies if this is the wrong list, I wasn't sure if
+</I>&gt;&gt;<i> this was a user or developer question.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> If you want to directly call your own C# assembly from within C# scripts,
+</I>&gt;<i> then I believe that you would have to explicitly add those assemblies to
+</I>&gt;<i> prebuild.xml before regenerating the solution files with
+</I>&gt;<i> prebuild.sh/prebuild.bat.
+</I>&gt;<i> The project you would need to add to is
+</I>&gt;<i> OpenSim.Region.ScriptEngine.Shared.Api, I think.  However, some of this is
+</I>&gt;<i> supposition - I've never tried this before.  I don't think there is any
+</I>&gt;<i> documentation on it.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20100527/3e1a4074/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20100527/3e1a4074/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008653.html">[Opensim-dev] Adding an assembly reference to make available via	script
+</A></li>
+	<LI>Next message: <A HREF="008709.html">[Opensim-dev] Adding an assembly reference to make available via script
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8708">[ date ]</a>
+              <a href="thread.html#8708">[ thread ]</a>
+              <a href="subject.html#8708">[ subject ]</a>
+              <a href="author.html#8708">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

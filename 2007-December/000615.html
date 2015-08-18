@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Code changes to revert to non-hyphenated strings - is this the right way forward?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Code%20changes%20to%20revert%20to%20non-hyphenated%20strings%0A%20-%20is%20this%20the%20right%20way%20forward%3F&In-Reply-To=%3CBLU134-W308BB13A1B01210EFAF27CD55E0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000614.html">
+   <LINK REL="Next"  HREF="000616.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Code changes to revert to non-hyphenated strings - is this the right way forward?</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Code%20changes%20to%20revert%20to%20non-hyphenated%20strings%0A%20-%20is%20this%20the%20right%20way%20forward%3F&In-Reply-To=%3CBLU134-W308BB13A1B01210EFAF27CD55E0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Code changes to revert to non-hyphenated strings - is this the right way forward?">stefan at tribalmedia.se
+       </A><BR>
+    <I>Fri Dec 21 08:02:53 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000614.html">[Opensim-dev] Code changes to revert to non-hyphenated strings - is this the right way forward?
+</A></li>
+        <LI>Next message: <A HREF="000616.html">[Opensim-dev] Compiling on Ubuntu's automated build servers (Part	Deux)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#615">[ date ]</a>
+              <a href="thread.html#615">[ thread ]</a>
+              <a href="subject.html#615">[ subject ]</a>
+              <a href="author.html#615">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin,
+&gt;<i> 1. Is it, in fact, more sensible to get some method for doing this on &gt; LLUUID itself (ToStringRaw())? Doing it this way is very non-OO, &gt; although might be better if you think such methods should live outside &gt; of the objects themselves.
+</I>Sorry for re-iterating this, but the conversion is a function of the serializing CONTEXT - not the OBJECT itself.
+ 
+Consider all the different serializations, ToString, ToStringHyphenated, ToXml, ToXmlString, ToReader, ToHtml, ToHtmlHeader, ToByte[] et.c. (and then add Parse and From...)
+ 
+If the base objects would know about the demands of all of these, they would be coupling culprits in deed. That is why we have been moving away from that approach for a number of years now.
+ 
+OO is not an end, but a means. Even so, one could argue that this is in fact object oriented, but it's the serialization that is the focus, not the data.
+ &gt; 2. I notice, at least in MySQL and SQLlite, that all the database &gt; tables could already handle uuid strings with 36 characters (the asset &gt; table being the notable exception). Are we better off keeping the code &gt; as is and asking users to manually convert their databases if they want &gt; to retain their data? Downside: user conversion &amp; ToString() remains, &gt; as well as some conversion work. Upside: potentially Path Of Least &gt; Resistance, fewer introduced bugs in the conversion process.&gt; &gt; This option still requires some manual change (e.g. to Inventory code &gt; which hardcodes initial UUIDs) and needs the binary 16 id store of the &gt; Asset table to expand to 18.
+Just to take that discussion; It seems the database stores either VARCHAR or BINARY - one is a waste of space and the other is just plain wrong
+On most Databases you can't index on binary fields (I don't know if that's the case with MySql et c.) so the right way to go is
+CHAR(36) on systems that don't have a Guid type and UNIQUEIDENTIFIER on those that has.
+ 
+This is an excellent opportunity to remedy that too.
+ 
+/Stefan
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071221/6c8449b0/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071221/6c8449b0/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000614.html">[Opensim-dev] Code changes to revert to non-hyphenated strings - is this the right way forward?
+</A></li>
+	<LI>Next message: <A HREF="000616.html">[Opensim-dev] Compiling on Ubuntu's automated build servers (Part	Deux)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#615">[ date ]</a>
+              <a href="thread.html#615">[ thread ]</a>
+              <a href="subject.html#615">[ subject ]</a>
+              <a href="author.html#615">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Some new code for your review and	possible	acceptance
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20new%20code%20for%20your%20review%20and%0A%09possible%09acceptance&In-Reply-To=%3C004001caf693%240d11dba0%24273592e0%24%40com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008677.html">
+   <LINK REL="Next"  HREF="008655.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Some new code for your review and	possible	acceptance</H1>
+    <B>Chris Hart</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20new%20code%20for%20your%20review%20and%0A%09possible%09acceptance&In-Reply-To=%3C004001caf693%240d11dba0%24273592e0%24%40com%3E"
+       TITLE="[Opensim-dev] Some new code for your review and	possible	acceptance">chris at reactiongrid.com
+       </A><BR>
+    <I>Tue May 18 16:04:36 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008677.html">[Opensim-dev] Some new code for your review and	possible	acceptance
+</A></li>
+        <LI>Next message: <A HREF="008655.html">[Opensim-dev] Controlling bots via inworld scripts&#8207;&#8207;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8678">[ date ]</a>
+              <a href="thread.html#8678">[ thread ]</a>
+              <a href="subject.html#8678">[ subject ]</a>
+              <a href="author.html#8678">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Alex,
+
+I tend to maintain the MSSQL codebase as best I can - there are some estate
+pieces on 0.7 I am out of date with synching up with the other providers -
+it's on the todo list :)
+
+I'm very keen to see your changes, however I am completely useless with git
+and can't seem to get hold of your code - any chance you can zip the MSSQL
+bits up and send over to me at <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">chris at reactiongrid.com</A>? Would be very
+grateful! I have a very large database I can use for performance testing and
+would be great to see how much of a speed improvement it would provide.
+
+Many thanks,
+
+Chris
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of AlexRa
+Sent: 18 May 2010 3:54 AM
+To: Justin Clark-Casey
+Subject: Re: [Opensim-dev] Some new code for your review and possible
+acceptance
+
+
+Hello Justin,
+
+JCC&gt; I believe migrations were inspired by the Ruby on Rails way of
+JCC&gt; doing things, so it would be nice to stick to this if possible
+JCC&gt; (of course, your way may be completely compatible for all I
+JCC&gt; know).  In the past, the migrations have been tidied up simply by
+JCC&gt; bunching all the oldest ones up into a new 000 migration.
+
+It is compatible, and the idea is just the same. What's changed is the
+format of the migration files:  instead of having all those
+0nn_RegionStore.sql scattered around, you'd have all the same stuff in
+a single file, separated by &quot;:VERSION nnn&quot; like this:
+
+:<i>VERSION 1
+</I>
+create table .... ()
+
+:<i>VERSION 2
+</I>
+alter table ... add ....
+
+:<i>VERSION 3
+</I>
+...
+
+The advantage is that this way the history of changes is much more
+readable, you don't need to hunt around to see what was the next
+change.
+
+And if there are still any old-style migration files (with higher
+version numbers) left behind, they are processed too.  If the same
+version section exists both in the new-style file and as a separate
+old-style migration, the latter is ignored.
+
+JCC&gt; It would be very good to update nunit - just today I was looking
+JCC&gt; to use the throws assertion before realizing that it was only
+JCC&gt; implemented in nunit 2.5.  It would be especially nice to see
+JCC&gt; this work as patches, preferably separating the nunit upgrades from any
+other new tests.
+
+Justin, would you please just look at my repo just once and see the amount
+of
+changes there? And there is still local stuff I haven't pushed yet,
+such as unified data tests (that don't require separate test projects
+for each supported database), *fully tested* EstateStore, including
+the MS SQL part which was very unfinished. Right now I'm going through
+the RegionTests (also for all 3 DBs) and some of the tests looks
+rather messed up, so about half of them show up red in NUnit. Either
+I'll finish that and move ahead to other things (such as the Inventory
+store), or I'll be stuck forever with the Mantis thingy.
+
+And if you'll ever want to upgrade to the most recent MySQL .NET
+connector (which I did because I needed it to work correctly with
+stored procs in migrations, which in turn I needed for server-side
+tracking of asset access times), you'll see that nothing works,
+because the connector now treats CHAR(36) as Guid by default and a lot
+of type conversions in the code are broken. That requires safer
+conversions to/from DB types throughout the data layer, basically a way to
+guarantee that whatever the storage format is (esp. for UUIDs and
+bools), in whichever dbms, it gets read correctly.  That already works
+in my version of the AssetStore (for all 3 DBs), but needs to be done in
+other stores as well.  I checked that this works by changing
+ID/CreatorID in the MySql [assets] table between BINARY(16) and CHAR(36) and
+the
+thing kept working without any changes in the code.
+
+BTW, do you know that when working with a local MS SQL server,
+keeping the connection open and properly preparing all statements
+(once, not on every call) increases performance more than twofold on
+read operations (such as asset access)?  The code that works this way
+(currently for assets, for all 3 DBs) and is fully
+tested, including performance tests, is also in my repo.
+
+Admittedly, the &quot;master&quot; branch of my repo is not all ready for
+integration and may be difficult to read (although most of it
+is tested and works fine).
+
+On the other hand, the smaller single-feature branches I mentioned
+in my previous msg are specifically made to be easy to pick up.
+
+If you want the NUnit update, it would take you about 3 mins to
+cherry-pick a couple of commits from &quot;git at
+github.com:AlexRa/opensim-mods-Alex.git&quot;. Those are on the
+&quot;migration-tests&quot; branch with IDs:
+
+bdd430920d1...  (corrections to the code -
+NUnit.Framework.SyntaxHelpers removed)
+
+af4ace4f6758... (the updated NUnit dll)
+
+You'll have to install a fresh NUnit distro as well, obviously.
+
+
+
+
+Best regards,
+
+AlexRa
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008677.html">[Opensim-dev] Some new code for your review and	possible	acceptance
+</A></li>
+	<LI>Next message: <A HREF="008655.html">[Opensim-dev] Controlling bots via inworld scripts&#8207;&#8207;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8678">[ date ]</a>
+              <a href="thread.html#8678">[ thread ]</a>
+              <a href="subject.html#8678">[ subject ]</a>
+              <a href="author.html#8678">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

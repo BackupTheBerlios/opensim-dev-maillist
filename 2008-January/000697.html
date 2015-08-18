@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Hey all, Grid Comms, border crossings,	Request for comments, red regions and tolerance to network failure.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Hey%20all%2C%20Grid%20Comms%2C%20border%20crossings%2C%0A%09Request%20for%20comments%2C%20red%20regions%20and%20tolerance%20to%20network%20failure.&In-Reply-To=%3C34cc66250801181526i7db64965tef657d7084e080f4%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000696.html">
+   <LINK REL="Next"  HREF="000698.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Hey all, Grid Comms, border crossings,	Request for comments, red regions and tolerance to network failure.</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Hey%20all%2C%20Grid%20Comms%2C%20border%20crossings%2C%0A%09Request%20for%20comments%2C%20red%20regions%20and%20tolerance%20to%20network%20failure.&In-Reply-To=%3C34cc66250801181526i7db64965tef657d7084e080f4%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Hey all, Grid Comms, border crossings,	Request for comments, red regions and tolerance to network failure.">teravus at gmail.com
+       </A><BR>
+    <I>Sat Jan 19 00:26:14 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000696.html">[Opensim-dev] moving assets from sqlite to mysql
+</A></li>
+        <LI>Next message: <A HREF="000698.html">[Opensim-dev] Hey all, Grid Comms, border crossings,	Request for comments, red regions and tolerance to network failure.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#697">[ date ]</a>
+              <a href="thread.html#697">[ thread ]</a>
+              <a href="subject.html#697">[ subject ]</a>
+              <a href="author.html#697">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi everyone
+
+People are practically begging for more reliable grid comms.   So,
+naturally, I want to give it to them.    I really want to do it with
+the least amount of work/turnaround time as possible.   We've all got
+only so much time to work on something.
+
+So, at least with border crossings, I've observed a few phenomena
+
+1. Fly off into infinity
+2. Get put arbitrarily in a spot in the region you were previously in
+and get stuck there
+
+Item one is almost exclusively from child agent disconnects (where a
+region that you're a child agent in says, 'close was called' but you
+didn't actually want it to).  Eventually the region will turn red on
+your minimap.
+
+Item number two seems to be corruption of some kind.  It could be a
+race condition or lack of synchronization with the client.
+
+Fact: When a region disconnects on your minimap in llsimulators, the
+region will appear again.
+
+If you watch the console you'll see that the region that you're a root
+agent in sends the 'disable simulator'  message and then the 'enable
+simulator' message.
+
+This implies that when you get disconnected as a child agent from the
+region you're a child in, 'that region' mentions the fact that 'it
+lost you' to the region you're a root agent in.  Then the region
+you're a root agent in sends the 'disable simulator message' and then
+sends the 'enable simulator' message to reconnect you to that region.
+
+Fact: When a region goes red on your minimap with opensim, the region
+will never be available again until you relog and when you try to
+cross the border, you will fly off into infinity.   Even if the region
+hasn't turned red *yet*, you will still fly off into infinity.
+
+So, MW suggested I post a request for comments on this topic since it
+has some potential to affect everyone.
+
+Here's what I propose
+
+When sending a child agent notification, the current region is also
+included so that, when a child agent disconnects, the region can tell
+the neighbor that the child is a root agent in to re-inform the agent
+of the neighbor.
+
+Add a routine that the clientview.close method calls in the scene
+which checks for a child agent and sends a 'I lost em' message to the
+region the agent came from.  From there the simulator with the root
+agent in it can make the choice to send the child the reconnect
+messages or not.
+
+This will ensure that a child agent connection is established.
+
+Ensuring that a child agent connection is established will make border
+crossings more successful and less of Item one from above will occur.
+
+I'm not looking to re-do the protocol entirely.  I want to make it
+more tolerant to the inevitable network failure.  I'm not looking to
+change much.
+
+I also don't really want to change any of the existing protocol stuff.
+  We need a child agent data update anyway..   and it's half
+implemented already in the OSG1 code(for a month now).
+
+The child agent data update contains things like..  child throttles..
+ so the neighbor sims don't flood the avatar, where the avatar is in
+world and what their draw distance is so that we can enable sending
+prim to agents in other regions.
+
+I'm not looking to make OSG2 here.  I'm looking to make OSG1 work better.
+
+With that..       comments anyone?
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000696.html">[Opensim-dev] moving assets from sqlite to mysql
+</A></li>
+	<LI>Next message: <A HREF="000698.html">[Opensim-dev] Hey all, Grid Comms, border crossings,	Request for comments, red regions and tolerance to network failure.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#697">[ date ]</a>
+              <a href="thread.html#697">[ thread ]</a>
+              <a href="subject.html#697">[ subject ]</a>
+              <a href="author.html#697">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,226 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Supplying IScene instead of Scene for the future region modules mechanism
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Supplying%20IScene%20instead%20of%20Scene%20for%20the%20future%0A%20region%20modules%20mechanism&In-Reply-To=%3C49E50F11.6010208%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006152.html">
+   <LINK REL="Next"  HREF="006146.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Supplying IScene instead of Scene for the future region modules mechanism</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Supplying%20IScene%20instead%20of%20Scene%20for%20the%20future%0A%20region%20modules%20mechanism&In-Reply-To=%3C49E50F11.6010208%40t-data.com%3E"
+       TITLE="[Opensim-dev] Supplying IScene instead of Scene for the future region modules mechanism">melanie at t-data.com
+       </A><BR>
+    <I>Wed Apr 15 00:32:49 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006152.html">[Opensim-dev] Supplying IScene instead of Scene for the future	region modules mechanism
+</A></li>
+        <LI>Next message: <A HREF="006146.html">[Opensim-dev] Supplying IScene instead of Scene for the future region modules mechanism
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6153">[ date ]</a>
+              <a href="thread.html#6153">[ thread ]</a>
+              <a href="subject.html#6153">[ subject ]</a>
+              <a href="author.html#6153">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>This entire discussion is, of course, moving away from the thing 
+that started it all.
+The original plan was to make a region module API that is able to 
+support dynamic loading and unloading of regions, then quickly 
+convert all modules to that API.
+
+If we now go into ISceneAPI and loads of refactoring, the very basic 
+function of a single region restart will be delayed an indefinite 
+amount of time, and since we then can't deprecate and remove the old 
+interface quickly, it can't be depended on for a long time, since 
+many modules just need Scene and will not be migrated.
+
+Now, we think differently here.
+
+I think that exposing a full class to region modules and accepting 
+that region modules written for Scene will not work with MyNew 
+Scene, but that will instead have it's own set of modules, unless it 
+inherits from Scene, is less evil than even a single upcast of 
+IScene to Scene. Upcasts are, in my eyes, the ultimate evil. I;d 
+like to avoid the need for that and I see it becoming ubiquitous if 
+this ISceneAPI is implemented.
+
+Melanie
+
+
+Teravus Ovares wrote:
+&gt;<i> I have some great ideas for region modules...     and..    I don't
+</I>&gt;<i> have the time to do them over and over again when the API changes AND
+</I>&gt;<i> work on OpenSimulator too.
+</I>&gt;<i> 
+</I>&gt;<i> This has been one of my 'showstopper' reasons for not working on some
+</I>&gt;<i> region module ideas that I have.
+</I>&gt;<i> 
+</I>&gt;<i> So, if we're going with an interface..   We need to commit to the
+</I>&gt;<i> interface, whatever it is..  and keep API within the interface the
+</I>&gt;<i> same after some amount of experimentation.    I personally, consider
+</I>&gt;<i> the definition of an Interface, the 'mark' that things within the
+</I>&gt;<i> interface are going to stay mostly the same.   If they change, it
+</I>&gt;<i> warrants a release notes update and maybe a mailing list post warning
+</I>&gt;<i> people.
+</I>&gt;<i> 
+</I>&gt;<i> The problem with region modules..   and a scene interface..  is region
+</I>&gt;<i> modules use so many functions.   There is a LOT to try to encapsulate
+</I>&gt;<i> in an interface.   Here's the thing.   In the default implementation
+</I>&gt;<i> usage, most of them are important in really diverse region modules.
+</I>&gt;<i>  I can definitely think of a use for OtherRegionUp.
+</I>&gt;<i> 
+</I>&gt;<i> The other thing, is Scene--&gt;SOG--&gt;SOP is a bit too complicated for any
+</I>&gt;<i> single person to know everything about it.   This presents the
+</I>&gt;<i> question..  if the person doesn't know mostly everything about the
+</I>&gt;<i> system he's interfacing with, there's a very good chance it won't be
+</I>&gt;<i> as optimal as we'd like.   Certainly, at the planning stage, things
+</I>&gt;<i> will be missing..  and that will cause issues later to which we must
+</I>&gt;<i> implement nasty work arounds.
+</I>&gt;<i> 
+</I>&gt;<i> In Conclusion..   I'm mostly with Stefan here.   Though..    Given the
+</I>&gt;<i> complication, I don't really know where to start.      I think if we
+</I>&gt;<i> do go the Interface route, we must start respecting that people will
+</I>&gt;<i> be using it..  and therefore, if we make a change to it, we must
+</I>&gt;<i> notify people using the -dev list.   The notification doesn't have to
+</I>&gt;<i> be anything significant, just a note of what changed (including
+</I>&gt;<i> previous method signature, and new method signature).    If we do this
+</I>&gt;<i> at the time of the commit, then we, and the community can stay on top
+</I>&gt;<i> of what is changing in a way that is useful.
+</I>&gt;<i> 
+</I>&gt;<i> Best Regards
+</I>&gt;<i> 
+</I>&gt;<i> Teravus
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> On 4/14/09, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> Stefan Andersson wrote:
+</I>&gt;&gt;<i> &gt; Justin, Homer;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; consider two things you might:
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; 1) take the opportunity to take a moment to re-ponder each &quot;missing&quot;
+</I>&gt;&gt;<i> &gt; IScene power - should the caller perhaps move instead? Or should the
+</I>&gt;&gt;<i> &gt; called method move to a place where the caller has access without going
+</I>&gt;&gt;<i> &gt; thru IScene? Maybe the Scene is too big, not IScene too small?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yes.  Scene is too big (even forgetting about Scene.Inventory.cs for the moment).  There's still a lot of functionality
+</I>&gt;&gt;<i> that can be broken into modules, I think, but it's getting quite difficult now (e.g. aspects of land which remain in
+</I>&gt;&gt;<i> scene, and the whole of inventory management).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; 2) maybe the notion of a IScene vs a ISceneBase is really an indication
+</I>&gt;&gt;<i> &gt; that you should have a 'ISceneForRegionModules' instead - an facade
+</I>&gt;&gt;<i> &gt; enumerating the powers the core wish to expose to the scene, to force
+</I>&gt;&gt;<i> &gt; the region module coder to code in a hygienic way. Laying the
+</I>&gt;&gt;<i> &gt; foundations for a ISceneAPI, if you will?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yeah, ISceneBase ain't a great name.  But I'm not too keen on ISceneForRegionModules either :).  ISceneAPI perhaps...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Of course, this also doesn't take into account the big lump of stuff hanging around in SceneGraph either...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; On my mind for a long time, both these things has been.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Best regards,
+</I>&gt;&gt;<i> &gt; Stefan Andersson
+</I>&gt;&gt;<i> &gt; Tribal Media AB
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;  &gt; Date: Tue, 14 Apr 2009 18:02:45 +0100
+</I>&gt;&gt;<i> &gt;  &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>
+</I>&gt;&gt;<i> &gt;  &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;  &gt; Subject: [Opensim-dev] Supplying IScene instead of Scene for the
+</I>&gt;&gt;<i> &gt; future region modules mechanism
+</I>&gt;&gt;<i> &gt;  &gt;
+</I>&gt;&gt;<i> &gt;  &gt; Hey Homer (since this is primarily addressed to you :),
+</I>&gt;&gt;<i> &gt;  &gt;
+</I>&gt;&gt;<i> &gt;  &gt; I see you're making some progress on the up-and-coming new region
+</I>&gt;&gt;<i> &gt; modules mechanism.
+</I>&gt;&gt;<i> &gt;  &gt;
+</I>&gt;&gt;<i> &gt;  &gt; Instead of passing Scene itself to region modules, could we create an
+</I>&gt;&gt;<i> &gt; interface so that we better control the amount of
+</I>&gt;&gt;<i> &gt;  &gt; innards that we expose to region modules? It's convenient-ish to give
+</I>&gt;&gt;<i> &gt; the original Scene class to modules now, but it
+</I>&gt;&gt;<i> &gt;  &gt; will cause us problems down the road.
+</I>&gt;&gt;<i> &gt;  &gt;
+</I>&gt;&gt;<i> &gt;  &gt; I'm quite happy to pitch in with this if you want. I suggest renaming
+</I>&gt;&gt;<i> &gt; the existing IScene to ISceneBase (since that's
+</I>&gt;&gt;<i> &gt;  &gt; what it really is) and creating a new IScene that's implemented by Scene.
+</I>&gt;&gt;<i> &gt;  &gt;
+</I>&gt;&gt;<i> &gt;  &gt; It strikes me that it's going to be more convenient to do this when
+</I>&gt;&gt;<i> &gt; we introduce the new system than as a separate change.
+</I>&gt;&gt;<i> &gt;  &gt;
+</I>&gt;&gt;<i> &gt;  &gt; Thoughts?
+</I>&gt;&gt;<i> &gt;  &gt;
+</I>&gt;&gt;<i> &gt;  &gt; --
+</I>&gt;&gt;<i> &gt;  &gt; justincc
+</I>&gt;&gt;<i> &gt;  &gt; Justin Clark-Casey
+</I>&gt;&gt;<i> &gt;  &gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;&gt;<i> &gt;  &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;  &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> justincc
+</I>&gt;&gt;<i> Justin Clark-Casey
+</I>&gt;&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006152.html">[Opensim-dev] Supplying IScene instead of Scene for the future	region modules mechanism
+</A></li>
+	<LI>Next message: <A HREF="006146.html">[Opensim-dev] Supplying IScene instead of Scene for the future region modules mechanism
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6153">[ date ]</a>
+              <a href="thread.html#6153">[ thread ]</a>
+              <a href="subject.html#6153">[ subject ]</a>
+              <a href="author.html#6153">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

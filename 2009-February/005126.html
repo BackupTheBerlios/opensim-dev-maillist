@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal for a cleanup/correction	of	the	region-module system
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20a%20cleanup/correction%0A%09of%09the%09region-module%20system&In-Reply-To=%3CBLU134-W35EEE7CEC6444BDCCB07CFD5B40%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005150.html">
+   <LINK REL="Next"  HREF="005127.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal for a cleanup/correction	of	the	region-module system</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20a%20cleanup/correction%0A%09of%09the%09region-module%20system&In-Reply-To=%3CBLU134-W35EEE7CEC6444BDCCB07CFD5B40%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Proposal for a cleanup/correction	of	the	region-module system">stefan at tribalmedia.se
+       </A><BR>
+    <I>Tue Feb 17 13:47:17 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005150.html">[Opensim-dev] [Opensim-commits] r8437 - in trunk
+</A></li>
+        <LI>Next message: <A HREF="005127.html">[Opensim-dev] Proposal for a cleanup/correction	of	the	region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5126">[ date ]</a>
+              <a href="thread.html#5126">[ thread ]</a>
+              <a href="subject.html#5126">[ subject ]</a>
+              <a href="author.html#5126">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Actaully, how would y'all feel about a simple abstraction of our own;
+
+ 
+
+Making an OpenSim.Framework IConfig interface of our own, that just exposes a few, simple config methods, like;
+
+ 
+
+TValue IConfig.SetConfigValue&lt;TValue&gt;(string key, TValue value);
+
+TValue IConfig.GetConfigValue&lt;TValue&gt;(string key, TValue default);
+
+ 
+
+Then for each module instantiation the core would just create a 'facade' to the right config source/section (nini or not) - that would be responsible for negotiating config sections and config source (file)name resolution.
+
+
+A simple and elegant solution to getting the nini ref out of the region modules.
+
+ 
+
+While we're at it, why don't we introduce a sibling IConfigBridge that the MODULE is optionally supposed to implement, that could provide simple config negotiation info like;
+
+ 
+
+string IConfigBridge.GetConfigSectionName();
+
+string IConfigBridge.GetConfigSourceName();
+
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+
+
+ 
+&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">homer.horwitz at gmail.com</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Date: Sun, 25 Jan 2009 02:37:01 -0500
+</I>&gt;<i> Subject: Re: [Opensim-dev] Proposal for a cleanup/correction of the region-module system
+</I>&gt;<i> 
+</I>&gt;<i> One other suggested change.
+</I>&gt;<i> 
+</I>&gt;<i> Let's remove IConfigSource from the RegionModule Initialise method - and instead make some kind of globally accessible (via Scene?) .Config. The reason for this is twofold:
+</I>&gt;<i> 
+</I>&gt;<i> 1. We pass config in multiple times, one per scene.
+</I>&gt;<i> 2. It introduces a dependency on Nini that every region module must fill - this is annoying when a module isn't configurable.
+</I>&gt;<i> 
+</I>&gt;<i> Regards,
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;<i> &gt; -----Original Message-----
+</I>&gt;<i> &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Homer Horwitz
+</I>&gt;<i> &gt; Sent: Saturday, 24 January 2009 12:04 PM
+</I>&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; Subject: [Opensim-dev] Proposal for a cleanup/correction of the region-
+</I>&gt;<i> &gt; module system
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Hi all,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; the current system for handling region-modules is slightly broken if
+</I>&gt;<i> &gt; you add/remove regions dynamically (or even for region-restarts). I've
+</I>&gt;<i> &gt; put up some thoughts at
+</I>&gt;<i> &gt; <A HREF="http://opensimulator.org/wiki/New_Region_Modules">http://opensimulator.org/wiki/New_Region_Modules</A> for discussion.
+</I>&gt;<i> &gt; Please answer on the associated 'discussion' page or here on the list.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Cheers,
+</I>&gt;<i> &gt; Homer
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090217/21897d7a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090217/21897d7a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005150.html">[Opensim-dev] [Opensim-commits] r8437 - in trunk
+</A></li>
+	<LI>Next message: <A HREF="005127.html">[Opensim-dev] Proposal for a cleanup/correction	of	the	region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5126">[ date ]</a>
+              <a href="thread.html#5126">[ thread ]</a>
+              <a href="subject.html#5126">[ subject ]</a>
+              <a href="author.html#5126">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

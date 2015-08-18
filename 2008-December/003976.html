@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Stable Branch pt III Was: RFC: Changing default	script engine to xengine
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Stable%20Branch%20pt%20III%20Was%3A%20RFC%3A%20Changing%20default%0A%09script%20engine%20to%20xengine&In-Reply-To=%3C6b9359640812112049lb33d06cmefc16cc492160b32%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003918.html">
+   <LINK REL="Next"  HREF="003914.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Stable Branch pt III Was: RFC: Changing default	script engine to xengine</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Stable%20Branch%20pt%20III%20Was%3A%20RFC%3A%20Changing%20default%0A%09script%20engine%20to%20xengine&In-Reply-To=%3C6b9359640812112049lb33d06cmefc16cc492160b32%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Stable Branch pt III Was: RFC: Changing default	script engine to xengine">aerowolf at gmail.com
+       </A><BR>
+    <I>Fri Dec 12 05:49:14 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003918.html">[Opensim-dev] Stable Branch pt III Was: RFC: Changing default script engine to xengine
+</A></li>
+        <LI>Next message: <A HREF="003914.html">[Opensim-dev] Stable Branch pt III Was: RFC: Changing default script engine to xengine
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3976">[ date ]</a>
+              <a href="thread.html#3976">[ thread ]</a>
+              <a href="subject.html#3976">[ subject ]</a>
+              <a href="author.html#3976">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The Major/minor/release concept is exhibited in the M.m.r notation.
+Usually, the Major number is bumped at initial release and at major
+structure or compatibility-affecting releases.  In this case, the
+minor number being even (0.6) would be a 'stable', and odd (0.7) would
+be 'development'.
+
+Granted, what happens in Linux is Linus takes the last dev branch, and
+generates release candidates.  Once he decides that it's stable
+enough, he puts someone else in charge of the final stable release,
+then bumps the version counters.
+
+Under this scheme, the thing to do would be to take the 0.6 release
+revision of SVN and branch from there to make 0.6, and then bump trunk
+to 0.7.  Work on the 0.6 branch should relate only to stability and
+relatively minor enhancements.  Work on the 0.7 branch should relate
+to major overhauls.  (And note that the even-numbered kernels always
+have more than one release.  What's Linux at now, 2.6.27?)
+
+Going from 0.6 to 0.7 should always be possible.  Going from 0.7 to
+0.6, though, not necessarily.  (If something breaks during the
+overhaul of a feature's schema, there shouldn't be call to create a
+schema-regression utility for those who were... special... enough to
+run a production environment that keeps up with bleeding-edge
+development.)
+
+Erm... protocol changes.  If the protocol changes enough that there
+needs to be something done in the even-numbered releases to make it
+work with the development branch, that would be bad.  I think that:
+
+- the protocol should specify what to do if the information is omitted,
+- the protocol should specify a magic value to use to specify when the
+information is omitted (hooray for Nullable&lt;type&gt;, it makes for easy
+references to Null in an otherwise-limited type)
+- the protocol should try not to break compatibility with the last
+stable release branch
+
+In general, I like LL's idea of implementing parallel code paths that
+can be swapped between at runtime to perform the same function.  In
+general, I also like the idea of being able to load assemblies into
+the core at runtime, and I think that this would be an excellent
+architecture to move toward.  (Especially if it can be unloaded at
+runtime, as well.  This would provide a means to test on a 'live'
+system without having to go through the full restart sequence.)
+
+-Kyle H
+
+On Wed, Dec 10, 2008 at 6:38 AM, Justin Clark-Casey
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+&gt;<i> Stefan Andersson wrote:
+</I>&gt;&gt;<i> Esteemed colleagues,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It has been time to tag a stable branch for some time now.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Since trunk is currently considered anything but stable, are people
+</I>&gt;&gt;<i> feeling up for trying out branching a stable version before we do this,
+</I>&gt;&gt;<i> and then actually work on that branch to stabilize it? (Merging back
+</I>&gt;&gt;<i> changes to trunk where applicable of course)
+</I>&gt;<i>
+</I>&gt;<i> I dunno - I'm still not convinced that the project is mature enough to support stable branches, although I do think that
+</I>&gt;<i> this won't necessarily always be the case.
+</I>&gt;<i>
+</I>&gt;<i> I'm actually much more drawn to the idea that Adam proposed about a month ago (and which I was negative on at the time)
+</I>&gt;<i> that we start labeling odd minor versions as unstable and even versions as stable (please correct me if I misinterpreted
+</I>&gt;<i> this).  Therefore, when we tag 0.6.1 on the trunk this could perhaps be labeled as 0.6.1-unstable.
+</I>&gt;<i>
+</I>&gt;<i> The idea would be that the period between 0.6.1 and 0.6.2 would be as short as possible.  In that period we would
+</I>&gt;<i> refrain from making any changes that we think could destabilize the build, and preferably concentrate on those which
+</I>&gt;<i> would improve stability.  Once we're happy that the trunk is in a reasonable state then we would tag 0.6.2-stable and
+</I>&gt;<i> move on with the next set of somewhat riskier changes.
+</I>&gt;<i>
+</I>&gt;<i> On reflection this is very similar to a release candidate scheme, so perhaps this could be 0.6.1-rc and 0.6.1 instead
+</I>&gt;<i> for unstable and stable respectively.
+</I>&gt;<i>
+</I>&gt;<i> This scheme has the advantage of making it more likely that we do put effort into stabilization (since it isn't possible
+</I>&gt;<i> to plow on regardless with trunk and leave the stable branch in a siding).  We also know that there is some success in
+</I>&gt;<i> having people hold back big changes before a stable revision (as with 0.6.0).
+</I>&gt;<i>
+</I>&gt;<i> One disadvantage is that this probably wouldn't as controlled as a stable branch (since I would anticipate that we would
+</I>&gt;<i> still make normal changes that weren't purely aimed at stability unless we become much more disciplined that we have
+</I>&gt;<i> been historically).
+</I>&gt;<i>
+</I>&gt;<i> Also, this plays towards my biases for the agile methodology of always having a trunk that we can 'ship' and that
+</I>&gt;<i> approach of writing unit tests to help ensure more continual trunk stability.  Such a scheme may not suit your needs and
+</I>&gt;<i> I hope that OpenSim can pull in more stability patches that have perhaps been kept private out of technical necessity
+</I>&gt;<i> (not out of philosophy).  So I have no problem at all if we want to go ahead with trying to stabilize a branch, though I
+</I>&gt;<i> would be fairly concerned if this meant that trunk would become unstable for more extended periods of time.
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> (It's not as hard as you think merging revisions, really - especially if
+</I>&gt;&gt;<i> the revisions are reasonably local)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It seems we really would need to create a still pool for the people that
+</I>&gt;&gt;<i> just want to run their stuff.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So, I propose we branch 0.6.1-stable but not necessarily tag it. Maybe,
+</I>&gt;&gt;<i> at some point, we can tag 0.6.1 from this branch, and lo and behold, we
+</I>&gt;&gt;<i> have (almost) had a proper release cycle!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Best regards,
+</I>&gt;&gt;<i> Stefan Andersson
+</I>&gt;&gt;<i> Tribal Media AB
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  &gt; Date: Mon, 8 Dec 2008 18:23:24 -0500
+</I>&gt;&gt;<i>  &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+</I>&gt;&gt;<i>  &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>  &gt; Subject: [Opensim-dev] RFC: Changing default script engine to xengine
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; This is a request for comments on changing the default script engine to
+</I>&gt;&gt;<i>  &gt; xengine. There was a thread about this a couple of months ago in which
+</I>&gt;&gt;<i>  &gt; the resolution was to wait until 0.6 was released.
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; Here are the pros - cons as I see it:
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; Cons
+</I>&gt;&gt;<i>  &gt; * a change like this, no matter how prepared we are, can cause some
+</I>&gt;&gt;<i>  &gt; temporary breaks in people's environments
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; Pros
+</I>&gt;&gt;<i>  &gt; * xengine uses less memory than dotnet engine
+</I>&gt;&gt;<i>  &gt; * xengine uses less cpu than dotnet engine -
+</I>&gt;&gt;<i>  &gt; <A HREF="http://xyzzyxyzzy.net/2008/11/07/a-brief-look-at-dotnetengine-vs-xengine/">http://xyzzyxyzzy.net/2008/11/07/a-brief-look-at-dotnetengine-vs-xengine/</A>
+</I>&gt;&gt;<i>  &gt; * xengine doesn't do the event drop which causes lots of bug reports
+</I>&gt;&gt;<i>  &gt; like this one: <A HREF="http://opensimulator.org/mantis/view.php?id=2777">http://opensimulator.org/mantis/view.php?id=2777</A>
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; I'm sure there are other pros and cons, and I'm happy for others to
+</I>&gt;&gt;<i>  &gt; throw them out here. I've been telling every IBM internal team to use
+</I>&gt;&gt;<i>  &gt; XEngine for the past 6 months, and every one say a performance and
+</I>&gt;&gt;<i>  &gt; stability increase after they made the change.
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; I think that making it the default out of the box will reduce a lot of
+</I>&gt;&gt;<i>  &gt; issues that new users are having with OpenSim, and it definitely along
+</I>&gt;&gt;<i>  &gt; the lines of trying to make as much work right out of the box as we can.
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; Opinions? Comments? I'd like to try to achieve consensus over the next
+</I>&gt;&gt;<i>  &gt; couple of days so we could make such a change.
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; -Sean
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt; --
+</I>&gt;&gt;<i>  &gt; Sean Dague / Neas Bade
+</I>&gt;&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+</I>&gt;&gt;<i>  &gt; <A HREF="http://dague.net">http://dague.net</A>
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>  &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> justincc
+</I>&gt;<i> Justin Clark-Casey
+</I>&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003918.html">[Opensim-dev] Stable Branch pt III Was: RFC: Changing default script engine to xengine
+</A></li>
+	<LI>Next message: <A HREF="003914.html">[Opensim-dev] Stable Branch pt III Was: RFC: Changing default script engine to xengine
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3976">[ date ]</a>
+              <a href="thread.html#3976">[ thread ]</a>
+              <a href="subject.html#3976">[ subject ]</a>
+              <a href="author.html#3976">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Some new code for your review and possible acceptance
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20new%20code%20for%20your%20review%20and%20possible%20acceptance&In-Reply-To=%3C867188231.20100517140015%40adeptsql.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008652.html">
+   <LINK REL="Next"  HREF="008672.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Some new code for your review and possible acceptance</H1>
+    <B>AlexRa</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20new%20code%20for%20your%20review%20and%20possible%20acceptance&In-Reply-To=%3C867188231.20100517140015%40adeptsql.com%3E"
+       TITLE="[Opensim-dev] Some new code for your review and possible acceptance">info at adeptsql.com
+       </A><BR>
+    <I>Mon May 17 13:00:15 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008652.html">[Opensim-dev] [Opensim-users] OpenSim 0.6.9 released
+</A></li>
+        <LI>Next message: <A HREF="008672.html">[Opensim-dev] Some new code for your review and possible	acceptance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8659">[ date ]</a>
+              <a href="thread.html#8659">[ thread ]</a>
+              <a href="subject.html#8659">[ subject ]</a>
+              <a href="author.html#8659">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+I've been playing around with the database access layer of the code, especially the AssetData plugins
+for all 3 supported databases (Sqlite, MySql, and MS SQL) and the underlying classes, and also made
+a few other changes:
+
+   <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">git at github.com</A>:AlexRa/opensim-mods-Alex.git
+
+I'd like to invite the developers of the OpenSim team to review the proposed changes
+and integrate whatever looks useful into the official repository.
+
+This repository contains the following branches that can be of interest:
+
+The *&quot;master&quot;* contains all my the changes. It is branched off
+r/127730 (and with the recent flow of commits I find it difficult to
+continue rebasing it to keep up). There is quite a lot of stuff there,
+some of it more useful than the other, so if anybody wants to look at
+it I'd appreciate that, but that may be too much to ask.
+
+I've been trying to separate particular features and put them into separate
+branches. So far, the following branches are fairly independent from
+the rest of the stuff and should be easy to integrate into the primary
+repo if the team decides to do so:
+
+* The &quot;asset-loader&quot;  branch contains a rewrite of the AssetLoader that
+  uses a timestamped asset to determine which of the asset files must
+  be loaded. This prevents the lengthy (and unnecessary) re-loading of
+  all predefined assets on each server start-up, but does load any
+  newly added assets. Status: NOT TESTED (but the logic is quite
+  simple, shouldn't have much problems with it(?))
+
+* The &quot;Migrations&quot; branch is a rewrite of the Migrations.cs to support
+  single-file migration histories. This way, all those endless
+  0xx_StoreName.sql are replaced with a single StoreName.migrations
+  file which is more readable and easier to maintain. The new
+  migration code supports stored procedures for both MySql and MS SQL.
+  It is also fully backward-compatible (does read the old-style
+  migration files as well).
+
+  This also includes update of MySql.Data.dll to 6.2.3.0, to avoi a
+  known problem with defining stored procs/funcs in earlier versions.
+
+  Status: TESTED and works in all modes.
+
+* The &quot;NUnit-update&quot; touches a lot of test-related code to make it compatible
+  with NUnit 2.5.5+. The main advantage is that test classes can be
+  made generic and parameterized. This (and the BasicDataServiceTest
+  class included in this branch) allows to build DBMS-independent data
+  tests. Some samples of such tests are available in my &quot;master&quot;
+  branch. The idea is to keep he connection strings for the test
+  databases in a single INI file (rather than in each test unit), and
+  to keep all data tests in OpenSim.Data.Tests, totally eliminating
+  Data.{MySql/MSSQL/SQLite}.Tests. Test sets for a specific DB are
+  produced just by adding another [TestFixture(...)] attribute before
+  the test class.
+
+The other new stuff that is present in the &quot;master&quot; branch:
+
+* Added Assets.CreatorID support for all dbs;
+
+* A way to keep Asset.AccessTime updated (on MySql, a similar way
+  would work on MS SQL) entirely on the SQL server side, without the
+  performance costs of a separate UPDATE statement;
+
+* refactored DB-access classes (more code moved to a base class, less stuff is DBMS-specific);
+
+* configurable &quot;keep alive&quot; connection mode (for MySQL/MSSQL) - avoid
+  re-creating conn, keep stmts prepared (2x performance gain for MS SQL);
+
+* performance tests for Assets;
+
+* (other changes)  
+
+Best regards,
+
+Alex Rytov  (aka AlexRa)
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008652.html">[Opensim-dev] [Opensim-users] OpenSim 0.6.9 released
+</A></li>
+	<LI>Next message: <A HREF="008672.html">[Opensim-dev] Some new code for your review and possible	acceptance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8659">[ date ]</a>
+              <a href="thread.html#8659">[ thread ]</a>
+              <a href="subject.html#8659">[ subject ]</a>
+              <a href="author.html#8659">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

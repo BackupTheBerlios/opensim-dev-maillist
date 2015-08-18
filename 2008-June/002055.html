@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Module/Plugin Loading
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3CBLU134-W16BDB53C310D5D1084EFE7D5A30%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002045.html">
+   <LINK REL="Next"  HREF="002058.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Module/Plugin Loading</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3CBLU134-W16BDB53C310D5D1084EFE7D5A30%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Module/Plugin Loading">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Jun 26 09:49:11 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002045.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+        <LI>Next message: <A HREF="002058.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2055">[ date ]</a>
+              <a href="thread.html#2055">[ thread ]</a>
+              <a href="subject.html#2055">[ subject ]</a>
+              <a href="author.html#2055">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i> Those attributes are just syntactic sugar. Once you start really using&gt; the features of Mono.Addins you're best of configuring your addins&gt; with the XML file.
+</I>That's probably the way to go, yeah.
+ &gt; Its also worth nothing that there is nothing in Mono.Addin's XML&gt; config file that replaces anything in OpenSim.ini, nor vice versa.&gt; They are completely orthogonal configuration files which are&gt; unrelated. There is no OpenSim v. Mono.Addins dilemma.
+I think that what some of us are worried about is the configuration creep; there's slowly getting more and more ways of configuring various aspects of OpenSim, and each configuration is something more to grok in order to use.
+ 
+afaik, we have Prebuild, log4net, NHibernate, Nini, the database configuration files, the opensim.ini, various grid inis, some settings are stored in a yap database, the region configs - and now Mono Addins. Each following different syntax and structure.
+ 
+So, we're starting to get something like what we're trying to solve with unifying the plugin architecture.
+ 
+At some point, we need to look at unifying our configs. Introducing Nini was a stab at that, but seems to have lost momentum. Personally, I have somewhat lost faith in Nini, as it doesn't really seem to handle hierarchical data on several instances too well.
+&gt;<i> &gt; I most likely haven't dug deep enough into mono.addins and there could well&gt; &gt; be a method to do cut out the attributes and not require manifest files. But&gt; &gt; anyway my point is that I believe a implied effect of those requirements is&gt; &gt; that we don't have references to Mono.addins in the core opensim assemblys.&gt; &gt; (OpenSim.Framework.X , etc)&gt; &gt;&gt; &gt; Let me give my opinion on the matter:&gt; &gt; - There is a principle in both good engineering and open source: don't&gt; reinvent the wheel. Plenty of people have written DLL loaders, and I&gt; see no reason presented here why we should roll our own.
+</I>As I see it, there is a breaking point where the concrete gain per work of using a third party solution outweighs the concrete gain per work of rolling your own.
+ 
+I think this discussion is much about what the gain is and what the work is.
+ 
+If we just want to load dll's on-the-fly, we already have that. Unify it, add loading from ini files, and we have exactly what we need, sleek and simple. It can be solved in three or four classes. No rocket science.
+ 
+But there has been some suggestions that we could do more with plug-ins, like auto-fetch from repos, version and dependency handling and stuff, and I guess we should discuss THOSE use cases first. Because if we're saying we want THAT - hell yeah, I wouldn't want THAT home-grown.
+ &gt; - Mono.Addins provides features that our custom jobbie doesn't. Maybe&gt; those features aren't critical, but given that they come to us&gt; pre-debugged, I fail to see how its a loss to accept them.
+Because nothing comes for free. We choose that component, with its set of design choices and idiosyncrasies (all code have theirs)
+ 
+We get a piece of code that is outside our direct control, so we can't do quick restructuring or addings as we realize we need them.
+ 
+So, if we only want what we already have (and can do with even less code than we have today) but choose to import a whole framework to do it, it would quite simply be bloat, on several layers.
+&gt;<i> - There are two main sources of Addin loaders: Mono and .NET.&gt; Mono.Addins was inherited from SharpDevelop and Eclipse -- a strong&gt; pedigree. The .NET version is new as of 3.5 runtime, and not yet in&gt; Mono. However, given how similar it looks to Mono.Addins, I wouldn't&gt; be surprised if it wasn't lifted to a large degree from Mono.Addins&gt; (which after all is MIT/X11 licensed).&gt; &gt; - So long as mono only supports Mono.Addins, the only cross-platform&gt; thing to do is use Mono.Addins. When Mono support System.Addin, we can&gt; migrate to that.
+</I>The bigger the reason to have our own indirection already in place.
+ 
+Yay!
+ 
+/Stefan
+ 
+PS I use the term 'indirection' a lot...
+<A HREF="http://en.wikipedia.org/wiki/Indirection">http://en.wikipedia.org/wiki/Indirection</A>
+&quot;Any programming problem can be solved by adding a level of indirection.&quot; (Butler Lampson)
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080626/3e34fc99/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080626/3e34fc99/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002045.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+	<LI>Next message: <A HREF="002058.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2055">[ date ]</a>
+              <a href="thread.html#2055">[ thread ]</a>
+              <a href="subject.html#2055">[ subject ]</a>
+              <a href="author.html#2055">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

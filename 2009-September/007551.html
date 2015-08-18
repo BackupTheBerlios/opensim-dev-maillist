@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] pruning reference servers in core
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20pruning%20reference%20servers%20in%20core&In-Reply-To=%3Cd319543f0909151229u560c53dyd3a61e6ccfa03317%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007559.html">
+   <LINK REL="Next"  HREF="007552.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] pruning reference servers in core</H1>
+    <B>Nebadon Izumi</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20pruning%20reference%20servers%20in%20core&In-Reply-To=%3Cd319543f0909151229u560c53dyd3a61e6ccfa03317%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] pruning reference servers in core">nebadon2025 at gmail.com
+       </A><BR>
+    <I>Tue Sep 15 21:29:05 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007559.html">[Opensim-dev] pruning reference servers in core
+</A></li>
+        <LI>Next message: <A HREF="007552.html">[Opensim-dev] pruning reference servers in core
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7551">[ date ]</a>
+              <a href="thread.html#7551">[ thread ]</a>
+              <a href="subject.html#7551">[ subject ]</a>
+              <a href="author.html#7551">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>+1 from me, i also spoke with Adam about this and he agrees that as long as
+we dont have to rewrite the protocols for OSgrid's Asset Fragstore to
+accommodate it then its fine to remove.
+
+On Tue, Sep 15, 2009 at 11:06 AM, &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+
+&gt;<i> Hi everyone,
+</I>&gt;<i>
+</I>&gt;<i> Now that summer vacation is over and everyone seems to be back, it's
+</I>&gt;<i> time to revisit this thread. It's been one month, and no one has stepped
+</I>&gt;<i> up to bringing the old Grid.InventoryServer up to date with the new
+</I>&gt;<i> requirements. The simulators can still talk to old server, but really
+</I>&gt;<i> poorly, after failures; and they don't take advantage of the new
+</I>&gt;<i> streamlined interactions that avoid downloading the entire inventory
+</I>&gt;<i> into the simulators.
+</I>&gt;<i>
+</I>&gt;<i> In this past month, OSGrid has switched the inventory service to ROBUST,
+</I>&gt;<i> and lots of other grids have followed. The newly released IAR tool has
+</I>&gt;<i> been developed nicely for the new interface too.
+</I>&gt;<i>
+</I>&gt;<i> So -- I propose we drop the old Asset and Inventory servers now, so that
+</I>&gt;<i> we stop supporting old code. Any objections?
+</I>&gt;<i>
+</I>&gt;<i> Again, the door is always open for someone to step up and maintain those
+</I>&gt;<i> servers as alternatives -- even write/maintain connectors for them, and
+</I>&gt;<i> write/maintain corresponding pre-packaged configurations that use them.
+</I>&gt;<i> But without that kind of commitment, we're bound to make things very
+</I>&gt;<i> confusing by having multiple reference implementations of the same
+</I>&gt;<i> things, some of which are not evolving, and only one pre-packaged
+</I>&gt;<i> configuration that assumes the new interfaces.
+</I>&gt;<i>
+</I>&gt;<i> Crista
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;<i> &gt; Ping me when you tune in to the IRC, if you still have questions after
+</I>&gt;<i> &gt; reading this. The additions are really easy. Look in
+</I>&gt;<i> &gt; OpenSim/Server/Handlers/Inventory/InventoryServerInConnector.cs, in my
+</I>&gt;<i> &gt; local repo (the one currently in head is outdated)
+</I>&gt;<i> &gt;
+</I>&gt;<i> <A HREF="http://github.com/diva/Diva-s-OpenSim-Tests/blob/21b5ebdc1f59ee449f56e40d8cbb9f3f5b3de644/OpenSim/Server/Handlers/Inventory/InventoryServerInConnector.cs">http://github.com/diva/Diva-s-OpenSim-Tests/blob/21b5ebdc1f59ee449f56e40d8cbb9f3f5b3de644/OpenSim/Server/Handlers/Inventory/InventoryServerInConnector.cs</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The 2 service handlers that you need to add and implement are these:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; m_httpServer.AddStreamHandler(
+</I>&gt;<i> &gt;      new RestDeserialiseSecureHandler&lt;Guid, List&lt;InventoryFolderBase&gt;&gt;(
+</I>&gt;<i> &gt;     &quot;POST&quot;, &quot;/SystemFolders/&quot;, GetSystemFolders, CheckAuthSession));
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; m_httpServer.AddStreamHandler(
+</I>&gt;<i> &gt;      new RestDeserialiseSecureHandler&lt;Guid, InventoryCollection&gt;(
+</I>&gt;<i> &gt;     &quot;POST&quot;, &quot;/GetFolderContent/&quot;, GetFolderContent, CheckAuthSession));
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; You can copy and paste the implementations I have there.
+</I>&gt;<i> &gt; Let me know when you're done, so that I can push my local mods.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; MW wrote:
+</I>&gt;<i> &gt;&gt; If you can provide the details of those two handlers that need adding to
+</I>&gt;<i> &gt;&gt; the old servers, I can have a go at implementing them; dependent on how
+</I>&gt;<i> &gt;&gt; much work it involves.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; --- On *Thu, 13/8/09, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> /&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;/*
+</I>&gt;<i> &gt;&gt; wrote:
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;     From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+</I>&gt;<i> &gt;&gt;     Subject: Re: [Opensim-dev] pruning reference servers in core
+</I>&gt;<i> &gt;&gt;     To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     Date: Thursday, 13 August, 2009, 5:01 PM
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;     I'm fine with waiting until September before pruning reference
+</I>&gt;<i> &gt;&gt;     implementations down to one of each. But someone needs to give love
+</I>&gt;<i> to
+</I>&gt;<i> &gt;&gt;     Grid.Inventory, because I don't have time for loving so many servers
+</I>&gt;<i> :-)
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;     The current improvement I'm doing right now (eliminating the need to
+</I>&gt;<i> &gt;&gt;     pass the entire inventory around) only works for the new-style
+</I>&gt;<i> &gt;&gt;     inventory
+</I>&gt;<i> &gt;&gt;     service. It can easily be made to work for the old one. Whoever
+</I>&gt;<i> wants
+</I>&gt;<i> &gt;&gt;     Grid.Inventory to support the simulators' [much more reasonable]
+</I>&gt;<i> needs
+</I>&gt;<i> &gt;&gt;     should make the necessary improvements to it.. I'll be happy to
+</I>&gt;<i> explain
+</I>&gt;<i> &gt;&gt;     what the server needs to do -- 2 additional service handlers. I
+</I>&gt;<i> still
+</I>&gt;<i> &gt;&gt;     haven't pushed my local commits, and I can wait a little bit for a
+</I>&gt;<i> &gt;&gt;     Grid.InventoryServer lover to step up and volunteer. But I don't
+</I>&gt;<i> think
+</I>&gt;<i> &gt;&gt;     it's reasonable to hold this improvement until September; I already
+</I>&gt;<i> &gt;&gt;     have
+</I>&gt;<i> &gt;&gt;     it, and it's almost ready to be pushed out to grids out there.
+</I>&gt;<i> Passing
+</I>&gt;<i> &gt;&gt;     thousands of inventory items upon region crossings and TPs is
+</I>&gt;<i> probably
+</I>&gt;<i> &gt;&gt;     one of the worst things in OpenSim right now, and needs fixing.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;     MW wrote:
+</I>&gt;<i> &gt;&gt;      &gt; I'm fine with the AssetInventoryServer being removed as soon as
+</I>&gt;<i> &gt;&gt;     possible
+</I>&gt;<i> &gt;&gt;      &gt; because I don't think anyone uses it.
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt; But believe we should at least wait a couple of more weeks before
+</I>&gt;<i> &gt;&gt;     the
+</I>&gt;<i> &gt;&gt;      &gt; Grid.InventoryServer
+</I>&gt;<i> &gt;&gt;      &gt; and Grid.AssetServer are removed, so that everyone gets a chance
+</I>&gt;<i> &gt;&gt;     to have
+</I>&gt;<i> &gt;&gt;      &gt; their say/vote. As a number of people are on vacation around this
+</I>&gt;<i> &gt;&gt;     time..
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt; Personally as long as the ROBUST servers are fully tested on
+</I>&gt;<i> &gt;&gt;     multiple
+</I>&gt;<i> &gt;&gt;      &gt; grids that have a quite heavy load/userbase, then I'm okay with
+</I>&gt;<i> &gt;&gt;     removing
+</I>&gt;<i> &gt;&gt;      &gt; the old servers, as long as there is total agreement; I know a
+</I>&gt;<i> few
+</I>&gt;<i> &gt;&gt;      &gt; people have said they don't want to swap to ROBUST.
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt; --- On *Tue, 11/8/09, Frisby, Adam /&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;&gt;/* wrote:
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;     From: Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     Subject: Re: [Opensim-dev] pruning reference servers in core
+</I>&gt;<i> &gt;&gt;      &gt;     To: &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;&quot;
+</I>&gt;<i> &gt;&gt;     &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     Date: Tuesday, 11 August, 2009, 10:09 PM
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;     Please do. I'd like a 0.6.X release shortly after every
+</I>&gt;<i> &gt;&gt;      &gt;     networkinterface version change if possible - since it makes
+</I>&gt;<i> &gt;&gt;     compat
+</I>&gt;<i> &gt;&gt;      &gt;     with the latest stable release always a headache.
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;     Adam
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; -----Original Message-----
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     [mailto:opensim-dev-
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>&gt;&gt;] On Behalf Of Justin
+</I>&gt;<i> &gt;&gt;      &gt;     Clark-Casey
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; Sent: Tuesday, 11 August 2009 12:04 PM
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; Subject: Re: [Opensim-dev] pruning reference servers in
+</I>&gt;<i> core
+</I>&gt;<i> &gt;&gt;      &gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;&gt; wrote:
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; Dear devs,
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; I'm finally changing the way the simulator caches
+</I>&gt;<i> inventory.
+</I>&gt;<i> &gt;&gt;      &gt;     This is
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; all
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; good, and it's the beginning of the much awaited user
+</I>&gt;<i> &gt;&gt;     services
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; refactoring. This requires a few small changes in the
+</I>&gt;<i> &gt;&gt;     inventory
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; services
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; interface, as well as additions to the
+</I>&gt;<i> &gt;&gt;     implementation(s). So...
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; We now have 3 -- yes 3! -- different inventory servers
+</I>&gt;<i> &gt;&gt;     in core.
+</I>&gt;<i> &gt;&gt;      &gt;     (and
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; 3
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; asset servers too). I think it's time to make a decision
+</I>&gt;<i> &gt;&gt;     on what to
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; keep
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; and what to drop, because evolving this ecosystem of
+</I>&gt;<i> &gt;&gt;      &gt;     implementations
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; in
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; core is unscalable.
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; With this, I'm proposing that we drop the old
+</I>&gt;<i> &gt;&gt;     Grid.InventoryServer,
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; the
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; old Grid.AssetServer and the AssetInventoryServer (CB1).
+</I>&gt;<i> &gt;&gt;     Some
+</I>&gt;<i> &gt;&gt;      &gt;     people
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; may
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; still be using the old servers, so it's time to switch
+</I>&gt;<i> &gt;&gt;     everybody to
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; ROBUST. Asking in the IRC, it looks like no one is using
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; AssetInventoryServer.
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; &gt; Comments? Objections?
+</I>&gt;<i> &gt;&gt;      &gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; Might be an idea to knock out a 0.6.7 first before making
+</I>&gt;<i> that
+</I>&gt;<i> &gt;&gt;      &gt;     switch.
+</I>&gt;<i> &gt;&gt;      &gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; --
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; justincc
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; Justin Clark-Casey
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; _______________________________________________
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt;      &gt;      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt;      &gt;     _______________________________________________
+</I>&gt;<i> &gt;&gt;      &gt;     Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt;      &gt;     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i> &gt;&gt;      &gt;     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> &gt;&gt;      &gt;
+</I>&gt;<i> &gt;&gt;      &gt; _______________________________________________
+</I>&gt;<i> &gt;&gt;      &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt;      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt;      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt;     _______________________________________________
+</I>&gt;<i> &gt;&gt;     Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt;     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;     &lt;/mc/compose?to=<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt;     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+
+-- 
+Michael Emory Cerquoni - Nebadon Izumi @ <A HREF="http://osgrid.org">http://osgrid.org</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090915/78f0379f/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090915/78f0379f/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007559.html">[Opensim-dev] pruning reference servers in core
+</A></li>
+	<LI>Next message: <A HREF="007552.html">[Opensim-dev] pruning reference servers in core
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7551">[ date ]</a>
+              <a href="thread.html#7551">[ thread ]</a>
+              <a href="subject.html#7551">[ subject ]</a>
+              <a href="author.html#7551">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

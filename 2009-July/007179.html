@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Proposal] Separate SceneObjectGroup/Part into separate classes/interfaces
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BProposal%5D%20Separate%20SceneObjectGroup/Part%20into%0A%20separate%20classes/interfaces&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE66473520959F3E%40winxbeus19.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007176.html">
+   <LINK REL="Next"  HREF="007173.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Proposal] Separate SceneObjectGroup/Part into separate classes/interfaces</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BProposal%5D%20Separate%20SceneObjectGroup/Part%20into%0A%20separate%20classes/interfaces&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE66473520959F3E%40winxbeus19.exchange.xchg%3E"
+       TITLE="[Opensim-dev] [Proposal] Separate SceneObjectGroup/Part into separate classes/interfaces">adam at deepthink.com.au
+       </A><BR>
+    <I>Sun Jul 19 11:33:32 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007176.html">[Opensim-dev] [Proposal] Separate SceneObjectGroup/Part into separate classes/interfaces
+</A></li>
+        <LI>Next message: <A HREF="007173.html">[Opensim-dev] Attached Linksets and Collisions? (on SVN 10029)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7179">[ date ]</a>
+              <a href="thread.html#7179">[ thread ]</a>
+              <a href="subject.html#7179">[ subject ]</a>
+              <a href="author.html#7179">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Look at MRM.IObject - seriously.
+
+Adam
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;<i> Sent: Saturday, 18 July 2009 11:27 AM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] [Proposal] Separate SceneObjectGroup/Part
+</I>&gt;<i> into separate classes/interfaces
+</I>&gt;<i> 
+</I>&gt;<i> A clear and loud +1 on getting started on removing this SOG/SOP
+</I>&gt;<i> hierarchy thing.
+</I>&gt;<i> The basic &quot;node&quot; could be stripped down to position, rotation,
+</I>&gt;<i> scale, parent, children and a few more things, with the prim stuff
+</I>&gt;<i> being in it's own class like Inventory was already moved out.
+</I>&gt;<i> 
+</I>&gt;<i> Accessors for the common, and frequently used, things like inventory
+</I>&gt;<i> would keep things moving at a manageable speed, so I'm also all for
+</I>&gt;<i> that.
+</I>&gt;<i> 
+</I>&gt;<i> I don't now about the interface registry, I'd rather see this
+</I>&gt;<i> &quot;minimal&quot; class be a base class from which more specific classes
+</I>&gt;<i> inherit and that handles the connections to Scene and the linking
+</I>&gt;<i> stuff. Seems more sensible to make this most used entity be fast,
+</I>&gt;<i> specific subclasses rather than registered interfaces. But... a
+</I>&gt;<i> subclass could offer that registration method if it needs to be that
+</I>&gt;<i> extensible......
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> MW wrote:
+</I>&gt;<i> &gt; Both SceneObjectGroup and Part are growing beyond manageable sizes
+</I>&gt;<i> (with both of them over 3000 lines long), and are not very easy to
+</I>&gt;<i> change when trying to make custom classes bassed on them (as I think
+</I>&gt;<i> Sean found out recently during his attempts).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Ideally I think we would all like to see the separate Group and Part
+</I>&gt;<i> architecture replaced with a architecture that was more like a Node
+</I>&gt;<i> based scenegraph , and had a hierarchy of SceneObjects. But I think we
+</I>&gt;<i> all know of the problems in doing that, and how much work is involved.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; So as a small step in (hopefully) that direction, I propose to start
+</I>&gt;<i> splitting those two classes up, and having something similar to the
+</I>&gt;<i> interface registry we use in various of parts of the architecture.
+</I>&gt;<i> (RegisterInterface&lt;type&gt; , RequestInterface&lt;type&gt;() ).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; So things like the methods for editing prims would move out into a
+</I>&gt;<i> separate class; for example ISceneObjectGroupEditing. And then when the
+</I>&gt;<i> scenegraph wants to call a editing method on a Group, it can call :
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Group.RequestInterface&lt;ISceneObjectGroupEditing&gt;();
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I believe that this will at least make the code more manageable and
+</I>&gt;<i> make those classes easier to customise. I also hope that it will make
+</I>&gt;<i> it easier to head towards a new combined architecture for prim
+</I>&gt;<i> handling.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The draw back could be performance, as we will have the overhead of
+</I>&gt;<i> calling those methods to request the correct interfaces. Although we
+</I>&gt;<i> could do the same as we do in scene and have properties that can access
+</I>&gt;<i> the common interfaces. (eg. SceneObjectGroup.Editor)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ---------------------------------------------------------------------
+</I>&gt;<i> ---
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007176.html">[Opensim-dev] [Proposal] Separate SceneObjectGroup/Part into separate classes/interfaces
+</A></li>
+	<LI>Next message: <A HREF="007173.html">[Opensim-dev] Attached Linksets and Collisions? (on SVN 10029)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7179">[ date ]</a>
+              <a href="thread.html#7179">[ thread ]</a>
+              <a href="subject.html#7179">[ subject ]</a>
+              <a href="author.html#7179">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

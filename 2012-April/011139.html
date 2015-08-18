@@ -1,0 +1,279 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Issues with the Simulator under high load
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Issues%20with%20the%20Simulator%20under%20high%20load&In-Reply-To=%3C4F95F853.9010308%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011135.html">
+   <LINK REL="Next"  HREF="011138.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Issues with the Simulator under high load</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Issues%20with%20the%20Simulator%20under%20high%20load&In-Reply-To=%3C4F95F853.9010308%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Issues with the Simulator under high load">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Apr 24 02:48:19 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011135.html">[Opensim-dev] Issues with the Simulator under high load
+</A></li>
+        <LI>Next message: <A HREF="011138.html">[Opensim-dev] Issues with the Simulator under high load
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11139">[ date ]</a>
+              <a href="thread.html#11139">[ thread ]</a>
+              <a href="subject.html#11139">[ subject ]</a>
+              <a href="author.html#11139">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>That's a good point - these problems can have many causes including the state of the underlying operating system. 
+Basically, if you're in swap viewer or sim-side then it's game over for any kind of responsiveness.
+
+OpenSimulator does record client stats information in the WebStats module.  Unfortunately for historical reasons this 
+only records to an sqlite db and requires one to enable the web stats ajax functionality too (these functions need to be 
+separated).  Also, OpenSimulator 0.7.3.1 contains a long-standing bug where the recording doesn't work properly for sims 
+with multi-regions - this is fixed in master, 0.7.3.1-post-fixes and 0.7.3.1-extended.
+
+On 23/04/12 00:51, Dahlia Trimble wrote:
+&gt;<i> I was able to re-create the &quot;slow get&quot; error. In my case I had a region with many unique textures. As my viewer was
+</I>&gt;<i> downloading them I was apparently running short of memory and the computer started swapping and thrashing the disk and
+</I>&gt;<i> the viewer would momentarily freeze. During the freezes the OpenSimulator console would show several of the &quot;slow get&quot;
+</I>&gt;<i> messages. Apparently the viewer was not able to receive and process the requested textures as fast as the simulator
+</I>&gt;<i> wanted to send them and this is when the messages appeared. I reduced the draw distance and graphics quality level in
+</I>&gt;<i> the viewer and the messages stopped. Given this experience I suspect some of the users at your parties may be having
+</I>&gt;<i> similar viewer issues and the problem may be mitigated by suggesting they lower their draw distance and graphics quality
+</I>&gt;<i> settings.
+</I>&gt;<i>
+</I>&gt;<i> I believe most viewers send information back to the simulator about memory use and graphics performance but I'm not
+</I>&gt;<i> aware if OpenSimulator is collecting and making these data available for analysis.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Sun, Apr 22, 2012 at 3:43 PM, Akira Sonoda &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">akira.sonoda.1 at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">akira.sonoda.1 at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     Hi Justin,
+</I>&gt;<i>
+</I>&gt;<i>     I am still investigating the Slow GetTexture problem and the resulting instability under high Load.
+</I>&gt;<i>
+</I>&gt;<i>     What i did so far:
+</I>&gt;<i>
+</I>&gt;<i>      1. I'm still using opensim-0007711 ( i didn't have the time to upgrade, the first upgrade was not so good due an
+</I>&gt;<i>         error on my side and since then i did not look too much into it)
+</I>&gt;<i>      2. I've created a Windows Instance in the Amazon cloud in order to be able to connect some profiling tools.
+</I>&gt;<i>      3. I've run the last two Friday Parties from there the first Party was quite okay ( MaxPoolThreads=90 in the
+</I>&gt;<i>         SmartPoolThreads settings, but i saw more on peaks, strange )
+</I>&gt;<i>      4. The second party from the 20. April went crazy after 3 hours here's a picture:
+</I>&gt;<i>
+</I>&gt;<i>     <A HREF="http://farm9.staticflickr.com/8017/6957771466_4412ee83c4_b_d.jpg">http://farm9.staticflickr.com/8017/6957771466_4412ee83c4_b_d.jpg</A>
+</I>&gt;<i>
+</I>&gt;<i>     Most of the threads had a stack trace like this:
+</I>&gt;<i>
+</I>&gt;<i>     <A HREF="http://farm9.staticflickr.com/8155/6957875232_0203631ed0_b_d.jpg">http://farm9.staticflickr.com/8155/6957875232_0203631ed0_b_d.jpg</A>
+</I>&gt;<i>
+</I>&gt;<i>     Wondering why this increase started after approx 3 hours. We had at max about 18 avies on the region/sim with
+</I>&gt;<i>     various different viewers. Because I did not attach this amazon Cloud instance to my splunk server i have no
+</I>&gt;<i>     statistics about the viewers during the party ... i probably should do that in future.
+</I>&gt;<i>
+</I>&gt;<i>     I will upgrade to a more recent version next week ...
+</I>&gt;<i>
+</I>&gt;<i>     Thanks a lot!
+</I>&gt;<i>
+</I>&gt;<i>     Akira
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     Am 19. M&#228;rz 2012 01:57 schrieb Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt;:
+</I>&gt;<i>
+</I>&gt;<i>         It's quite possible the 3rd party HTTP server doesn't use the threadpool though I've never looked in detail.
+</I>&gt;<i>
+</I>&gt;<i>         You could supply any other http address in the GetTexture cap (e.g. the asset service directly with a suitable
+</I>&gt;<i>         handler).  However, I'm not sure that asset serving is such a bottleneck at the moment compared with scripting
+</I>&gt;<i>         and physics issues.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         On 17/03/12 21:10, Dahlia Trimble wrote:
+</I>&gt;<i>
+</I>&gt;<i>             I've done a bit of tracing through the code and I can't seem to find where the http server in OpenSimulator uses
+</I>&gt;<i>             threadpool threads. I did find them used in the LLUDP server and in asyncronous requests from the asset
+</I>&gt;<i>             service, but I
+</I>&gt;<i>             have yet to find any other uses. is it possible that the http server is still using system threads,
+</I>&gt;<i>             bypassing the
+</I>&gt;<i>             threadpool? I'm rather curious as I use the built-in http server in a few personal applications and I'm
+</I>&gt;<i>             concerned about
+</I>&gt;<i>             performance.
+</I>&gt;<i>
+</I>&gt;<i>             On another note, I believe part of the impetus behind LL designing the texture fetch capability was to allow
+</I>&gt;<i>             a separate
+</I>&gt;<i>             service from the simulator to supply assets to viewers, thereby reducing load on the individual simulator
+</I>&gt;<i>             processes.
+</I>&gt;<i>             Perhaps this is something OpenSimulator can take advantage of? Probably some kind of asset proxy cache could
+</I>&gt;<i>             do a much
+</I>&gt;<i>             better job of serving textures and other assets to viewers than the existing monolithic process? I believe
+</I>&gt;<i>             it could even
+</I>&gt;<i>             be moved to a separate server with a different IP address.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>             On Fri, Mar 16, 2012 at 8:36 PM, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>
+</I>&gt;<i>             &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.__com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>                 Hi Akira.  I have now updated the &quot;show threads&quot; method to show threadpool statistics for the main
+</I>&gt;<i>             threadpool.
+</I>&gt;<i>                   Please note that each XEngine script engine will also have it's own threadpool (which can be seen
+</I>&gt;<i>             using the
+</I>&gt;<i>             &quot;xengine status&quot; command).  Might need to improve this further.
+</I>&gt;<i>
+</I>&gt;<i>             &quot;show threads&quot; will also show all in-use threads.  However, at least on mono 2.6.7 this isn't reported by
+</I>&gt;<i>             the VM so
+</I>&gt;<i>                 won't be shown.
+</I>&gt;<i>
+</I>&gt;<i>                 I'm not sure whether this will help you or not in tracking down performance issues.  In some situations
+</I>&gt;<i>             it could
+</I>&gt;<i>                 help (e.g. if threads are encountering deadlock the number of 'in use' threads will leap up, though
+</I>&gt;<i>             you've probably
+</I>&gt;<i>                 already noticed deadlock by the long-running threads reporting monitoring failures and the sim locking up).
+</I>&gt;<i>
+</I>&gt;<i>                 So I'd be happy to hear suggestions for additional data and I'll implement them if I can, since I think
+</I>&gt;<i>             this is
+</I>&gt;<i>                 going to be a growing area of concern.  Unfortunately pinning down performance issues with a system as
+</I>&gt;<i>             complex as
+</I>&gt;<i>                 OpenSimulator (with massive numbers of threads and user generated scripts) is likely to remain a significant
+</I>&gt;<i>                 challenge for the forseeable future.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                 On 11/03/12 19:15, Akira Sonoda wrote:
+</I>&gt;<i>
+</I>&gt;<i>                     Am 10. M&#228;rz 2012 03:25 schrieb Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>
+</I>&gt;<i>             &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.__com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt;
+</I>&gt;<i>             &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.</A>&gt;____com &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.__com</A>
+</I>&gt;<i>             &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt;&gt;&gt;:
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                         I'm sorry to say that you'll have to take the ThreadPool numbers with a very very very large
+</I>&gt;<i>             pinch of salt.  I
+</I>&gt;<i>                         believe they only refer to the built-in mono thread pool and not the SmartThreadPool which is
+</I>&gt;<i>             the one
+</I>&gt;<i>                     actually used
+</I>&gt;<i>                         (and beyond that the core simulator and xengine use separate pools).  I will try and improve
+</I>&gt;<i>             this situation
+</I>&gt;<i>                     soon.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                     Thank you Justin!
+</I>&gt;<i>
+</I>&gt;<i>                     Would be nice to have some meaningful statistics for all those ThreadPools! Maybe there is a
+</I>&gt;<i>             possibility to
+</I>&gt;<i>                     write those
+</I>&gt;<i>                     statistics to the log from time to time ( e.g. every 30 seconds). Together with some documented
+</I>&gt;<i>             &quot;best practices&quot;
+</I>&gt;<i>                     from
+</I>&gt;<i>                     those who operate Sims, with lots of avatars on it - I'm thinking mainly the OSgrid Plazas are good
+</I>&gt;<i>             references -
+</I>&gt;<i>                     this
+</I>&gt;<i>                     could be highly valuable information for those who operate Sims for similar purposes ( meeting
+</I>&gt;<i>             points, parties,
+</I>&gt;<i>                     concerts
+</I>&gt;<i>                     etc. )
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                     ___________________________________________________
+</I>&gt;<i>
+</I>&gt;<i>                     Opensim-dev mailing list
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.__berlios.de</A>
+</I>&gt;<i>             &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/____mailman/listinfo/opensim-dev">https://lists.berlios.de/____mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>             &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>             &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>             &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                 --
+</I>&gt;<i>                 Justin Clark-Casey (justincc)
+</I>&gt;<i>             <A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+</I>&gt;<i>             <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>                 ___________________________________________________
+</I>&gt;<i>
+</I>&gt;<i>                 Opensim-dev mailing list
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.__berlios.de</A>
+</I>&gt;<i>             &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/____mailman/listinfo/opensim-dev">https://lists.berlios.de/____mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>             &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>             &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>             &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>             _________________________________________________
+</I>&gt;<i>             Opensim-dev mailing list
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         --
+</I>&gt;<i>         Justin Clark-Casey (justincc)
+</I>&gt;<i>         <A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+</I>&gt;<i>         <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>         _________________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011135.html">[Opensim-dev] Issues with the Simulator under high load
+</A></li>
+	<LI>Next message: <A HREF="011138.html">[Opensim-dev] Issues with the Simulator under high load
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11139">[ date ]</a>
+              <a href="thread.html#11139">[ thread ]</a>
+              <a href="subject.html#11139">[ subject ]</a>
+              <a href="author.html#11139">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

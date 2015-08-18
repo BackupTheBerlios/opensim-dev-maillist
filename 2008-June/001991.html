@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Module/Plugin Loading
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3C4860BA29.2060103%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001989.html">
+   <LINK REL="Next"  HREF="002000.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Module/Plugin Loading</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3C4860BA29.2060103%40t-data.com%3E"
+       TITLE="[Opensim-dev] Module/Plugin Loading">melanie at t-data.com
+       </A><BR>
+    <I>Tue Jun 24 11:11:05 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001989.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+        <LI>Next message: <A HREF="002000.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1991">[ date ]</a>
+              <a href="thread.html#1991">[ thread ]</a>
+              <a href="subject.html#1991">[ subject ]</a>
+              <a href="author.html#1991">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>It's called _Mono_ addins... does it work in .NET?
+
+Melanie
+
+Ryan McDougall wrote:
+&gt;<i> I've started looking at module/plugin loading in OpenSim. Some have
+</I>&gt;<i> commented that the current situation where things are loaded and
+</I>&gt;<i> initialized ad hoc should be replaced by a greater use of Mono.Addins.
+</I>&gt;<i> 
+</I>&gt;<i> In my survey of the code I've identified a lot of copy-paste code, which
+</I>&gt;<i> minimally I can remove by consolidating that code into a common class or
+</I>&gt;<i> method. However I'd like to try and do a little better, and provide a
+</I>&gt;<i> framework for all the ad hoc loading.
+</I>&gt;<i> 
+</I>&gt;<i> I've identified the following Interfaces which appear to be loaded
+</I>&gt;<i> dynamically somewhere:
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ILogData
+</I>&gt;<i> IUserData
+</I>&gt;<i> IAssetProvider
+</I>&gt;<i> IInventoryData
+</I>&gt;<i> IApplicationPlugin
+</I>&gt;<i> IRegionModule
+</I>&gt;<i> IRegionDataStore
+</I>&gt;<i> IGridPlugin
+</I>&gt;<i> IGridData
+</I>&gt;<i> IGenericConfig
+</I>&gt;<i> IDataNode
+</I>&gt;<i> IDataSnapshotProvider
+</I>&gt;<i> IClientNetworkServer
+</I>&gt;<i> IPhysicsPlugin
+</I>&gt;<i> IMeshingPlugin
+</I>&gt;<i> ITerrainEffect
+</I>&gt;<i> ITerrainLoader
+</I>&gt;<i> ITarget
+</I>&gt;<i> 
+</I>&gt;<i> Does that look like a comprehensive list?
+</I>&gt;<i> Whats the difference between a Plugin and a Module?
+</I>&gt;<i> 
+</I>&gt;<i> I suggest wrapping Mono.Addins into a simple common loader class as
+</I>&gt;<i> follows:
+</I>&gt;<i> 
+</I>&gt;<i> Extend IPlugin to the following:
+</I>&gt;<i> 
+</I>&gt;<i> public class PluginInitData {}
+</I>&gt;<i> 
+</I>&gt;<i> public interface IPlugin : IDispose
+</I>&gt;<i> {
+</I>&gt;<i>   string Version { get; }
+</I>&gt;<i>   string Name { get; }
+</I>&gt;<i>   void Initialise (PluginInitData);
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> and create:
+</I>&gt;<i> 
+</I>&gt;<i> PluginLoader : IDispose
+</I>&gt;<i> {
+</I>&gt;<i>   List&lt;IPlugin&gt; plugins = new List&lt;IPlugin&gt;();
+</I>&gt;<i> 
+</I>&gt;<i>   PluginLoader (string dir)
+</I>&gt;<i>   {            
+</I>&gt;<i>     AddPluginDir (dir);
+</I>&gt;<i>   }
+</I>&gt;<i> 
+</I>&gt;<i>   void AddPluginDir (string dir)
+</I>&gt;<i>   {
+</I>&gt;<i>     AddinManager.Initialize (dir);
+</I>&gt;<i>   }
+</I>&gt;<i> 
+</I>&gt;<i>   void Load (string extpoint, PluginInitData data)
+</I>&gt;<i>   {
+</I>&gt;<i>     LoadUninitialized (extpoint);
+</I>&gt;<i>     Initialize (data);
+</I>&gt;<i>   }
+</I>&gt;<i> 
+</I>&gt;<i>   void LoadUninitialized &lt;T&gt; (string extpoint) where T : IPlugin
+</I>&gt;<i>   {
+</I>&gt;<i>     AddinManager.Registry.Update (null);
+</I>&gt;<i>     ExtensionNodeList ns = AddinManager.GetExtensionNodes(extpoint);
+</I>&gt;<i>     foreach (TypeExtensionNode n in ns)
+</I>&gt;<i>     {
+</I>&gt;<i>       log.Info(&quot;[PLUGINS]: Loading plugin &quot; + n.Path);
+</I>&gt;<i>       plugins.Add ((T) n.CreateInstance());
+</I>&gt;<i>     }
+</I>&gt;<i>   }
+</I>&gt;<i> 
+</I>&gt;<i>   void Initialize (PluginInitData data)
+</I>&gt;<i>   {
+</I>&gt;<i>     foreach (IPlugin p in plugins)
+</I>&gt;<i>       p.Initialize (data);
+</I>&gt;<i>   }
+</I>&gt;<i> 
+</I>&gt;<i>   void Dispose ()
+</I>&gt;<i>   {
+</I>&gt;<i>     foreach (IPlugin p in plugins)
+</I>&gt;<i>     p.Dispose ();
+</I>&gt;<i>   }
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> Which would be used in the following way:
+</I>&gt;<i> 
+</I>&gt;<i> 1. Plugins would be created this way
+</I>&gt;<i> 
+</I>&gt;<i> class MyPluginInitData : PluginInitData
+</I>&gt;<i> {
+</I>&gt;<i>   int foo;
+</I>&gt;<i>   string bar;
+</I>&gt;<i> };
+</I>&gt;<i> 
+</I>&gt;<i> class MyPlugin : IPlugin
+</I>&gt;<i> {
+</I>&gt;<i>   Initialize (PluginInitData data)
+</I>&gt;<i>   {
+</I>&gt;<i>     MyPluginInitData d = data as MyPluginInitData;
+</I>&gt;<i>     //...
+</I>&gt;<i>   }
+</I>&gt;<i>   //...
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> 2. And would be loaded this way:
+</I>&gt;<i> 
+</I>&gt;<i> PluginLoader loader = new PluginLoader (&quot;my/plugin/dir&quot;);
+</I>&gt;<i> MyPluginInitData data = new MyPluginInitData (42, &quot;huzzah&quot;);
+</I>&gt;<i> 
+</I>&gt;<i> loader.load (&quot;/OpenSim/MyPlugins&quot;, data);
+</I>&gt;<i> 
+</I>&gt;<i> Whozit w = new Whozit();
+</I>&gt;<i> w.lart (loader.plugins); // does stuff with plugins
+</I>&gt;<i> 
+</I>&gt;<i> What do you think?
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001989.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+	<LI>Next message: <A HREF="002000.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1991">[ date ]</a>
+              <a href="thread.html#1991">[ thread ]</a>
+              <a href="subject.html#1991">[ subject ]</a>
+              <a href="author.html#1991">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

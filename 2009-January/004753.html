@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] proposal: cleanup and break up region modules
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20proposal%3A%20cleanup%20and%20break%20up%20region%20modules&In-Reply-To=%3C4981B6AA.9040000%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004752.html">
+   <LINK REL="Next"  HREF="004754.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] proposal: cleanup and break up region modules</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20proposal%3A%20cleanup%20and%20break%20up%20region%20modules&In-Reply-To=%3C4981B6AA.9040000%40gmail.com%3E"
+       TITLE="[Opensim-dev] proposal: cleanup and break up region modules">sdague at gmail.com
+       </A><BR>
+    <I>Thu Jan 29 15:01:14 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004752.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+        <LI>Next message: <A HREF="004754.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4753">[ date ]</a>
+              <a href="thread.html#4753">[ thread ]</a>
+              <a href="subject.html#4753">[ subject ]</a>
+              <a href="author.html#4753">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin Clark-Casey wrote:
+&gt;<i> Sean Dague wrote:
+</I>&gt;&gt;<i> MW wrote:
+</I>&gt;&gt;&gt;<i> Putting aside the optimisations for now, as I think that is a different question. As if we are going to have a dynamic module system then those issues come with it.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> While I think having every module in a separate dll/project is too much. As Stefan said I think we have just about enough projects in the core as it is. But I can see a case for moving all the modules that are currently in OpenSim.Region.Environment, into a single separate project/dll called something like OpenSim.Region.CoreModules. 
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> And if we could as Justin said, impove the module loading system, so that the operator can turn on and off the loading/usage of any modules in a single dll. 
+</I>&gt;&gt;<i> Ah, but the problem is then those all need to release at the same time.
+</I>&gt;&gt;<i>  One of the reasons to get us into seperate dlls per module is so that
+</I>&gt;&gt;<i> the IRC module could be updated and distributed without pushing out the
+</I>&gt;&gt;<i> rest of the dll.
+</I>&gt;<i> 
+</I>&gt;<i> I would actually argue that in this particular case the IRC module is not a core module and should be in the forge.
+</I>
+But that's really saying 2 things.  It should be a seperate dll, and it
+should be in a seperate source tree.  I'm personally not a fan of doing
+both of those things at once, because they are seperate things, and it's
+easy to forget that.
+
+&gt;&gt;<i> It would mean that we would easily be able to replace implementations
+</I>&gt;&gt;<i> for various core modules without needing to touch the rest.  For
+</I>&gt;&gt;<i> instance, when diva started to tackle the world map issue, she not only
+</I>&gt;&gt;<i> had to build her own world map, but to change the one in the core to not
+</I>&gt;&gt;<i> load.  Had we been under this model, she wouldn't have needed to do that.
+</I>&gt;<i> 
+</I>&gt;<i> This would still mean that people would have to move the dll being included in core so that it was no longer loaded by 
+</I>&gt;<i> the system.  To me, this seems no less of a task than having a configurable list of modules that are loaded.  Having to 
+</I>&gt;<i> move dlls also means that it isn't easy to pass configuration files around - instead you have to give instructions or 
+</I>&gt;<i> scripts for moving around modules in the filesystem.
+</I>
+This comes back to the addins question.  Having seen this work pretty
+well with gnome-do, I think that gets addressed seperately, including
+the ability to notify you of new upstream modules and download them.
+
+&gt;&gt;<i> Don't fear the projects, more projects don't hurt you. :)
+</I>&gt;<i> 
+</I>&gt;<i> But in this case they do, in terms of cluttering up the solution with lots and lots of projects that are all used anyway 
+</I>&gt;<i> in almost all OpenSim installations and possible in terms of increasing build times (I admit that I may be paranoid on 
+</I>&gt;<i> this point and there might be ways to fix this via nant changes).  It will also increase the effort required for 
+</I>&gt;<i> refactoring existing code into modules, since creating a new project takes more time.
+</I>
+So we should put all the database drivers into a single dll?  As a Linux
+user I'm pained far more by filesystem cluster and mismatch of classname
+to .cs file, or dll to directory.
+
+We've already decided that seperation and organization is needed, look
+at all the structure in the OpenSim/Region/Environment/Modules directory
+tree.
+
+That being said, this isn't an all or nothing approach.  I'd say step
+one, lets get the modules into a seperate dll (like diva suggested).
+Then we can experiment with some level break up and see if it does cause
+the end of the world. :)  If so, we can quickly go back.
+
+Honestly, it should reduce build times.  As a change in 1 module isn't
+going to require rebuild on everything.
+
+	-Sean
+
+-- 
+Sean Dague / Neas Bade
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+<A HREF="http://dague.net">http://dague.net</A>
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 252 bytes
+Desc: OpenPGP digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090129/9093308a/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090129/9093308a/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004752.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+	<LI>Next message: <A HREF="004754.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4753">[ date ]</a>
+              <a href="thread.html#4753">[ thread ]</a>
+              <a href="subject.html#4753">[ subject ]</a>
+              <a href="author.html#4753">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

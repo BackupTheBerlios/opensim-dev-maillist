@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Prospective ODE physics changes
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Prospective%20ODE%20physics%20changes&In-Reply-To=%3CCAAQTD4WzHqz8f3qK6-Lvf8JCk7m_pi9UhgcwH%2BhUpx9hheX5dg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010844.html">
+   <LINK REL="Next"  HREF="010847.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Prospective ODE physics changes</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Prospective%20ODE%20physics%20changes&In-Reply-To=%3CCAAQTD4WzHqz8f3qK6-Lvf8JCk7m_pi9UhgcwH%2BhUpx9hheX5dg%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Prospective ODE physics changes">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Wed Jan  4 01:21:25 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010844.html">[Opensim-dev] Prospective ODE physics changes
+</A></li>
+        <LI>Next message: <A HREF="010847.html">[Opensim-dev] Prospective ODE physics changes
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10843">[ date ]</a>
+              <a href="thread.html#10843">[ thread ]</a>
+              <a href="subject.html#10843">[ subject ]</a>
+              <a href="author.html#10843">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Would a Wright Plaza meeting even have multiple point collisions? Most
+(all?) of the active physical objects are avatar agents and they use
+capsule colliders rather than meshes. Also, most are sitting and the few
+that aren't are standing on or moving across a flat surface, probably far
+away from any vertex in a collision mesh.
+
+I suspect if you are seeing different physics statistics it's probably
+something else that's contributing to it.
+
+On Tue, Jan 3, 2012 at 1:32 PM, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>
+&gt;<i> wrote:
+</I>
+&gt;<i> On 02/01/12 20:56, Melanie wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 02/01/2012 21:51, Justin Clark-Casey wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I'm thinking of making two ODE related changes.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> 1) Replace the current ODE libraries in OpenSimulator with ones compiled
+</I>&gt;&gt;&gt;<i> using the older GIMPACT collider instead of
+</I>&gt;&gt;&gt;<i> OPCODE.  This is to address ODE crashes in simulators with more than one
+</I>&gt;&gt;&gt;<i> region as detailed in [1] and [2].  These don't
+</I>&gt;&gt;&gt;<i> appear to occur with GIMPACT.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I'm not happy with that as a general decision. We should, if
+</I>&gt;&gt;<i> anything like that is done, include both versions to give users the
+</I>&gt;&gt;<i> choice. The OPCODE should remain the default in order to not
+</I>&gt;&gt;<i> jeopardize existing setups and the GIMPACT libs can be copied in by
+</I>&gt;&gt;<i> those experiencing the bug.
+</I>&gt;&gt;<i> Many people don't run multiregion at all and would see only
+</I>&gt;&gt;<i> downsides if this were done.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Multi-region is a non-experimental configuration that is useful to a large
+</I>&gt;<i> number of people.  In my view, it's not correct for out-of-the-box
+</I>&gt;<i> OpenSimulator to continue with such crashes in the long term.  This hurts
+</I>&gt;<i> adoption and ultimate long-term success/survival.
+</I>&gt;<i>
+</I>&gt;<i> However, it just so happens that on scouring the Internet, GIMPACT is
+</I>&gt;<i> actually the newer collider, as per [1].  I don't know why I thought it was
+</I>&gt;<i> the other way around - I may have misinterpreted something that somebody
+</I>&gt;<i> said.
+</I>&gt;<i>
+</I>&gt;<i> Indeed, apparently for our common use case (mostly static objects),
+</I>&gt;<i> GIMPACT should perform better, so I was also wrong about the performance
+</I>&gt;<i> issue.  However, as I said, in my own testing I haven't yet noticed any
+</I>&gt;<i> significant difference and these questions are complex ones.  But it's
+</I>&gt;<i> certainly my experience that using GIMPACT eliminates the ODE crashes in
+</I>&gt;<i> stress-testing, possibly due to something connected with [2] where global
+</I>&gt;<i> object caches are shared between collision spaces.  But this is still a
+</I>&gt;<i> wild-assed guess (we can't use TLS as OpenSim crashes immediately upon
+</I>&gt;<i> startup).
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i>  2) Reducing contacts_per_collision in [ODEPhysicsSettings] from 80 to
+</I>&gt;&gt;&gt;<i> something much lower, maybe even 1.  In my own
+</I>&gt;&gt;&gt;<i> testing, reducing this number can halve scene physics time.  Normal
+</I>&gt;&gt;&gt;<i> avatar operations, such as standing on prims or
+</I>&gt;&gt;&gt;<i> walking up ramps appear to be unaffected even at 1.  However, more
+</I>&gt;&gt;&gt;<i> testing is probably needed to arrive at a compromise
+</I>&gt;&gt;&gt;<i> number.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> This would greatly affect scripts using physics. I believe the
+</I>&gt;&gt;<i> optimum would be 16-20, which would ensure that the scripting
+</I>&gt;&gt;<i> maximum (16) collision contacts are always available.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> According to [2], the maximum reported scripting collision contacts is 8.
+</I>&gt;<i>
+</I>&gt;<i> Testing with 8 on Wright Plaza today in the Tuesday meeting seemed to
+</I>&gt;<i> greatly reduce physics scene time compared to previously without any
+</I>&gt;<i> apparent loss of required fidelity (50ms with 18 avatars, albeit mostly
+</I>&gt;<i> sitting down - unfortunately I didn't record previous week's numbers but
+</I>&gt;<i> they were higher.  Nebadon tested one of his vehicles).
+</I>&gt;<i>
+</I>&gt;<i> Testing will continue on the osgrid plazas.
+</I>&gt;<i>
+</I>&gt;<i> [1] <A HREF="http://www.ode.org/old_list_**archives/2006-October/020664.**html&lt;http://www.ode.org/old_list_archives/2006-October/020664.html">http://www.ode.org/old_list_**archives/2006-October/020664.**html&lt;http://www.ode.org/old_list_archives/2006-October/020664.html</A>&gt;
+</I>&gt;<i> [2] <A HREF="http://groups.google.com/**group/ode-users/browse_thread/**">http://groups.google.com/**group/ode-users/browse_thread/**</A>
+</I>&gt;<i> thread/f38c56584c650536#&lt;<A HREF="http://groups.google.com/group/ode-users/browse_thread/thread/f38c56584c650536#">http://groups.google.com/group/ode-users/browse_thread/thread/f38c56584c650536#</A>&gt;
+</I>&gt;<i> [3] <A HREF="http://wiki.secondlife.com/**wiki/Collision&lt;http://wiki.secondlife.com/wiki/Collision">http://wiki.secondlife.com/**wiki/Collision&lt;http://wiki.secondlife.com/wiki/Collision</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20120103/20e649a7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20120103/20e649a7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010844.html">[Opensim-dev] Prospective ODE physics changes
+</A></li>
+	<LI>Next message: <A HREF="010847.html">[Opensim-dev] Prospective ODE physics changes
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10843">[ date ]</a>
+              <a href="thread.html#10843">[ thread ]</a>
+              <a href="subject.html#10843">[ subject ]</a>
+              <a href="author.html#10843">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

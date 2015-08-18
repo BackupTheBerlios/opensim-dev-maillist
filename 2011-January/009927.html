@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [opensource-dev] Where is MXP implementation ?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5Bopensource-dev%5D%20Where%20is%20MXP%20implementation%20%3F&In-Reply-To=%3C392D3ADF-6024-4E20-8704-7522FA9D0359%40playsign.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009925.html">
+   <LINK REL="Next"  HREF="009929.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [opensource-dev] Where is MXP implementation ?</H1>
+    <B>Toni Alatalo</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5Bopensource-dev%5D%20Where%20is%20MXP%20implementation%20%3F&In-Reply-To=%3C392D3ADF-6024-4E20-8704-7522FA9D0359%40playsign.net%3E"
+       TITLE="[Opensim-dev] [opensource-dev] Where is MXP implementation ?">toni at playsign.net
+       </A><BR>
+    <I>Fri Jan 21 15:18:51 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009925.html">[Opensim-dev] [opensource-dev] Where is MXP implementation ?
+</A></li>
+        <LI>Next message: <A HREF="009929.html">[Opensim-dev] [opensource-dev] Where is MXP implementation ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9927">[ date ]</a>
+              <a href="thread.html#9927">[ thread ]</a>
+              <a href="subject.html#9927">[ subject ]</a>
+              <a href="author.html#9927">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Jan 21, 2011, at 2:04 PM, Rustam Rakhimov wrote:
+&gt;<i> but, can u tell me same thing but for RealXtend, not Naali. Just i was working with RealXtend Viewer and
+</I>&gt;<i> i still didn't switch to Naali. So i want to know which part in RealXtend was doing functionality of MXP
+</I>
+ok, we call that app 'rexviewer' or 'the old realxtend viewer prototype' to avoid confusion :) .. realXtend being the project that has later made Naali after that quick&amp;dirty prototyping.
+
+rexviewer does not talk MXP, in fact there we didn't touch the UDP level networking on the viewer at all -- just use it. so it only talks LLUDP with the original slviewer code. the old rexprotocol uses mostly the LLUDP generic messages for the new features, and some new LLUDP message was made to optimize movement of many objects.
+
+i tested implementing MXP a little by integrating it a bit to openviewer (pyov) when we were starting on Naali two years ago, was fun enough. used pythondotnet to do that, calling the c# reference implementation. one guy here promised to the mxp guys to integrate it to Naali when they provide a c++ lib, but they didn't but asked us to write it instead, and it wasn't the right time for that for us back then.
+
+now it can be that knet is better for the transport level than mxp. we chose knet because it behaved better than enet. knet is just the transport, though, does not have the bubbles etc.  Virtual World stuff on top which MXP has. we figured separating these two levels is good. mxp could probably be implemented on top of knet if someone wanted. of course integrating MXP as is to Naali is possible too.
+
+i have never looked at the slviewer code due to the opensim contribution policy (lludp in naali is written from scratch), but have heard from others that adding a new protocol there is not easy (to put it mildly).
+
+and yes the c# idealist viewer has the only actual mxp implementation of the opensim related viewers.
+
+~Toni
+
+&gt;<i> 2011/1/21 Toni Alatalo &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">toni at playsign.net</A>&gt;
+</I>&gt;<i> On to, 2011-01-20 at 12:50 -0800, Dahlia Trimble wrote:
+</I>&gt;<i> &gt; I'm not sure about RealXtend, but there is a MXP implementation in
+</I>&gt;<i> 
+</I>&gt;<i> realXtend Naali currently uses LLUDP for connecting to Opensim, and knet
+</I>&gt;<i> (either udp or tcp) to Tundra (which is a server module to Naali
+</I>&gt;<i> itself).
+</I>&gt;<i> 
+</I>&gt;<i> knet docs are at <A HREF="http://clb.demon.fi/knet/">http://clb.demon.fi/knet/</A> and code at
+</I>&gt;<i> <A HREF="https://bitbucket.org/clb/knet/">https://bitbucket.org/clb/knet/</A>
+</I>&gt;<i> 
+</I>&gt;<i> the Naali docs of the modules for knet and lludp respectively are:
+</I>&gt;<i> <A HREF="http://www.realxtend.org/doxygen/class_kristalli_protocol_1_1_kristalli_protocol_module.html">http://www.realxtend.org/doxygen/class_kristalli_protocol_1_1_kristalli_protocol_module.html</A>
+</I>&gt;<i> <A HREF="http://www.realxtend.org/doxygen/class_open_sim_protocol_1_1_protocol_module_open_sim.html">http://www.realxtend.org/doxygen/class_open_sim_protocol_1_1_protocol_module_open_sim.html</A>
+</I>&gt;<i> 
+</I>&gt;<i> ~Toni
+</I>&gt;<i> 
+</I>&gt;<i> &gt;  IdealistViewer. You should be able to see the code here:
+</I>&gt;<i> &gt; <A HREF="http://forge.opensimulator.org/gf/project/idealistviewer/scmsvn/?action=browse&amp;path=%2Ftrunk%2FIdealistViewer%2FNetwork%2F">http://forge.opensimulator.org/gf/project/idealistviewer/scmsvn/?action=browse&amp;path=%2Ftrunk%2FIdealistViewer%2FNetwork%2F</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On Thu, Jan 20, 2011 at 12:34 AM, Rustam Rakhimov
+</I>&gt;<i> &gt; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">rusyasoft at gmail.com</A>&gt; wrote:
+</I>&gt;<i> &gt;         Where is MXP implementation ?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;         hi everybody,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;         RealXtend uses MXP but where exactly, i mean which part and
+</I>&gt;<i> &gt;         where its used or implemented
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;         please let me know. if possible file name and function name
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;         thank you in advance !!
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;         _______________________________________________
+</I>&gt;<i> &gt;         Policies and (un)subscribe information available here:
+</I>&gt;<i> &gt;         <A HREF="http://wiki.secondlife.com/wiki/OpenSource-Dev">http://wiki.secondlife.com/wiki/OpenSource-Dev</A>
+</I>&gt;<i> &gt;         Please read the policies before posting to keep unmoderated
+</I>&gt;<i> &gt;         posting privileges
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110121/101f834f/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110121/101f834f/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009925.html">[Opensim-dev] [opensource-dev] Where is MXP implementation ?
+</A></li>
+	<LI>Next message: <A HREF="009929.html">[Opensim-dev] [opensource-dev] Where is MXP implementation ?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9927">[ date ]</a>
+              <a href="thread.html#9927">[ thread ]</a>
+              <a href="subject.html#9927">[ subject ]</a>
+              <a href="author.html#9927">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

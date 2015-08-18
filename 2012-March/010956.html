@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3C4F5981C8.2030404%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010954.html">
+   <LINK REL="Next"  HREF="010957.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service</H1>
+    <B>Wade Schuette</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3C4F5981C8.2030404%40gmail.com%3E"
+       TITLE="[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service">wade.schuette at gmail.com
+       </A><BR>
+    <I>Fri Mar  9 05:06:32 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010954.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+        <LI>Next message: <A HREF="010957.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10956">[ date ]</a>
+              <a href="thread.html#10956">[ thread ]</a>
+              <a href="subject.html#10956">[ subject ]</a>
+              <a href="author.html#10956">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin,
+
+I have to respectfully agree with Cory.
+
+Wouldn't something like the following address your valid concerns about 
+complexity and reducing total load as well as perceived system response 
+time to both filing and retrieving assets?
+
+First, if  you use event-driven processes, there's no reason to rescan 
+the entire database, and by separating the processes into distinct 
+streams, they are decoupled which is actually a good thing and 
+simplifies both sides.   There's no reason I can see they need to be 
+coupled, and separating them allows them to be optimized and tested 
+separately, which is a good thing.
+
+In fact, the entire deduplication process could run overnight at a 
+low-load time, which is even better,  or have multiple &quot;worker&quot; 
+processes assisgned to it,  if it's taking too long.   Seems very flexible.
+
+I'm assuming that a hash-code isn't unique, but just specifies the 
+bucket into which this item can be categorized.
+
+When a new asset arrives,  if the hash-code already exists, put the 
+unique-ID in a pipe and finish filing it and move on.   If the hash-code 
+doesn't already exist,  just file it and move on.
+
+At the other end of the pipe, this wakes up a process that can, as time 
+allows,  check in the background to see if not only the hash-code is the 
+same, but the entire item is the same, and if so,  change the handle to 
+point to the existing copy.   ( For all I know,  this can be done in one 
+step if CRC codes are sufficiently unique, but computing such a code is 
+cpu intensive unless you can do it in hardware.)
+
+Of course,  now the question arises of what happens when the original 
+person DELETES the shared item.   If you have solid database integrity, 
+you only need to know how many pointers to it exist, and if someone 
+deletes &quot;their copy&quot;,  you decrease the count by one, and when the count 
+gets to one,  the next delete can actually delete the entry.
+
+
+
+Wade
+
+
+
+
+On 3/8/12 7:41 PM, Justin Clark-Casey wrote:
+&gt;<i> On 08/03/12 22:00, Rory Slegtenhorst wrote:
+</I>&gt;&gt;<i> @Justin
+</I>&gt;&gt;<i> Can't we do the data de-duplication on a database level? Eg find the 
+</I>&gt;&gt;<i> duplicates and just get rid of them on a regular
+</I>&gt;&gt;<i> interval (cron)?
+</I>&gt;<i>
+</I>&gt;<i> This would be enormously intricate.  Not only would you have to keep 
+</I>&gt;<i> rescanning the entire asset db but it adds another moving part to an 
+</I>&gt;<i> already complex system.
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010954.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+	<LI>Next message: <A HREF="010957.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10956">[ date ]</a>
+              <a href="thread.html#10956">[ thread ]</a>
+              <a href="subject.html#10956">[ subject ]</a>
+              <a href="author.html#10956">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

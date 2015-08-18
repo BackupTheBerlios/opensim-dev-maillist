@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> No subject
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.10.1331736296.7835.opensim-dev%40lists.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001334.html">
+   <LINK REL="Next"  HREF="001364.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>No subject</H1>
+    <B></B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.10.1331736296.7835.opensim-dev%40lists.berlios.de%3E"
+       TITLE="No subject">
+       </A><BR>
+    <I>Wed Mar 14 15:44:31 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001334.html">No subject
+</A></li>
+        <LI>Next message: <A HREF="001364.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1363">[ date ]</a>
+              <a href="thread.html#1363">[ thread ]</a>
+              <a href="subject.html#1363">[ subject ]</a>
+              <a href="author.html#1363">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think a number of people were thinking I meant something a lot more complex than I do (at least to start with)
+
+So as soon as I get time I'm going to try to write a more clear in depth email. Just that won't be for a few days or more. 
+
+But yeah basically as you said end to end funnels with servlets attaching to the ends. 
+
+
+Dr Scofield &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt; wrote:        Michael Wright wrote: I guess in some ways it could be thought as a network bus, but I wasn't thinking of the messages being broadcast on the channel, where all endpoints had to listen to all messages and pick out the ones for them. I was thinking, if anything, of more like a cut down web services protocol stack.
+   
+ My prototype channel is just a basic HTTP based one. That just finds where the url of the channel receiver, that the required servlet is currently registered at, is. Then does a HTTP POST of the serialised message to that url. 
+   
+ But the implementation should be up to the channels. All the rest of the system should care is that a channel can pass messages from one end point to another, and can map some standard addressing scheme to those endpoints. Allowing for a dynamic system, where the addressable message receivers (the servlets) can move around the endpoints on a channel as needed. And new endpoints can be added.
+  ah. ok. so it's not a network bus, but rather a dual-ended funnel --- like &gt;--&lt; ? with servlets attaching themselves to the respective funnels on each end?
+ 
+     cheers,
+     dr scofield?
+ 
+ 
+   
+   Dr Scofield &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt; wrote:    interesting thoughts. question: would a channel be something like a 
+ network bus?
+     
+ cheers
+ dr scofield
+     
+ Michael Wright wrote:
+ &gt; I'm been thinking and prototyping about some improvements on the grid 
+ &gt; servers/protocols.
+ &gt;
+ &gt; One of my aims is to try to separate the network code more from the 
+ &gt; logic code. So am thinking of what I'm calling a Channel and servlet 
+ &gt; system.
+ &gt;
+ &gt; A servlet is just a class that performs some service. I'm thinking     
+ &gt; more in terms of breaking up the current servers into smaller 
+ &gt; services/servlets.
+ &gt;
+ &gt; So then we have a collection of servlets that do the various functions 
+ &gt; that the current servers do (except I'm not including the asset server 
+ &gt; in this as think that is best kept to a proper REST resource based     
+ &gt; system).
+ &gt;
+ &gt; Then we come to the channel, maybe this is a bad term for what I'm     
+ &gt; thinking, but anyway. The channel has two (or three) parts, the 
+ &gt; sender/receivers, which are responsible for the 
+ &gt; serialising/deserialising of the messages/datagrams, and also of 
+ &gt; sending it to the correct url. To find the url that a message should 
+ &gt; be sent to, the other part of the channel is responsible. I'm 
+ &gt; currently thinking of this as a basic central hash table service, that 
+ &gt; just keeps track of the servlets that are registered on that channel 
+ &gt; and the url of the endpoint that they are one. Of course the idea with 
+ &gt; the channel is to keep the code separate from the service logic, so 
+ &gt; how the servlet tracking is done is up to the implementation.
+ &gt;
+ &gt; While each servlet could actually have its own endpoint/channel 
+ &gt; receiver, I'm thinking more of a collection of them sharing a 
+ &gt; endpoint. So normally maybe only one endpoint per server instance.
+ &gt;
+ &gt; So all a channel really is: Is a managed collection of known services 
+ &gt; and the url they can be reached at. Plus the code for de/serialising 
+ &gt; the messages in the format that channel uses.
+ &gt;
+ &gt; The third component is the Router service. Each server instance would 
+ &gt; have one of these, that is tasked with routing the messages to and     
+ &gt; from the channel endpoint to the correct servlet. A router could be 
+ &gt; connected to more than one channel.
+ &gt;
+ &gt; Again a basic concept. The task is just to keep track of servlets in 
+ &gt; that instance, to know what channels they should be receiving messages 
+ &gt; from. To be able to route a message from a servlet to a channel; 
+ &gt; either a particular channel, or the servlet might just say any channel 
+ &gt; that has a particular type of service registered on it. Also the 
+ &gt; router should be able to do internal routing...from one servlet to     
+ &gt; another that is in the same instance.
+ &gt;
+ &gt;
+ &gt; I'm also thinking that the region servers will have such a router and 
+ &gt; be registered on a channel(s). And then region modules could send and 
+ &gt; receive messages the same way.
+ &gt;
+ &gt; My thoughts and actually my requirements for some other ideas. Is to 
+ &gt; have a dynamic modular system. That keeps the network code completely 
+ &gt; separate from the services logic. I really think that the current 
+ &gt; servers are too err monolithic and really group together a bunch of 
+ &gt; services that are separate. I don't mean they should always be on 
+ &gt; separate servers, just the code should be separated more and more 
+ &gt; modular.
+ &gt;
+ &gt; So my thoughts are lots of smaller services/servlets. And once we do 
+ &gt; that, it could lead to lots of url having to be kept track of by each 
+ &gt; other servlet if we used the current approach. So thats why I think 
+ &gt; the network code , including url management/tracking should be 
+ &gt; completely separate.
+ &gt; This also I think/hope could help with scaling things. In that as the 
+ &gt; servlets can be grouped together as needed (and even moved around the 
+ &gt; server instances). Then a very small grid might only want to run one 
+ &gt; backend server instance that had all the servlets that it needs 
+ &gt; running. While a much larger grid might have a server instance for     
+ &gt; each servlet, and maybe more than one servlet of each type running.
+ &gt;
+ &gt; Also its possible that we could use the same servlets in standalone 
+ &gt; mode, as they would just use the internal routing function of the 
+ &gt; routing service.
+ &gt;
+ &gt; Another benefit is it helps to make the whole thing more customizable. 
+ &gt; In a number of different ways. One of those ways is something that     
+ &gt; I've done some prototyping of. Which is as the servlets and router     
+ &gt; classes have no network code in at all. Its a simple task to write     
+ &gt; different versions of the channel receivers/senders for say a ASP.net 
+ &gt; implementation.
+ &gt;
+ &gt; There are still a number of things that need more thought. But thats a 
+ &gt; general overview of my ideas
+ &gt;
+ &gt;
+ &gt; ------------------------------------------------------------------------
+ &gt; Yahoo! for Good helps you make a difference 
+ &gt;      
+ &gt;
+ &gt; ------------------------------------------------------------------------
+ &gt;
+ &gt; _______________________________________________
+ &gt; Opensim-dev mailing list
+ &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+ &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+ &gt; 
+     
+     
+ -- 
+ dr dirk husemann, mathmatics and computer science, ibm zurich research lab
+ SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+ RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+     
+ _______________________________________________
+ Opensim-dev mailing list
+ <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+ <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+        
+    
+   
+---------------------------------
+ Yahoo! for Good helps you make a difference   
+
+---------------------------------
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+  
+  
+ 
+ 
+-- 
+dr dirk husemann, mathmatics and computer science, ibm zurich research lab
+SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A> 
+ _______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+---------------------------------
+ Yahoo! for Good helps you make a difference
+--0-1037203-1207604039=:17696
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001334.html">No subject
+</A></li>
+	<LI>Next message: <A HREF="001364.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1363">[ date ]</a>
+              <a href="thread.html#1363">[ thread ]</a>
+              <a href="subject.html#1363">[ subject ]</a>
+              <a href="author.html#1363">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

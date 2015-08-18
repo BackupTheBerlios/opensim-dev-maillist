@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving away from grid vs. standalone
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F9FAB5.7070801%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006386.html">
+   <LINK REL="Next"  HREF="006354.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving away from grid vs. standalone</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F9FAB5.7070801%40googlemail.com%3E"
+       TITLE="[Opensim-dev] moving away from grid vs. standalone">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Apr 30 21:23:33 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006386.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+        <LI>Next message: <A HREF="006354.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6388">[ date ]</a>
+              <a href="thread.html#6388">[ thread ]</a>
+              <a href="subject.html#6388">[ subject ]</a>
+              <a href="author.html#6388">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> I like this generally but I do have the following comments.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 1.  I'm not a huge fan of this since, like Stefan, I'd ideally like it to be possible to package an OpenSim that 
+</I>&gt;&gt;<i> supports only a single architecture, with no trace of other architecture code in there at all.  Putting everything into 
+</I>&gt;&gt;<i> one dll makes this impossible, though perhaps it's not really that big a deal.  Is it really not possibly to do this via 
+</I>&gt;&gt;<i> plugins (where the hg code relies on the presence of local service plugins?).
+</I>&gt;<i> 
+</I>&gt;<i> OK. It might be possible to merge the hypergrid-related conditionals in 
+</I>&gt;<i> the connectors of what's currently known as OGS1. If that's possible, 
+</I>&gt;<i> then we'd have two dlls:
+</I>&gt;<i> 
+</I>&gt;<i> OpenSim.Region.ResourceServicesConnectors.Local.dll
+</I>&gt;<i> OpenSim.Region.ResourceServicesConnectors.Remote.dll
+</I>&gt;<i> 
+</I>&gt;<i> Where &quot;Remote&quot; means calls to local and remote services out there, and 
+</I>&gt;<i> not just to the ones associated with the grid; so includes calls to, for 
+</I>&gt;<i> example, user services of foreign users -- if the sim is configured to 
+</I>&gt;<i> deal with them.
+</I>&gt;<i> 
+</I>&gt;<i> We already have the dependency OGS1 depends-on Local, that would 
+</I>&gt;<i> continue to be, that is, Remote depends-on Local. So the fact that a sim 
+</I>&gt;<i> uses the Remote dll doesn't mean that all calls to services are remote 
+</I>&gt;<i> calls; some may be local.
+</I>
+If bundling is the only reasonable way forward than fair enough.  Perhaps looking at some code might help.  For 
+instance, in HGUserServices in OpenSim.Region.Communications.Hypergrid.dll, there's a lot of the following
+
+         public override List&lt;AvatarPickerAvatar&gt; GenerateAgentPickerRequestResponse(UUID queryID, string query)
+         {
+             if (m_localUserServices != null)
+                 return m_localUserServices.GenerateAgentPickerRequestResponse(queryID, query);
+
+             return base.GenerateAgentPickerRequestResponse(queryID, query);
+         }
+
+Here, I can imagine a way in which this stuff could be restructured so that HGUserServices relies on LocalUserServices 
+in a plugin fashion where HG and Local don't need to be aware of each other.
+
+But then there are other methods in this class such as
+
+         public override void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
+         {
+             string url = string.Empty;
+             if ((m_localUserServices != null) &amp;&amp; !IsForeignUser(userid, out url))
+                 m_localUserServices.LogOffUser(userid, regionid, regionhandle, position, lookat);
+             else
+                 base.LogOffUser(userid, regionid, regionhandle, position, lookat);
+         }
+
+where some awareness of whether a user is local or foreign - IsForeignUser() - appears to be required by HG.  If there's 
+no way to make this check more generic then that would appear to lead towards a higher level of coupling which may make 
+it a lot easier to put everything in monolithic dlls/big modules.
+
+I looked at this because I was thinking of actually doing this with the limited pre-existing internal module system in 
+UserManagerBase which makes it possible to source user 'data' from multiple internal plugins.  But the presence of 
+methods such as LogOffUser() raised the difficulty bar too high for my brain time budget at that time.
+
+&gt;<i> 
+</I>&gt;&gt;<i> 2.  On your previous suggested ini stuff, in my opinion something like
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> UserService = { local | remote }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> would be clearer than
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> LocalUserService = {True|False}
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  From what I remember, specifying remote is understandable even if the services are actually on the same machine (but 
+</I>&gt;&gt;<i> one has chosen to run them as separate processes).  Local would naturally denote the use of services in the same process 
+</I>&gt;&gt;<i>   as the simulator.
+</I>&gt;<i> 
+</I>&gt;<i> Actually, there's a subtle but very important difference in the case of 
+</I>&gt;<i> hypergrid. A standalone grid wanting to allow Guests would have to use 
+</I>&gt;<i> the Remote dll, even though the service for local users is local.
+</I>&gt;<i> 
+</I>&gt;<i> This is, in fact, the kernel of the complexity here. Local has been 
+</I>&gt;<i> designed to be Sandbox connectors, and OSG1 has been designed to connect 
+</I>&gt;<i> with exactly *one* of each type of service. All remote calls in it 
+</I>&gt;<i> hardcode serversInfo.xxxURL.
+</I>&gt;<i> 
+</I>&gt;<i> The Hypergrid needs the regions to interact with *several* of each type 
+</I>&gt;<i> of service, potentially, including the local one. So, most of the 
+</I>&gt;<i> hypergrid changes have to do with determining local vs remote and, if 
+</I>&gt;<i> remote, determining the service URL, making it a variable instead of a 
+</I>&gt;<i> constant.
+</I>&gt;<i> 
+</I>&gt;<i> The question is: do you want to hold on the the 'old' grid model, 
+</I>&gt;<i> *architecturally speaking*? (not behaviorally) Or do you want to 
+</I>&gt;<i> generalize the architecture, and then let people configure its 
+</I>&gt;<i> *behavior* with things like
+</I>&gt;<i> 
+</I>&gt;<i> AllowGuests = {True|False}
+</I>&gt;<i> 
+</I>&gt;<i> ?
+</I>&gt;<i> 
+</I>&gt;<i> I have a preference for the generalization, but I'm not strongly 
+</I>&gt;<i> pushing, I can go both ways.
+</I>&gt;<i> The thing that *really* needs to go is this
+</I>&gt;<i> 
+</I>&gt;<i> gridmode = {True|False}
+</I>&gt;<i> 
+</I>&gt;<i> This is an absolute show stopper; it binds us down to two monolithic things.
+</I>&gt;<i> 
+</I>&gt;<i> So if we want to keep 3 architectures around, as separate architectures 
+</I>&gt;<i> (and not one, more general), we have a meta option here:
+</I>&gt;<i> 
+</I>&gt;<i> ServiceConnectors = {Sandbox|LLGrid|Hypergrid}
+</I>&gt;<i> 
+</I>&gt;<i> With this, I can make the hypergrid architecture have configuration 
+</I>&gt;<i> variables to be able to generate all of the behaviors of Sandbox and 
+</I>&gt;<i> LLGrid, and more -- basically place the ideas on my original email under 
+</I>&gt;<i> the Hypergrid mode, and leave the other two as they are now.
+</I>
+Hmm, having configuration variables to switch Hypergrid between 'standalone' and 'LLGrid' sounds subtly worse if 
+anything.  But I do think there's a trade off here between complexity in the configuration files and usability.  Perhaps 
+this could be alleviated by a further config section that most users wouldn't have to look at that defines the plugins 
+that 'Sandbox', 'LLGrid' and 'Hypergrid' actually use.  Then a 3rd party could define their own label to put in 
+ServiceConnectors.  But this might be hopeless naive since it's off the top of my head.
+
+If I were you, I would follow the path of least resistance unless it made things horribly messy internally (perhaps this 
+is the point).
+
+Also, I'd rather see that we leave 'LL' out of this if only because they could change their model in the future for all 
+we know :).
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006386.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+	<LI>Next message: <A HREF="006354.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6388">[ date ]</a>
+              <a href="thread.html#6388">[ thread ]</a>
+              <a href="subject.html#6388">[ subject ]</a>
+              <a href="author.html#6388">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

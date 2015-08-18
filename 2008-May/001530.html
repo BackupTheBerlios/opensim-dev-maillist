@@ -1,0 +1,263 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-commits] r4554 - in trunk/OpenSim/Region:	ClientStack/LindenUDP Environment/Interfaces	Environment/Modules/World/Permissions Environment/Scenes
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r4554%20-%20in%0A%20trunk/OpenSim/Region%3A%09ClientStack/LindenUDP%0A%20Environment/Interfaces%09Environment/Modules/World/Permissions%0A%20Environment/Scenes&In-Reply-To=%3C48220552.809%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001529.html">
+   <LINK REL="Next"  HREF="001532.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-commits] r4554 - in trunk/OpenSim/Region:	ClientStack/LindenUDP Environment/Interfaces	Environment/Modules/World/Permissions Environment/Scenes</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r4554%20-%20in%0A%20trunk/OpenSim/Region%3A%09ClientStack/LindenUDP%0A%20Environment/Interfaces%09Environment/Modules/World/Permissions%0A%20Environment/Scenes&In-Reply-To=%3C48220552.809%40googlemail.com%3E"
+       TITLE="[Opensim-dev] [Opensim-commits] r4554 - in trunk/OpenSim/Region:	ClientStack/LindenUDP Environment/Interfaces	Environment/Modules/World/Permissions Environment/Scenes">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed May  7 21:38:58 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001529.html">[Opensim-dev] Help with Diagnosing Connectivity Issues
+</A></li>
+        <LI>Next message: <A HREF="001532.html">[Opensim-dev] C# tip of the day Was:[Opensim-commits] r4554
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1530">[ date ]</a>
+              <a href="thread.html#1530">[ thread ]</a>
+              <a href="subject.html#1530">[ subject ]</a>
+              <a href="author.html#1530">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi MingChen,
+
+Couldn't these external check hooks be added directly into the 
+PermissionsModule, rather than having the scene call the module, only 
+for the module to call back into the scene?
+
+
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mingchen at opensimulator.org</A> wrote:
+&gt;<i> Author: mingchen
+</I>&gt;<i> Date: 2008-05-07 10:33:57 -0700 (Wed, 07 May 2008)
+</I>&gt;<i> New Revision: 4554
+</I>&gt;<i> 
+</I>&gt;<i> Modified:
+</I>&gt;<i>    trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs
+</I>&gt;<i>    trunk/OpenSim/Region/Environment/Interfaces/IScenePermissions.cs
+</I>&gt;<i>    trunk/OpenSim/Region/Environment/Modules/World/Permissions/PermissionsModule.cs
+</I>&gt;<i>    trunk/OpenSim/Region/Environment/Scenes/Scene.Inventory.cs
+</I>&gt;<i>    trunk/OpenSim/Region/Environment/Scenes/Scene.cs
+</I>&gt;<i>    trunk/OpenSim/Region/Environment/Scenes/SceneBase.cs
+</I>&gt;<i> Log:
+</I>&gt;<i> *Added SceneExternalChecks.cs that is used to manage checking the results of multiple functions that register with the class and return the result (usually true/false) based on those results. This is useful for module wanting to put their opinion in decisions such as 'can the user rez this object?'
+</I>&gt;<i> 
+</I>&gt;<i> Modified: trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs	2008-05-07 16:48:29 UTC (rev 4553)
+</I>&gt;<i> +++ trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs	2008-05-07 17:33:57 UTC (rev 4554)
+</I>&gt;<i> @@ -4047,6 +4047,9 @@
+</I>&gt;<i>                              //RayEnd: &lt;61.97724, 141.995, 92.58341&gt;   
+</I>&gt;<i>                              //RayTargetID: 00000000-0000-0000-0000-000000000000
+</I>&gt;<i>  
+</I>&gt;<i> +                            //Check to see if adding the prim is allowed; useful for any module wanting to restrict the
+</I>&gt;<i> +                            //object from rezing initially
+</I>&gt;<i> +                            
+</I>&gt;<i>                              handlerAddPrim = OnAddPrim;
+</I>&gt;<i>                              if (handlerAddPrim != null)
+</I>&gt;<i>                                  handlerAddPrim(AgentId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape, addPacket.ObjectData.BypassRaycast, addPacket.ObjectData.RayStart, addPacket.ObjectData.RayTargetID, addPacket.ObjectData.RayEndIsIntersection);
+</I>&gt;<i> 
+</I>&gt;<i> Modified: trunk/OpenSim/Region/Environment/Interfaces/IScenePermissions.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/Environment/Interfaces/IScenePermissions.cs	2008-05-07 16:48:29 UTC (rev 4553)
+</I>&gt;<i> +++ trunk/OpenSim/Region/Environment/Interfaces/IScenePermissions.cs	2008-05-07 17:33:57 UTC (rev 4554)
+</I>&gt;<i> @@ -34,9 +34,9 @@
+</I>&gt;<i>          bool BypassPermissions { get; set; }
+</I>&gt;<i>  
+</I>&gt;<i>          #region Object Permissions
+</I>&gt;<i> +
+</I>&gt;<i> +        bool CanRezObject(LLUUID user, LLVector3 position, int count);
+</I>&gt;<i>          
+</I>&gt;<i> -        bool CanRezObject(LLUUID user, LLVector3 position);
+</I>&gt;<i> -        
+</I>&gt;<i>          /// &lt;summary&gt;
+</I>&gt;<i>          /// Permissions check - can user delete an object?
+</I>&gt;<i>          /// &lt;/summary&gt;
+</I>&gt;<i> 
+</I>&gt;<i> Modified: trunk/OpenSim/Region/Environment/Modules/World/Permissions/PermissionsModule.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/Environment/Modules/World/Permissions/PermissionsModule.cs	2008-05-07 16:48:29 UTC (rev 4553)
+</I>&gt;<i> +++ trunk/OpenSim/Region/Environment/Modules/World/Permissions/PermissionsModule.cs	2008-05-07 17:33:57 UTC (rev 4554)
+</I>&gt;<i> @@ -140,12 +140,21 @@
+</I>&gt;<i>              return false;
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i> -        public virtual bool CanRezObject(LLUUID user, LLVector3 position)
+</I>&gt;<i> +        public virtual bool CanRezObject(LLUUID user, LLVector3 position, int objectCount)
+</I>&gt;<i>          {
+</I>&gt;<i>              bool permission = false;
+</I>&gt;<i>  
+</I>&gt;<i> +            
+</I>&gt;<i> +
+</I>&gt;<i>              string reason = &quot;Insufficient permission&quot;;
+</I>&gt;<i>  
+</I>&gt;<i> +            //Perform ExternalChecks first!
+</I>&gt;<i> +            bool results = m_scene.ExternalChecks.ExternalChecksCanRezObject(objectCount, user, position);
+</I>&gt;<i> +            if (results == false)
+</I>&gt;<i> +            {
+</I>&gt;<i> +                return false;
+</I>&gt;<i> +            }
+</I>&gt;<i> +
+</I>&gt;<i>              ILandObject land = m_scene.LandChannel.GetLandObject(position.X, position.Y);
+</I>&gt;<i>              if (land == null) return false;
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Modified: trunk/OpenSim/Region/Environment/Scenes/Scene.Inventory.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/Environment/Scenes/Scene.Inventory.cs	2008-05-07 16:48:29 UTC (rev 4553)
+</I>&gt;<i> +++ trunk/OpenSim/Region/Environment/Scenes/Scene.Inventory.cs	2008-05-07 17:33:57 UTC (rev 4554)
+</I>&gt;<i> @@ -1267,10 +1267,7 @@
+</I>&gt;<i>                        RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), 
+</I>&gt;<i>                        BypassRayCast, bRayEndIsIntersection,true,scale, false);
+</I>&gt;<i>              
+</I>&gt;<i> -            if (!Permissions.CanRezObject(remoteClient.AgentId, pos) &amp;&amp; !attachment)
+</I>&gt;<i> -            {
+</I>&gt;<i> -                return null;         
+</I>&gt;<i> -            }
+</I>&gt;<i> +            
+</I>&gt;<i>  
+</I>&gt;<i>              // Rez object
+</I>&gt;<i>              CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+</I>&gt;<i> @@ -1288,6 +1285,11 @@
+</I>&gt;<i>                          {
+</I>&gt;<i>                              string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);                            
+</I>&gt;<i>                              SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
+</I>&gt;<i> +                            if (!Permissions.CanRezObject(remoteClient.AgentId, pos, group.Children.Count) &amp;&amp; !attachment)
+</I>&gt;<i> +                            {
+</I>&gt;<i> +                                return null;
+</I>&gt;<i> +                            }
+</I>&gt;<i> +
+</I>&gt;<i>                              group.ResetIDs();
+</I>&gt;<i>                              AddEntity(group);
+</I>&gt;<i>  
+</I>&gt;<i> @@ -1361,10 +1363,6 @@
+</I>&gt;<i>              {
+</I>&gt;<i>                  LLUUID ownerID = item.OwnerID;
+</I>&gt;<i>  
+</I>&gt;<i> -                if (!Permissions.CanRezObject(ownerID, pos))
+</I>&gt;<i> -                {
+</I>&gt;<i> -                    return null;
+</I>&gt;<i> -                }
+</I>&gt;<i>  
+</I>&gt;<i>                  AssetBase rezAsset = AssetCache.GetAsset(item.AssetID, false);
+</I>&gt;<i>  
+</I>&gt;<i> @@ -1372,6 +1370,11 @@
+</I>&gt;<i>                  {
+</I>&gt;<i>                      string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);
+</I>&gt;<i>                      SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
+</I>&gt;<i> +
+</I>&gt;<i> +                    if (!Permissions.CanRezObject(ownerID, pos, group.Children.Count))
+</I>&gt;<i> +                    {
+</I>&gt;<i> +                        return null;
+</I>&gt;<i> +                    }
+</I>&gt;<i>                      group.ResetIDs();
+</I>&gt;<i>                      AddEntity(group);
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Modified: trunk/OpenSim/Region/Environment/Scenes/Scene.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/Environment/Scenes/Scene.cs	2008-05-07 16:48:29 UTC (rev 4553)
+</I>&gt;<i> +++ trunk/OpenSim/Region/Environment/Scenes/Scene.cs	2008-05-07 17:33:57 UTC (rev 4554)
+</I>&gt;<i> @@ -241,6 +241,7 @@
+</I>&gt;<i>              m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
+</I>&gt;<i>  
+</I>&gt;<i>              m_eventManager = new EventManager();
+</I>&gt;<i> +            m_externalChecks = new SceneExternalChecks(this);
+</I>&gt;<i>  
+</I>&gt;<i>              //Bind Storage Manager functions to some land manager functions for this scene
+</I>&gt;<i>              EventManager.OnLandObjectAdded +=
+</I>&gt;<i> @@ -829,7 +830,7 @@
+</I>&gt;<i>          {
+</I>&gt;<i>              ForEachScenePresence(delegate(ScenePresence presence) { whatToDo(presence.ControllingClient); });
+</I>&gt;<i>          }
+</I>&gt;<i> -
+</I>&gt;<i> +         
+</I>&gt;<i>          /// &lt;summary&gt;
+</I>&gt;<i>          /// 
+</I>&gt;<i>          /// &lt;/summary&gt;
+</I>&gt;<i> @@ -1244,7 +1245,7 @@
+</I>&gt;<i>             
+</I>&gt;<i>              LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f,0.5f,0.5f), false);
+</I>&gt;<i>  
+</I>&gt;<i> -            if (Permissions.CanRezObject(ownerID, pos))
+</I>&gt;<i> +            if (Permissions.CanRezObject(ownerID, pos, 1))
+</I>&gt;<i>              {
+</I>&gt;<i>                  // rez ON the ground, not IN the ground
+</I>&gt;<i>                  pos.Z += 0.25F;
+</I>&gt;<i> @@ -3217,5 +3218,7 @@
+</I>&gt;<i>              return visualParams;
+</I>&gt;<i>          }
+</I>&gt;<i>          #endregion
+</I>&gt;<i> +
+</I>&gt;<i> +
+</I>&gt;<i>      }
+</I>&gt;<i>  }
+</I>&gt;<i> 
+</I>&gt;<i> Modified: trunk/OpenSim/Region/Environment/Scenes/SceneBase.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/Environment/Scenes/SceneBase.cs	2008-05-07 16:48:29 UTC (rev 4553)
+</I>&gt;<i> +++ trunk/OpenSim/Region/Environment/Scenes/SceneBase.cs	2008-05-07 17:33:57 UTC (rev 4554)
+</I>&gt;<i> @@ -71,6 +71,12 @@
+</I>&gt;<i>              get { return m_eventManager; }
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i> +
+</I>&gt;<i> +        protected SceneExternalChecks m_externalChecks;
+</I>&gt;<i> +        public SceneExternalChecks ExternalChecks
+</I>&gt;<i> +        {
+</I>&gt;<i> +            get { return m_externalChecks; }
+</I>&gt;<i> +        }
+</I>&gt;<i>          
+</I>&gt;<i>          protected string m_datastore;
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-commits mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-commits at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-commits">https://lists.berlios.de/mailman/listinfo/opensim-commits</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001529.html">[Opensim-dev] Help with Diagnosing Connectivity Issues
+</A></li>
+	<LI>Next message: <A HREF="001532.html">[Opensim-dev] C# tip of the day Was:[Opensim-commits] r4554
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1530">[ date ]</a>
+              <a href="thread.html#1530">[ thread ]</a>
+              <a href="subject.html#1530">[ subject ]</a>
+              <a href="author.html#1530">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Mega Regions and PAL support in OpenSim?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Mega%20Regions%20and%20PAL%20support%20in%20OpenSim%3F&In-Reply-To=%3C34cc66250909301944g49a56da7n8f098cc4a7ddc45b%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007724.html">
+   <LINK REL="Next"  HREF="007728.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Mega Regions and PAL support in OpenSim?</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Mega%20Regions%20and%20PAL%20support%20in%20OpenSim%3F&In-Reply-To=%3C34cc66250909301944g49a56da7n8f098cc4a7ddc45b%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Mega Regions and PAL support in OpenSim?">teravus at gmail.com
+       </A><BR>
+    <I>Thu Oct  1 04:44:51 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007724.html">[Opensim-dev] Mega Regions and PAL support in OpenSim?
+</A></li>
+        <LI>Next message: <A HREF="007728.html">[Opensim-dev] Mega Regions and PAL support in OpenSim?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7727">[ date ]</a>
+              <a href="thread.html#7727">[ thread ]</a>
+              <a href="subject.html#7727">[ subject ]</a>
+              <a href="author.html#7727">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Taints are there because many threads modify the properties of
+physicsactors.     The properties are also not inherently thread safe.
+   So, to ensure data integrity, you can lock the internal data types
+when setting them, or you can keep a list of tainted physics actors
+and send the changed values to the internal physics engine within the
+thread context of region's heartbeat thread.    This is especially
+important when dealing with unmanaged resources.  For example, with
+the OpenDynamicsEngine physics plugin, if the internal data was set by
+the properties directly, the server would quickly crash with a memory
+access violation or assert with, 'invalid operation for locked space;.
+
+So, what I do, generally, is maintain a plugin state and an internal
+physics engine state for each physics actor.    The region, when
+setting one of the properties, will taint physics actors by calling
+the method in the PhysicsScene with the Physics Actor that it tainted.
+  The next time the heartbeat thread steps the physics world, just
+before stepping the world and doing collision detection, the plugin
+state gets locked and applied to the internal physics engine.   This
+strategy keeps locking to a minimum while allowing multiple threads to
+change the state safely.
+
+Regards
+
+Teravus
+
+On Wed, Sep 30, 2009 at 9:35 PM, Robert A. Knop Jr. &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">rknop at pobox.com</A>&gt; wrote:
+&gt;<i> On Wed, Sep 30, 2009 at 06:23:56PM -0700, Dahlia Trimble wrote:
+</I>&gt;&gt;<i> We're watching PAL and may consider it when we find it to be sufficient for
+</I>&gt;&gt;<i> use with OpenSim. Another factor to consider is the majority of OpenSim
+</I>&gt;&gt;<i> developers are unpaid volunteers and it's difficult to find people who have
+</I>&gt;&gt;<i> the knowledge and expertise for implementing physics simulations and are
+</I>&gt;&gt;<i> willing to donate their time and services. If you have this expertise or
+</I>&gt;&gt;<i> know of someone else who would be willing to help implement PAL then please
+</I>&gt;&gt;<i> do consider creating a PAL module and donating it to the community.
+</I>&gt;<i>
+</I>&gt;<i> I fully understand (at this point) the MICASim Physics module and how it
+</I>&gt;<i> interacts; thanks to ter_afk (on IRC-- I wish I knew his real name!) for
+</I>&gt;<i> some pointers on getting the message back that the scene needs to get
+</I>&gt;<i> updated info from the physics sim.
+</I>&gt;<i>
+</I>&gt;<i> I have figured out a bunch of what needs to happen, but not all of it.
+</I>&gt;<i> Could somebody point me to where I'd look to understand what taints are
+</I>&gt;<i> all about WRT a physics engine?
+</I>&gt;<i>
+</I>&gt;<i> I have various interests in physics engines, what with being a
+</I>&gt;<i> physicist and the last one to hack the MICA code....
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> --Rob Knop
+</I>&gt;<i> &#160;E-mail: &#160; &#160;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">rknop at pobox.com</A>
+</I>&gt;<i> &#160;Home Page: <A HREF="http://www.pobox.com/~rknop/">http://www.pobox.com/~rknop/</A>
+</I>&gt;<i> &#160;Blog: &#160; &#160; &#160;<A HREF="http://www.sonic.net/~rknop/blog/">http://www.sonic.net/~rknop/blog/</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007724.html">[Opensim-dev] Mega Regions and PAL support in OpenSim?
+</A></li>
+	<LI>Next message: <A HREF="007728.html">[Opensim-dev] Mega Regions and PAL support in OpenSim?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7727">[ date ]</a>
+              <a href="thread.html#7727">[ thread ]</a>
+              <a href="subject.html#7727">[ subject ]</a>
+              <a href="author.html#7727">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Unit%20tests%20should%20not%20be%20coupled%20%28WAS%3A%20Re%3A%0A%20%5BOpensim-commits%5D%20r8737%20-%20trunk/OpenSim/Framework/Communications/Tests%29&In-Reply-To=%3C49C785E1.6030706%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005663.html">
+   <LINK REL="Next"  HREF="005831.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Unit%20tests%20should%20not%20be%20coupled%20%28WAS%3A%20Re%3A%0A%20%5BOpensim-commits%5D%20r8737%20-%20trunk/OpenSim/Framework/Communications/Tests%29&In-Reply-To=%3C49C785E1.6030706%40gmail.com%3E"
+       TITLE="[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)">sdague at gmail.com
+       </A><BR>
+    <I>Mon Mar 23 13:51:45 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005663.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+        <LI>Next message: <A HREF="005831.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5830">[ date ]</a>
+              <a href="thread.html#5830">[ thread ]</a>
+              <a href="subject.html#5830">[ subject ]</a>
+              <a href="author.html#5830">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Mike Mazur wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> On Wed, 11 Mar 2009 12:30:18 -0300
+</I>&gt;<i> Arthur Valadares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">arthursv at linux.vnet.ibm.com</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Mike, you seem to have some good knowledge in this area, would be nice
+</I>&gt;&gt;<i> if you could contribute to Automated Testing in wiki with this
+</I>&gt;&gt;<i> information, as none of this is talked about there. 
+</I>&gt;<i> 
+</I>&gt;<i> Thank you.
+</I>&gt;<i> 
+</I>&gt;<i> I have spent some time today to put some information on the wiki page.
+</I>&gt;<i> Have a look at
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://opensimulator.org/wiki/Automated_Testing">http://opensimulator.org/wiki/Automated_Testing</A>
+</I>&gt;<i> 
+</I>&gt;<i> and also
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://opensimulator.org/wiki/Example_Test_SQLite_Assets">http://opensimulator.org/wiki/Example_Test_SQLite_Assets</A>
+</I>&gt;<i> 
+</I>&gt;<i> where I placed the whole SQLiteAssetTest example.
+</I>&gt;<i> 
+</I>&gt;<i> I'm not sure that an in-depth tutorial on unit testing itself really
+</I>&gt;<i> belongs on the OpenSim wiki, though. Other resources should be perused
+</I>&gt;<i> to learn more about unit testing, such as the NUnit tutorial:
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://www.nunit.org/index.php?p=quickStart&amp;r=2.4">http://www.nunit.org/index.php?p=quickStart&amp;r=2.4</A>
+</I>
+I know I'm late on this thread (sorry, was out for a couple weeks), but
+wanted to put a little perspective here.
+
+I created the model for testing the database code.  We can play
+semantics on whether database tests are unit tests or not, but at the
+end of the day, if the database don't work, all breaks, and the end user
+cries.  Hence, testing there is good. :)
+
+In my experience, first order unit tests, i.e. stateless tests for
+objects, aren't usually very interesting, and rarely find bugs.
+Complexity comes in the interaction between a couple of components where
+state is involved.
+
+The database tests have found at least a dozen tree breaks that might
+have taken a long time to sort out otherwise, so I think there is a lot
+of value there.
+
+While it is possible to make each of these tests stateless, you cause
+some new problems if you do that:
+ * it's more work, which means people are less likely to contribute the
+tests
+ * it takes more time to execute, as you are constantly building up and
+destroying the same state.  If the tests take longer to run, less people
+will run them.
+
+If we had a battery of tests that had a bunch of expected fails, then it
+would be more important to know more than just the first break point.
+But our tests are all supposed to always run, so the fact that we stop
+at the first break is ok.  That exposes the earliest point where things
+when wrong.  You fix that and move onto the next issue.
+
+Chaining of tests for complex interactions is a shortcut, but I really
+think it's a useful one, as it provides much higher levels of complexity
+testing for less code and less run time.
+
+I really think that this is a case of theory vs. practice.  Theory says
+we shouldn't do it this way, but in practice it works better (at least
+from my experience doing this with 2 prior large scale projects).
+
+	-Sean
+
+-- 
+Sean Dague / Neas Bade
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+<A HREF="http://dague.net">http://dague.net</A>
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 252 bytes
+Desc: OpenPGP digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090323/f6bd2e2f/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090323/f6bd2e2f/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005663.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+	<LI>Next message: <A HREF="005831.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5830">[ date ]</a>
+              <a href="thread.html#5830">[ thread ]</a>
+              <a href="subject.html#5830">[ subject ]</a>
+              <a href="author.html#5830">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

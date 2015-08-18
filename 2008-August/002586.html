@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Upcoming work on alternative client stack
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Upcoming%20work%20on%20alternative%20client%20stack&In-Reply-To=%3CC2F948DA2AC0BF448A49E5F3148BF12AA03F7BB0%40winxbeus02.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002585.html">
+   <LINK REL="Next"  HREF="002599.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Upcoming work on alternative client stack</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Upcoming%20work%20on%20alternative%20client%20stack&In-Reply-To=%3CC2F948DA2AC0BF448A49E5F3148BF12AA03F7BB0%40winxbeus02.exchange.xchg%3E"
+       TITLE="[Opensim-dev] Upcoming work on alternative client stack">adam at deepthink.com.au
+       </A><BR>
+    <I>Sun Aug 17 22:48:32 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002585.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+        <LI>Next message: <A HREF="002599.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2586">[ date ]</a>
+              <a href="thread.html#2586">[ thread ]</a>
+              <a href="subject.html#2586">[ subject ]</a>
+              <a href="author.html#2586">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>That's a good question - however there's actually no clear license over that file. LL have dictated that the source is GPL, the art is CC-BY-SA, but the remainder is somewhat gray. (However it's worth noting that the msg_template is definitely available on wiki.secondlife.com under CC-BY-SA, although in small pieces spread around.)
+
+Perhaps someone from Linden Lab would like to chime in here?
+
+Regards,
+
+Adam
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Kyle Hamilton
+</I>&gt;<i> Sent: Sunday, 17 August 2008 1:46 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Upcoming work on alternative client stack
+</I>&gt;<i>
+</I>&gt;<i> I would avoid generating C# and C/C++ code from message_template.msg.
+</I>&gt;<i> The entire distribution (including that file) is only made available
+</I>&gt;<i> under GPL; any programmatic derivation from it (and a programmatic
+</I>&gt;<i> transformation turns it from 'reference' to 'source code') could be
+</I>&gt;<i> held to place the derivative under the GPL as well.
+</I>&gt;<i>
+</I>&gt;<i> Maybe someone can ask if they can make an exception for that file?
+</I>&gt;<i>
+</I>&gt;<i> -Kyle H
+</I>&gt;<i>
+</I>&gt;<i> On Thu, Aug 14, 2008 at 2:38 PM, Mike Mazur &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt; wrote:
+</I>&gt;<i> &gt; Hello,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; (Could it be? Are the mailing lists working again? I wanted to send
+</I>&gt;<i> &gt; this message last weekend.)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Some of you may already know, I've started working on an alternative
+</I>&gt;<i> &gt; client stack. This alternative stack does not use libomv's Packet
+</I>&gt;<i> &gt; class to move packets around. The buffers which are written to by
+</I>&gt;<i> &gt; socket functions are passed around instead, with functions available
+</I>&gt;<i> &gt; for extracting or writing data to the buffers.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; These functions are provided by a package currently codenamed
+</I>&gt;<i> &quot;funsl&quot;.
+</I>&gt;<i> &gt; Johan has written a compiler[1] which generates C# and C/C++ code
+</I>&gt;<i> from
+</I>&gt;<i> &gt; LL's message_template.msg file[2].
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; We're doing this because we believe the creation of a Packet object
+</I>&gt;<i> &gt; for each transferred packet impacts performance, particularly when GC
+</I>&gt;<i> &gt; events occur.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; As I'm working on this I found that libomv's Packet class is used
+</I>&gt;<i> &gt; outside the client stack, namely in
+</I>&gt;<i> OpenSim/Framework/ClientManager.cs
+</I>&gt;<i> &gt; and OpenSim/Framework/IClientAPI.cs (among other places). Since our
+</I>&gt;<i> &gt; client stack needs to implement these interfaces too, and needs to
+</I>&gt;<i> &gt; call ClientManager methods, those libomv Packet references get in the
+</I>&gt;<i> &gt; way. I would like to factor them out.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Please allow me to give you an example, inspired by changeset r5785.
+</I>&gt;<i> &gt; ClientManager had a method, InPacket(), defined as below:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     public void InPacket(uint circuitCode, Packet packet)
+</I>&gt;<i> &gt;     {
+</I>&gt;<i> &gt;         IClientAPI client;
+</I>&gt;<i> &gt;         bool tryGetRet = false;
+</I>&gt;<i> &gt;         lock (m_clients)
+</I>&gt;<i> &gt;             tryGetRet = m_clients.TryGetValue(circuitCode, out
+</I>&gt;<i> &gt; client); if (tryGetRet)
+</I>&gt;<i> &gt;         {
+</I>&gt;<i> &gt;             client.InPacket(packet);
+</I>&gt;<i> &gt;         }
+</I>&gt;<i> &gt;     }
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; This method receives a circuit code and passes the packet to the
+</I>&gt;<i> &gt; IClientAPI instance associated with said circuit code.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Why should the ClientManager have knowledge of Packet? It's not in
+</I>&gt;<i> the
+</I>&gt;<i> &gt; client stack, it only provides access to the clients. Therefore I
+</I>&gt;<i> &gt; changed the method as follows:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     public void InPacket(uint circuitCode, object packet)
+</I>&gt;<i> &gt;     {
+</I>&gt;<i> &gt;         IClientAPI client;
+</I>&gt;<i> &gt;         bool tryGetRet = false;
+</I>&gt;<i> &gt;         lock (m_clients)
+</I>&gt;<i> &gt;             tryGetRet = m_clients.TryGetValue(circuitCode, out
+</I>&gt;<i> &gt; client); if (tryGetRet)
+</I>&gt;<i> &gt;         {
+</I>&gt;<i> &gt;             client.InPacket(packet);
+</I>&gt;<i> &gt;         }
+</I>&gt;<i> &gt;     }
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Instead of expecting a Packet object for the second argument, we
+</I>&gt;<i> &gt; expect any object. Naturally the signature of the InPacket() method
+</I>&gt;<i> in
+</I>&gt;<i> &gt; the IClientAPI interface has also changed. The cast from object to
+</I>&gt;<i> &gt; Packet (or byte[] in my case) is done in the class which implements
+</I>&gt;<i> &gt; IClientAPI, namely
+</I>&gt;<i> &gt; OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs, where
+</I>&gt;<i> InPacket()
+</I>&gt;<i> &gt; has been changed as follows:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; -        public virtual void InPacket(Packet NewPack)
+</I>&gt;<i> &gt; +        public virtual void InPacket(object NewPack)
+</I>&gt;<i> &gt;     {
+</I>&gt;<i> &gt; -            m_PacketHandler.InPacket(NewPack);
+</I>&gt;<i> &gt; +            // Cast NewPack to Packet.
+</I>&gt;<i> &gt; +            m_PacketHandler.InPacket((Packet) NewPack);
+</I>&gt;<i> &gt;     }
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; InPacket() is the first method that has been changed so far, but
+</I>&gt;<i> &gt; others will need to follow (OutPacket(), SendSimStats(),
+</I>&gt;<i> &gt; ProcessInPacket(), etc).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Please rest assured these changes don't break existing functionality,
+</I>&gt;<i> &gt; just factoring out some libomv Packet references which currently live
+</I>&gt;<i> &gt; outside the client stack.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Any thoughts or concerns?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Thank you,
+</I>&gt;<i> &gt; Mike
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; [1] If you are interested in the source for the compiler, written in
+</I>&gt;<i> &gt; LISP, just ask ;)
+</I>&gt;<i> &gt; [2]
+</I>&gt;<i> &gt;
+</I>&gt;<i> <A HREF="http://svn.secondlife.com/trac/linden/browser/release/scripts/messages">http://svn.secondlife.com/trac/linden/browser/release/scripts/messages</A>
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002585.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+	<LI>Next message: <A HREF="002599.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2586">[ date ]</a>
+              <a href="thread.html#2586">[ thread ]</a>
+              <a href="subject.html#2586">[ subject ]</a>
+              <a href="author.html#2586">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

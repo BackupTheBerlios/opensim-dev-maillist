@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Update for group module &amp; flotsam
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3C506F0C6F.2070905%40ve3syb.ca%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011421.html">
+   <LINK REL="Next"  HREF="011431.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Update for group module &amp; flotsam</H1>
+    <B>Kevin Cozens</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3C506F0C6F.2070905%40ve3syb.ca%3E"
+       TITLE="[Opensim-dev] Update for group module &amp; flotsam">kevin at ve3syb.ca
+       </A><BR>
+    <I>Fri Oct  5 18:35:59 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011421.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+        <LI>Next message: <A HREF="011431.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11425">[ date ]</a>
+              <a href="thread.html#11425">[ thread ]</a>
+              <a href="subject.html#11425">[ subject ]</a>
+              <a href="author.html#11425">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 12-10-03 12:00 PM, Michelle Argus wrote:
+&gt;<i> - added agents online status to flotsam
+</I>&gt;<i> - added agents last login data to flotsam
+</I>&gt;<i> - displaying the online/last login data in the groupmembers list viewerside
+</I>&gt;<i> - added optional filter to get a memberlist of online members only instead
+</I>&gt;<i> of allways receiving all groupmembers
+</I>&gt;<i> - send groupchat IMs only to online members.
+</I>&gt;<i>
+</I>&gt;<i> The changes can be found in the 2 gits here: <A HREF="https://github.com/MAReantals">https://github.com/MAReantals</A>
+</I>
+Nice to see some missing functionality added. Sending group messages to 
+avatars that are not on line was clearly a bug that needed fixing.
+
+The proposed changes started me thinking about the groups code and wondering 
+if there were other areas of the code that could be written differently to 
+minimize chat lag. What I have seen so far makes me realize there are a 
+number of ways the overall groups code can be improved. I'll start with some 
+comments about online status in groups before I get to the main areas where 
+improvements can be made.
+
+Having an online status in the groups database raises the question as to 
+whether it might get out of sync with an avatars real online status but this 
+may not be much of a problem. A status of online could be forced when an 
+avatar opens a group chat window. Offline status could be set on a failure 
+to send a group chat message fails (and determines user is offline?).
+
+The updated group code adds OnClientClosed handler to check and update an 
+avatars online status. Does OnClientClosed get called on TP to a different 
+region or on sim boundary crossings? If it is called at times other than 
+during login/logout it should check if the avatars status has changed before 
+issuing the database update call as that is an &quot;expensive&quot; call involving an 
+external web server to update the group database.
+
+The preceeding items are minor issues. Now for the bigger issues.
+
+I was surprised (almost shocked) to find that a call is made to 
+GetGroupMembers() for *every* chat message that is to be sent. [It is also 
+called when sending group notices.]
+
+If that doesn't sound bad enough it gets worse when you realize what is 
+involved. The C# code invokes a PHP script on a webserver to query a 
+database to get the list of members. The PHP code uses a complex SQL query 
+that contains 3 JOIN's and one LEFT JOIN. To top it all off, once it has the 
+list of members the PHP code then runs another query to get group 
+permissions for each member.
+
+The SQL query with the JOIN's makes one question the design of the group 
+database tables. I think it is more likely that it is trying to return more 
+data than is required when determining which avatars should receive a group 
+chat message or notice.
+
+I think the first thing to do is create a new function to get online group 
+members that returns the minimum amount of data required to send chat and 
+notices. I don't think that should involve more than two tables versus the 
+three currently used. It could be done with one but the second table is 
+needed to see if the member is online. If there is a simpler/faster way for 
+the group .cs code to check if a user is online given an avatar UUID that 
+doesn't require an external database check that would be better. The online 
+status wouldn't be needed in the groups database, the list of members could 
+be filtered in the .cs code so only online members get chat/notices.
+
+The next(?) step would be to do the SQL queries from inside the C# code and 
+eliminate the need for the use of a webserver and the PHP code.
+
+A more complex solution to reducing overhead and lag in group chat is to set 
+up a cache to hold the online group member data to avoid multiple requests 
+to an external webserver on each message.
+
+The other question to be asked is if the group code is in anyway threaded? 
+Can it handle multiple chat messages at the same time or is it sequential 
+and processing only one message at at time? Is the group module a bottle 
+neck when people are chatting in several groups at the same time?
+
+One last issue remains. How do we test changes to the group chat code? A 
+test bed is needed to allow simulation of a large number of people chatting 
+in several groups at the same time.
+
+I have suggested working on the group module as a possible first project for 
+the #metaversity people. It is self-contained enough to be a good first 
+project as it doesn't need a lot of broad knowledge of the overall code 
+base, not to mention the amount of &quot;bang for the buck&quot; as it is of benefit 
+to anyone using group chat.
+
+-- 
+Cheers!
+
+Kevin.
+
+<A HREF="http://www.ve3syb.ca/">http://www.ve3syb.ca/</A>           |&quot;Nerds make the shiny things that distract
+Owner of Elecraft K2 #2172      | the mouth-breathers, and that's why we're
+                                 | powerful!&quot;
+#include &lt;disclaimer/favourite&gt; |             --Chris Hardwick
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011421.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+	<LI>Next message: <A HREF="011431.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11425">[ date ]</a>
+              <a href="thread.html#11425">[ thread ]</a>
+              <a href="subject.html#11425">[ subject ]</a>
+              <a href="author.html#11425">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

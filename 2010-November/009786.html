@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Creator information preserved + 2 questions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Creator%20information%20preserved%20%2B%202%20questions&In-Reply-To=%3C4CF00497.5080702%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009789.html">
+   <LINK REL="Next"  HREF="009787.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Creator information preserved + 2 questions</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Creator%20information%20preserved%20%2B%202%20questions&In-Reply-To=%3C4CF00497.5080702%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Creator information preserved + 2 questions">diva at metaverseink.com
+       </A><BR>
+    <I>Fri Nov 26 20:03:51 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009789.html">[Opensim-dev] [opensim-dev] interfaces to opensim for sensor network data
+</A></li>
+        <LI>Next message: <A HREF="009787.html">[Opensim-dev] Creator information preserved + 2 questions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9786">[ date ]</a>
+              <a href="thread.html#9786">[ thread ]</a>
+              <a href="subject.html#9786">[ subject ]</a>
+              <a href="author.html#9786">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi all,
+
+I finally have the preservation of creator information working across 
+the board, except for IARs, which I'm still working on. By &quot;preservation 
+of creator information&quot; I mean the ability for preserving the origin 
+grid along with the user ID and name, both on archiving and on HG 
+transfers. Turns out that the main obstacle for this has been the .net 
+serialization that OpenSim has been using. For background and context, 
+see [1] and [2]. This email explains how things have taken shape and 
+asks for input on two technical details (one specifically from Justin).
+
+Here's how it works.
+
+For OARs, we can now save that information in the OAR files, and, upon 
+importing it somewhere else, the right information about the creator 
+will be displayed -- as opposed to the current behavior of always 
+assigning creator-ship to the estate owner where the OAR is imported. It 
+works like this:
+
+$ save -profile=<A HREF="http://foogrid.org/user">http://foogrid.org/user</A> region.oar
+
+This saves creator information for all scene objects that have a local 
+creator, that looks like this:
+&lt;CreatorData&gt;<A HREF="http://foogrid.org/user/uuid;FirstName">http://foogrid.org/user/uuid;FirstName</A> LastName&lt;/CreatorData&gt;
+
+Upon import to another grid, this information is associated with each 
+scene object, and stored persistently in the prims table. The URL (in 
+this case, <A HREF="http://foogrid.org/user/uuid">http://foogrid.org/user/uuid</A>) is meant to refer to a valid 
+service endpoint for the user's profile. Even if that endpoint is not 
+operational, the profile URL is useful, as it the basis for displaying 
+the origin of this user: the object's Creator field is shown to other 
+users as FirstName.LastName @foogrid.org.
+
+A similar thing happens in HG transfers. (Plus there's a lot more to 
+come on transferring assets over the HG, but they are unrelated to this 
+email)
+
+The two small technical issues are:
+
+1) First, I'm now working in IARs, and have a question for Justin. I see 
+that UserInventoryItem deserialization is being done with a function 
+that imposes the most restrictive constraints on the external 
+representation. Specifically, it reads the representation sequentially, 
+assuming one and only one set of fields, in exactly one order. Is it ok 
+if I rewrite this as processing machine that is independent of the order 
+and can be extended to handle new fields, similar to what I have done 
+for SOPs? Any other things I should keep in mind, besides backward 
+compatibility?
+
+2) Second, unfortunately .net serialization of flag fields has a 
+different behavior than .ToString(). If you have 2 flag values, .NET 
+writes them as &quot;F1 F2&quot; while ToString() writes them as &quot;F1, F2&quot;. 
+Enum.Parse() expects commas. I've been debating about whether to 
+continue to drag the .NET behavior or to simply move away from it and 
+use the natural form for ToString and Parse. The tradeoff is wrt the 
+level of backwards compatibility. Although new versions of OpenSim can 
+handle both forms, old versions of OpenSim that still use .NET 
+serialization understand only the expected .NET format without commas. 
+We can generate the old form by giving the command line option 
+-version=0 on save oar.
+
+So, technically, there is no issue. This is simply a usability issue, as 
+many people will not pay attention, even though there is a yellow 
+warning sign now on save oars warning people that they need to use 
+-version=0 to produce oars to be imported into older opensims. I'd like 
+to hear people's thoughts on this minor detail that is very annoying: 
+should we drag the .NET behavior into the future just because people 
+will miss the warning message? Or should we get rid of all traces of 
+.NET serialization and be insensitive to the people who don't read the 
+warnings? Any other ideas?
+
+Diva / Crista
+
+[1] <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2010-October/009592.html">https://lists.berlios.de/pipermail/opensim-dev/2010-October/009592.html</A>
+[2] <A HREF="http://opensimulator.org/wiki/Explicit_Object_Serialization">http://opensimulator.org/wiki/Explicit_Object_Serialization</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009789.html">[Opensim-dev] [opensim-dev] interfaces to opensim for sensor network data
+</A></li>
+	<LI>Next message: <A HREF="009787.html">[Opensim-dev] Creator information preserved + 2 questions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9786">[ date ]</a>
+              <a href="thread.html#9786">[ thread ]</a>
+              <a href="subject.html#9786">[ subject ]</a>
+              <a href="author.html#9786">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] proposal: cleanup and break up region modules
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20proposal%3A%20cleanup%20and%20break%20up%20region%20modules&In-Reply-To=%3C4980BBF0.6040106%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004738.html">
+   <LINK REL="Next"  HREF="004742.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] proposal: cleanup and break up region modules</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20proposal%3A%20cleanup%20and%20break%20up%20region%20modules&In-Reply-To=%3C4980BBF0.6040106%40googlemail.com%3E"
+       TITLE="[Opensim-dev] proposal: cleanup and break up region modules">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed Jan 28 21:11:28 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004738.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+        <LI>Next message: <A HREF="004742.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4739">[ date ]</a>
+              <a href="thread.html#4739">[ thread ]</a>
+              <a href="subject.html#4739">[ subject ]</a>
+              <a href="author.html#4739">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dr Scofield wrote:
+&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> Dr Scofield wrote:
+</I>&gt;&gt;&gt;<i> i've been looking at where region modules live in our source tree --- 
+</I>&gt;&gt;&gt;<i> OpenSim/Region/Modules and OpenSim/Region/Environment/Modules --- and 
+</I>&gt;&gt;&gt;<i> how they get bundled:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>     * modules in OpenSim/Region/Modules get their own private DLL
+</I>&gt;&gt;&gt;<i>     * OpenSim/Region/Environment/Modules get lumped into ONE gigantic DLL
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> off the 3 modules living in OpenSim/Region/Modules 2 might be good 
+</I>&gt;&gt;&gt;<i> candidate for forge project: python and SvnSerializer. the third really 
+</I>&gt;&gt;&gt;<i> belongs to the Terrain region module and seems to contain the default 
+</I>&gt;&gt;&gt;<i> terrain effects.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> i think it would make sense to
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>     * have all region modules living in the same neighborhood (i'd
+</I>&gt;&gt;&gt;<i>       prefer OpenSim/Region/Modules), the current layout is a bit confusing
+</I>&gt;&gt;<i> Don't we need to make a distinction between 'service' modules (such as the REST module) and scene/environment modules 
+</I>&gt;&gt;<i> though?  The former are not attached to a scene (and may well never be concerned with scene code) while the latter are 
+</I>&gt;&gt;<i> very much scene related.
+</I>&gt;<i> 
+</I>&gt;<i> that would be another step. first i'd like to get the modules settled in the
+</I>&gt;<i> same neighborhood.
+</I>&gt;<i> 
+</I>&gt;&gt;&gt;<i>     * break up the region module super-DLL so that each region module
+</I>&gt;&gt;&gt;<i>       gets a DLL of its own
+</I>&gt;&gt;<i> At least on mono, I'm guessing that this would vastly expand build times.  Certainly at the moment, each invocation of 
+</I>&gt;&gt;<i> mono to build a new assembly appears to take far longer than building many files in a single dll.
+</I>&gt;<i> 
+</I>&gt;<i> vastly?
+</I>
+Maybe this is a slight exaggeration but I'm anticipating that the build time would be much longer.  I'm happy to be 
+proved wrong on this point.  Maybe this seems a minor thing but long build times are such a pain in the ass.
+
+&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> I also tend to think of the current modules in OpenSim/Region/Environment/Modules as fairly core modules that one would 
+</I>&gt;&gt;<i> expect to be packaged together, and which it would be inconvenient to split up.
+</I>&gt;<i> 
+</I>&gt;<i> hmm...that kind of goes against the idea of them being modules, i'd think :-)
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+Does it?  Isn't this just a convenient way of packaging the core modules that almost everybody is going to need to run 
+their OpenSim (though I would admit that some of the modules in there arguably aren't core...)
+
+I feel that what would be really useful is a core mechanism for enabling/disabling modules which doesn't rely on the 
+module itself having that option.  This would be simpler and might make the question of whether there are lots of 
+modules bundled in a single dll moot (since you can just enable/disable them with separate config entries - and storage 
+space for dlls is cheap :-)
+
+Which in itself leads me on to the question of splitting up the massive monolithic config file.  I don't know about 
+other people, but I find it a pain to deal with.  I feel that these kinds of changes would be really valuable whilst 
+rearranging the module spaces is kind of nice to have but doesn't seem the most pressing issue right now.  But that's 
+just my opinion :-)
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004738.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+	<LI>Next message: <A HREF="004742.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4739">[ date ]</a>
+              <a href="thread.html#4739">[ thread ]</a>
+              <a href="subject.html#4739">[ subject ]</a>
+              <a href="author.html#4739">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Some problems with Avatar Movement in BulletSim
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20problems%20with%20Avatar%20Movement%20in%20BulletSim&In-Reply-To=%3CCAJ%3DJWqx6_Qh%2B%3D-2qEWYiKOiRbATK38FAropuOaXCshfzyd1jxA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011545.html">
+   <LINK REL="Next"  HREF="011547.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Some problems with Avatar Movement in BulletSim</H1>
+    <B>Mister Blue</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20problems%20with%20Avatar%20Movement%20in%20BulletSim&In-Reply-To=%3CCAJ%3DJWqx6_Qh%2B%3D-2qEWYiKOiRbATK38FAropuOaXCshfzyd1jxA%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Some problems with Avatar Movement in BulletSim">misterblue at misterblue.com
+       </A><BR>
+    <I>Sat Dec 15 22:28:05 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011545.html">[Opensim-dev] Some problems with Avatar Movement in BulletSim
+</A></li>
+        <LI>Next message: <A HREF="011547.html">[Opensim-dev] Reminder: OpenSim Meetup in Zurich
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11546">[ date ]</a>
+              <a href="thread.html#11546">[ thread ]</a>
+              <a href="subject.html#11546">[ subject ]</a>
+              <a href="author.html#11546">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thank you for the comments. The more people looking at BulletSim the better.
+
+Yes, avatar movement is too abrupt as it is implemented. Like, when flying,
+taking your finger off the forward key stops the avatar immediately. Not a
+smooth thing.
+
+In the file BSMotor.cs I've started building what I hope will be general
+classes for velocity change. I've been playing with APIs and such while
+working on vehicles. I want to eventually add a &quot;PID motor&quot; that can be
+used for hovering/floating as well as avatar acceleration/flight. I don't
+like all the if's and logic scattered around the code and I'm trying to
+centralized some computation functions.
+
+My plan is to have a movement motor added to the avatar and
+'setTargetVelocity' setting the motor target and the current velocity being
+read out of the motor and applied at each time interval.
+
+If you have some idea on the best way to generalized such a thing, that
+would be very useful.
+
+-- ra
+
+
+On Sat, Dec 15, 2012 at 8:39 AM, Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hey Robert,
+</I>&gt;<i>
+</I>&gt;<i> I was looking at the bulletsim code for avatar movement and noticed that
+</I>&gt;<i> it's implemented with SetLinearVelocity.  It doesn't really have an
+</I>&gt;<i> accumulator or any notion that it shouldn't apply a firm velocity in some
+</I>&gt;<i> directions in some circumstances..   and I think directly setting linear
+</I>&gt;<i> velocity to the TargetVelocity is the thing that is making avatar movement
+</I>&gt;<i> feel unrealistic in many cases.
+</I>&gt;<i>
+</I>&gt;<i> The way that the Physics.Manager interface was implemented for avatar
+</I>&gt;<i> movement was 'target velocity' should reflect where the avatar aims to move
+</I>&gt;<i> in force.. not necessarily it's velocity directly.. it's more like a
+</I>&gt;<i> representation of 'effort'. This is also why the above scene feeds
+</I>&gt;<i> TargetVelocity to physics only when it changes... Physics is supposed to
+</I>&gt;<i> hold on to whatever it was set to last and apply it each step until it
+</I>&gt;<i> changes.
+</I>&gt;<i>
+</I>&gt;<i> As it is right now, movement is too 'regular'..    and forces get applied
+</I>&gt;<i> in circumstances that don't really make any sense physically.
+</I>&gt;<i>
+</I>&gt;<i> For example(again, these are meant to point out issues to help by
+</I>&gt;<i> demonstrating)...   tap page up repeatedly.    BulletSim sets the linear
+</I>&gt;<i> velocity to {&lt;0, 0, 9.983999&gt;} causing the avatar to move up slightly and
+</I>&gt;<i> then fall..   but repeatedly..   the avatar will 'hop upwards' against
+</I>&gt;<i> gravity in thin air.
+</I>&gt;<i>
+</I>&gt;<i> It should know not to apply a Z force from Avatar Movement when the avatar
+</I>&gt;<i> is not flying and not contacting an object of some kind (best if contact at
+</I>&gt;<i> feet level).       The results of applying a Z Linear velocity improperly
+</I>&gt;<i> can be demonstrated by falling from the air and pressing a directional
+</I>&gt;<i> key.   Note how it improperly affects your Z velocity stalling your fall.
+</I>&gt;<i> The other side effect of setting Linear velocity is..  when running into
+</I>&gt;<i> objects, you often run through them until, your position moves or you
+</I>&gt;<i> release a key because linear velocity is directly being set and passed to
+</I>&gt;<i> the client causing interpolation to move your avatar through the object
+</I>&gt;<i> until the client gets another update.   The client will get another update
+</I>&gt;<i> when the avatar position moves significantly or rotates or the velocity
+</I>&gt;<i> changes significantly.
+</I>&gt;<i>
+</I>&gt;<i> It seems like..   input from the above scene is being applied once per
+</I>&gt;<i> button press 'push' via TargetVelocity..   which is setting Velocity.. in
+</I>&gt;<i> BSCharacter.Velocity that is then being sent to ForceVelocity and getting
+</I>&gt;<i> applied.     Then the scene stops applying new forces..    because the
+</I>&gt;<i> targetvelocity isn't changing..     and the EntityUpdate call seems to be
+</I>&gt;<i> re-applying the force from the physics engine causing what ever velocity
+</I>&gt;<i> the physics engine is reporting to perpetually repeat as long as the entity
+</I>&gt;<i> keeps updating.
+</I>&gt;<i>
+</I>&gt;<i> I'm trying to be helpful with an explanation.      For avatar movement, I
+</I>&gt;<i> would take TargetVelocity in and, each step, I'd apply an impulse that was
+</I>&gt;<i> likely to get the avatar to the target velocity within certain
+</I>&gt;<i> conditions.    If the avatar wasn't flying..   then the Z component of
+</I>&gt;<i> TargetVelocity should be treated like a slightly delayed jump.   If the
+</I>&gt;<i> avatar is falling and not flying, then Z should be ignored...  the avatar's
+</I>&gt;<i> fall shouldn't be stopped because they pressed a direction arrow...      If
+</I>&gt;<i> AlwaysRun is set, then the X and Y component of the target velocity should
+</I>&gt;<i> be multiplied by a greater then 1 multiplier like 1.3f to increase the
+</I>&gt;<i> velocity and give the effect to the user that the avatar is running.
+</I>&gt;<i>
+</I>&gt;<i> Hopefully this comes across as helpful :)..   that's the intent anyway.
+</I>&gt;<i>
+</I>&gt;<i> Best Regards
+</I>&gt;<i>
+</I>&gt;<i> Teravus
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20121215/774f6516/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20121215/774f6516/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011545.html">[Opensim-dev] Some problems with Avatar Movement in BulletSim
+</A></li>
+	<LI>Next message: <A HREF="011547.html">[Opensim-dev] Reminder: OpenSim Meetup in Zurich
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11546">[ date ]</a>
+              <a href="thread.html#11546">[ thread ]</a>
+              <a href="subject.html#11546">[ subject ]</a>
+              <a href="author.html#11546">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

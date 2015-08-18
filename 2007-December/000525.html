@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Some advice
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20advice&In-Reply-To=%3CBAY108-W92C785E87269E5679958CD5650%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000521.html">
+   <LINK REL="Next"  HREF="000516.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Some advice</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Some%20advice&In-Reply-To=%3CBAY108-W92C785E87269E5679958CD5650%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Some advice">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Dec 12 10:31:15 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000521.html">[Opensim-dev] Nasty exception in Scene.cs
+</A></li>
+        <LI>Next message: <A HREF="000516.html">[Opensim-dev] Prim (Task) Inventory - initial thoughts for an implementation in OpenSim 0.6
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#525">[ date ]</a>
+              <a href="thread.html#525">[ thread ]</a>
+              <a href="subject.html#525">[ subject ]</a>
+              <a href="author.html#525">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Some generic advice for when dealing with collections:
+ 
+#1 The best thing to do is to isolate exactly what operations the modules are supposed to be doing on the collection, and provide those operations more directly (perhaps thru a system facade or by supplying those methods on the owner of the dictionary)
+ 
+#2 Failing that, I really really suggest we expose a public accessor that returns a Entity[] instead of the list directly. Even if this is costly (which is why you want 1) in the first place) it does guarantee that nobody messes with the dictionary in unintended ways.
+#3 It's really dangerous (no, really!) to expose a collection ref publicly, as you will get spurious 'collection changed' exceptions all over the place. Remember that everybody has to honour the EXACT SAME lock root object for locking to even work.
+ 
+#4 If you're hell-bent on exposing it, implement a thread-safe wrapper around the collection. This is what I use to call a 'manager'. Actually, while you're at it, do it so the 'Manager' implements #1 and you're good.
+ 
+Now, in refactoring for #1, I usually 'lean on the compiler' and just introduce an empty class, like this
+ 
+public List&lt;string&gt; Strings;
+ 
+Becomes
+ 
+protected StringManager m_stringManager;
+public StringManager Strings 
+{
+get
+{
+return m_stringManager;
+}
+}
+ 
+Now, when I compile, I get errors on all invocations on 'Strings', so I get to re-think why that old place needed the collection anyway, and create a more suitable (and most often more efficent) method on my new class StringManager for doing that.
+ 
+When all errors are gone, you have your thread-safe, customized, encapsulated solution. Oh joy!
+ 
+Voila,
+/Stefan
+
+
+
+&gt;<i> Date: Tue, 11 Dec 2007 16:06:13 +0800&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at gwala.net</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] Nasty exception in Scene.cs&gt; &gt; Modules &amp; Plugins will need access to this.&gt; &gt; Maybe we can make a self-locking property to replace it.&gt; &gt; Rename Entities to m_entities, then make:&gt; &gt; List&lt;Entity&gt; Entities {&gt; get {&gt; lock(m_entities) {&gt; return m_entities;&gt; }&gt; }&gt; }&gt; &gt; Regards,&gt; &gt; Adam&gt; &gt; Sean Dague wrote:&gt; &gt; I got a nasty exception in Scene.cs during the Update() call as follows:&gt; &gt; &gt; &gt; [SCENE] [12-10 04:02:11] Failed with exception&gt; &gt; System.InvalidOperationException: out of sync&gt; &gt; at&gt; &gt; System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].VerifyState&gt; &gt; () [0x00000] &gt; &gt; at&gt; &gt; System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].CurrentSlot&gt; &gt; () [0x00000] &gt; &gt; at&gt; &gt; System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].get_Current&gt; &gt; () [0x00000] &gt; &gt; at&gt; &gt; System.Collections.Generic.Dictionary`2+ValueCollection+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].get_Current&gt; &gt; () [0x00000] &gt; &gt; at&gt; &gt; System.Collections.Generic.Dictionary`2+ValueCollection[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].CopyTo&gt; &gt; (OpenSim.Region.Environment.Scenes.EntityBase[] , Int32 ) [0x00000] &gt; &gt; at&gt; &gt; System.Collections.Generic.List`1[OpenSim.Region.Environment.Scenes.EntityBase].AddCollection&gt; &gt; (ICollection`1 ) [0x00000] &gt; &gt; at&gt; &gt; System.Collections.Generic.List`1[OpenSim.Region.Environment.Scenes.EntityBase]..ctor&gt; &gt; (IEnumerable`1 ) [0x00000] &gt; &gt; at OpenSim.Region.Environment.Scenes.InnerScene.UpdateEntities ()&gt; &gt; [0x00000] &gt; &gt; at OpenSim.Region.Environment.Scenes.Scene.Update () [0x00000] &gt; &gt; &gt; &gt; Upon further inspection, the issue here appears to be that we give&gt; &gt; public access to m_InnerScene.Entities, which is a dictionary, which is&gt; &gt; something that we need to be able to lock and iterate over inside the&gt; &gt; Scene. This problem can't be fixed with locks.&gt; &gt; &gt; &gt; Who needs direct access to that entities list outside of Scene? Is&gt; &gt; there some safer interface we can give them for what they really need?&gt; &gt; &gt; &gt; -Sean&gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; ------------------------------------------------------------------------&gt; &gt; &gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071212/eaacb385/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071212/eaacb385/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000521.html">[Opensim-dev] Nasty exception in Scene.cs
+</A></li>
+	<LI>Next message: <A HREF="000516.html">[Opensim-dev] Prim (Task) Inventory - initial thoughts for an implementation in OpenSim 0.6
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#525">[ date ]</a>
+              <a href="thread.html#525">[ thread ]</a>
+              <a href="subject.html#525">[ subject ]</a>
+              <a href="author.html#525">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

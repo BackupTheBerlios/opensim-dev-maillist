@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3C4F597BD2.3020203%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010951.html">
+   <LINK REL="Next"  HREF="010956.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3C4F597BD2.3020203%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Mar  9 04:41:06 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010951.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+        <LI>Next message: <A HREF="010956.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10954">[ date ]</a>
+              <a href="thread.html#10954">[ thread ]</a>
+              <a href="subject.html#10954">[ subject ]</a>
+              <a href="author.html#10954">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 08/03/12 22:00, Rory Slegtenhorst wrote:
+&gt;<i> Dear list,
+</I>&gt;<i>
+</I>&gt;<i> I hardly ever post (im not an opensim developer so to speak), but in this case I'd like to give my &#8364;0,02 worth ;)
+</I>&gt;<i>
+</I>&gt;<i> @Justin
+</I>&gt;<i> Can't we do the data de-duplication on a database level? Eg find the duplicates and just get rid of them on a regular
+</I>&gt;<i> interval (cron)?
+</I>
+This would be enormously intricate.  Not only would you have to keep rescanning the entire asset db but it adds another 
+moving part to an already complex system.
+
+&gt;<i> Or just migrate to a db schema to include hashing support making it easier to identify?
+</I>
+This is effectively what I am doing.
+
+&gt;<i> Couldn't you manage it as a plugin for the current asset service to perform data de-duplication on the fly?
+</I>
+I might make chain the deduping service to the existing asset service so that new assets go in the deduping tables 
+whilst existing assets can still be used.  There would still be an external migrator but this could be made to 
+effectively move rather than copy assets over time (copying would cause space problems with a large amount of assets). 
+Migration won't need to be done all-at-once.
+
+On another note, just for information I was toying with the idea of making the new service store data on the filesystem 
+instead of as blobs.  But this introduces another element of complexity (e.g. having to backup both db and a directory) 
+which I'm not regarding as optimal for a default beginner service.  I would recommend that anybody wanting filesystem 
+asset storage for a big grid use something like coyled's SRAS.  There might be a filesystem storage option in the core 
+assetservice in the future.
+
+An external migrator tool might be able to target any service that offers the IAssetService interface (though the source 
+service has to be more directly available since understandably there's no IAssetService way to just dump out assets 
+without knowing the IDs).
+
+&gt;<i> Just a few suggestions...
+</I>&gt;<i>
+</I>&gt;<i> And when it comes to space, there's plenty options available. I'd love to see some support for Hadoop HDFS/HBase. There
+</I>&gt;<i> must be some way to leverage the scalability of the data using some BigTable implementation right? Is No-SQL an option?
+</I>&gt;<i> Cassandra seems to scale nicely :)
+</I>
+All these options are for external services to implement, as far as I'm concerned.  From my perspective, the core 
+bundled ROBUST services are for light and perhaps medium use (say more than a 4 simulator grid).
+
+&gt;<i> This could take OpenSim to a whole new level.
+</I>&gt;<i>
+</I>&gt;<i> Still, 30% is a lot...
+</I>&gt;<i>
+</I>&gt;<i> Sincerely,
+</I>&gt;<i> Rory Slegtenhorst
+</I>&gt;<i> rory dot slegtenhorst at gmail dot com
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010951.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+	<LI>Next message: <A HREF="010956.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10954">[ date ]</a>
+              <a href="thread.html#10954">[ thread ]</a>
+              <a href="subject.html#10954">[ subject ]</a>
+              <a href="author.html#10954">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

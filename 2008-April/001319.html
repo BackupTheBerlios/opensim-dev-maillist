@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] nhibernate progress, baby steps
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20nhibernate%20progress%2C%20baby%20steps&In-Reply-To=%3C210ed2880804031101g5b593ee6id14869b186bb37ba%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001315.html">
+   <LINK REL="Next"  HREF="001309.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] nhibernate progress, baby steps</H1>
+    <B>jon cundill</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20nhibernate%20progress%2C%20baby%20steps&In-Reply-To=%3C210ed2880804031101g5b593ee6id14869b186bb37ba%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] nhibernate progress, baby steps">jcundill at gmail.com
+       </A><BR>
+    <I>Thu Apr  3 20:01:30 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001315.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+        <LI>Next message: <A HREF="001309.html">[Opensim-dev] Perl vs C# UGAI?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1319">[ date ]</a>
+              <a href="thread.html#1319">[ thread ]</a>
+              <a href="subject.html#1319">[ subject ]</a>
+              <a href="author.html#1319">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi
+
+Can't you just use access=&quot;field&quot; in your hbms to avoid the need to
+modify the OpenSim classes?
+
+NHibernate supports it IIRC
+
+Jonc
+
+
+
+On 03/04/2008, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; wrote:
+&gt;<i> I've starting baby steps in building an OpenSim.Data.NHibernate driver
+</I>&gt;<i>  (I'm very close to getting NHiberate + Mono + SQLite working).  I did
+</I>&gt;<i>  look at Impalah's work here, but that created a lot of intermediary
+</I>&gt;<i>  objects that I wanted to avoid.  After chatting with Stephan yesterday,
+</I>&gt;<i>  wanted to give people a flavor of how this works, as we'll need to make
+</I>&gt;<i>  a few changes in the base to make our objects NHibernate friendly.
+</I>&gt;<i>
+</I>&gt;<i>  It turns out the NHibernate + Mono + SQLite is actually the hardest
+</I>&gt;<i>  thing to get working, as NHibernate 1.2.1 doesn't have an SQLite driver
+</I>&gt;<i>  that works with Mono.  Step one was to write one, which I've done.  Once
+</I>&gt;<i>  this is proofed out a bit more we'll need to do an import of NHibernate
+</I>&gt;<i>  1.2.1 branch into opensim-libs and add in the driver.  I'll also be
+</I>&gt;<i>  submitting the driver upstream to NHibernate in a hopes we could get a
+</I>&gt;<i>  1.2.2 with it included so we don't have to keep our own tree here.
+</I>&gt;<i>
+</I>&gt;<i>  My first test case here is Assets.  Asset storage is easy, as we just
+</I>&gt;<i>  store AssetBase.  It's 8 fields, which include an LLUUID, a Blob, and
+</I>&gt;<i>  some other types, which also makes it good at testing we can do all the
+</I>&gt;<i>  types we need to do.
+</I>&gt;<i>
+</I>&gt;<i>  AssetBase is what I call a &quot;naked object&quot;.  Today all access is done via
+</I>&gt;<i>  direct attribute modification, which is actually worst practice in the
+</I>&gt;<i>  area.  For NHibernate to work correctly we need to have all our storable
+</I>&gt;<i>  data objects use Properties for data modification.  Honestly, we should
+</I>&gt;<i>  have been doing this anyway.  We're going to break Grid Comms
+</I>&gt;<i>  compatibility when we make this change, because the default
+</I>&gt;<i>  serialization of AssetBase will change.
+</I>&gt;<i>
+</I>&gt;<i>  Once this is done you create a mapping file.  This is an embedded
+</I>&gt;<i>  resource of OpenSim.Data.NHibernate.  The AssetBase mapping file is
+</I>&gt;<i>  here:
+</I>&gt;<i>  <A HREF="http://opensimulator.org/hg/opensim-trunk/file/8566c030a9bf/OpenSim/Data/NHibernate/Resources/AssetBase.hbm.xml">http://opensimulator.org/hg/opensim-trunk/file/8566c030a9bf/OpenSim/Data/NHibernate/Resources/AssetBase.hbm.xml</A>
+</I>&gt;<i>
+</I>&gt;<i>  <A HREF="http://opensimulator.org/hg/opensim-trunk/file/8566c030a9bf/OpenSim/Data/NHibernate/NHibernateAssetData.cs">http://opensimulator.org/hg/opensim-trunk/file/8566c030a9bf/OpenSim/Data/NHibernate/NHibernateAssetData.cs</A>
+</I>&gt;<i>  is the Asset Store work in progress.  It should just save assets right
+</I>&gt;<i>  now (though there is a transaction bug with sqlite I need to sort out).
+</I>&gt;<i>
+</I>&gt;<i>  In order to have this code work for a different database you just change
+</I>&gt;<i>  the driver declaration lines in 60 - 65 (can be done via runtime
+</I>&gt;<i>  config).  Any of the ~20 databases supported by NHibernate could then be
+</I>&gt;<i>  used instead.  Lines 68 - 71 gives you automatic db creation.  It does a
+</I>&gt;<i>  drop/create each time it is run, so is something we'll only want for
+</I>&gt;<i>  initial create, not used every time.
+</I>&gt;<i>
+</I>&gt;<i>  Right now I'm fighting with a transaction bug with SQLite, which I've
+</I>&gt;<i>  got a few ideas on how to get around.  Once that's fixed on store, I'll
+</I>&gt;<i>  fill out the rest of the asset implementation.  My goal is to be running
+</I>&gt;<i>  my Asset db on NHibernate + SQLite by end of the week, and to have all
+</I>&gt;<i>  that work in tree so others can kick the tires.
+</I>&gt;<i>
+</I>&gt;<i>  There are plenty of unanswered questions here, but having finally gotten
+</I>&gt;<i>  my head wrapped around the space, I really like the direction this is
+</I>&gt;<i>  headed.  The fact that NHibernate is also an actively developed project,
+</I>&gt;<i>  and things like automatic schema upgrades are coming in the future (they
+</I>&gt;<i>  already exist in Hibernate, the java project that NHibernate is based
+</I>&gt;<i>  on), is something we'll definitely want to take advantage of.
+</I>&gt;<i>
+</I>&gt;<i>      -Sean
+</I>&gt;<i>
+</I>&gt;<i>  --
+</I>&gt;<i>  __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i>  Sean Dague                                       Mid-Hudson Valley
+</I>&gt;<i>  sean at dague dot net                            Linux Users Group
+</I>&gt;<i>  <A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;<i>
+</I>&gt;<i>  There is no silver bullet.  Plus, werewolves make better neighbors
+</I>&gt;<i>  than zombies, and they tend to keep the vampire population down.
+</I>&gt;<i>  __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> -----BEGIN PGP SIGNATURE-----
+</I>&gt;<i>  Version: GnuPG v1.4.6 (GNU/Linux)
+</I>&gt;<i>
+</I>&gt;<i>  iD8DBQFH9NCZSamXem9TdyYRAk2yAKCKdwxuXyJ0GceLwewnx3jzJDq7TgCggQX0
+</I>&gt;<i>  o+soq71Ud8uBKav5/i9JaNY=
+</I>&gt;<i>  =a5fz
+</I>&gt;<i>  -----END PGP SIGNATURE-----
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i>  Opensim-dev mailing list
+</I>&gt;<i>  <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Assets.hbm.xml
+Type: text/xml
+Size: 965 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080403/5f410706/attachment.xml">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080403/5f410706/attachment.xml</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001315.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+	<LI>Next message: <A HREF="001309.html">[Opensim-dev] Perl vs C# UGAI?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1319">[ date ]</a>
+              <a href="thread.html#1319">[ thread ]</a>
+              <a href="subject.html#1319">[ subject ]</a>
+              <a href="author.html#1319">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

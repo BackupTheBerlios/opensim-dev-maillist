@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Issues with the Simulator under high load
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Issues%20with%20the%20Simulator%20under%20high%20load&In-Reply-To=%3C4F5ABB90.9040007%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010964.html">
+   <LINK REL="Next"  HREF="010976.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Issues with the Simulator under high load</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Issues%20with%20the%20Simulator%20under%20high%20load&In-Reply-To=%3C4F5ABB90.9040007%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Issues with the Simulator under high load">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sat Mar 10 03:25:20 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010964.html">[Opensim-dev] Issues with the Simulator under high load
+</A></li>
+        <LI>Next message: <A HREF="010976.html">[Opensim-dev] Issues with the Simulator under high load
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10974">[ date ]</a>
+              <a href="thread.html#10974">[ thread ]</a>
+              <a href="subject.html#10974">[ subject ]</a>
+              <a href="author.html#10974">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm sorry to say that you'll have to take the ThreadPool numbers with a very very very large pinch of salt.  I believe 
+they only refer to the built-in mono thread pool and not the SmartThreadPool which is the one actually used (and beyond 
+that the core simulator and xengine use separate pools).  I will try and improve this situation soon.
+
+On 09/03/12 11:46, Akira Sonoda wrote:
+&gt;<i> 600 on a 8 core machine ( i guess the hyperthreaded cores are visible to mono as real cores, at least in nmon they are
+</I>&gt;<i> reported as such ) is quite a lot of threads. This morning I went big and configured 1000, but I'm not really sure which
+</I>&gt;<i> approach to go...
+</I>&gt;<i>
+</I>&gt;<i> seeing the stats:
+</I>&gt;<i>
+</I>&gt;<i> Region (Close Encounter) # show threads
+</I>&gt;<i> 9 threads are being tracked:
+</I>&gt;<i>      ID                                  NAME   LAST UPDATE (MS)   LIFETIME (MS)     PRIORITY
+</I>&gt;<i> STATE
+</I>&gt;<i>       8              PollServiceWorkerThread0                137        27996479       Lowest
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>       9              PollServiceWorkerThread1           27996478        27996478       Lowest
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>      10              PollServiceWorkerThread2           27996478        27996478       Lowest
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>      11              PollServiceWatcherThread                137        27996478       Lowest
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>      15   MapItemRequestThread (Close Encounter)                383        27992497       Lowest        Background,
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>      18    Incoming Packets (Close Encounter)                 19        27979915       Lowest
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>      19    Outgoing Packets (Close Encounter)                  0        27979915       Lowest
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>      20           Heartbeat (Close Encounter)                 55        27979914       Lowest
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>      34              AsyncLSLCmdHandlerThread                 33        27964827       Lowest        Background,
+</I>&gt;<i> WaitSleepJoin
+</I>&gt;<i>
+</I>&gt;<i> *** ThreadPool threads ***
+</I>&gt;<i> workers: 0 (500); ports: 0 (1000)
+</I>&gt;<i>
+</I>&gt;<i> the ThreadPool shows worker/port threads 1500 so on a 8 CPU Machine 200 MONO_THREADS_PER_CPU should be sufficient if i
+</I>&gt;<i> interpret those numbers correctly guessing the numbers in brackets are the max of the Pools. Therefore 1000 is possibly
+</I>&gt;<i> too much, Will be interesting to  see if i still run into problems with 300 Threads per CPU.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Am 9. M&#228;rz 2012 08:14 schrieb Dahlia Trimble &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.com</A>&gt;&gt;:
+</I>&gt;<i>
+</I>&gt;<i>     Sorry I don't really know much about it. In my case it was an application that used the http server dll from OpenSim
+</I>&gt;<i>     and served probably 40-60 simultaneous requests. Mono was defaulting to 25 threads per cpu but I changed it to 75
+</I>&gt;<i>     and I stopped having download problems. This was on a 4-core machine.
+</I>&gt;<i>
+</I>&gt;<i>     I would guess if you are using 150 and seeing problems that a good place to start might be somewhere around 450-600
+</I>&gt;<i>     and see what happens.
+</I>&gt;<i>
+</I>&gt;<i>     On Thu, Mar 8, 2012 at 9:44 PM, Akira Sonoda &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">akira.sonoda.1 at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">akira.sonoda.1 at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>         Ooopps... my MONO_THREADS_PER_CPU=150 are obviously not enough. 2000 as stated in the article is quite a lot ...
+</I>&gt;<i>         what are your settings? do you go with the 2000?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         Am 9. M&#228;rz 2012 00:07 schrieb Dahlia Trimble &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.com</A>&gt;&gt;:
+</I>&gt;<i>
+</I>&gt;<i>             Are you using Mono? I've seen poor performance of the http server used in OpenSimulator when insufficient
+</I>&gt;<i>             threads are available. Manipulating the environment variable MONO_THREADS_PER_CPU has worked for me when
+</I>&gt;<i>             I've encountered this problem before. Take a look at
+</I>&gt;<i>             <A HREF="http://www.mono-project.com/Article:ThreadPool_Deadlocks">http://www.mono-project.com/Article:ThreadPool_Deadlocks</A> for some background on this problem.
+</I>&gt;<i>
+</I>&gt;<i>             As far as network performance tools go I'd probably just search the web for &quot;network performance tool&quot; and
+</I>&gt;<i>             pick whatever works for you.
+</I>&gt;<i>
+</I>&gt;<i>             On Thu, Mar 8, 2012 at 2:28 PM, Akira Sonoda &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">akira.sonoda.1 at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">akira.sonoda.1 at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>                 Hi Dahlia,
+</I>&gt;<i>
+</I>&gt;<i>                 Am 5. M&#228;rz 2012 01:14 schrieb Dahlia Trimble &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.com</A>&gt;&gt;:
+</I>&gt;<i>
+</I>&gt;<i>                     A couple thoughts, not sure if it's your problem or not.
+</I>&gt;<i>
+</I>&gt;<i>                     I would probably check to make sure the cache is set up properly and the file system it's on has
+</I>&gt;<i>                     plenty of space. Also make sure the disk isnt being thrashed by other processes and that the disk is
+</I>&gt;<i>                     healthy and not fragmented. There's probably some system utilities that can show disk I/O activity
+</I>&gt;<i>                     and disk health.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                 There is plenty of free space on the disk.
+</I>&gt;<i>
+</I>&gt;<i>                     You may also have network congestion problems that could slow retrieval from the asset servers or
+</I>&gt;<i>                     slow sending of assets to other clients.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                 How can i figure them out?
+</I>&gt;<i>
+</I>&gt;<i>                 I've made a other report from the party from Wednesday on &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Pyramid at osgrid</A>&quot;.
+</I>&gt;<i>
+</I>&gt;<i>                 <A HREF="https://docs.google.com/open?id=0B301xueh1kxdVmVZZ18tbi1TdzZ2cGlRaFhDTlo4UQ">https://docs.google.com/open?id=0B301xueh1kxdVmVZZ18tbi1TdzZ2cGlRaFhDTlo4UQ</A>
+</I>&gt;<i>
+</I>&gt;<i>                 The server where &quot;Pyramid&quot; is located is similar to my server. The major difference is the mono version.
+</I>&gt;<i>                 There was a time when i had high quite high network load but is this network congestion?
+</I>&gt;<i>
+</I>&gt;<i>                 Status right now: we survive.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                 _______________________________________________
+</I>&gt;<i>                 Opensim-dev mailing list
+</I>&gt;<i>                 <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>                 <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>             _______________________________________________
+</I>&gt;<i>             Opensim-dev mailing list
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         _______________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010964.html">[Opensim-dev] Issues with the Simulator under high load
+</A></li>
+	<LI>Next message: <A HREF="010976.html">[Opensim-dev] Issues with the Simulator under high load
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10974">[ date ]</a>
+              <a href="thread.html#10974">[ thread ]</a>
+              <a href="subject.html#10974">[ subject ]</a>
+              <a href="author.html#10974">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

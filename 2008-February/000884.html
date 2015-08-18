@@ -1,0 +1,380 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] DB - NHibernate tests (part 1)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20DB%20-%20NHibernate%20tests%20%28part%201%29&In-Reply-To=%3C210ed2880802121638k8b2c6a3rc44f79edb79a7fef%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000879.html">
+   <LINK REL="Next"  HREF="000794.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] DB - NHibernate tests (part 1)</H1>
+    <B>jon cundill</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20DB%20-%20NHibernate%20tests%20%28part%201%29&In-Reply-To=%3C210ed2880802121638k8b2c6a3rc44f79edb79a7fef%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] DB - NHibernate tests (part 1)">jcundill at gmail.com
+       </A><BR>
+    <I>Wed Feb 13 01:38:21 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000879.html">[Opensim-dev] DB - NHibernate tests (part 1)
+</A></li>
+        <LI>Next message: <A HREF="000794.html">[Opensim-dev] Prebuild reference vice fork
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#884">[ date ]</a>
+              <a href="thread.html#884">[ thread ]</a>
+              <a href="subject.html#884">[ subject ]</a>
+              <a href="author.html#884">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Impalah
+
+See you've made good progress on assets
+
+attached is zip of IUserData hibernate impl
+
+Had to patch FriendItemList - also attached -, but otherwise existing
+opensim objects are untouched.
+
+created a project OpenSim.Framework.Data.Hibernate to enclose this and set
+
+userDatabase_plugin = &quot;OpenSim.Framework.Data.Hibernate.dll&quot;
+
+in OpenSim.ini to get it to work. -only tested standalone and MySQL
+i'm afraid - Used your HibernateSessionManager to get it started in
+the session.
+
+This copes with UserProfileData, UserAgentData and FriendItemList -
+users, agents and userfriends in the DB.
+
+_Only_ thing I can't do is set the reverse reference to
+FriendItemListOwnerPerms at the mo as this needs to be a formula
+property - not DB property, and NHibernate is not playing well here -
+wouldn't this be much easier in java on hibernate 3.2 :)
+
+Changed the Naming from OpenSim.Framework.Data.NHibernate to
+OpenSim.Framework.Data.Hibernate to be in line with what you are
+doing. So if attached project doesn;t compile for u that is probably
+the problem.
+
+
+I have a unit test for all the operations on IUserData which will mail
+tomorrow - need to fix up as there is no Delete in IUserData for the
+unit tests and I don't want to mess with the existing classes if I can
+avoid.
+
+Have also made a start on InventoryFolderBase and InventoryItemBase -
+but am struggling a bit as this really wants to be a composite pattern
+- but not expressed in the objects, will sort out a hack in the dao as
+a workaround rather than touch the domain classes.
+
+Hope to get this sorted over next day or two.
+
+All the stuff related to prims , primshapes, primitems looks tricky
+without touching the opensim classes - we'll put this off till last
+yes?
+
+Can you merge and let me have a copy of what you have done?
+
+Best
+
+jonc
+
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jcundill at hotmail.com</A> on MSN if u want to chat
+
+
+
+
+
+
+
+
+
+
+On 12/02/2008, Impalah &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt; wrote:
+&gt;<i> Second report:
+</I>&gt;<i> ---------------------------------
+</I>&gt;<i>
+</I>&gt;<i> - Created a new assembly: Opensim.Framework.Data.Hibernate.
+</I>&gt;<i> - Opensim.ini: new configuration ===&gt; asset_database = &quot;hibernate&quot;
+</I>&gt;<i>
+</I>&gt;<i> Every other server, example: inventory_plugin =
+</I>&gt;<i> &quot;OpenSim.Framework.Data.Hibernate.dll&quot;
+</I>&gt;<i>                                        * I don't want to do
+</I>&gt;<i> deep changes now so it is implemented as a plugin like the others (mysql,
+</I>&gt;<i> sqlite...)
+</I>&gt;<i> - Changes in database: minimums by now, only some primary keys created and
+</I>&gt;<i> TEXT fields changed to VARCHAR
+</I>&gt;<i>  - All the database objects mapped to hibernate.
+</I>&gt;<i> - Tested on MySQL. When completed will be tested in sqlite &amp; mssql (maybe
+</I>&gt;<i> oracle if I have time)
+</I>&gt;<i> - Status: Opensim starts up step by step until
+</I>&gt;<i> RegionApplicationBase.SetupScene. I have stopped (I'm very
+</I>&gt;<i> tired :-P, today I coded 10 hours w/o rest )
+</I>&gt;<i> inscene.performParcelPrimCountUpdate();
+</I>&gt;<i>
+</I>&gt;<i> Well, seems that is quite easy to make the change, but is really really
+</I>&gt;<i> really sloooooooow. I hope in 5 or 6 days could have a stable server, then I
+</I>&gt;<i> will upload the files and documentation where you tell me.
+</I>&gt;<i>
+</I>&gt;<i> Greetingzzz
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> 2008/2/12, Impalah &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt;:
+</I>&gt;<i> &gt; Hi everyone:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I'm integrating the Hibernate model yet into my local opensim (downloaded
+</I>&gt;<i> 5/februay).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; By now I'm trying to work with assets and seems to work ok, except for the
+</I>&gt;<i> first time loading from xml. The PK of the table is the UUID of the assets
+</I>&gt;<i> and seems that hibernate works only in two modes: it asigns automatically
+</I>&gt;<i> id's or the applicaion creates the ids.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Well, a little problem I think I could resolve today, but we won't use all
+</I>&gt;<i> the power of hibernate in some cases...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; That's all. I'll keep you informed.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Greetingzzz
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 2008/2/7, Impalah &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt;:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; &gt; In opensim &quot;in general&quot; I don't know.
+</I>&gt;<i> &gt; &gt; In the case of this example... it's just an example, you can change what
+</I>&gt;<i> you need, the DB configuration is &quot;transparent&quot; for nhibernate.
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; 2008/2/7, Kyle Hamilton &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">aerowolf at gmail.com</A>&gt;:
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; Just out of curiosity... Is there a specific reason we're not using
+</I>&gt;<i> utf8 unicode encoding for the tables?  Is there something that will break if
+</I>&gt;<i> utf8 is used?
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; -Kyle H
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; Sent from my iPhone
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; On Feb 7, 2008, at 1:40, Impalah &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt; wrote:
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; Sorry I made a mistake in the sql file.
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; The good one is copied below.
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; I'm working now on the &quot;persistence&quot; layer, creating the basic
+</I>&gt;<i> utilities (i.e. factories) and testing selects, updates and deletes.
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; I hope in 2 or 3 days to have something &quot;insertable&quot; into the actual
+</I>&gt;<i> opensim.
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; CREATE DATABASE `opensimtest` /*!40100 DEFAULT CHARACTER SET latin1
+</I>&gt;<i> */;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; DROP TABLE IF EXISTS
+</I>&gt;<i> `opensimtest`.`osprimitive_type`;
+</I>&gt;<i> &gt; &gt; &gt; CREATE TABLE  `opensimtest`.`osprimitive_type` (
+</I>&gt;<i> &gt; &gt; &gt;   `id` int(10) unsigned NOT NULL auto_increment,
+</I>&gt;<i> &gt; &gt; &gt;   `name` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `params` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   PRIMARY KEY  (`id`)
+</I>&gt;<i> &gt; &gt; &gt; ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; DROP TABLE IF EXISTS `opensimtest`.`ostexture`;
+</I>&gt;<i> &gt; &gt; &gt; CREATE TABLE  `opensimtest`.`ostexture` (
+</I>&gt;<i> &gt; &gt; &gt;   `id` int(10) unsigned NOT NULL auto_increment,
+</I>&gt;<i> &gt; &gt; &gt;   `uuid` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `name` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `path` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `data` blob NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   PRIMARY KEY  (`id`)
+</I>&gt;<i> &gt; &gt; &gt; ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; DROP TABLE IF EXISTS `opensimtest`.`osuser`;
+</I>&gt;<i> &gt; &gt; &gt; CREATE TABLE  `opensimtest`.`osuser` (
+</I>&gt;<i> &gt; &gt; &gt;   `id` int(10) unsigned NOT NULL auto_increment,
+</I>&gt;<i> &gt; &gt; &gt;   `uuid` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `name` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `surname` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `last_position` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   PRIMARY KEY  (`id`)
+</I>&gt;<i> &gt; &gt; &gt; ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; DROP TABLE IF EXISTS `opensimtest`.`osfaces`;
+</I>&gt;<i> &gt; &gt; &gt; CREATE TABLE  `opensimtest`.`osfaces` (
+</I>&gt;<i> &gt; &gt; &gt;   `id` int(10) unsigned NOT NULL auto_increment,
+</I>&gt;<i> &gt; &gt; &gt;   `face` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `id_texture` int(10) unsigned zerofill NOT NULL default
+</I>&gt;<i> '0000000000',
+</I>&gt;<i> &gt; &gt; &gt;   `params` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   PRIMARY KEY  (`id`),
+</I>&gt;<i> &gt; &gt; &gt;   KEY `FK_ostexture_faces_texture` (`id_texture`),
+</I>&gt;<i> &gt; &gt; &gt;   CONSTRAINT `FK_ostexture_faces_texture` FOREIGN KEY (`id_texture`)
+</I>&gt;<i> REFERENCES `ostexture` (`id`)
+</I>&gt;<i> &gt; &gt; &gt; ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; DROP TABLE IF EXISTS `opensimtest`.`osprimitive`;
+</I>&gt;<i> &gt; &gt; &gt; CREATE TABLE  `opensimtest`.`osprimitive` (
+</I>&gt;<i> &gt; &gt; &gt;   `id` int(10) unsigned NOT NULL auto_increment,
+</I>&gt;<i> &gt; &gt; &gt;   `name` varchar(45) default NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `description` varchar(45) default NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `uuid` varchar(45) NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `id_primitive_type` int(10) unsigned NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `id_creator` int(10) unsigned NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   `id_owner` int(10) unsigned NOT NULL,
+</I>&gt;<i> &gt; &gt; &gt;   PRIMARY KEY  (`id`),
+</I>&gt;<i> &gt; &gt; &gt;   KEY `FK_osprimitive_type` (`id_primitive_type`),
+</I>&gt;<i> &gt; &gt; &gt;   KEY `FK_osprimitive_creator` (`id_creator`),
+</I>&gt;<i> &gt; &gt; &gt;   KEY `FK_osprimitive_owner` (`id_owner`),
+</I>&gt;<i> &gt; &gt; &gt;   CONSTRAINT `FK_osprimitive_type` FOREIGN KEY (`id_primitive_type`)
+</I>&gt;<i> REFERENCES `osprimitive_type` (`id`),
+</I>&gt;<i> &gt; &gt; &gt;   CONSTRAINT `FK_osprimitive_creator` FOREIGN KEY (`id_creator`)
+</I>&gt;<i> REFERENCES `osuser` (`id`),
+</I>&gt;<i> &gt; &gt; &gt;   CONSTRAINT `FK_osprimitive_owner` FOREIGN KEY (`id_owner`)
+</I>&gt;<i> REFERENCES `osuser` (`id`)
+</I>&gt;<i> &gt; &gt; &gt; ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; 2008/2/7, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt;:
+</I>&gt;<i> &gt; &gt; &gt; &gt; On Wed, Feb 06, 2008 at 11:06:14PM +0100, Impalah wrote:
+</I>&gt;<i> &gt; &gt; &gt; &gt; &gt; Hi everyone:
+</I>&gt;<i> &gt; &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt; &gt; I've uploaded a file to my web page with a c# project testing
+</I>&gt;<i> NHibernate:
+</I>&gt;<i> &gt; &gt; &gt; &gt; &gt;
+</I>&gt;<i> <A HREF="http://ai-designstudio.net/index.php?option=com_docman&amp;task=doc_details&amp;gid=40&amp;Itemid=88889037&amp;lang=en">http://ai-designstudio.net/index.php?option=com_docman&amp;task=doc_details&amp;gid=40&amp;Itemid=88889037&amp;lang=en</A>
+</I>&gt;<i> &gt; &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt; &gt; Please, does not expect a miracle right now, it's just only a
+</I>&gt;<i> massive
+</I>&gt;<i> &gt; &gt; &gt; &gt; &gt; insertion test for checking if everything runs ok.
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt; Thanks for all of this work.  I just pulled the source and am going
+</I>&gt;<i> to
+</I>&gt;<i> &gt; &gt; &gt; &gt; poke it a bunch tomorrow.  More comments as I get up to speed on
+</I>&gt;<i> this.
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt;      -Sean
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt; --
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt; Sean Dague
+</I>&gt;<i> Mid-Hudson Valley
+</I>&gt;<i> &gt; &gt; &gt; &gt; sean at dague dot net
+</I>&gt;<i> Linux Users Group
+</I>&gt;<i> &gt; &gt; &gt; &gt; <A HREF="http://dague.net">http://dague.net</A>
+</I>&gt;<i> <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt; There is no silver bullet.  Plus, werewolves make better neighbors
+</I>&gt;<i> &gt; &gt; &gt; &gt; than zombies, and they tend to keep the vampire population down.
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt; -----BEGIN PGP SIGNATURE-----
+</I>&gt;<i> &gt; &gt; &gt; &gt; Version: GnuPG v1.4.6 (GNU/Linux)
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> iD8DBQFHqnZgSamXem9TdyYRApuZAJ9dzX9sZn5CYb5GYu4xQkTRI6XWLACfTHxf
+</I>&gt;<i> &gt; &gt; &gt; &gt; wditTaO4gROrub+bL0rPI2w=
+</I>&gt;<i> &gt; &gt; &gt; &gt; =fqU2
+</I>&gt;<i> &gt; &gt; &gt; &gt; -----END PGP SIGNATURE-----
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt; _______________________________________________
+</I>&gt;<i> &gt; &gt; &gt; &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; _______________________________________________
+</I>&gt;<i> &gt; &gt; &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt; _______________________________________________
+</I>&gt;<i> &gt; &gt; &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt; &gt;
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Data.Hibernate.Users.zip
+Type: application/zip
+Size: 106521 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080213/439809cc/attachment.zip">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080213/439809cc/attachment.zip</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: FriendItemList.patch
+Type: application/octet-stream
+Size: 1872 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080213/439809cc/attachment.obj">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080213/439809cc/attachment.obj</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000879.html">[Opensim-dev] DB - NHibernate tests (part 1)
+</A></li>
+	<LI>Next message: <A HREF="000794.html">[Opensim-dev] Prebuild reference vice fork
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#884">[ date ]</a>
+              <a href="thread.html#884">[ thread ]</a>
+              <a href="subject.html#884">[ subject ]</a>
+              <a href="author.html#884">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

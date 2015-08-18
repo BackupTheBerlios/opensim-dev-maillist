@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-commits] r6306 - in trunk:	OpenSim/Region/ScriptEngine/Shared/Api/Implementation bin
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r6306%20-%20in%20trunk%3A%0A%09OpenSim/Region/ScriptEngine/Shared/Api/Implementation%20bin&In-Reply-To=%3C6b9359640809151919s2c4eb81fq966f054455936bc9%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003095.html">
+   <LINK REL="Next"  HREF="003101.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-commits] r6306 - in trunk:	OpenSim/Region/ScriptEngine/Shared/Api/Implementation bin</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r6306%20-%20in%20trunk%3A%0A%09OpenSim/Region/ScriptEngine/Shared/Api/Implementation%20bin&In-Reply-To=%3C6b9359640809151919s2c4eb81fq966f054455936bc9%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] [Opensim-commits] r6306 - in trunk:	OpenSim/Region/ScriptEngine/Shared/Api/Implementation bin">aerowolf at gmail.com
+       </A><BR>
+    <I>Tue Sep 16 04:19:02 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003095.html">[Opensim-dev] [Opensim-commits] r6306 - in trunk: OpenSim/Region/ScriptEngine/Shared/Api/Implementation bin
+</A></li>
+        <LI>Next message: <A HREF="003101.html">[Opensim-dev] [Opensim-commits] r6306 - in trunk:	OpenSim/Region/ScriptEngine/Shared/Api/Implementation bin
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3096">[ date ]</a>
+              <a href="thread.html#3096">[ thread ]</a>
+              <a href="subject.html#3096">[ subject ]</a>
+              <a href="author.html#3096">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>So, basically, what you're looking at is an attempt to codify the
+permissions of a script versus the permissions of the owner.  It's
+been my experience that attempting to do all this independently
+without all sorts of subsystem-interaction testing leads to nothing
+but epic failure.
+
+A case in point: I work with a C language interactive MUD software
+called 'fbmuck'.  This software has the property that everything
+addressable by the software has one and only one owner... but has
+three separate subsystems which deal with permissions to act on
+different objects -- which grew out of three separate attempts to
+extend the capabilities of the system, at different times in the
+development of security consciousness.
+
+The first was the command line.
+The second was a programming language (based on Forth). (MUF)
+The third was another programming language which is embedded in
+printable strings, parsed and substituted at display time. (MPI)
+
+The first was the most limited as to what it could do.  The second was
+retrofitted and could do things that the command line couldn't even
+hope to do.  During its retrofit and development it was honed and
+modified so that certain circumstances could extend or restrict what
+it could do in any given invocation.  (This included, in order of
+development: Creation of &quot;Wizard&quot; powers, Separation of &quot;Wizard&quot; from
+&quot;Mucker&quot;, further striation of &quot;Mucker&quot; into 3 privilege levels,
+restriction of what parts of MUD-level objects each Mucker level could
+affect and how, the creation of new primitive functions that couldn't
+fit well into the three-plus-one layer striation, and the creation of
+a list of &quot;these functions are too dangerous&quot; functions which could be
+blocked at compile-time.)
+
+The third was developed over ten years later, when one of the
+interfaces to the MUF programming language was found to be extremely
+abusive of CPU power and cycles.  Until this point, if someone wanted
+to programmatically and automatically alter their descriptions
+(remember, this is text-based) based on a small set of variables, they
+had to invoke a specific program from their description property.
+Quite simply, the burden of starting up an interpreter instance was so
+prohibitive, it became necessary to create something that could be
+simply embedded, and be able to be parsed by the MUD software much
+more efficiently.  The designer of this language created it to be
+aware of the security of the MUF language, and put a lot of thought
+into making it work within the strictures without granting additional
+privileges.
+
+This worked wonderfully -- until it was found that there was a way to
+code using the third language that could write to a property that was
+prohibited to the second language, and thus caused the third language
+to later interpret that string in a different security context than
+the one it originated in, and created the means for a virus to be
+written.  (It was the first known virtual-world
+association-transmitted disease -- if you looked at someone whose
+description was infected, your description became infected.)
+
+This would have been prevented if there had been a single point of
+failure, a single point where authorization to perform any action
+would pass or fail.
+
+So, the point of my long-winded rambling is this:
+
+If you're going to develop something like AllowScriptFunction(), could
+you please please please factor it out of the scripting engine,
+genericize it (based on what operation is being attempted by what
+script owned by who and run in what security context against what
+other object owned by what person and probably a hundred other things
+that I'm not thinking of right now), put it in the security management
+framework, and make everything that can manipulate other things call
+it?
+
+I only ask/suggest this because I know how difficult it is to change
+something in a code base once it's entrenched.  I've been fighting (in
+fbmuck) to separate out what privileges are needed for various
+primitive functions, and it's possible that it's too tangled a mess to
+ever separate without sacrificing backward-compatibility.  I think
+that exploits against OpenSim's ownership model -- in any form --
+would be the worst possible condition.
+
+-Kyle H
+
+On Mon, Sep 15, 2008 at 8:45 AM, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>&gt; wrote:
+&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at opensimulator.org</A> wrote:
+</I>&gt;&gt;<i> Author: melanie
+</I>&gt;&gt;<i> Date: 2008-09-15 08:25:48 -0700 (Mon, 15 Sep 2008)
+</I>&gt;&gt;<i> New Revision: 6306
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Modified:
+</I>&gt;&gt;<i>    trunk/OpenSim/Region/ScriptEngine/Shared/Api/Implementation/OSSL_Api.cs
+</I>&gt;&gt;<i>    trunk/bin/OpenSim.ini.example
+</I>&gt;&gt;<i> Log:
+</I>&gt;&gt;<i> Add more granularity and a risk asessment system to the OSSL API in XEngine.
+</I>&gt;&gt;<i> Adds the fix from Mantis #2197 in it's new form.
+</I>&gt;&gt;<i> Stage one of the scripting security changes, more to come.
+</I>&gt;<i>
+</I>&gt;<i> Would it be possible to merge the allow osFunctions preflight test with
+</I>&gt;<i> the thread level check so that we could reduce it to a single line of
+</I>&gt;<i> &quot;AllowScriptFunction(int type (lsl, osl, future types), int risk, string
+</I>&gt;<i>  name)&quot;;
+</I>&gt;<i>
+</I>&gt;<i> Then define the fail case as a set of exceptions:
+</I>&gt;<i> ScriptTypeNotAllowed
+</I>&gt;<i> ScriptThreatLevelExceeded
+</I>&gt;<i>
+</I>&gt;<i> or something?
+</I>&gt;<i>
+</I>&gt;<i> It would drop a bunch of copy and pasted code, which would be really nice.
+</I>&gt;<i>
+</I>&gt;<i>        -Sean
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Sean Dague / Neas Bade
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+</I>&gt;<i> <A HREF="http://dague.net">http://dague.net</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003095.html">[Opensim-dev] [Opensim-commits] r6306 - in trunk: OpenSim/Region/ScriptEngine/Shared/Api/Implementation bin
+</A></li>
+	<LI>Next message: <A HREF="003101.html">[Opensim-dev] [Opensim-commits] r6306 - in trunk:	OpenSim/Region/ScriptEngine/Shared/Api/Implementation bin
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3096">[ date ]</a>
+              <a href="thread.html#3096">[ thread ]</a>
+              <a href="subject.html#3096">[ subject ]</a>
+              <a href="author.html#3096">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

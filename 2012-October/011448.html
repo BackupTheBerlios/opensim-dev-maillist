@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Robust dynamic connector plugins...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Robust%20dynamic%20connector%20plugins...&In-Reply-To=%3C508B1D90.50607%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011446.html">
+   <LINK REL="Next"  HREF="011449.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Robust dynamic connector plugins...</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Robust%20dynamic%20connector%20plugins...&In-Reply-To=%3C508B1D90.50607%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Robust dynamic connector plugins...">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sat Oct 27 01:32:32 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011446.html">[Opensim-dev] Robust dynamic connector plugins...
+</A></li>
+        <LI>Next message: <A HREF="011449.html">[Opensim-dev] Robust dynamic connector plugins...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11448">[ date ]</a>
+              <a href="thread.html#11448">[ thread ]</a>
+              <a href="subject.html#11448">[ subject ]</a>
+              <a href="author.html#11448">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>My first question is, what do you think of the alternatives to Mono.Addins, chiefly MEF (Managed Extensibility 
+Framework)?  How do they compare?
+
+On 23/10/12 22:36, James Hughes wrote:
+&gt;<i> I am pushing my work for dynamic plugins to a branch for evaluation. This is a working prototype and currently works
+</I>&gt;<i> only with Robust at this stage.
+</I>&gt;<i>
+</I>&gt;<i> Here is the list of current features...
+</I>&gt;<i>
+</I>&gt;<i> *dynamic/modular configuration - The application will look in the default ini for its configuration section. If none is
+</I>&gt;<i> found, it will look in a named directory for its modular config file. If no file is found, it will, then, look in a url
+</I>&gt;<i> provided in the module for a &quot;bootstrap&quot; ini that will be downloaded and written to the specified ini.
+</I>&gt;<i>
+</I>&gt;<i> *remote repositories - Remote repositories may be managed from the console. A repository may be added, enabled, disabled
+</I>&gt;<i> or removed. When a registered repository is enabled, suitable plugins for the application will be listed when searching
+</I>&gt;<i> for available plugins.
+</I>&gt;<i>
+</I>&gt;<i> *dynamic plugins - Registering a repository and searching for available plugins will list possible candidates for
+</I>&gt;<i> extending the application. The plugins may be added and removed from the application. After adding a plugin to the
+</I>&gt;<i> application, it may enabled or disabled. It's meta data may also be viewed. Plugins contained in the local ./bin
+</I>&gt;<i> directory are immediately available, but should not be included in the ServiceConnectors list.
+</I>&gt;<i>
+</I>&gt;<i> Other possibilities include managing plugins by categories and management by version,
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I needed to add an interface for the mono-addins extension type and to be able to send the plugins our main
+</I>&gt;<i> IConfigSource. It should be possible to use the existing IServiceConnector for this, but it would make several changes
+</I>&gt;<i> to the existing framework - such as eliminating the ServiceConnectors line in the Robust.ini and eliminating the
+</I>&gt;<i> parametrized constructor in existing work. I opted to add the interface instead, at least for the prototype. For my
+</I>&gt;<i> work, I would have no problems breaking the current framework to use the single interface, but I won't make that call on
+</I>&gt;<i> my own. And I have no issues with using the specific interface for dynamic plugins either. It works OK, The only
+</I>&gt;<i> drawback that I have encountered so-far is this: you cannot add a dynamic plugin to the ServiceConnectors list in the
+</I>&gt;<i> ini or they will try to load twice.
+</I>&gt;<i>
+</I>&gt;<i> The work was done in two stages. First was the support for modular configuration. The virtual methods added to
+</I>&gt;<i> ServerConnector are related to this.
+</I>&gt;<i>
+</I>&gt;<i> The second stage was adding the support for plugins.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I have been merging master with this as of f7dcd3300837f Fri Oct 19 03:12:58 2012 +0100 .
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ** Testing:
+</I>&gt;<i>
+</I>&gt;<i> get the code: OpenSim repo - connector_plugin branch
+</I>&gt;<i>
+</I>&gt;<i> Build the code as usual and run an instance of Robust on a convenient port. Note RegistryLocation and ConfigDirectory in
+</I>&gt;<i> the [Startup] section of your Robust.ini and set them appropriately.
+</I>&gt;<i>
+</I>&gt;<i> see the commands with &quot;help repository&quot; and &quot;help plugin&quot;
+</I>&gt;<i>
+</I>&gt;<i> I have setup an example repository that can be used for testing. Add it with...
+</I>&gt;<i>
+</I>&gt;<i> repo add <A HREF="http://bluewallvirtual.com/plugins">http://bluewallvirtual.com/plugins</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Then, look for available plugins with...
+</I>&gt;<i>
+</I>&gt;<i> plugin list available
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Then, add a plugin...
+</I>&gt;<i>
+</I>&gt;<i> plugin add 0
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Then, you can enable the plugin to have it get the bootstrap ini...
+</I>&gt;<i>
+</I>&gt;<i> plugin enable 0
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> At this point, the plugin will be disabled by configuration, so disable it in the console...
+</I>&gt;<i>
+</I>&gt;<i> plugin disable 0
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Now find your new configuration file and edit it for your needs. When you have finished editing your ini enable the
+</I>&gt;<i> plugin...
+</I>&gt;<i>
+</I>&gt;<i> plugin enable 0
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Now you should be able to use it. You can also see the meta data...
+</I>&gt;<i>
+</I>&gt;<i> plugin info 0
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> You can check the state of your installed plugins...
+</I>&gt;<i>
+</I>&gt;<i> plugin list installed
+</I>&gt;<i>
+</I>&gt;<i> Your plugin will show: 0) [ ] ...
+</I>&gt;<i>
+</I>&gt;<i> plugin disable 0
+</I>&gt;<i> plugin list installed
+</I>&gt;<i>
+</I>&gt;<i> Your plugin will show: 0) [X] ...
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> You can remove the plugin...
+</I>&gt;<i>
+</I>&gt;<i> plugin remove 0
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Source for the example plugins is at <A HREF="http://github.com/BlueWall">http://github.com/BlueWall</A>
+</I>&gt;<i> Config file: <A HREF="http://bluewallvirtual.com/configs/SlipStream.Example.xml">http://bluewallvirtual.com/configs/SlipStream.Example.xml</A>
+</I>&gt;<i>
+</I>&gt;<i> To make a repository...
+</I>&gt;<i>
+</I>&gt;<i> 1) Prepare a place to serve your configs and repository on your web server
+</I>&gt;<i> 2) Edit the meta data and the ConfigURL property in SlipStreamConnector.cs
+</I>&gt;<i> 3) Build your plugin in the addon-modules directory like a region module
+</I>&gt;<i> 4) Pack the dll: mautil p bin/MyPlugin.dll
+</I>&gt;<i> 5) Copy all packed files to a directory, then cd to that directory
+</I>&gt;<i> 6) Build the repo: mautil rb ./
+</I>&gt;<i> 7) Copy the directory contents to your repository on your web server
+</I>&gt;<i> 8) Copy config xml to your config url on your web server
+</I>&gt;<i>
+</I>&gt;<i> Clean your registry by deleting the directory pointed to in &quot;RegistryLocation&quot; in your Robust.ini. You're all set.
+</I>&gt;<i>
+</I>&gt;<i> Hopefully this covers enough ground to get started. I think there would be no issues with existing code moving it to
+</I>&gt;<i> master after some discussion, then we could get more people to look at it and iron out any wrinkles. When it is stable,
+</I>&gt;<i> then we can use the framework in the region server (which is about 85-90% there) to have dynamic region modules too in
+</I>&gt;<i> our next release.
+</I>&gt;<i>
+</I>&gt;<i> Thanks!
+</I>&gt;<i> -BlueWall
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011446.html">[Opensim-dev] Robust dynamic connector plugins...
+</A></li>
+	<LI>Next message: <A HREF="011449.html">[Opensim-dev] Robust dynamic connector plugins...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11448">[ date ]</a>
+              <a href="thread.html#11448">[ thread ]</a>
+              <a href="subject.html#11448">[ subject ]</a>
+              <a href="author.html#11448">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

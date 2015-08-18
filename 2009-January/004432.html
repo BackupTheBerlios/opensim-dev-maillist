@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Technical assessment of Cable Beach asset server
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Technical%20assessment%20of%20Cable%20Beach%20asset%20server&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D4ABCA43B%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004426.html">
+   <LINK REL="Next"  HREF="004440.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Technical assessment of Cable Beach asset server</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Technical%20assessment%20of%20Cable%20Beach%20asset%20server&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D4ABCA43B%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Technical assessment of Cable Beach asset server">john.hurliman at intel.com
+       </A><BR>
+    <I>Thu Jan 15 20:19:35 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004426.html">[Opensim-dev] Technical assessment of Cable Beach asset server
+</A></li>
+        <LI>Next message: <A HREF="004440.html">[Opensim-dev] Technical assessment of Cable Beach asset server
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4432">[ date ]</a>
+              <a href="thread.html#4432">[ thread ]</a>
+              <a href="subject.html#4432">[ subject ]</a>
+              <a href="author.html#4432">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thank you for the technical assessment Mike, and for everyone's comments so far. I've added a few notes and clarifications inline.
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;<i> Sent: Thursday, January 15, 2009 6:47 AM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Technical assessment of Cable Beach asset
+</I>&gt;<i> server
+</I>&gt;<i>
+</I>&gt;<i> Mike Mazur wrote:
+</I>&gt;&gt;<i> Hello,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I'd like to present my analysis of the Cable Beach[1] design &amp; code,
+</I>&gt;&gt;<i> with the aim to eventually use it as the official OpenSim asset and
+</I>&gt;&gt;<i> inventory server.
+</I>&gt;<i>
+</I>&gt;<i> Hey Mike.  Thanks very much for doing this summary.  Here are some
+</I>&gt;<i> comments.  Sorry these are grouped together but I think this is better
+</I>&gt;<i> than having them interspersed in a long e-mail.
+</I>&gt;<i>
+</I>&gt;<i> 1)  As a general point, is Cable Beach development going to continue
+</I>&gt;<i> externally to OpenSim?  Point 3 in
+</I>&gt;<i> <A HREF="http://opensimulator.org/wiki/AssetServerProposal">http://opensimulator.org/wiki/AssetServerProposal</A> talks about this
+</I>&gt;<i> being an alternative to proprietary asset servers.
+</I>&gt;<i> If development of it continues in OpenSim, doesn't it then just remain
+</I>&gt;<i> our own flavour of asset service (albeit with a few more features and
+</I>&gt;<i> more modularity).
+</I>&gt;<i>
+</I>
+This is an open question that I think is best answered by the OpenSim development community. Would OpenSim benefit the most by pulling this into trunk? Should an svn:externals property be used to keep the project in its own repository but use it as a default option? There are several approaches that can be considered. I can assist with transition and future development, but my goal is to hand this project over to the OpenSim community to be integrated in a way that makes sense.
+
+&gt;<i> 2)  I agree with you about the plugin concerns.  It would really not
+</I>&gt;<i> be nice to see another plugin infrastructure come into the OpenSim
+</I>&gt;<i> tree (in addition to Mono plugins and the region module plugin subsystem).
+</I>&gt;<i> My impression was that we had agreed to an eventual migration to Mono
+</I>&gt;<i> plugins.  My understanding was that even if it's technically inferior
+</I>&gt;<i> to home grown solutions right now, the fact that Mono addins has an
+</I>&gt;<i> independent community (being used in various other projects such as
+</I>&gt;<i> MonoDevelop) makes it a better long term alternative both from a
+</I>&gt;<i> maintenance and documentation point of view (we don't have to take on
+</I>&gt;<i> that burden ourselves) and for future functionality (independent teams
+</I>&gt;<i> do nice things like making modules browsable/changeable via a generic
+</I>&gt;<i> web interface).
+</I>&gt;<i>
+</I>&gt;<i> So I would argue that we should look to convert Cable Beach to use
+</I>&gt;<i> mono addins if we are going to take it into core.
+</I>&gt;<i> However, this may make it more difficult to share plugins with non
+</I>&gt;<i> OpenSim Cable Beach instances (if any such exist).
+</I>&gt;<i>
+</I>
+This might be a separate thread of discussion worth having, but ExtensionLoader was written specifically to address the problems and shortcomings of Mono.Addins. The code has been frozen for months, and essentially boils down to one interface and two function calls. See this page for a couple of points on why ExtensionLoader should be used in place of Mono.Addins. <A HREF="http://code.google.com/p/extensionloader/">http://code.google.com/p/extensionloader/</A>
+
+Phasing out Mono.Addins is my suggestion, but it's not a requirement. In fact, attempting to reproduce what ExtensionLoader does in Cable Beach with Mono.Addins could be enlightening.
+
+&gt;<i> 3)  HttpServer.  Do we really want to be using another http server in
+</I>&gt;<i> addition to HttpServer.dll?  This doesn't actually bother me too much
+</I>&gt;<i> since it's hidden to the user and http is very well known, but it
+</I>&gt;<i> might be an issue.
+</I>&gt;<i>
+</I>
+A clarification: Cable Beach uses HttpServer.dll as well, from the C# Webserver project. However, it's a modified version kept in a separate repository (browse the repository here: <A HREF="http://www.openmetaverse.org/viewvc/index.cgi/misc/HttpServer/">http://www.openmetaverse.org/viewvc/index.cgi/misc/HttpServer/</A>). I'm a developer on the C# Webserver project, and weighing my options it seemed the best approach was to branch the project into a &quot;HttpServer lite&quot; version. All external dependencies are removed (some of them were fairly heavy), and several features have been added to bring it closer feature-wise HttpListener. Even beyond HttpListener functionality, it has support for client SSL certificates which can enable secure sim&lt;-&gt;sim and sim&lt;-&gt;grid communication. OpenMetaverse.Http provides full certificate chain generation so everything can happen programmatically.
+
+If OpenSim has an adversity to using the lite branch, I can commit some of the new functionality back to the HttpServer trunk. However, take a look at both versions side by side when making a decision.
+
+&gt;<i> 4)  Config files.  I seem to remember MW saying that the XML files for
+</I>&gt;<i> grid config are actually legacy.  So going to something that uses Nini
+</I>&gt;<i> (as I believe Cable Beach does) would actually be a good thing, though
+</I>&gt;<i> we would really want to move all the other grid configs to Nini sooner
+</I>&gt;<i> rather than leaving everything more confusingly inconsistent.
+</I>&gt;<i>
+</I>
+I agree that moving away from the legacy XML files for all of the grid services is a good idea. Code can be borrowed from Cable Beach to speed up the transition. The Nini project seems to be dead; I wasn't able to contact anyone about patches. Cable Beach is currently using the modified version of Nini in ExtensionLoader that fixes a couple bugs (a problem with finalizers that was causing random debugging problems with projects using Nini, and adding the ability to read keys without values). If OpenSim wants to maintain their own version of Nini that would also work.
+
+&gt;&gt;<i> [snip]
+</I>
+John
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004426.html">[Opensim-dev] Technical assessment of Cable Beach asset server
+</A></li>
+	<LI>Next message: <A HREF="004440.html">[Opensim-dev] Technical assessment of Cable Beach asset server
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4432">[ date ]</a>
+              <a href="thread.html#4432">[ thread ]</a>
+              <a href="subject.html#4432">[ subject ]</a>
+              <a href="author.html#4432">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

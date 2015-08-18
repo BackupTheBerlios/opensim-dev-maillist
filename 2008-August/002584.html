@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Upcoming work on alternative client stack
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Upcoming%20work%20on%20alternative%20client%20stack&In-Reply-To=%3CC2F948DA2AC0BF448A49E5F3148BF12AA03F7B96%40winxbeus02.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002583.html">
+   <LINK REL="Next"  HREF="002587.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Upcoming work on alternative client stack</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Upcoming%20work%20on%20alternative%20client%20stack&In-Reply-To=%3CC2F948DA2AC0BF448A49E5F3148BF12AA03F7B96%40winxbeus02.exchange.xchg%3E"
+       TITLE="[Opensim-dev] Upcoming work on alternative client stack">adam at deepthink.com.au
+       </A><BR>
+    <I>Sun Aug 17 20:27:12 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002583.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+        <LI>Next message: <A HREF="002587.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2584">[ date ]</a>
+              <a href="thread.html#2584">[ thread ]</a>
+              <a href="subject.html#2584">[ subject ]</a>
+              <a href="author.html#2584">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Please be careful here.
+
+I'm doing some work with the RealXtend guys to move their custom code into a set of Region Modules, however I need the SendPacket(Packet x) function on IClientAPI to do so.
+
+Now admittedly there's only a few custom packets, and we could extend IClientAPI to support them - these are:
+
+1.       GenericMessagePacket - Rex has moved to using these to overload all their messages onto (so that the existing client ignores them safely), we don't have a IClientAPI.SendGenericMessage(string[] msg) equivalent yet. This could be one way we get around this.
+
+2.       Convert to SendPacket(Byte[] x), then run GenericMessagePacket.ToBytes() before passing it to IClientAPI?
+
+Regards,
+
+Adam
+
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Teravus Ovares
+Sent: Sunday, 17 August 2008 9:44 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Upcoming work on alternative client stack
+
+There are two places that OutPacket needs to be factored out of the OpenSim core still.   In the Texture sender..  (still uses outpacket!) and ClientManager...   There's one packet type called 'viewereffectpacket'.    Refactor those into the client stack and the below refactorings will be possible.
+
+Best Regards
+
+Teravus
+
+
+On 8/14/08, Mike Mazur &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt;&gt; wrote:
+Hello,
+
+(Could it be? Are the mailing lists working again? I wanted to send
+this message last weekend.)
+
+Some of you may already know, I've started working on an alternative
+client stack. This alternative stack does not use libomv's Packet
+class to move packets around. The buffers which are written to by
+socket functions are passed around instead, with functions available
+for extracting or writing data to the buffers.
+
+These functions are provided by a package currently codenamed &quot;funsl&quot;.
+Johan has written a compiler[1] which generates C# and C/C++ code from
+LL's message_template.msg file[2].
+
+We're doing this because we believe the creation of a Packet object
+for each transferred packet impacts performance, particularly when GC
+events occur.
+
+As I'm working on this I found that libomv's Packet class is used
+outside the client stack, namely in OpenSim/Framework/ClientManager.cs
+and OpenSim/Framework/IClientAPI.cs (among other places). Since our
+client stack needs to implement these interfaces too, and needs to
+call ClientManager methods, those libomv Packet references get in the
+way. I would like to factor them out.
+
+Please allow me to give you an example, inspired by changeset r5785.
+ClientManager had a method, InPacket(), defined as below:
+
+    public void InPacket(uint circuitCode, Packet packet)
+    {
+        IClientAPI client;
+        bool tryGetRet = false;
+        lock (m_clients)
+            tryGetRet = m_clients.TryGetValue(circuitCode, out
+client); if (tryGetRet)
+        {
+            client.InPacket(packet);
+        }
+    }
+
+This method receives a circuit code and passes the packet to the
+IClientAPI instance associated with said circuit code.
+
+Why should the ClientManager have knowledge of Packet? It's not in the
+client stack, it only provides access to the clients. Therefore I
+changed the method as follows:
+
+    public void InPacket(uint circuitCode, object packet)
+    {
+        IClientAPI client;
+        bool tryGetRet = false;
+        lock (m_clients)
+            tryGetRet = m_clients.TryGetValue(circuitCode, out
+client); if (tryGetRet)
+        {
+            client.InPacket(packet);
+        }
+    }
+
+Instead of expecting a Packet object for the second argument, we
+expect any object. Naturally the signature of the InPacket() method in
+the IClientAPI interface has also changed. The cast from object to
+Packet (or byte[] in my case) is done in the class which implements
+IClientAPI, namely
+OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs, where InPacket()
+has been changed as follows:
+
+-        public virtual void InPacket(Packet NewPack)
++        public virtual void InPacket(object NewPack)
+    {
+-            m_PacketHandler.InPacket(NewPack);
++            // Cast NewPack to Packet.
++            m_PacketHandler.InPacket((Packet) NewPack);
+    }
+
+InPacket() is the first method that has been changed so far, but
+others will need to follow (OutPacket(), SendSimStats(),
+ProcessInPacket(), etc).
+
+Please rest assured these changes don't break existing functionality,
+just factoring out some libomv Packet references which currently live
+outside the client stack.
+
+Any thoughts or concerns?
+
+Thank you,
+Mike
+
+
+[1] If you are interested in the source for the compiler, written in
+LISP, just ask ;)
+[2]
+<A HREF="http://svn.secondlife.com/trac/linden/browser/release/scripts/messages">http://svn.secondlife.com/trac/linden/browser/release/scripts/messages</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080817/ab0b1fd0/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080817/ab0b1fd0/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002583.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+	<LI>Next message: <A HREF="002587.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2584">[ date ]</a>
+              <a href="thread.html#2584">[ thread ]</a>
+              <a href="subject.html#2584">[ subject ]</a>
+              <a href="author.html#2584">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

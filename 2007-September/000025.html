@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] clients, agents, avatars, ODE
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20clients%2C%20agents%2C%20avatars%2C%20ODE&In-Reply-To=%3C637939.80338.qm%40web51304.mail.re2.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000024.html">
+   <LINK REL="Next"  HREF="000026.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] clients, agents, avatars, ODE</H1>
+    <B>dan miller</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20clients%2C%20agents%2C%20avatars%2C%20ODE&In-Reply-To=%3C637939.80338.qm%40web51304.mail.re2.yahoo.com%3E"
+       TITLE="[Opensim-dev] clients, agents, avatars, ODE">danbmil99 at yahoo.com
+       </A><BR>
+    <I>Thu Sep 20 00:17:38 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000024.html">[Opensim-dev] clients, agents, avatars, ODE
+</A></li>
+        <LI>Next message: <A HREF="000026.html">[Opensim-dev] clients, agents, avatars, ODE
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#25">[ date ]</a>
+              <a href="thread.html#25">[ thread ]</a>
+              <a href="subject.html#25">[ subject ]</a>
+              <a href="author.html#25">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>from my narrow POV as physics guy, what should happen is this:
+
+when a client *really* enters a region, thru logon or across a border,
+AddAvatar() should be called, so the avatar can interact with the
+environment (walk on terrain, bump into prims/other avs...)
+
+when the client leaves the region, RemoveAvatar() is called to remove it
+from the physics for that region.
+
+How the code got into the state it's in, I have no idea.  Some of this was
+inherited from pre-sugilite days, when things were mighty different.
+
+I'm willing to get into the logistics of the rest of the codebase to some
+degree, but frankly I think my energies are better spent staying focused on
+physics issues.  While not ideal, the physics engine plugin API is a
+reasonable first pass, and is a good point of interaction between physics
+and the rest of the project.
+
+What I think might be helpful would be for me to add debug messages along
+the lines of:
+
+[PHYSICS] AddAvatar called; avatar count for this scene is now X
+[PHYSICS] RemoveAvatar called; avatar count for this scene is now X
+
+or something along those lines.  Then you geniuses can mull over the code
+and mangle it into something that makes sense from the physics angle.
+
+Does this sound reasonable?
+
+-dan
+
+
+--- Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:
+
+&gt;<i> I guess you noticed by now, but I have done extensive restructuring in
+</I>&gt;<i> these areas yesterday and today; still, I suspect there is something odd
+</I>&gt;<i> (from looking at the code) with the chain of events. Also, we're
+</I>&gt;<i> re-creating physActors everytime we move into a region, but we just detach
+</I>&gt;<i> it from the physScene, we don't explicitly destroy (close) the old one
+</I>&gt;<i> when we leave; which I would suspect a native-wrapper would very much like
+</I>&gt;<i> us to.
+</I>&gt;<i>  
+</I>&gt;<i> /Stefan
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> &gt; Date: Tue, 18 Sep 2007 23:00:53 -0700&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">danbmil99 at yahoo.com</A>&gt; To:
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] clients, agents,
+</I>&gt;<i> avatars, ODE&gt; &gt; followup to chat with lbsa71:&gt; &gt; in ClientView.cs, we
+</I>&gt;<i> have:&gt; &gt; this.m_scene.AddNewClient(this, false);&gt; &gt; so it's always passing
+</I>&gt;<i> child=false. But InitNewClient is called by&gt; AuthUser, which is spawned as
+</I>&gt;<i> a thread by ClientView, and... climbing up the&gt; stack of calls, we get
+</I>&gt;<i> OnReceivedData creating a new client thread when it&gt; gets a
+</I>&gt;<i> UseCircuitCode. This seems to happen once for each region, and I&gt; have no
+</I>&gt;<i> idea how to tell what is a child and what is the 'real' client, to&gt;
+</I>&gt;<i> hopefully pass it down the call stack or something of that nature.&gt; &gt;
+</I>&gt;<i> -dan&gt; &gt; &gt; _______________________________________________&gt; Opensim-dev
+</I>&gt;<i> mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000024.html">[Opensim-dev] clients, agents, avatars, ODE
+</A></li>
+	<LI>Next message: <A HREF="000026.html">[Opensim-dev] clients, agents, avatars, ODE
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#25">[ date ]</a>
+              <a href="thread.html#25">[ thread ]</a>
+              <a href="subject.html#25">[ subject ]</a>
+              <a href="author.html#25">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

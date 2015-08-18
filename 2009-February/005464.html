@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Comms Manager
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C27242.35639.qm%40web23008.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005463.html">
+   <LINK REL="Next"  HREF="005465.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Comms Manager</H1>
+    <B>MW</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C27242.35639.qm%40web23008.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Comms Manager">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Thu Feb 26 19:21:12 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005463.html">[Opensim-dev] Comms Manager
+</A></li>
+        <LI>Next message: <A HREF="005465.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5464">[ date ]</a>
+              <a href="thread.html#5464">[ thread ]</a>
+              <a href="subject.html#5464">[ subject ]</a>
+              <a href="author.html#5464">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Again your looking for one solution where I don't think one fits or if it does we haven't found it. I don't see RegionLoaders or anything like that using the generic interface that I'm talking about. They should be separate and as you said the scene shouldn't have access to them.
+
+But that doesn't mean we shouldn't provide the means for some modules to register with all scenes and the application without having to know about Scenes. Even with your system, the region loader could register itself with scenes if someone changed it to do so. So the same if we have some sort of RegisterWithAll method. It can be miss used but we can't stop that anyway.
+
+So I'm still for a system that allows modules that don't need to know about Scenes. Again some modules will be like you said and want to have complete control of what scenes they register with, but some won't.
+
+--- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+Subject: Re: [Opensim-dev] Comms Manager
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Thursday, 26 February, 2009, 6:00 PM
+
+Well, here goes
+
+MW wrote:
+&gt;<i> I'm not actually bothered about the interface per se. What I require
+</I>is to be able to 
+&gt;<i> dynamically load generic modules that no where in that module does it know
+</I>about IScene/Scene. 
+
+That can be done with what you suggested
+
+&gt;<i> I actually see your approach as complex because it demands they need to
+</I>know how to 
+&gt;<i> register to a scene themselves when these types shouldn't need to
+</I>know. The types of 
+&gt;<i> modules I mean are ones where they just want to register with the
+</I>Core/Application 
+&gt;<i> and be accessed from anywhere in the application. 
+</I>
+And that is where we diverge. I believe top allow unchecked access 
+to modules never writte to be used bby scenes, from scenes, would 
+expose functionality to scenes that they should not have access to. 
+It would be an internal privilege escalation, if a scene could, for 
+instance, call a method in the region loader directly and find out 
+about other scenes. Or unload another scene, etc.
+
+That is why I object to having those modules callable from anywhere.
+
+Some simple boilerplate code that, in the context of a grid server, 
+would simply do nothing, but in the context of a region server would 
+attach to scenes and expose a narrowly tailored interface there 
+seems to be much more secure.
+We could even provide an abstract base class that a module may 
+inherit from to get that functionality provided for it.
+
+But directly calling into that level of the app from scene? There be 
+dragons!
+
+&gt;<i> Of course this module type doesn't fit all needs, but thats what
+</I>I'm saying its not 
+&gt;<i> right to try to find a single solution that fits all needs and turns out
+</I>to be more 
+&gt;<i> complex than some modules require. And we shouldn't rule out such
+</I>generic modules.
+
+Please see above. It can easily be done to expose an interface to 
+Scene that is meant to be used in a Scene context and exposes only 
+things Scene should be able to do.
+
+&gt;<i> Now we could still do meet the above requirement with you system, but it
+</I>would mean 
+&gt;<i> doing some automagic in a ApplicationPlugin (or whatever interface they
+</I>used) loader. 
+
+No. Explicit implementation in the module, or inheriting an abstract 
+base that provides it, to reduce code duplication.
+
+&gt;<i> As the loader would have to provide its own IServiceCore implementation,
+</I>that it 
+&gt;<i> passed to the IServiceModules that it loaded, then it would need to as
+</I>your 
+&gt;<i> examples show handle scene creation and register the all the
+</I>IServiceModules with those.
+
+No. The modules would do that. In my example, the Region Loader is 
+JustAnotherModule(tm). The IServiceCore (which you came up with) has 
+no knowledge of it.
+The key here is that &quot;loader&quot;, the result of 
+RequestModuleInterface&lt;IRegionLoader&gt;(), would be null in a grid 
+server and not null in a region server. The remaining stuff (Region 
+hooking) can depend on that, making the module work in a grid server 
+context as well as a region server context, having an interface that 
+can safely be accessed from a scene and is explicit, and avoiding 
+access to modules that don't want to talk to scenes at all.
+
+&gt;<i> This it does get complex, where the simply solution and the one I favour
+</I>is 
+&gt;<i> to just have a sharedRegistry that scenes can access. 
+</I>
+That is what I wouldn't like to have. Too dangerous!
+
+&gt;<i> The whole automagic came from me trying to find a compromise that met your
+</I>
+&gt;<i> ideas. I really dislike it though, but we just need to find a compromise
+</I>as 
+&gt;<i> we both have slighly different ideas and requirements. 
+</I>
+I think my idea can serve your purpose without forcing everyone to 
+compromise internal application security and encapsulation.
+
+Melanie
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+      
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090226/700be4cd/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090226/700be4cd/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005463.html">[Opensim-dev] Comms Manager
+</A></li>
+	<LI>Next message: <A HREF="005465.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5464">[ date ]</a>
+              <a href="thread.html#5464">[ thread ]</a>
+              <a href="subject.html#5464">[ subject ]</a>
+              <a href="author.html#5464">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Thoughts on adding a generic key-value storage system	to OpenSim?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Thoughts%20on%20adding%20a%20generic%20key-value%20storage%0A%20system%09to%20OpenSim%3F&In-Reply-To=%3C4AB87B0D.6080805%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007623.html">
+   <LINK REL="Next"  HREF="007624.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Thoughts on adding a generic key-value storage system	to OpenSim?</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Thoughts%20on%20adding%20a%20generic%20key-value%20storage%0A%20system%09to%20OpenSim%3F&In-Reply-To=%3C4AB87B0D.6080805%40t-data.com%3E"
+       TITLE="[Opensim-dev] Thoughts on adding a generic key-value storage system	to OpenSim?">melanie at t-data.com
+       </A><BR>
+    <I>Tue Sep 22 09:21:49 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007623.html">[Opensim-dev] Thoughts on adding a generic key-value storage system to OpenSim?
+</A></li>
+        <LI>Next message: <A HREF="007624.html">[Opensim-dev] Thoughts on adding a generic key-value storage	system to OpenSim?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7610">[ date ]</a>
+              <a href="thread.html#7610">[ thread ]</a>
+              <a href="subject.html#7610">[ subject ]</a>
+              <a href="author.html#7610">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>None of our DB layers use the try pattern. Using it at that level 
+would be a huge break in an otherwise homogenous interface 
+landscape. Also, I don't like the try pattern at all, since it 
+always forces the definitnion of a local variable even though the 
+result may be needed only once, or only as a truth value.
+
+Melanie
+
+Stefan Andersson wrote:
+&gt;<i> John,
+</I>&gt;<i> 
+</I>&gt;<i> I'm not a big fan of tall/skinny untyped string/string storage, as I believe
+</I>&gt;<i> that approach always come back to bite you in the ass in the end. Adam F did
+</I>&gt;<i> propose the same thing a year ago, and I was against it then as well.
+</I>&gt;<i> 
+</I>&gt;<i> Since then, my stance has softened somewhat, as there hasn't really emerged
+</I>&gt;<i> any other option than nhibernate (but still, wouldn't that be an option?)
+</I>&gt;<i> 
+</I>&gt;<i> If you can just turn string GetValue(string context, string key) into 
+</I>&gt;<i> 
+</I>&gt;<i> bool TryGetValue(string context, string key, out string value)
+</I>&gt;<i> 
+</I>&gt;<i> embracing the Try pattern, I'm 0 on it.
+</I>&gt;<i> 
+</I>&gt;<i> I'm presuming that you're going to implement a behind-the-scene
+</I>&gt;<i> module-unique identifier also, so modules don't clash on context? I would
+</I>&gt;<i> suggest having an IGenericDataStore factory that produces handlers that are
+</I>&gt;<i> private to the modules.
+</I>&gt;<i> 
+</I>&gt;<i> /Stefan
+</I>&gt;<i> 
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Hurliman, John
+</I>&gt;&gt;<i> Sent: den 21 september 2009 22:05
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Thoughts on adding a generic key-value
+</I>&gt;&gt;<i> storage system to OpenSim?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Formatting got messed up, that should have looked like this:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> // returns true if the key was found and data was updated, otherwise
+</I>&gt;&gt;<i> false if a new key row was added
+</I>&gt;&gt;<i> bool AddOrUpdateKeyValue(string context, string key, string value);
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> // returns true if the key was found and deleted
+</I>&gt;&gt;<i> bool DeleteKeyValue(string context, string key);
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> // returns the string value if the key was found, otherwise null
+</I>&gt;&gt;<i> string GetValue(string context, string key);
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Hurliman, John
+</I>&gt;&gt;<i> Sent: Monday, September 21, 2009 12:54 PM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: [Opensim-dev] Thoughts on adding a generic key-value storage
+</I>&gt;&gt;<i> system to OpenSim?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> A lot of the work going into OpenSim recently has been modularizing the
+</I>&gt;&gt;<i> codebase and making it easy for third party developers to write
+</I>&gt;&gt;<i> plugins. One feature that I think would really complete the picture
+</I>&gt;&gt;<i> would be a (simple) generic data storage interface that leveraged the
+</I>&gt;&gt;<i> existing OpenSim storage framework. Most plugins I've seen (and wrote)
+</I>&gt;&gt;<i> currently tack on their own database tables, use a simple text file
+</I>&gt;&gt;<i> with a custom format, or use some other means of data storage that does
+</I>&gt;&gt;<i> not match up with the rest of OpenSim. Adding a new database table that
+</I>&gt;&gt;<i> had three columns: [context, key, value] would allow plugins to store
+</I>&gt;&gt;<i> key/value mappings (string to string) without worrying about data
+</I>&gt;&gt;<i> collisions between plugins or having to implement a custom data store
+</I>&gt;&gt;<i> every time.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> // returns true if the key was found and data was updated, otherwise
+</I>&gt;&gt;<i> false if a new key row was added
+</I>&gt;&gt;<i> bool AddOrUpdateKeyValue(string context, string key, string value);
+</I>&gt;&gt;<i> // returns true if the key was found and deleted
+</I>&gt;&gt;<i> bool DeleteKeyValue(string context, string key);
+</I>&gt;&gt;<i> // returns the string value if the key was found, otherwise null
+</I>&gt;&gt;<i> string GetValue(string context, string key);
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Although I've been writing extensions for the OpenSim codebase for
+</I>&gt;&gt;<i> quite a while, I'm still fairly new to the guts of the system. Does
+</I>&gt;&gt;<i> this seem like the correct solution? If so, where would this interface
+</I>&gt;&gt;<i> go? I'm happy to write the code to implement this, I just want feedback
+</I>&gt;&gt;<i> from the dev community first to see if I'm on track.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> John
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007623.html">[Opensim-dev] Thoughts on adding a generic key-value storage system to OpenSim?
+</A></li>
+	<LI>Next message: <A HREF="007624.html">[Opensim-dev] Thoughts on adding a generic key-value storage	system to OpenSim?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7610">[ date ]</a>
+              <a href="thread.html#7610">[ thread ]</a>
+              <a href="subject.html#7610">[ subject ]</a>
+              <a href="author.html#7610">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

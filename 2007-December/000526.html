@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] 20,256 prim test
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%2020%2C256%20prim%20test&In-Reply-To=%3C34cc66250712121852m55280c43i27c0afdc1af7f669%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000559.html">
+   <LINK REL="Next"  HREF="000527.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] 20,256 prim test</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%2020%2C256%20prim%20test&In-Reply-To=%3C34cc66250712121852m55280c43i27c0afdc1af7f669%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] 20,256 prim test">teravus at gmail.com
+       </A><BR>
+    <I>Thu Dec 13 03:52:01 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000559.html">[Opensim-dev] My ISP banned from irc.efnet.net???
+</A></li>
+        <LI>Next message: <A HREF="000527.html">[Opensim-dev] 20,256 prim test
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#526">[ date ]</a>
+              <a href="thread.html#526">[ thread ]</a>
+              <a href="subject.html#526">[ subject ]</a>
+              <a href="author.html#526">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Greetings everyone
+
+I was having fun tiling the ground and above with .25 meter cubes and ended
+up with this;
+<A HREF="http://opensimulator.org/images/d/d0/My20000Test_001.jpg">http://opensimulator.org/images/d/d0/My20000Test_001.jpg</A>
+
+This test was conducted on a 100MB ethernet network.
+
+The instance is running 3 regions, two with no prim in it.
+The sim is running ODE with a single agent.
+
+ The client is running on a different machine then the sim.
+This was using the mySQL DB interface in Grid Mode
+
+at 16,750 prim, the instance of OpenSim was using up 45% of a dual core 3Ghz
+processor(one core)
+at 20,256 prim, the instance of OpenSim was using up 22% of a dual core 3Ghz
+processor(both cores)
+In both cases the memory usage was around 145MB of RAM
+using 58 Threads
+758 handles
+avg 1600 context switches
+
+.NET Perf Info
+11,750,740 = # Marshaling with unmanaged code(ODE)
+2,839 = # GC handles
+0.10 - 0.36  = % Time in GC
+4,840 = Classes loaded
+69 = Total Assemblies
+
+.NET Locking and Threads
+2 = locking contentions /sec
+75,505+ and increasing = Queue Length peak
+58 = Logical threads
+4,294,967,033 = physical Threads
+322 = current recognized threads
+
+
+A couple of notes.
+
+It's really difficult to get to 20,000 prim.    The reason is DataStore
+Database backup takes an hour (based on prim duplications).
+At least with mySQL, this can be done asynchronously, I suggest we do that,
+otherwise you can DOS a sim simply by copying prim.
+IMHO, this is the *WORST* performance bog that we've got.  Even worse then
+the packet object create and discard.
+
+When logging into the sim, it takes about 3 minutes on a 100MB network to
+get all 20,256 prim at 600Kb/sec.  During that time, you can't really move
+because everything is being pushed through the Task throttle (this is by
+design).   Before this becomes general practice, we'll need to make sure we
+limit the amount of prim that go out at a time to a client.
+
+One 3Ghz core could handle approx 18,000 prim before stalling in between
+frames.
+
+Once again,
+Have a look at the picture.  It has the sim stats visible
+
+Best Regards
+
+Teravus Ousley
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071212/b66007b7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071212/b66007b7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000559.html">[Opensim-dev] My ISP banned from irc.efnet.net???
+</A></li>
+	<LI>Next message: <A HREF="000527.html">[Opensim-dev] 20,256 prim test
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#526">[ date ]</a>
+              <a href="thread.html#526">[ thread ]</a>
+              <a href="subject.html#526">[ subject ]</a>
+              <a href="author.html#526">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

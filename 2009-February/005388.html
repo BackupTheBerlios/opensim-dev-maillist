@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] On solving Authentication and such
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20solving%20Authentication%20and%20such&In-Reply-To=%3C49A4E33F.8030000%40kyperjokki.fi%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005382.html">
+   <LINK REL="Next"  HREF="005395.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] On solving Authentication and such</H1>
+    <B>Toni Alatalo</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20solving%20Authentication%20and%20such&In-Reply-To=%3C49A4E33F.8030000%40kyperjokki.fi%3E"
+       TITLE="[Opensim-dev] On solving Authentication and such">antont at kyperjokki.fi
+       </A><BR>
+    <I>Wed Feb 25 07:20:47 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005382.html">[Opensim-dev] On solving Authentication and such
+</A></li>
+        <LI>Next message: <A HREF="005395.html">[Opensim-dev] On solving Authentication and such
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5388">[ date ]</a>
+              <a href="thread.html#5388">[ thread ]</a>
+              <a href="subject.html#5388">[ subject ]</a>
+              <a href="author.html#5388">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>First, a big + the separation of concerns. Then some brief remarks and 
+comments:
+
+Mike Mazur kirjoitti:
+&gt;<i> This means that the server will provide one client stack implementing
+</I>&gt;<i> one protocol that deals only with 3D information. Avatar movement,
+</I>&gt;<i> scene description, agent updates, prim updates, etc. The viewer speaks
+</I>&gt;<i> this protocol in order to display to the user what is happening in the
+</I>&gt;<i> 3D world. This makes it possible to write a client that is only capable
+</I>&gt;<i> of viewing the world and doesn't care about inventory. The protocol
+</I>&gt;<i> could be, for example, the LLUDP protocol.
+</I>&gt;<i>   
+</I>
+That is BTW exactly the plan in the RexNG viewer effort now: implement a 
+minimal set of LLUDP for the client to get the world, and leave out all 
+the IM, social networking, commerce etc. related parts of the SL 
+protocol, as the idea is to use other existing things for those (xmpp 
+etc). And possibly switch away from LLUDP later if it seems to make 
+sense, the experiments with MXP now are interesting (i started testing 
+adding support to that to openviewer btw to learn more, dunno if will 
+have time to complete that soon but we'll see).
+
+So I guess a part of the plan is to facilitate that on the server side 
+too, AFAIK that part hasn't been examined more closely in Rex work yet 
+(apart from doing modrex and hence getting experience with dealing with 
+client views etc). But if the core etc. would be refactored as needed in 
+Opensim in general to support using such a minimal set nicely I think 
+it'd also benefit the Rex effort directly.
+
+&gt;<i> The inherently 2D features, such as chat or inventory, can use another
+</I>&gt;<i> protocol. The server will provide a different client stack that deals
+</I>&gt;<i> only with the 2D feature(s). The viewer also implements this protocol to
+</I>&gt;<i>   
+</I>
+A remark on the concepts: There is nothing 'inherently 2d' about those. 
+They are information that can be represented in many ways. Some GUI may 
+use a 2d widget to show them, some other may feature 2,5d or 3d UIs to 
+e.g. deal with inventory, and for e.g. blind people you can have chat 
+and inventory as audio.
+
+&gt;<i> provide these additional services to the user. This 2D information can
+</I>&gt;<i> then be overlaid over the 3D rendering of the world. This allows to
+</I>&gt;<i>   
+</I>
+Or some other client implementation may come up with interesting ways to 
+integrate them to inworld. In fact the idea that the other GUIs would 
+disappear, and the VW itself would be the interface for all services: 
+e.g. google searches, making notes, planning an API,  .. but not via 
+putting rendered html pages as images to planes, but having the 
+structures of the world itself be the information, services and tools -- 
+that's what sometimes intriques me most as a long-term thing (and this 
+is just my private thinking based on good experiences from earlier 
+research systems, can point to them elsewhere if someone's interested).
+
+Back to short term concrete plans, with Rex the plan is exactly that - 
+overlay traditional GUI things on top of the Ogre scene (like openviewer 
+and idealist do too).
+
+But yes, I'd also think that such separation would make sense - 
+especially because there are many possible and I'd bet yet unknown ways 
+to mix&amp;match these different features. Like someone said, let's do 
+components and let the world decide about the configurations. And indeed 
+a specific client may be interested in a single feature, and doing that 
+powerfully (e.g. inventory management).
+
+&gt;<i> Mike
+</I>
+~Toni
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005382.html">[Opensim-dev] On solving Authentication and such
+</A></li>
+	<LI>Next message: <A HREF="005395.html">[Opensim-dev] On solving Authentication and such
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5388">[ date ]</a>
+              <a href="thread.html#5388">[ thread ]</a>
+              <a href="subject.html#5388">[ subject ]</a>
+              <a href="author.html#5388">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

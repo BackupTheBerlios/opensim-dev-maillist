@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20to%20eliminate%20the%20name%2C%0A%20description%20and%20invType%20fields%09from%20the%20assets%20db&In-Reply-To=%3CBLU134-W7EE908F0B7EF3CD778F83D5A60%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001971.html">
+   <LINK REL="Next"  HREF="001974.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20to%20eliminate%20the%20name%2C%0A%20description%20and%20invType%20fields%09from%20the%20assets%20db&In-Reply-To=%3CBLU134-W7EE908F0B7EF3CD778F83D5A60%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db">stefan at tribalmedia.se
+       </A><BR>
+    <I>Mon Jun 23 20:15:27 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001971.html">[Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db table
+</A></li>
+        <LI>Next message: <A HREF="001974.html">[Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1973">[ date ]</a>
+              <a href="thread.html#1973">[ thread ]</a>
+              <a href="subject.html#1973">[ subject ]</a>
+              <a href="author.html#1973">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Last time this was up for discussion, I suggested we have a 'BinaryItem' with a 'BinaryId' that could well be a sha-1 and be used for de-duplication. This would be hashed on the binary data only, and would not have anything like 'name' or 'owner'.
+ 
+then an 'AssetItem' would have a unique 'AssetId', context information like 'CreatedDate' and 'CreatedBy' and then a binaryId pointing to the common binary data.
+ 
+If this feels difficult to handle, it would be a simple thing to create a combined 'view' in the database.
+this is akin to the case of 'InventoryItem' with unique 'InventoryId' where several users can have the same asset, but under different name (and with different permissions)
+ 
+Also note that the binaryId probably would be a local reference only, ie, never shared over any trust boundary.
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+&gt;<i> Date: Mon, 23 Jun 2008 18:13:13 +0100&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] Proposal to eliminate the name, description and invType fields from the assets db table&gt; &gt; Hi,&gt; &gt; Sean Dague wrote:&gt; &gt; Let's seperate the use case you have, from the way you would implement&gt; &gt; it on top of the existing system, which is wasteful in a bunch of ways.&gt; &gt; The use case is to track inventory generations of the same asset. I&gt; &gt; think that would be much better done by adding a field to inventory&gt; &gt; which is seeded on a new upload. Inventory transfers/copies keep that&gt; &gt; seed.&gt; &gt; That would only handle agent inventory. It would not handle textures &gt; applied to prims, or used in clothing, or audio files referenced by &gt; UUID from a script. Basically any asset that gets detached from &gt; inventory becomes untraceable.&gt; &gt; The problem is this:&gt; &gt; User A uploads a texture. She creates a skin, which she sells.&gt; &gt; User B uses a ripper to clone the appearance of a person wearing &gt; that skin. They extract the texture, and download it.&gt; &gt; They then proceeed to reupload the texture, create a skin from it, &gt; and sell that.&gt; &gt; Person A files a DMCA complaint, which results in a takedown order. &gt; If upload coalescing were in effect, those skins would use the same &gt; UUID. There would be no way to destroy the skins that were created &gt; from the copy and leave the ones created by the original creator &gt; unharmed.&gt; &gt; If one upload = one asset, all I need is to replace the image data &gt; with a &quot;missing image&quot;, or, as Neb suggested, &quot;Missing Ethics&quot; &gt; bitmap. All items created from it are instantaneously unwearable.&gt; &gt; All builds a stolen building texture is used on would then show that &gt; replacement image, e.g. be unusable. The DMCA takedown would be &gt; compiled with.&gt; &gt; With coalescing, there is no way that can be done, I would have to &gt; remove the asset, which will destroy all builds/items created by the &gt; legitimate creator as well. She would have a lot of very angry &gt; customers.&gt; &gt; For those who want coalescing to save space, by all means, put it &gt; in, but please leave the option for one upload = one asset. The &gt; legal implications or business could be tremendous if that option is &gt; taken away, negatively impacting all commercial grids.&gt; &gt; Melanie&gt; &gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080623/74861ac6/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080623/74861ac6/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001971.html">[Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db table
+</A></li>
+	<LI>Next message: <A HREF="001974.html">[Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1973">[ date ]</a>
+              <a href="thread.html#1973">[ thread ]</a>
+              <a href="subject.html#1973">[ subject ]</a>
+              <a href="author.html#1973">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,340 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Adding virtual to many methods on Region/Framework/* for experimentation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Adding%20virtual%20to%20many%20methods%20on%0A%20Region/Framework/%2A%20for%20experimentation&In-Reply-To=%3C4A4CDBE9.9080103%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006945.html">
+   <LINK REL="Next"  HREF="006940.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Adding virtual to many methods on Region/Framework/* for experimentation</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Adding%20virtual%20to%20many%20methods%20on%0A%20Region/Framework/%2A%20for%20experimentation&In-Reply-To=%3C4A4CDBE9.9080103%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Adding virtual to many methods on Region/Framework/* for experimentation">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Jul  2 18:10:17 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006945.html">[Opensim-dev] Adding virtual to many methods on Region/Framework/* for experimentation
+</A></li>
+        <LI>Next message: <A HREF="006940.html">[Opensim-dev] Proposal: Changing Runprebuild.bat
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6954">[ date ]</a>
+              <a href="thread.html#6954">[ thread ]</a>
+              <a href="subject.html#6954">[ subject ]</a>
+              <a href="author.html#6954">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Cristina Videira Lopes wrote:
+
+&gt;<i> 
+</I>&gt;<i> I've done this before (the traffic simulation). I love synthetic objects 
+</I>&gt;<i> that extend SOG, and all applications I'm involved with use them 
+</I>&gt;<i> heavily. Their only weakness right now is not being able to cross 
+</I>&gt;<i> borders like the other ones, because the deserialization routine 
+</I>&gt;<i> hardcodes the class. We should fix that at some point.
+</I>
+I actually have a patch which starts to do that - essentially it manually emulates the current automatic serialization 
+to write out parts of SOP (but not yet read).  This was done as a basis for future evolution of the serialization which 
+doesn't involve the accumulation of confusing cruft both code side and data format side, as proposed on this list about 
+a month back.
+
+It was tested in various scenarios but not exhaustively enough where I was happy to put it in (since naturally it's 
+critical to get this right).  Everything was fine except for certain situations involving writing out certain flag 
+states.  There's a method WriteFlagsEnum(Enum eenum) in the patch which starts to address this problem but it is not yet 
+used (and very probably it's not yet right).
+
+Unfortunately, I have other tasks heavily contending for my time so I haven't been able to do any work on it and 
+probably won't for some time.  The existing patch follows.  If anyone does pick it up then please let me know.
+
+
+
+Index: OpenSim/Region/Framework/Scenes/Serialization/SceneObjectSerializer.cs
+===================================================================
+--- OpenSim/Region/Framework/Scenes/Serialization/SceneObjectSerializer.cs	(revision 9849)
++++ OpenSim/Region/Framework/Scenes/Serialization/SceneObjectSerializer.cs	(working copy)
+@@ -26,6 +26,7 @@
+   */
+
+  using System;
++using System.Drawing;
+  using System.IO;
+  using System.Reflection;
+  using System.Xml;
+@@ -185,9 +186,118 @@
+              //m_log.DebugFormat(&quot;[SERIALIZER]: Finished serialization of SOG {0}, {1}ms&quot;, Name, 
+System.Environment.TickCount - time);
+          }
+
+-        protected static void ToOriginalXmlFormat(SceneObjectPart part, XmlTextWriter writer)
++        protected static void ToOriginalXmlFormat(SceneObjectPart part, XmlTextWriter xtw)
+          {
+-            part.ToXml(writer);
++            xtw.WriteStartElement(&quot;SceneObjectPart&quot;);
++
++            xtw.WriteElementString(&quot;AllowedDrop&quot;, XmlConvert.ToString(part.AllowedDrop));
++            WriteUuid(xtw, &quot;CreatorID&quot;, part.CreatorID);
++            WriteUuid(xtw, &quot;FolderID&quot;, part.FolderID);
++            xtw.WriteElementString(&quot;InventorySerial&quot;, XmlConvert.ToString(part.InventorySerial));
++
++            xtw.WriteStartElement(&quot;TaskInventory&quot;);
++            part.TaskInventory.WriteXml(xtw);
++            xtw.WriteEndElement();
++
++            xtw.WriteElementString(&quot;ObjectFlags&quot;, part.ObjectFlags.ToString());
++            WriteUuid(xtw, &quot;UUID&quot;, part.UUID);
++            xtw.WriteElementString(&quot;LocalId&quot;, XmlConvert.ToString(part.LocalId));
++            xtw.WriteElementString(&quot;Name&quot;, part.Name);
++            xtw.WriteElementString(&quot;Material&quot;, XmlConvert.ToString(part.Material));
++            xtw.WriteElementString(&quot;PassTouches&quot;, XmlConvert.ToString(part.PassTouches));
++            xtw.WriteElementString(&quot;RegionHandle&quot;, XmlConvert.ToString(part.RegionHandle));
++            xtw.WriteElementString(&quot;ScriptAccessPin&quot;, XmlConvert.ToString(part.ScriptAccessPin));
++            WriteVector(xtw, &quot;GroupPosition&quot;, part.GroupPosition);
++            WriteVector(xtw, &quot;OffsetPosition&quot;, part.OffsetPosition);
++            WriteQuaternion(xtw, &quot;RotationOffset&quot;, part.RotationOffset);
++            WriteVector(xtw, &quot;Velocity&quot;, part.Velocity);
++            WriteVector(xtw, &quot;RotationalVelocity&quot;, part.RotationalVelocity);
++            WriteVector(xtw, &quot;AngularVelocity&quot;, part.AngularVelocity);
++            WriteVector(xtw, &quot;Acceleration&quot;, part.Acceleration);
++            xtw.WriteElementString(&quot;Description&quot;, part.Description);
++            WriteColor(xtw, &quot;Color&quot;, part.Color);
++            xtw.WriteElementString(&quot;Text&quot;, part.Text);
++            xtw.WriteElementString(&quot;SitName&quot;, part.SitName);
++            xtw.WriteElementString(&quot;TouchName&quot;, part.TouchName);
++            xtw.WriteElementString(&quot;LinkNum&quot;, XmlConvert.ToString(part.LinkNum));
++            xtw.WriteElementString(&quot;ClickAction&quot;, XmlConvert.ToString(part.ClickAction));
++
++            PrimitiveBaseShape shape = part.Shape;
++            xtw.WriteStartElement(&quot;Shape&quot;);
++                xtw.WriteElementString(&quot;ProfileCurve&quot;, XmlConvert.ToString(shape.ProfileCurve));
++                xtw.WriteElementString(&quot;TextureEntry&quot;, Convert.ToBase64String(shape.TextureEntry));
++                xtw.WriteElementString(&quot;ExtraParams&quot;, Convert.ToBase64String(shape.ExtraParams));
++                xtw.WriteElementString(&quot;PathBegin&quot;, XmlConvert.ToString(shape.PathBegin));
++                xtw.WriteElementString(&quot;PathCurve&quot;, XmlConvert.ToString(shape.PathCurve));
++                xtw.WriteElementString(&quot;PathEnd&quot;, XmlConvert.ToString(shape.PathEnd));
++                xtw.WriteElementString(&quot;PathRadiusOffset&quot;, XmlConvert.ToString(shape.PathRadiusOffset));
++                xtw.WriteElementString(&quot;PathRevolutions&quot;, XmlConvert.ToString(shape.PathRevolutions));
++                xtw.WriteElementString(&quot;PathScaleX&quot;, XmlConvert.ToString(shape.PathScaleX));
++                xtw.WriteElementString(&quot;PathScaleY&quot;, XmlConvert.ToString(shape.PathScaleY));
++                xtw.WriteElementString(&quot;PathShearX&quot;, XmlConvert.ToString(shape.PathShearX));
++                xtw.WriteElementString(&quot;PathShearY&quot;, XmlConvert.ToString(shape.PathShearX));
++                xtw.WriteElementString(&quot;PathSkew&quot;, XmlConvert.ToString(shape.PathSkew));
++                xtw.WriteElementString(&quot;PathTaperX&quot;, XmlConvert.ToString(shape.PathTaperX));
++                xtw.WriteElementString(&quot;PathTaperY&quot;, XmlConvert.ToString(shape.PathTaperY));
++                xtw.WriteElementString(&quot;PathTwist&quot;, XmlConvert.ToString(shape.PathTwist));
++                xtw.WriteElementString(&quot;PathTwistBegin&quot;, XmlConvert.ToString(shape.PathTwistBegin));
++                xtw.WriteElementString(&quot;PCode&quot;, XmlConvert.ToString(shape.PCode));
++                xtw.WriteElementString(&quot;ProfileBegin&quot;, XmlConvert.ToString(shape.ProfileBegin));
++                xtw.WriteElementString(&quot;ProfileEnd&quot;, XmlConvert.ToString(shape.ProfileEnd));
++                xtw.WriteElementString(&quot;ProfileHollow&quot;, XmlConvert.ToString(shape.ProfileHollow));
++                WriteVector(xtw, &quot;Scale&quot;, shape.Scale);
++                xtw.WriteElementString(&quot;State&quot;, XmlConvert.ToString(shape.State));
++                xtw.WriteElementString(&quot;ProfileShape&quot;, shape.ProfileShape.ToString());
++                xtw.WriteElementString(&quot;HollowShape&quot;, shape.HollowShape.ToString());
++                WriteUuid(xtw, &quot;SculptTexture&quot;, shape.SculptTexture);
++                xtw.WriteElementString(&quot;SculptType&quot;, XmlConvert.ToString(shape.SculptType));
++                xtw.WriteElementString(&quot;SculptData&quot;, Convert.ToBase64String(shape.SculptData));
++                xtw.WriteElementString(&quot;FlexiSoftness&quot;, XmlConvert.ToString(shape.FlexiSoftness));
++                xtw.WriteElementString(&quot;FlexiTension&quot;, XmlConvert.ToString(shape.FlexiTension));
++                xtw.WriteElementString(&quot;FlexiDrag&quot;, XmlConvert.ToString(shape.FlexiDrag));
++                xtw.WriteElementString(&quot;FlexiGravity&quot;, XmlConvert.ToString(shape.FlexiGravity));
++                xtw.WriteElementString(&quot;FlexiWind&quot;, XmlConvert.ToString(shape.FlexiWind));
++                xtw.WriteElementString(&quot;FlexiForceX&quot;, XmlConvert.ToString(shape.FlexiForceX));
++                xtw.WriteElementString(&quot;FlexiForceY&quot;, XmlConvert.ToString(shape.FlexiForceY));
++                xtw.WriteElementString(&quot;FlexiForceZ&quot;, XmlConvert.ToString(shape.FlexiForceZ));
++                xtw.WriteElementString(&quot;LightColorR&quot;, XmlConvert.ToString(shape.LightColorR));
++                xtw.WriteElementString(&quot;LightColorG&quot;, XmlConvert.ToString(shape.LightColorG));
++                xtw.WriteElementString(&quot;LightColorB&quot;, XmlConvert.ToString(shape.LightColorB));
++                xtw.WriteElementString(&quot;LightColorA&quot;, XmlConvert.ToString(shape.LightColorA));
++                xtw.WriteElementString(&quot;LightRadius&quot;, XmlConvert.ToString(shape.LightRadius));
++                xtw.WriteElementString(&quot;LightCutoff&quot;, XmlConvert.ToString(shape.LightCutoff));
++                xtw.WriteElementString(&quot;LightFalloff&quot;, XmlConvert.ToString(shape.LightFalloff));
++                xtw.WriteElementString(&quot;LightIntensity&quot;, XmlConvert.ToString(shape.LightIntensity));
++                xtw.WriteElementString(&quot;FlexiEntry&quot;, XmlConvert.ToString(shape.FlexiEntry));
++                xtw.WriteElementString(&quot;LightEntry&quot;, XmlConvert.ToString(shape.LightEntry));
++                xtw.WriteElementString(&quot;SculptEntry&quot;, XmlConvert.ToString(shape.SculptEntry));
++            xtw.WriteEndElement();
++
++            WriteVector(xtw, &quot;Scale&quot;, part.Scale);
++            xtw.WriteElementString(&quot;UpdateFlag&quot;, XmlConvert.ToString(part.UpdateFlag));
++            WriteQuaternion(xtw, &quot;SitTargetOrientation&quot;, part.SitTargetOrientation);
++            WriteVector(xtw, &quot;SitTargetPosition&quot;, part.SitTargetPosition);
++            WriteVector(xtw, &quot;SitTargetPositionLL&quot;, part.SitTargetPositionLL);
++            WriteQuaternion(xtw, &quot;SitTargetOrientationLL&quot;, part.SitTargetOrientationLL);
++            xtw.WriteElementString(&quot;ParentID&quot;, XmlConvert.ToString(part.ParentID));
++            xtw.WriteElementString(&quot;CreationDate&quot;, XmlConvert.ToString(part.CreationDate));
++            xtw.WriteElementString(&quot;Category&quot;, XmlConvert.ToString(part.Category));
++            xtw.WriteElementString(&quot;SalePrice&quot;, XmlConvert.ToString(part.SalePrice));
++            xtw.WriteElementString(&quot;ObjectSaleType&quot;, XmlConvert.ToString(part.ObjectSaleType));
++            xtw.WriteElementString(&quot;OwnershipCost&quot;, XmlConvert.ToString(part.OwnershipCost));
++            WriteUuid(xtw, &quot;GroupID&quot;, part.GroupID);
++            WriteUuid(xtw, &quot;OwnerID&quot;, part.OwnerID);
++            WriteUuid(xtw, &quot;LastOwnerID&quot;, part.LastOwnerID);
++            xtw.WriteElementString(&quot;BaseMask&quot;, XmlConvert.ToString(part.BaseMask));
++            xtw.WriteElementString(&quot;OwnerMask&quot;, XmlConvert.ToString(part.OwnerMask));
++            xtw.WriteElementString(&quot;GroupMask&quot;, XmlConvert.ToString(part.GroupMask));
++            xtw.WriteElementString(&quot;EveryoneMask&quot;, XmlConvert.ToString(part.EveryoneMask));
++            xtw.WriteElementString(&quot;NextOwnerMask&quot;, XmlConvert.ToString(part.NextOwnerMask));
++            xtw.WriteElementString(&quot;Flags&quot;, part.Flags.ToString());
++            WriteUuid(xtw, &quot;CollisionSound&quot;, part.CollisionSound);
++            xtw.WriteElementString(&quot;CollisionSoundVolume&quot;, XmlConvert.ToString(part.CollisionSoundVolume));
++
++            xtw.WriteEndElement();
+          }
+
+          public static SceneObjectGroup FromXml2Format(string xmlData)
+@@ -297,6 +407,113 @@
+              writer.WriteEndElement(); // End of SceneObjectGroup
+
+              //m_log.DebugFormat(&quot;[SERIALIZER]: Finished serialization of SOG {0} to XML2, {1}ms&quot;, Name, 
+System.Environment.TickCount - time);
+-        }
++        }
++
++        /// &lt;summary&gt;
++        /// Write a flags enumeration.
++        /// &lt;/summary&gt;
++        /// Unfortunately, XML serialization separates values with a space, while Enum.ToString() separates with a
++        /// comma
++        /// &lt;param name=&quot;eenum&quot;&gt;&lt;/param&gt;
++        protected static void WriteFlagsEnum(Enum eenum)
++        {
++            // TODO: Is it possible to automatically determine if the enum is a flags one?
++
++            StringBuilder sb = new StringBuilder();
++            long[] values = Enum.GetValues(eenum.GetType());
++            string[] names = Enum.GetValues(eenum.GetType());
++
++            int length = ids.Length;
++            long initialValue = ((IConvertible)eenum).ToInt64(CultureInfo.CurrentCulture);
++            long valueToProcess = initialValue;
++            int zeroValue = -1;
++
++            for (int i = 0; i &lt; length; i ++)
++            {
++                if (values[i] == 0)
++                {
++                    zeroValue = i;
++                }
++                else
++                {
++                    if (valueToProcess == 0)
++                        break;
++
++                    if ((values[i] &amp; initialValue) == values[i])
++                    {
++                        if (sb.Length != 0)
++                            sb.Append (' ');
++
++                        sb.Append(values[i]);
++                        valueToProcess &amp;= ~values[i];
++                    }
++                }
++            }
++
++            if (sb.Length == 0 &amp;&amp; zeroValue != -1)
++                sb.Append(values[zeroValue]);
++
++            return sb.ToString();
++        }
++
++        /// &lt;summary&gt;
++        /// Write common UUID xml
++        /// &lt;/summary&gt;
++        /// &lt;param name=&quot;writer&quot;&gt;&lt;/param&gt;
++        /// &lt;param name=&quot;name&quot;&gt;&lt;/param&gt;
++        /// &lt;param name=&quot;vec&quot;&gt;&lt;/param&gt;
++        protected static void WriteUuid(XmlTextWriter writer, string name, UUID id)
++        {
++            writer.WriteStartElement(name);
++            writer.WriteElementString(&quot;Guid&quot;, XmlConvert.ToString(id.Guid));
++            writer.WriteEndElement();
++        }
++
++        /// &lt;summary&gt;
++        /// Write common vector xml
++        /// &lt;/summary&gt;
++        /// &lt;param name=&quot;writer&quot;&gt;&lt;/param&gt;
++        /// &lt;param name=&quot;name&quot;&gt;&lt;/param&gt;
++        /// &lt;param name=&quot;vec&quot;&gt;&lt;/param&gt;
++        protected static void WriteVector(XmlTextWriter writer, string name, Vector3 vec)
++        {
++            writer.WriteStartElement(name);
++            writer.WriteElementString(&quot;X&quot;, vec.X.ToString(Utils.EnUsCulture));
++            writer.WriteElementString(&quot;Y&quot;, vec.Y.ToString(Utils.EnUsCulture));
++            writer.WriteElementString(&quot;Z&quot;, vec.Z.ToString(Utils.EnUsCulture));
++            writer.WriteEndElement();
++        }
++
++        /// &lt;summary&gt;
++        /// Write common quaternion xml
++        /// &lt;/summary&gt;
++        /// &lt;param name=&quot;writer&quot;&gt;&lt;/param&gt;
++        /// &lt;param name=&quot;name&quot;&gt;&lt;/param&gt;
++        /// &lt;param name=&quot;quat&quot;&gt;&lt;/param&gt;
++        protected static void WriteQuaternion(XmlTextWriter writer, string name, Quaternion quat)
++        {
++            writer.WriteStartElement(name);
++            writer.WriteElementString(&quot;X&quot;, quat.X.ToString(Utils.EnUsCulture));
++            writer.WriteElementString(&quot;Y&quot;, quat.Y.ToString(Utils.EnUsCulture));
++            writer.WriteElementString(&quot;Z&quot;, quat.Z.ToString(Utils.EnUsCulture));
++            writer.WriteElementString(&quot;W&quot;, quat.W.ToString(Utils.EnUsCulture));
++            writer.WriteEndElement();
++        }
++
++        /// &lt;summary&gt;
++        /// Write common color xml
++        /// &lt;/summary&gt;
++        /// &lt;param name=&quot;writer&quot;&gt;&lt;/param&gt;
++        /// &lt;param name=&quot;name&quot;&gt;&lt;/param&gt;
++        /// &lt;param name=&quot;col&quot;&gt;&lt;/param&gt;
++        protected static void WriteColor(XmlTextWriter writer, string name, Color col)
++        {
++            writer.WriteStartElement(name);
++            writer.WriteElementString(&quot;R&quot;, col.R.ToString(Utils.EnUsCulture));
++            writer.WriteElementString(&quot;G&quot;, col.G.ToString(Utils.EnUsCulture));
++            writer.WriteElementString(&quot;B&quot;, col.B.ToString(Utils.EnUsCulture));
++            writer.WriteElementString(&quot;A&quot;, col.A.ToString(Utils.EnUsCulture));
++            writer.WriteEndElement();
++        }
+      }
+  }
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006945.html">[Opensim-dev] Adding virtual to many methods on Region/Framework/* for experimentation
+</A></li>
+	<LI>Next message: <A HREF="006940.html">[Opensim-dev] Proposal: Changing Runprebuild.bat
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6954">[ date ]</a>
+              <a href="thread.html#6954">[ thread ]</a>
+              <a href="subject.html#6954">[ subject ]</a>
+              <a href="author.html#6954">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

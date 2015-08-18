@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Region scalability of OpenSim
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Region%20scalability%20of%20OpenSim&In-Reply-To=%3CC178F7A7-8C09-413E-A183-E7B7FE3A003F%40playsign.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010123.html">
+   <LINK REL="Next"  HREF="010125.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Region scalability of OpenSim</H1>
+    <B>Toni Alatalo</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Region%20scalability%20of%20OpenSim&In-Reply-To=%3CC178F7A7-8C09-413E-A183-E7B7FE3A003F%40playsign.net%3E"
+       TITLE="[Opensim-dev] Region scalability of OpenSim">toni at playsign.net
+       </A><BR>
+    <I>Wed Apr 27 08:28:30 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010123.html">[Opensim-dev] Region scalability of OpenSim
+</A></li>
+        <LI>Next message: <A HREF="010125.html">[Opensim-dev] Region scalability of OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10124">[ date ]</a>
+              <a href="thread.html#10124">[ thread ]</a>
+              <a href="subject.html#10124">[ subject ]</a>
+              <a href="author.html#10124">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Apr 27, 2011, at 4:34 AM, Sergiy Byelozyorov wrote:
+
+This paper by the Intel's Opensim guys is one at least: Dan Lake, Mic Bowman, Huaiyu Liu. &quot;Distributed Scene Graph to Enable Thousands of Interacting Users in a Virtual Environment&quot; <A HREF="http://www.pap.vs.uni-due.de/MMVE10/papers/mmve2010_submission_7.pdf">http://www.pap.vs.uni-due.de/MMVE10/papers/mmve2010_submission_7.pdf</A> . They had a big scalability test last week -- I was unfortunately unable to participate in the end, and haven't heard yet of new results, but that paper at least describes some of the approach.
+
+&gt;<i> of it before, however I always considered OpenSimulator a an open-source implementation of Second Life server and nothing more. As I have found out, I was wrong - OpenSim does support other protocols than SL. I became curious to know if you also support other architectures than Second Life's, since to our opinion regions are not scalable enough with Second Life. Please help me answering the following questions about what can current
+</I>
+Yes, the initial idea of Opensimulator is to be a generic 3d app platform -- SL viewer and the LLUDP protocol, and the embedded assumptions about region sizes and much of VW functionality there, being just one type of an app and client. Every once in a while folks have refactored 'SLisms' out of the core, moving them to the Linden ClientView module that implements that protocol.
+
+The reality, however, is still that it's pretty much made after the SL model and basically only used with LLUDP, and mostly only slviewer based clients. I think also some of the devs and many users like to prioritize that -- for some it suffices that it works as a slserver clone, and most important is that it'd do it well. The little experimental Sirikata and now MXP client modules are removed as are unused. The IRC ClientView is fun and useful, though! :)
+
+In realXtend dev the SL model hasn't sufficed, 'cause we need also other features (like storing and synching arbitrary, application defined data) so it's been implemented in a module (modrex does the Naali style EC sync with a few custom messages). Opensim devs also agreed a while ago that refactoring Opensim scene core around such a generic extensible model would be good, and we even hired one os core dev to implement it, but the work was unfinished because he got busy with other things (and left opensim dev alltogether). It is AFAIK an open question still whether Opensim will develop as a more generic platform in the future, and if it'll be refactored for scene extensibility -- the plan from late 2009 is attached as a PDF in an email to this list: Refactoring SceneObjectGroup - Introducing Components. <A HREF="../2009-December/008098.html">http://lists.berlios.de/pipermail/opensim-dev/2009-December/008098.html</A> . An article that explains the idea and status somewhat from reX perspective is at <A HREF="https://github.com/realXtend/doc/blob/master/arch_article/simple.rst">https://github.com/realXtend/doc/blob/master/arch_article/simple.rst</A> (or as pdf, <A HREF="https://github.com/realXtend/doc/blob/master/arch_article/simple.pdf?raw=true">https://github.com/realXtend/doc/blob/master/arch_article/simple.pdf?raw=true</A> . That explicitly does *not* address scalability, this was just to comment that other architectures &amp; other protocols part.
+
+Your actual questions are better answered by someone who knows the scene code better, but I'll throw my guesses in in the meantime anyway (and I've read the code a couple of times :)
+
+&gt;<i> Can OpenSim create non-square regions? Can OpenSim create overlapping regions? Can I bound my regions also in 3rd dimension?
+</I>
+Not currently. Megaregions can be non-square, though (e.g. 1024x4096).
+
+&gt;<i> Can OpenSim separate part of the volume of a region to a dedicated server (think of a very popular bar with lots of users in the castle)?
+</I>
+Opensim itself not, but the Intel folks have been doing this with server side proxying at least .. that article describes their Client Managers, which are between the end user clients and the underlying scene servers, and allow partitioning (I think also dynamically).
+
+&gt;<i> Most of these questions are inspired by Sirikata, which was the first world that I have learned about. I do not expect that you are able to do all that, since
+</I>
+Sirikata's approach to scalability is interesting indeed, we've been also considering using their system for large worlds on the server side in reX, or alternatively adopting the same techniques in new (currently still very simple, with no scalability at all) Tundra server that have written there. With Tundra we are now really happy with the ease of development, both of content &amp; scripting etc. to make e.g. games, and of the platform itself, but probably need to address scalability soon (later this year) so am trying to follow and understand how things with Sirikata, Opensim etc. go.
+
+&gt;<i> Sergiy Byelozyorov
+</I>
+~Toni
+
+&gt;<i> Computer Graphics Chair
+</I>&gt;<i> Universitat des Saarlandes
+</I>&gt;<i> Tel.: +49 (681) 302-3837
+</I>&gt;<i> Web: <A HREF="http://graphics.cs.uni-saarland.de/sbyelozyorov/">http://graphics.cs.uni-saarland.de/sbyelozyorov/</A>
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110427/ee211e6e/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110427/ee211e6e/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010123.html">[Opensim-dev] Region scalability of OpenSim
+</A></li>
+	<LI>Next message: <A HREF="010125.html">[Opensim-dev] Region scalability of OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10124">[ date ]</a>
+              <a href="thread.html#10124">[ thread ]</a>
+              <a href="subject.html#10124">[ subject ]</a>
+              <a href="author.html#10124">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

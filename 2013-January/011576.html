@@ -1,0 +1,433 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] IRegisterInterface for extending scene entities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IRegisterInterface%20for%20extending%20scene%20entities&In-Reply-To=%3CCAAQTD4XbdG9ELXg%2B3ZeHChS75agNRuyhmUVkmcVt-h6Ck63CUQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011575.html">
+   <LINK REL="Next"  HREF="011577.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] IRegisterInterface for extending scene entities</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IRegisterInterface%20for%20extending%20scene%20entities&In-Reply-To=%3CCAAQTD4XbdG9ELXg%2B3ZeHChS75agNRuyhmUVkmcVt-h6Ck63CUQ%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] IRegisterInterface for extending scene entities">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Tue Jan  1 06:11:56 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011575.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+        <LI>Next message: <A HREF="011577.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11576">[ date ]</a>
+              <a href="thread.html#11576">[ thread ]</a>
+              <a href="subject.html#11576">[ subject ]</a>
+              <a href="author.html#11576">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The existing 2 level SOG/SOP concept may be a usable concept but it is far
+from optimal for anything other than emulating SL as it appears to exist
+*today*. There really is no forced 2-level hierarchy defined in the LLUDP
+protocol from which much of OpenSimulator is modeled. In fact, the
+existence parent id and local id in both root parts and child parts
+suggests a underlying  multi-level hierarchy and this suggests that SOG/SOP
+may not adequately emulate what SL servers may be capable of doing.
+
+If you're concerned that individual nodes in a tree each need to contain
+all the properties that any other node need to contain, they really don't
+have to. An &quot;entity node&quot; only need contain the properties and methods
+which are common to all nodes, and a collection of &quot;components&quot;, then the
+other nodes can contain individual components which can really be anything
+from executable code, collections of properties, generic objects, geometry,
+even physics engine simulation instances. Often implementations will
+include means for addressing and passing messages between entities in a
+tree or even in different trees. There can even be a co-existing flat
+collection of references to the tree entity nodes that can be used to speed
+up addressing single nodes without having to traverse a tree or pass
+messages around; i.e., receiving a network message or event destined to a
+single node. In the SL/OpenSImulator model there may exist properties which
+are used on a per-linkset basis however such properties could also be
+stuffed into a &quot;object properties collection object&quot; and added to a entity
+node in the form of a component.
+
+I'll repeat what I've learned from my prototyping efforts: the
+SL/OpenSimulator 2 level model can fit well into an entity-component design
+and from there be extended into a more flexible system.
+
+Unity3D uses an implementation of a entity-component architecture which
+seems to be well regarded; perhaps it could serve as a reference.
+
+
+On Mon, Dec 31, 2012 at 4:04 PM, Justin Clark-Casey &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+
+&gt;<i> On 29/12/12 03:29, Dahlia Trimble wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> +2 on a hierarchical entity-component design. I have several prototype
+</I>&gt;&gt;<i> servers and viewers implemented in various
+</I>&gt;&gt;<i> languages which use variations of this architecture and I've found it to
+</I>&gt;&gt;<i> be very efficient and flexible. I've also used
+</I>&gt;&gt;<i> it in a prototype c++/opengl viewer which is compatible with
+</I>&gt;&gt;<i> SL/OpenSimulator content (prims, sculpties, linksets,
+</I>&gt;&gt;<i> avatars, meshes, terrain) and it's quite capable of functioning in this
+</I>&gt;&gt;<i> type of scenario.and has performance which is
+</I>&gt;&gt;<i> competitive with the fastest LL based viewers I've seen.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Yes, I think entity-component is the way forward.  There's a good, basic
+</I>&gt;<i> introduction in Programming Gems 6 [1], as well as Toni's links.  It would
+</I>&gt;<i> be interesting to see how this plays with region modules if this involves
+</I>&gt;<i> behaviour (the actions) as well as the data.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> I do have mixed feelings about trying to refactor the existing
+</I>&gt;&gt;<i> OpenSimulator codebase into such an architecture. So much
+</I>&gt;&gt;<i> of the codebase assumes SOG/SOP as the foundation that it may be nearly
+</I>&gt;&gt;<i> impossible task to convert. If this is the case,
+</I>&gt;&gt;<i> I would suggest first doing a more detailed analysis of how other shared
+</I>&gt;&gt;<i> online environments are implemented before
+</I>&gt;&gt;<i> attempting a new design; other systems which don't duplicate the SL
+</I>&gt;&gt;<i> model; This could result in a far more flexible
+</I>&gt;&gt;<i> design which could take OpenSimulator far beyond what SL users expect in
+</I>&gt;&gt;<i> a server.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I strongly agree that POC for review with a high-level explanation is
+</I>&gt;<i> essential for this, building on other people's experience.  Seeing
+</I>&gt;<i> Melanie's original ReX proposal would also be very good.  We need to have
+</I>&gt;<i> agreement amongst ourselves on the general direction.
+</I>&gt;<i>
+</I>&gt;<i> I have no real game coding experience, but I don't think that the basic
+</I>&gt;<i> SOG/SOP entities are too bad of a foundation.  I think something like a SOG
+</I>&gt;<i> is essential to hold attributes that only apply to the object as a whole -
+</I>&gt;<i> if every SOP has the required properties then you end up wasting memory,
+</I>&gt;<i> doing CPU busy work and having pointlessly confusing code.
+</I>&gt;<i>
+</I>&gt;<i> If you're referring to compatibility with the existing SOG/SOP properties
+</I>&gt;<i> and methods then I think that these should migrate over time.  If all the
+</I>&gt;<i> existing stuff was left as 'legacy' code then it would be horribly crufty.
+</I>&gt;<i>  Now is the time for change whilst OpenSimulator is still 'alpha' and none
+</I>&gt;<i> of the internals are a blessed API for region modules. We must increase
+</I>&gt;<i> flexibility otherwise we'll end up in a dead-end over the long term.  But
+</I>&gt;<i> we must also always have a working simulator and take the community on the
+</I>&gt;<i> journey.
+</I>&gt;<i>
+</I>&gt;<i> I did create working code to save arbitrary data for SOPs in the
+</I>&gt;<i> dynamic-attributes branch which is in the opensimulator git repo.  I don't
+</I>&gt;<i> think I got as far as serializing for across the wire transfer, though
+</I>&gt;<i> conceptually this shouldn't be too difficult for SOPs.
+</I>&gt;<i>
+</I>&gt;<i> I intended to use this for MOAP but never got around to it since I had
+</I>&gt;<i> already previously created hard-coded properties.  However, that might be a
+</I>&gt;<i> good test case since all the MOAP logic is in region modules, with just a
+</I>&gt;<i> few properties stuck on SOP for data storage.
+</I>&gt;<i>
+</I>&gt;<i> We also need a similar mechanism for ScenePresence.
+</I>&gt;<i>
+</I>&gt;<i> [1] <A HREF="http://www.amazon.com/Game-**Programming-Gems-Book-CD-ROM/**">http://www.amazon.com/Game-**Programming-Gems-Book-CD-ROM/**</A>
+</I>&gt;<i> dp/1584504501&lt;<A HREF="http://www.amazon.com/Game-Programming-Gems-Book-CD-ROM/dp/1584504501">http://www.amazon.com/Game-Programming-Gems-Book-CD-ROM/dp/1584504501</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> On Fri, Dec 28, 2012 at 3:13 PM, James Hughes &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jamesh at bluewallgroup.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jamesh at bluewallgroup.</A>**com &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jamesh at bluewallgroup.com</A>&gt;&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     The original proposal to the dev list is here:
+</I>&gt;&gt;<i>     <A HREF="http://lists.berlios.de/__**pipermail/opensim-dev/2009-__**">http://lists.berlios.de/__**pipermail/opensim-dev/2009-__**</A>
+</I>&gt;&gt;<i> December/008098.html&lt;<A HREF="http://lists.berlios.de/__pipermail/opensim-dev/2009-__December/008098.html">http://lists.berlios.de/__pipermail/opensim-dev/2009-__December/008098.html</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     &lt;<A HREF="http://lists.berlios.de/**pipermail/opensim-dev/2009-**">http://lists.berlios.de/**pipermail/opensim-dev/2009-**</A>
+</I>&gt;&gt;<i> December/008098.html&lt;<A HREF="../2009-December/008098.html">http://lists.berlios.de/pipermail/opensim-dev/2009-December/008098.html</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     And the attached document here:
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/__**pipermail/opensim-dev/__**">https://lists.berlios.de/__**pipermail/opensim-dev/__**</A>
+</I>&gt;&gt;<i> attachments/20091211/6e190ca7/**__attachment.pdf&lt;<A HREF="https://lists.berlios.de/__pipermail/opensim-dev/__attachments/20091211/6e190ca7/__attachment.pdf">https://lists.berlios.de/__pipermail/opensim-dev/__attachments/20091211/6e190ca7/__attachment.pdf</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     &lt;<A HREF="https://lists.berlios.de/**pipermail/opensim-dev/**">https://lists.berlios.de/**pipermail/opensim-dev/**</A>
+</I>&gt;&gt;<i> attachments/20091211/6e190ca7/**attachment.pdf&lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20091211/6e190ca7/attachment.pdf">https://lists.berlios.de/pipermail/opensim-dev/attachments/20091211/6e190ca7/attachment.pdf</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     -BlueWall
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     On 12/28/2012 02:24 PM, Adams, Robert wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         Sounds perfect. The reason I started this here was to get the
+</I>&gt;&gt;<i> discussion bouncing.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         I'm interested in seeing past proposals. I searched around the
+</I>&gt;&gt;<i> OpenSimulator wiki looking for Adam's old
+</I>&gt;&gt;<i>         proposal (Wiki's are just useless for finding and organizing
+</I>&gt;&gt;<i> things) but I could not find it.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         -- ra
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         -----Original Message-----
+</I>&gt;&gt;<i>         From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.__be</A>**rlios.de&lt;<A HREF="http://berlios.de">http://berlios.de</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> opensim-dev-bounces@**lists.berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>         [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at __</A>**lists.berlios.de&lt;<A HREF="http://lists.berlios.de">http://lists.berlios.de</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> opensim-dev-bounces@**lists.berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;&gt;]
+</I>&gt;&gt;<i> On Behalf Of Melanie
+</I>&gt;&gt;<i>         Sent: Friday, December 28, 2012 10:59 AM
+</I>&gt;&gt;<i>         To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.</A>**
+</I>&gt;&gt;<i> berlios.de &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;&gt;<i>         Subject: Re: [Opensim-dev] IRegisterInterface for extending scene
+</I>&gt;&gt;<i> entities
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         I suggest we bounce this about a bit and maybe cooperatively work
+</I>&gt;&gt;<i> on a test case/POC. That will certainly
+</I>&gt;&gt;<i>         clarify issues. I could also pull out the prosal I did for ReX
+</I>&gt;&gt;<i> which deals with this
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         On 28 Dec 2012, at 18:38, &quot;Adams, Robert&quot;&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">robert.adams at intel.com</A>&lt;mailto:
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">robert.adams at intel.com</A>**&gt;__&gt;  wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             I agree with &quot;not reinventing the wheel&quot;.  And your valid
+</I>&gt;&gt;<i> concerns about the implementation are probably
+</I>&gt;&gt;<i>             just the tip of the iceberg.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             I have been toying with the architectural idea that OpenSim
+</I>&gt;&gt;<i> core only provides a basic framework.
+</I>&gt;&gt;<i>             Functionalities are added as plugin modules rather than
+</I>&gt;&gt;<i> implemented as if's and tests imbedded in core. For
+</I>&gt;&gt;<i>             instance, could linksets be implemented as a plugin
+</I>&gt;&gt;<i> module[1]? Or maybe entity physical representation
+</I>&gt;&gt;<i>             (meshing)?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             I merely consider llSetKeyFrameMotion as a test case to
+</I>&gt;&gt;<i> expose needed core features which support plugin
+</I>&gt;&gt;<i>             modules (Necessary events available? Correct data-structures
+</I>&gt;&gt;<i> exposed/hidden? ...)  Like you, I am pretty
+</I>&gt;&gt;<i>             sure the ability to programmatically extend scene entities
+</I>&gt;&gt;<i> will be needed and is a Good Thing.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             Since llSetKeyframeMotion has already been completed and will
+</I>&gt;&gt;<i> be incorporated soon, I'll look for another
+</I>&gt;&gt;<i>             simple test case to exercise the requirements for full
+</I>&gt;&gt;<i> featured plugin modules.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             -- ra
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             [1] Why would one want to do this? I've been thinking about
+</I>&gt;&gt;<i> fancy linksets where the joints are not fixed
+</I>&gt;&gt;<i>             and static but could be parameterized and dynamic (hinges,
+</I>&gt;&gt;<i> sliders, 6DOF, ...). This could be used to
+</I>&gt;&gt;<i>             support skeletons, doors with real hinges and/or weird and
+</I>&gt;&gt;<i> wonderful vehicles. Rather than mangling OpenSim
+</I>&gt;&gt;<i>             core with lots of experimental code, it would be nice if I
+</I>&gt;&gt;<i> could build an &quot;ExtendedLinksets&quot; module that
+</I>&gt;&gt;<i>             could be plugged in and experimented with.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             -----Original Message-----
+</I>&gt;&gt;<i>             From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.__be</A>**rlios.de&lt;<A HREF="http://berlios.de">http://berlios.de</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> opensim-dev-bounces@**lists.berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>             [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at __</A>**lists.berlios.de&lt;<A HREF="http://lists.berlios.de">http://lists.berlios.de</A>&gt;&lt;mailto:
+</I>&gt;&gt;<i> opensim-dev-bounces@**lists.berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;&gt;]
+</I>&gt;&gt;<i> On Behalf Of
+</I>&gt;&gt;<i>             Melanie
+</I>&gt;&gt;<i>             Sent: Friday, December 28, 2012 12:44 AM
+</I>&gt;&gt;<i>             To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.</A>**
+</I>&gt;&gt;<i> berlios.de &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;&gt;<i>             Subject: Re: [Opensim-dev] IRegisterInterface for extending
+</I>&gt;&gt;<i> scene
+</I>&gt;&gt;<i>             entities
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             first off, extending scene entities is a Good Thing. I'll
+</I>&gt;&gt;<i> think a bit about the ins and outs of it and the
+</I>&gt;&gt;<i>             caveats (for instance, module load order will have some
+</I>&gt;&gt;<i> hidden traps for the unwary) and serialization -
+</I>&gt;&gt;<i>             well, there be dragons, you can't serialize module
+</I>&gt;&gt;<i> refs/interfaces since the destination may not have them.....
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             llSetKeyfranedMotion can most likely not be implemented that
+</I>&gt;&gt;<i> way. We know, because we have implemented it.
+</I>&gt;&gt;<i>             Also, there is no need to reinvent the wheel -
+</I>&gt;&gt;<i> llSetKeyframedMotion has been slated for core release for a
+</I>&gt;&gt;<i>             while now, we just haven't found the dev time to extract it.
+</I>&gt;&gt;<i> So there is really no need for a second,
+</I>&gt;&gt;<i>             competing implementation.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             So, in summary
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             +1 on extension points for scene entities
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             -0 on a second implementation of llSetKeyframedMotion as a
+</I>&gt;&gt;<i> tested and working one already exists.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             That's -0 because of you really want it I won't kee you from
+</I>&gt;&gt;<i> doing it - it's just a waste of effort.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             On 28/12/2012 08:38, Adams, Robert wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 The discussion about the implementation of the
+</I>&gt;&gt;<i> llKeyframeMotion function hinted at a need for region
+</I>&gt;&gt;<i>                 modules to be able to add data and functions to existing
+</I>&gt;&gt;<i> scene items. Here is a modest proposal for
+</I>&gt;&gt;<i>                 discussion[1].
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 Define a general module/interface registration interface
+</I>&gt;&gt;<i> to add to EntityBase (and thus to
+</I>&gt;&gt;<i>                 SceneObjectGroup and ScenePresence).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 IRegisterInterface
+</I>&gt;&gt;<i>                                 Void RegisterInterface&lt;T&gt;(T iface);
+</I>&gt;&gt;<i>                                 Bool TryGet&lt;T&gt;(out T iface);
+</I>&gt;&gt;<i>                                 T Get&lt;T&gt;();
+</I>&gt;&gt;<i>                                 Void ClearRegisteredInterfaces();
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 Any class that implements the IRegisterInterface
+</I>&gt;&gt;<i> interface would contain a:
+</I>&gt;&gt;<i>                                 Private Dictionary&lt;Type, object&gt;
+</I>&gt;&gt;<i>  m_registeredInterfaces
+</I>&gt;&gt;<i>                 = new Dictionary&lt;Type, object&gt;();
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 'Scene' already has a RegisterModule interface which has
+</I>&gt;&gt;<i> a bunch of neat features (like being able to
+</I>&gt;&gt;<i>                 register multiple instances of the same interface type)
+</I>&gt;&gt;<i> but I'm not sure that is needed here
+</I>&gt;&gt;<i>                 (discussion?) Particularly industrious changing could
+</I>&gt;&gt;<i> merge this proposed interface and the existing
+</I>&gt;&gt;<i>                 'Scene' functions.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 So, something like a llKeyframeMotion implementing region
+</I>&gt;&gt;<i> module could register a KeyframeMotionState
+</I>&gt;&gt;<i>                 type structure on the SOG to save information about the
+</I>&gt;&gt;<i> keyframe for that SOG. Other uses could be a
+</I>&gt;&gt;<i>                 uniform way for adding classes of functionality to scene
+</I>&gt;&gt;<i> objects (&quot;get me the interface for extracting
+</I>&gt;&gt;<i>                 the physical mesh for this SOG&quot;) or just adding limpet
+</I>&gt;&gt;<i> like code to a scene entity.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 Not sure of the nuances of serialization. I believe that
+</I>&gt;&gt;<i> the registered interfaces would just be
+</I>&gt;&gt;<i>                 serialized with the SOG (thus saving and restoring the
+</I>&gt;&gt;<i> values in the registered interface instances) but
+</I>&gt;&gt;<i>                 I can't be totally sure of that.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 Anyway, run your sword through this strawman.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 -- ra
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 [1] This is similar to other interfaced proposed in the
+</I>&gt;&gt;<i> past (particularly one by Adam Frizby).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                 ______________________________**___________________
+</I>&gt;&gt;<i>                 Opensim-dev mailing list
+</I>&gt;&gt;<i>                 <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.</A>**
+</I>&gt;&gt;<i> berlios.de &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;&gt;<i>                 <A HREF="https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i>                 &lt;<A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>             ______________________________**___________________
+</I>&gt;&gt;<i>             Opensim-dev mailing list
+</I>&gt;&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.</A>**
+</I>&gt;&gt;<i> berlios.de &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;&gt;<i>             <A HREF="https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;&lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>             ______________________________**___________________
+</I>&gt;&gt;<i>             Opensim-dev mailing list
+</I>&gt;&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.</A>**
+</I>&gt;&gt;<i> berlios.de &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;&gt;<i>             <A HREF="https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;&lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>         ______________________________**___________________
+</I>&gt;&gt;<i>         Opensim-dev mailing list
+</I>&gt;&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.</A>**
+</I>&gt;&gt;<i> berlios.de &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;&gt;<i>         <A HREF="https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;&lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>         ______________________________**___________________
+</I>&gt;&gt;<i>         Opensim-dev mailing list
+</I>&gt;&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.</A>**
+</I>&gt;&gt;<i> berlios.de &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;&gt;<i>         <A HREF="https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;&lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     ______________________________**___________________
+</I>&gt;&gt;<i>     Opensim-dev mailing list
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.</A>**berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;&lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> OSVW Consulting
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20121231/7693dc5c/attachment-0001.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20121231/7693dc5c/attachment-0001.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011575.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+	<LI>Next message: <A HREF="011577.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11576">[ date ]</a>
+              <a href="thread.html#11576">[ thread ]</a>
+              <a href="subject.html#11576">[ subject ]</a>
+              <a href="author.html#11576">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

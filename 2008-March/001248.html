@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] BlockingQueue
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20BlockingQueue&In-Reply-To=%3COF5E324FD9.D725CF5B-ON85257418.0052043A-85257418.0052A35A%40us.ibm.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001246.html">
+   <LINK REL="Next"  HREF="001249.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] BlockingQueue</H1>
+    <B>Alan M Webb</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20BlockingQueue&In-Reply-To=%3COF5E324FD9.D725CF5B-ON85257418.0052043A-85257418.0052A35A%40us.ibm.com%3E"
+       TITLE="[Opensim-dev] BlockingQueue">alan_webb at us.ibm.com
+       </A><BR>
+    <I>Wed Mar 26 16:03:21 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001246.html">[Opensim-dev] BlockingQueue
+</A></li>
+        <LI>Next message: <A HREF="001249.html">[Opensim-dev] BlockingQueue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1248">[ date ]</a>
+              <a href="thread.html#1248">[ thread ]</a>
+              <a href="subject.html#1248">[ subject ]</a>
+              <a href="author.html#1248">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The BlockingQueue uses Monitor.Pulse which only releases ONE thread for 
+execution. The others remain suspended. PulseAll is needed if you want to 
+awaken all the waiting threads. So the race condition that you describe 
+should not happen (if Mono corrcetly implements Monitor anway).
+
+The queue AND the lock are private to the BlockingQueue class, so the only 
+unsynchronized mechanism for  examining the queue is GetQueueArray which 
+returns a copy of the content. In principle It isn't possible for anyone 
+to damage the queue. The lock cannot be obtained by anyone not using the 
+proper BlockingQueue accessors.
+
+Best regards
+Alan
+-------------------
+T.J. Watson Research Center, Hawthorne, NY
+1-914-784-7286
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>
+
+
+
+Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; 
+Sent by: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+03/26/2008 10:43 AM
+Please respond to
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+
+
+To
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+cc
+
+Subject
+Re: [Opensim-dev] BlockingQueue
+
+
+
+
+
+
+Stefan Andersson wrote:
+&gt;<i>
+</I>&gt;<i> &gt; &gt; Preparing for the bug-a-thon friday, I want us to come together on 
+</I>&gt;<i> how
+</I>&gt;<i> &gt; &gt; we will write this out of the core; I think it will give us much
+</I>&gt;<i> &gt; &gt; better control over threading and deadlocking.
+</I>&gt;<i> &gt; For people relatively new to the project, could you give any 
+</I>&gt;<i> examples of
+</I>&gt;<i> &gt; particular problems here?
+</I>&gt;<i>
+</I>&gt;<i> Well, the thing with the BlockingQueue is that it functions this way:
+</I>&gt;<i>
+</I>&gt;<i> if something _Reads_ the queue, and it happens to be empty, the thread 
+</I>&gt;<i> is BLOCKED until something else _Adds_ to the queue. Of course, if 
+</I>&gt;<i> another thread comes along and reads from it, it is blocked as well, 
+</I>&gt;<i> and all of them are released in one merry explosion when an item is 
+</I>&gt;<i> Added. Which probably leads to all kinds of weird race conditions.
+</I>That was my reading of it.  At least in the case of assets, there's only 
+one thread which actually reads the blocking queue atm (AssetCacheThread).
+&gt;<i> 
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; (The PROBLEM with the BlockingQueue is that threads might LOCK
+</I>&gt;<i> &gt; &gt; unknowingly because a sub-call felt like taking a peek at some
+</I>&gt;<i> &gt; &gt; blocking queue. Really really bad form.)
+</I>&gt;<i> &gt; Could you be more specific? Looking at 
+</I>OpenSim.Framework.BlockingQueue,
+&gt;<i> &gt; I can't see where deadlock could occur - none of the methods hold on 
+</I>to
+&gt;<i> &gt; the m_queueSync lock for long. However, I'm relatively new to
+</I>&gt;<i> &gt; synchronization in dot net, though I have done some in Java - I 
+</I>&gt;<i> could be
+</I>&gt;<i> &gt; missing something.
+</I>&gt;<i>
+</I>&gt;<i> I don't mean deadlock as in ordinary lock{ } constructs, I mean the 
+</I>&gt;<i> use of mutexes can cause a 'wrong' thread to lock by (coder) mistake. 
+</I>&gt;<i> It's just a dumb effing construct to begin with.
+</I>&gt;<i>
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; The BlockingQueue is used in the following contexts:
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; * Serving AssetRequests
+</I>&gt;<i> &gt; &gt; - This should be solved with a specialized ThreadStart queue that
+</I>&gt;<i> &gt; &gt; news up threads whenever something tries to add to it or if there's
+</I>&gt;<i> &gt; &gt; something in the queue, up to a specified max of concurrent 
+</I>requests.
+&gt;<i> &gt; Isn't starting up threads an expensive process? Perhaps a ThreadPool
+</I>&gt;<i> &gt; instead if we wanted to go down that route?
+</I>&gt;<i>
+</I>&gt;<i> Yes and No. Starting up threads is indeed 'expensive', but only in 
+</I>&gt;<i> relation to how big the work item is. For example, when transferring 
+</I>&gt;<i> an Asset, the cost of creating the thread is a fraction of the cost of 
+</I>&gt;<i> actually transferring it.
+</I>&gt;<i>
+</I>&gt;<i> It's exactly the over-excessive use of thread pools for long running 
+</I>&gt;<i> work items that's exhausting the thread pool as it is right now.
+</I>&gt;<i>
+</I>&gt;<i> Thread pools should be used only when you KNOW the work item is a 
+</I>&gt;<i> (relatively) small one.
+</I>&gt;<i>
+</I>&gt;<i> If we WANT thread re-use for this special case depicted above, we can 
+</I>&gt;<i> simply track and reuse the threads as they are finished.
+</I>afair, at the moment the thread processing the asset BlockingQueue 
+doesn't send the packets directly, but rather chops them up and places 
+them on the on PacketQueue.  I don't know if this is expensive or not.
+
+--
+justincc
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080326/2316b8de/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080326/2316b8de/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001246.html">[Opensim-dev] BlockingQueue
+</A></li>
+	<LI>Next message: <A HREF="001249.html">[Opensim-dev] BlockingQueue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1248">[ date ]</a>
+              <a href="thread.html#1248">[ thread ]</a>
+              <a href="subject.html#1248">[ subject ]</a>
+              <a href="author.html#1248">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Loadable modules and Scripting extensions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Loadable%20modules%20and%20Scripting%20extensions&In-Reply-To=%3C63d649160902020515l12a2e8b8xd47f96e7f56f0ff4%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004846.html">
+   <LINK REL="Next"  HREF="004840.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Loadable modules and Scripting extensions</H1>
+    <B>Rob Smart</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Loadable%20modules%20and%20Scripting%20extensions&In-Reply-To=%3C63d649160902020515l12a2e8b8xd47f96e7f56f0ff4%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Loadable modules and Scripting extensions">rob.s.smart at gmail.com
+       </A><BR>
+    <I>Mon Feb  2 14:15:43 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004846.html">[Opensim-dev] Loadable modules and Scripting extensions
+</A></li>
+        <LI>Next message: <A HREF="004840.html">[Opensim-dev] More files to clean up in OpenSim/Data/
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4847">[ date ]</a>
+              <a href="thread.html#4847">[ thread ]</a>
+              <a href="subject.html#4847">[ subject ]</a>
+              <a href="author.html#4847">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ah I was afraid you would say that Melanie :)
+
+Having spent this morning scratching my head and thinking of ways round the
+restriction the only alternate method i have come up with is to take a copy
+of the XEngine code, rejig the naming and seperate it out into my module and
+add the new methods. Obviously this is a pretty horrendous technique and
+means changes have to merged across continually.
+
+Another idea is to generate the BaseScript class dynamically at runtime. I
+haven't fully investigated the possibility of this so feel free to shoot
+down immediately. A dll containing the Baseclass would have to be created
+and then loaded, the creation would have to be done after all other modules
+had finished initialising. Again jut to be clear im not even sure ths is
+possible without further investigation.
+
+Rob
+
+
+On Mon, Feb 2, 2009 at 9:30 AM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+
+&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> unfortunately, there is currently no solution. For script functions
+</I>&gt;<i> to be callable without class.member notation, they have to be all in
+</I>&gt;<i> one class and the script must inherit from it.
+</I>&gt;<i> C# scripting overcomes that, but extending OSSL/LSL with external
+</I>&gt;<i> DLLs is not possible. In order to keep the API set consistent, I
+</I>&gt;<i> didn't attempt to create a module loader system for c# only,
+</I>&gt;<i> although it would be trivial.
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i> Rob Smart wrote:
+</I>&gt;<i> &gt; Hi All,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; A fairly lengthy description follows of why we cant currently create
+</I>&gt;<i> &gt; loadable Modules that provide extra script functions...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I currently have an Opensim publish subscribe module that exposes its
+</I>&gt;<i> &gt; functionality through new scripting commands osPublish and osSubscribe,
+</I>&gt;<i> &gt; unfortunately i cannot release it into the main OpenSim project yet for
+</I>&gt;<i> &gt; licensing reasons. I'd managed to
+</I>&gt;<i> &gt; develop the module without having to alter any existing code from the
+</I>&gt;<i> main
+</I>&gt;<i> &gt; OpenSim codebase, but i still had to merge changes in the prebuild file
+</I>&gt;<i> &gt; every time i synched with SVN.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Tonight I finally got round to attempting to separate it out from the
+</I>&gt;<i> main
+</I>&gt;<i> &gt; OpenSim codebase into a dll module of its own, all was going well until I
+</I>&gt;<i> &gt; got to the point of testing and found that my scripting methods
+</I>&gt;<i> &gt; (osPublish,osSubscribe) were no longer being recognised when the scripts
+</I>&gt;<i> &gt; were compiled in world.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I poked around a bit and found that the ApiManager class only search
+</I>&gt;<i> within
+</I>&gt;<i> &gt; the active dll assembly for API classes, I altered this so that it
+</I>&gt;<i> searched
+</I>&gt;<i> &gt; all assemblies. At this point it was finding my API interface and
+</I>&gt;<i> &gt; successfully initing it. However once
+</I>&gt;<i> &gt; again the osPublish,osSubscribe methods were not found when compiling a
+</I>&gt;<i> test
+</I>&gt;<i> &gt; script in world.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; More tracing and I found that the Compiler.cs class has hard coded
+</I>&gt;<i> &gt; references to two ScriptEngine dlls
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
+</I>&gt;<i> &gt;                     &quot;OpenSim.Region.ScriptEngine.Shared.dll&quot;));
+</I>&gt;<i> &gt; parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &quot;OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll&quot;));
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I temporarily added a reference to my module DLL so that it was on the
+</I>&gt;<i> &gt; compile path for scripts (not sure how to get round this yet)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; at this time i now get...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The imported type
+</I>&gt;<i> &gt; `OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass' is
+</I>&gt;<i> defined
+</I>&gt;<i> &gt; multiple times
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Because ScriptBaseClass is made up of several partial classes...
+</I>&gt;<i> &gt; i.e.  OSSL_Stub.cs, LSL_Stub.cs
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I discovered that partial classes cannot be spread across DLLs, so
+</I>&gt;<i> currently
+</I>&gt;<i> &gt; we have a limitation that prevents us producing loadable modules that
+</I>&gt;<i> &gt; provide extra script functions.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; My opinion is that this is a fairly major restriction in the module
+</I>&gt;<i> system,
+</I>&gt;<i> &gt; well... actually its a limitation of the script engine...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Any ideas on a solution to this ? hoping for an easy solution, but my
+</I>&gt;<i> &gt; suspicion is it may involve some re-architecting.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; cheers,
+</I>&gt;<i> &gt; Rob Smart
+</I>&gt;<i> &gt; (Yossarian Seattle)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090202/bfe50334/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090202/bfe50334/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004846.html">[Opensim-dev] Loadable modules and Scripting extensions
+</A></li>
+	<LI>Next message: <A HREF="004840.html">[Opensim-dev] More files to clean up in OpenSim/Data/
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4847">[ date ]</a>
+              <a href="thread.html#4847">[ thread ]</a>
+              <a href="subject.html#4847">[ subject ]</a>
+              <a href="author.html#4847">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

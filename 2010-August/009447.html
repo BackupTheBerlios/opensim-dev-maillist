@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Global identifiers
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3C4C7D175D.8060309%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009432.html">
+   <LINK REL="Next"  HREF="009459.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Global identifiers</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3C4C7D175D.8060309%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Global identifiers">diva at metaverseink.com
+       </A><BR>
+    <I>Tue Aug 31 16:53:17 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009432.html">[Opensim-dev] Global identifiers
+</A></li>
+        <LI>Next message: <A HREF="009459.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9447">[ date ]</a>
+              <a href="thread.html#9447">[ thread ]</a>
+              <a href="subject.html#9447">[ subject ]</a>
+              <a href="author.html#9447">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hurliman, John wrote:
+&gt;<i> It sounds like the decision has been made (or was already made before this discussion started), so on to the next step. Can you (Melanie or Diva) do these two things?
+</I>
+As I said, the issue was *really* narrow :) Even though the interfaces 
+already account for this, I got scared when I faced the situation of 
+actually creating persistent references to external data. (or, in the 
+case of Simian, creating persistent data structures representing 
+external data, which is similar)
+
+&gt;<i> 1) Define exactly how the URL is supposed to be parsed. ABNF notation would be preferred, or something equivalent that makes it clear what identifiers are valid or invalid. Or perhaps define any URL as valid like diva suggested, but only parse display names out of specifically crafted URLs. With the suggested format of <A HREF="http://authority/user/user_id/First+Last">http://authority/user/user_id/First+Last</A> it seems like you would either assume any URL that includes a space in the last section of the path is parsed as a first+last name tuple. (I'm assuming you remove any attached query string before parsing the name.) Or will it look for &quot;user_id&quot; as the second to last segment of the path followed by a path segment containing a space? Obviously it can't expect /user/user_id/First+Last to be anchored at the root of the domain since it won't be possible to generate those URLs on some setups.
+</I>
+Yes, and that's the crux of the narrow issue in discussion. So let's 
+finish those little details on the IRC, maybe.
+
+&gt;<i> 2) Standardize the handling of external identities in OpenSim. Go through and clean out the approaches that are no longer being used, such as OpenSim.Framework.Communications.Osp. I can help with this part as I'm always a fan of removing dead code.
+</I>
+That's the only broad consequence of this issue, and one that I also 
+feel it's very important. I know these global names have been used 
+before -- or maybe never used, but the code is there -- and, even though 
+I didn't remember the syntax, I remembered that it looked nothing like 
+an URI. Thanks, Justin, for explaining. If everyone is ok with the URI 
+syntax, then let's make it consistent across the board.
+
+&gt;<i> 
+</I>&gt;<i> John
+</I>&gt;<i> 
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;&gt;<i> Sent: Monday, August 30, 2010 3:39 PM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Global identifiers
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> OK, so here's the form of the URI that will start showing up in the
+</I>&gt;&gt;<i> [non-Simian] DBs soon, specifically in the GridUser table:
+</I>&gt;&gt;<i> <A HREF="http://authority/user/user_id/First+Last">http://authority/user/user_id/First+Last</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yes?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I suspect that SimianGrid will take things like
+</I>&gt;&gt;<i> LoggedIn(string userID) and
+</I>&gt;&gt;<i> StoreGridUserInfo(GridUserInfo info)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> and create user accounts for these if they don't exist, because I think
+</I>&gt;&gt;<i> SimanGrid collapses the 2 concepts. Just keep in mind that you'll soon
+</I>&gt;&gt;<i> be receiving URLs of the form above as arguments.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I agree with Melanie that not adding the display name is a missed
+</I>&gt;&gt;<i> opportunity for caching, but I'm willing to write up code that accounts
+</I>&gt;&gt;<i> for it being optional for all the grid operators who would rather have
+</I>&gt;&gt;<i> the extra lookups coming their way.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hurliman, John wrote:
+</I>&gt;&gt;&gt;<i> If we are still on the same page, there should never be a case where
+</I>&gt;&gt;<i> something could be either a local identifier (UUID) or a global
+</I>&gt;&gt;<i> identifier (URL). The context is always clear, where cross-grid
+</I>&gt;&gt;<i> communication and exported content uses only global identifiers and all
+</I>&gt;&gt;<i> intra-grid communication uses only local identifiers. If a sim wants to
+</I>&gt;&gt;<i> resolve the creator of a prim it uses a single path, the UUID-&gt;Profile
+</I>&gt;&gt;<i> (aka display name) API call which takes advantage of all the caching
+</I>&gt;&gt;<i> and optimizations we've built into OpenSim. There is no ambiguity there
+</I>&gt;&gt;<i> or potential for the code to take a slower or less tested path. The
+</I>&gt;&gt;<i> discussion is about communication outside of the local grid context,
+</I>&gt;&gt;<i> when you are exporting content or moving people or content between
+</I>&gt;&gt;<i> grids. In every use case there I think it makes sense to always use
+</I>&gt;&gt;<i> global identifiers, or at least a clear path to build a global
+</I>&gt;&gt;<i> identifier.
+</I>&gt;&gt;&gt;<i> John
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;&gt;&gt;&gt;<i> Sent: Monday, August 30, 2010 2:30 PM
+</I>&gt;&gt;&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> Subject: Re: [Opensim-dev] Global identifiers
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> I think we already have a perfectly good field, which is a UUID for
+</I>&gt;&gt;&gt;&gt;<i> local users and a URL for remote ones.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Melanie
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Serendipity Seraph wrote:
+</I>&gt;&gt;&gt;&gt;&gt;<i>  On 8/30/10 2:09 PM, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Hurliman, John wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> My interpretation (please correct me if I'm wrong) is that there
+</I>&gt;&gt;<i> is
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> rough consensus on the overall strategy, but an open question of
+</I>&gt;&gt;&gt;&gt;<i> how
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> to encode global identities when cross-grid communication (or
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> out-of-grid archiving) happens.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> That's what's going on.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Up to now, all global identifiers (that already exist) have been
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> volatile; nothing has persisted. As I found myself writing code
+</I>&gt;&gt;<i> that
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> would inject global identifiers into a DB table, I thought we
+</I>&gt;&gt;<i> should
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> all talk about the form of such identifiers.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> There is probably also a hidden question of how to mark a local
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> account as linked to a foreign identity, which may solve the
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> friending issue. If I am friends with your avatar and we are both
+</I>&gt;&gt;&gt;&gt;<i> on
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> grid B but your avatar actually originated from grid A, that link
+</I>&gt;&gt;&gt;&gt;<i> in
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> the profile is what can tip off the presence service to try a
+</I>&gt;&gt;&gt;&gt;<i> remote
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> presence check (assuming the user is not online in the local
+</I>&gt;&gt;<i> grid).
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> My only interest in these low level questions like how the global
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> identifiers and profile links look is what the final decision is
+</I>&gt;&gt;<i> so
+</I>&gt;&gt;&gt;&gt;<i> I
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> can implement it in the OpenSim SimianGrid connectors.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Well, we distinguish &quot;user accounts&quot; from &quot;grid users&quot; -- these
+</I>&gt;&gt;<i> are
+</I>&gt;&gt;&gt;&gt;<i> 2
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> different interfaces, although implementers may decide to collapse
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> them. But they are different concepts. User accounts are the
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> locally-registered users; in some cases, like for example, the UCI
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> grid, there's only some people who can get accounts there, namely
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> people associated with the university. Grid users are users that
+</I>&gt;&gt;<i> are
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> referenced by things that happen in the grid. So we already have
+</I>&gt;&gt;<i> an
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> interface for that, although now I'm thinking that perhaps we need
+</I>&gt;&gt;&gt;&gt;<i> to
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> separate its UserID field into 2 things: a local UUID and a
+</I>&gt;&gt;&gt;&gt;<i> reference
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> to the external name. And I guess that's my main issue at this
+</I>&gt;&gt;&gt;&gt;<i> point.
+</I>&gt;&gt;&gt;&gt;&gt;<i> It seems more reasonable in a distributed system to say that an X
+</I>&gt;&gt;<i> is
+</I>&gt;&gt;&gt;&gt;<i> an
+</I>&gt;&gt;&gt;&gt;&gt;<i> X - a User is a User, whether they originally were instantiated on
+</I>&gt;&gt;<i> a
+</I>&gt;&gt;&gt;&gt;&gt;<i> local or a remote system.   So I would go for collapsing the two as
+</I>&gt;&gt;&gt;&gt;<i> much
+</I>&gt;&gt;&gt;&gt;&gt;<i> as possible as a matter of policy.  Otherwise freedom to move
+</I>&gt;&gt;<i> between
+</I>&gt;&gt;&gt;&gt;&gt;<i> nodes in the system is more limited and there is more special case
+</I>&gt;&gt;&gt;&gt;<i> logic
+</I>&gt;&gt;&gt;&gt;&gt;<i> to deal with.    But that is speaking from a general distributed
+</I>&gt;&gt;&gt;&gt;&gt;<i> computing perspective.  There may be many Opensim details that make
+</I>&gt;&gt;&gt;&gt;<i> that
+</I>&gt;&gt;&gt;&gt;&gt;<i> seemingly ideal position in practice rather naive.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> - s
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009432.html">[Opensim-dev] Global identifiers
+</A></li>
+	<LI>Next message: <A HREF="009459.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9447">[ date ]</a>
+              <a href="thread.html#9447">[ thread ]</a>
+              <a href="subject.html#9447">[ subject ]</a>
+              <a href="author.html#9447">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

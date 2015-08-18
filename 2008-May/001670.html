@@ -1,0 +1,465 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Interrelated difficult problems related to asset	portability
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Interrelated%20difficult%20problems%20related%20to%20asset%0A%09portability&In-Reply-To=%3C6b9359640805271532p1d010859vafd1a3f3a6b0f460%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001664.html">
+   <LINK REL="Next"  HREF="001672.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Interrelated difficult problems related to asset	portability</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Interrelated%20difficult%20problems%20related%20to%20asset%0A%09portability&In-Reply-To=%3C6b9359640805271532p1d010859vafd1a3f3a6b0f460%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Interrelated difficult problems related to asset	portability">aerowolf at gmail.com
+       </A><BR>
+    <I>Wed May 28 00:32:04 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001664.html">[Opensim-dev] Interrelated difficult problems related to asset	portability
+</A></li>
+        <LI>Next message: <A HREF="001672.html">[Opensim-dev] Interrelated difficult problems related to asset	portability
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1670">[ date ]</a>
+              <a href="thread.html#1670">[ thread ]</a>
+              <a href="subject.html#1670">[ subject ]</a>
+              <a href="author.html#1670">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Tue, May 27, 2008 at 12:20 PM, Jani Pirkola &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jpirkola at gmail.com</A>&gt; wrote:
+&gt;<i> Kyle,
+</I>&gt;<i>
+</I>&gt;<i> Using the viewer to detect copies is an excellent idea! Anyone can hack his
+</I>&gt;<i> or her version of the viewer, or even a group of users can use a hacked
+</I>&gt;<i> viewer, but there will always be one who isn't.
+</I>&gt;<i>
+</I>&gt;<i> I also agree that copy prevention will not work, ever. If I see (or hear) an
+</I>&gt;<i> asset on my computer, I have  a copy of it already.
+</I>&gt;<i>
+</I>&gt;<i> My personal vision of how this could be solved is to rely on people's own
+</I>&gt;<i> attitudes towards theft. If I could use my viewer to check whether things I
+</I>&gt;<i> see are stolen, e.g. I could see red marks on all avatar clothes that are
+</I>&gt;<i> stolen, I would not use anything stolen on my own avatar, because people
+</I>&gt;<i> would start to think me as a thief. (Oh look, that is the man who stole his
+</I>&gt;<i> hat from that poor student girl)
+</I>
+I've turned this idea over and over in my head, and I simply can't
+figure out a way to do it -- I'll go into the reasons why in a bit.
+
+&gt;<i> How this could be achieved technically then? I suggest an object hash
+</I>&gt;<i> server, where asset content hash value is stored along with the owner and
+</I>&gt;<i> the license and permissions to use for those who bought it, for example.
+</I>&gt;<i> When I upload some asset to some opensim server, then that opensim server
+</I>&gt;<i> would calculcate the hash (and why not to use it as UUID as well to make
+</I>&gt;<i> caching work better at client?) and send it to object hash server with
+</I>&gt;<i> permissions from the viewer.
+</I>
+I like this idea, and in fact I initially thought about a design like
+this... except that it allows for some denial-of-service attacks
+against the legitimate owner/legitimate licensees, as well as provides
+more incentive to introduce one-bit modifications (so that the content
+hashes don't match and thus aren't identified).  As well, and I must
+make this point very strongly: it is not the job of the system to
+determine what is theft.  That is a determination which can ONLY be
+done by the court system.    (DRM tries to define theft, and breaks
+Fair Use accordingly.)
+
+As much as we might want to think otherwise, we are not creating a
+government or anything which does anything like a government for
+virtual worlds.  We /can't/ create a government for virtual worlds.
+(Unless we can, but even then, the government must be recognized by
+other governments or else its sovereignity won't be acknowledged by
+the real-world courts.  This is a discussion FAR outside the scope of
+a simple detection mechanism.)
+
+I rather like the idea of a cooperative assethash server which can be
+used solely to locate collision-notification URLs, but... well,
+remember that we must also operate in a world where collisions can't
+(we hope) be easily forced -- but collisions will by necessity
+spontaneously occur.  This is why other information (perhaps the
+output of other hash algorithms, the content size, and content type)
+is important to be compared as well.  This is also why using the hash
+as the UUID directly is inadvisable, because if two different bits of
+content exist with the same hash, either the older or the newer one is
+going to get removed from the network.
+
+(Really, if you're distilling arbitrarily-large sets of data down to
+128 bits, you're *going* to have collisions. :))
+
+The mandatory imposition of a cooperative assethash server, though,
+would seriously degrade network performance on most machines.  This is
+what I'm most leery about, related to it.
+
+There are situations where multiple people do have independent right
+to sell or distribute precisely the same content without needing
+permission of any of the other copyright holders.  Why should the
+first one to get the drop on the network get the Sanctioned Right?
+How can the system know that the first copy on the network is actually
+legitimately there?
+
+&gt;<i> The object hash servers would be hosted by organizations we trust
+</I>&gt;<i> (realXtend? LL? Verizon?), and they would have a network of trust in between
+</I>&gt;<i> them. The object hash servers should of course also replicate data back and
+</I>&gt;<i> forth to make sure that all the asset rights are correctly updated.
+</I>
+You're going, once again, down the DRM road.  &quot;asset rights&quot; are what
+&quot;Digital Rights Management&quot; systems are supposed to manage.  The only
+thing that can arbitrarily determine what the rights are and who owes
+whom money is the court.  Not the system (by which I refer to the
+system of viewers and sims and servers).
+
+The system cannot manage the rights.  The system cannot judge what the
+rights are.  The system cannot judge whether something is a copyright
+violation.  The system cannot judge whether something is authorized or
+not.
+
+The system doesn't know whether something is creative-commons, whether
+something is public-domain, whether something is GPL, whether
+something is all-rights-reserved.  The system doesn't transmit enough
+(cryptographic) evidence of licensure to be able to make any decision.
+ The system doesn't know whether the initial uploader is telling the
+truth about the license that the work is supposed to be under (for
+example, look at the PDF e-books of various public domain things that
+Adobe put out that put use restrictions on, such as 'no copying text'
+and 'no speaking text'.  The system can't determine whether any given
+use is in compliance with any given license.  The system doesn't know
+whether the initial uploader is truly the one who is supposed to have
+the copyright in the first place.  With all these unknowns, it's
+absolutely foolhardy to assume anything about any rights that any
+party may have, and I'm rather unenthused about propagating that
+error.
+
+&gt;<i> This does not need necessarily any modifications to the SL Viewer itself,
+</I>&gt;<i> there could be a separate tool  (e.g. a copyrightbot as Diva suggested) to
+</I>&gt;<i> make check on a place or avatar first and when the system comes widespread
+</I>&gt;<i> enough, maybe it could be built in to SL Viewer as well.
+</I>&gt;<i> realXtend viewer could support that from the beginning.
+</I>
+er, you just said that the viewer /is/ the correct place to do it, and
+now you're saying it doesn't need to?  Remember, the viewer is the
+only thing that does cross the grid boundaries.  If we rely on grid
+operators to connect to the network solely for the purposes of
+copyright notification for purposes of changing their users'
+experiences, you can bet that they won't and that they'll disable the
+system entirely.
+
+Also remember that grids operated as intentional communities are not
+likely to allow a copyright bot to scan their stuff... and under the
+current legal regime, they don't have to.
+
+See, the changes that are necessary to get the viewer to do most of
+the work are relatively miniscule.  They're also able to be done
+/now/, not waiting until &quot;the system comes widespread enough&quot;.  They
+rely simply on calculating content hashes of and collecting a bit of
+metadata about assets seen.
+
+The changes necessary on the server and in the protocol are extremely
+simple: they rely on the addition of some metadata fields to the asset
+database, including a &quot;squawker URL&quot; and various content hash fields
+(calculated on upload, and verified by the client on download).
+
+The application necessary for the squawk-listener requires an XML-RPC
+or JSON parser and defined schema for the notification format.
+
+&gt;<i> Also, Kyle's suggestion that the viewer reports abuse of copyrighted
+</I>&gt;<i> material is easy to implement in this scenario. His point that even there
+</I>&gt;<i> were a hacked client available without that copyrighted material detection,
+</I>&gt;<i> there would always be someone with a non-hacked version can be used as vice
+</I>&gt;<i> versa: Even if standard SL Viewer didn't have the copyright violation
+</I>&gt;<i> reporting feature, always someone would be using a viewer which includes
+</I>&gt;<i> that!
+</I>
+I'm trying to find a way to get into the engineering and business
+development aspects of Linden, to pitch the case for including
+asset-collision detection into the Linden viewer and the main Linden
+protocol.  It's a relatively minimal change, as I've said.  I'm still
+looking at potential security issues (including information-leakage
+vulnerabilities, DOS attacks against the squawk-listener, DOS attacks
+against the viewer, DOS attacks against the network, DOS attacks
+against the assethash servers, etc) before I make a formal proposal.
+
+(I tend to be somewhat libertarian/conservative when it comes to
+making systems small and workable.  I don't want to have to pass new
+laws to get something to work.  I don't want to waste money or time
+designing something that reduces capability.  I don't want to damage
+anyone's online experience.  I don't want to impose Yet Another
+Limitation.  I just want to do my part to ensure that people who have
+intellectual property rights under the current regime can have a bit
+of help in reaping the benefits of their work.)
+
+&gt;<i> That kind of system could be done by OpenSim and it would be taken into use,
+</I>&gt;<i> given that someone with enough trust takes the hosting of the first object
+</I>&gt;<i> hash server.
+</I>
+The way to reduce crime is not to increase the penalty... but to
+increase the risk of detection.  The way to reduce antisocial behavior
+is to increase enforcement and inconvenience when the detection is
+enforced.
+
+Honestly, I can even see a way for this to work even without an
+&quot;object hash server&quot;, and increase participation among asset servers
+to boot... use a distributed hash table like Kademlia (or one of the
+C#-language implementations of DHTs) to query for the assethash,
+collect all the answers and pull out the squawker URLs, and then
+squawk to all of them.
+
+But, I must make you aware of two trends that I have seen.
+
+If you try to use the server to change-degrade the users' experiences,
+the server will disable that functionality.
+If you try to use the viewer to change-degrade the user's experience,
+the user will disable that functionality.
+
+The only way for this system to work is to not degrade the users'
+experiences.  That's the only way to get users not to turn off the
+degradation.  (And if you try to enforce it, and mandate it, the only
+thing you'll end up with is hacked viewers with the degradation turned
+off.)
+
+-Kyle H
+
+&gt;<i>
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Jani Pirkola
+</I>&gt;<i> realXtend program manager
+</I>&gt;<i>
+</I>&gt;<i> 2008/5/27 Antti Ilom&#228;ki &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">antti.ilomaki at adminotech.com</A>&gt;:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Kyle H: &quot;From where to where would the authentication traffic run?  What
+</I>&gt;&gt;<i> would
+</I>&gt;&gt;<i> interpret it?  What would make the policy decision to show it?  What
+</I>&gt;&gt;<i> would decide whether to follow the policy decision handed down from
+</I>&gt;&gt;<i> on-high?&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Note that I'm by no means a data security expert and I'll gladly leave
+</I>&gt;&gt;<i> technical questions to someone else. That's one of the reasons I'm so
+</I>&gt;&gt;<i> interested in discussing these things in public.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Anyway, There would be two separate parties making the policy decisions:
+</I>&gt;&gt;<i> the server and the client. In this scheme knowledge on assets to be
+</I>&gt;&gt;<i> downloaded would probably have to pass through servers, because the server
+</I>&gt;&gt;<i> administrators would probably want to influence what their visitors see.
+</I>&gt;&gt;<i> Then the client would have some controls to restrict display of assets if
+</I>&gt;&gt;<i> the user (or more likely his parents) wants to. Like you (and I think me
+</I>&gt;&gt;<i> too) said, the client is easy to hack and trying to add strict protection
+</I>&gt;&gt;<i> schemes there would probably prove fruitless. The authentication traffic
+</I>&gt;&gt;<i> would most likely run between the world servers and authentication stuff
+</I>&gt;&gt;<i> servers, but also to the client. I'm not the person to design the details,
+</I>&gt;&gt;<i> however, hopefully someone can come up with good ideas.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;What about assets with legitimate copyright confusion?&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Can you be more specific?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;What about attempted denial-of-service by hacking the authentication
+</I>&gt;&gt;<i> system?&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> DoS attacks are a potential problem for any network service, do you see
+</I>&gt;&gt;<i> potential problems specifically for the authentication of inventory assets?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;What if someone gets a leaked bitwise copy of an asset, uploads it to
+</I>&gt;&gt;<i> and registers it with the authentication service, and prevents the
+</I>&gt;&gt;<i> legitimate owner of the asset from registering it?&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Getting bitwise copies of an asset can't really be prevented or even made
+</I>&gt;&gt;<i> very difficult AFAIK. That's why I'm more interested in controlling their
+</I>&gt;&gt;<i> visibility over the net. If someone got a pirate bitwise copy somewhere on
+</I>&gt;&gt;<i> the net it's likely that the original object would already be registered in
+</I>&gt;&gt;<i> the authentication service and re-registering the same asset would likely
+</I>&gt;&gt;<i> fail. An interesting question is the building phase when the objects aren't
+</I>&gt;&gt;<i> finished yet, but if there's enough interest there's probably a workaround
+</I>&gt;&gt;<i> for that as well. Perhaps something like version history for objects or so
+</I>&gt;&gt;<i> on, I don't know. Note that especially professional content creation can be
+</I>&gt;&gt;<i> done behind protective walls and the object can be registered on
+</I>&gt;&gt;<i> authentication lists before it ever appears in the public virtual web.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;What if some grid chooses, for these or other (perhaps more nefarious,
+</I>&gt;&gt;<i> perhaps more practical -- such as overloading and very poor response)
+</I>&gt;&gt;<i> reasons, not to run the authentication traffic?&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Well there's really quite little anyone can do about it - pretty much the
+</I>&gt;&gt;<i> only thing would be to make the authentication as lightweight and seamless
+</I>&gt;&gt;<i> as possible so that there would be no technical reasons to turn it off. Some
+</I>&gt;&gt;<i> sites would of course still turn it off, but the really important thing is
+</I>&gt;&gt;<i> to have all or at least a vast majority of the most popular sites to utilize
+</I>&gt;&gt;<i> the protection scheme. The reason they might actually want to do it is their
+</I>&gt;&gt;<i> somewhat probable involvement in item trading or (virtual) money
+</I>&gt;&gt;<i> transactions in general. Content creation business and virtual world (and
+</I>&gt;&gt;<i> other services) subscription business are interconnected; more people means
+</I>&gt;&gt;<i> there's a bigger market for content, which in turn means more interesting
+</I>&gt;&gt;<i> stuff to see and do for the users, which in turn means there will be more
+</I>&gt;&gt;<i> users.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;I must simply reiterate what I've said before... DRM simply does not
+</I>&gt;&gt;<i> work.  DRM relies on all parties except the end-user (you know, the
+</I>&gt;&gt;<i> entity that everyone is most concerned about) cooperating to restrict
+</I>&gt;&gt;<i> access.  Independent VWs don't want to damage their users'
+</I>&gt;&gt;<i> experiences, so they're unlikely to want to cooperate, and without
+</I>&gt;&gt;<i> their cooperation there's no chance of implementing any kind of DRM
+</I>&gt;&gt;<i> solution.&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In my opinion the record and games industries, for example, are going the
+</I>&gt;&gt;<i> wrong way by trying to charge you money for a product that is inferior to
+</I>&gt;&gt;<i> what you get for free if you resort to piracy. The best way to entice
+</I>&gt;&gt;<i> customers to pay for their music is to make purchases extremely simple and
+</I>&gt;&gt;<i> offer extra service such as automatic backup system in addition to the
+</I>&gt;&gt;<i> actual files being as easy to use as a pirated mp3.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The difference between the virtual assets and music, for example, is at
+</I>&gt;&gt;<i> least two-fold. First of all, virtual assets are almost exclusively used
+</I>&gt;&gt;<i> over the internet. This gives options for determining copying and access
+</I>&gt;&gt;<i> wirghts on the fly. Secondly, Virtual worlds ARE the digital content and
+</I>&gt;&gt;<i> creating systems that can be used to set rules and bring a level of security
+</I>&gt;&gt;<i> not only for the assets but also site owners and users, would probably have
+</I>&gt;&gt;<i> a positive effect on the business as a whole.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;DRM relies on &quot;keeping secrets&quot;.  The core secret is &quot;the asset
+</I>&gt;&gt;<i> content to be displayed&quot;.  And, Benjamin Franklin put it best: &quot;Three
+</I>&gt;&gt;<i> may keep a secret, if two are dead.&quot;  An authentication system would
+</I>&gt;&gt;<i> simply offload the task of who makes the decision to keep the secret,
+</I>&gt;&gt;<i> not do anything more to keep the secret in place.&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Well it depends. If the future of the virtual web would actually involve
+</I>&gt;&gt;<i> something like the system I described there would be little need for
+</I>&gt;&gt;<i> secrets. The thing you would have to do to use pirated goods would be to
+</I>&gt;&gt;<i> hack a server and insert your ID on the authorized users' list for the
+</I>&gt;&gt;<i> specific object. If the security of the server was any good, that would be
+</I>&gt;&gt;<i> quite a bit more complex than downloading an mp3 through bit torrent or
+</I>&gt;&gt;<i> something similiar.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Another hurdle for the pirates might be a check in the Official 3D
+</I>&gt;&gt;<i> Internet browser (the realXtend one, naturally) that would prevent any
+</I>&gt;&gt;<i> transactions in a zone that doesn't have content protection on. There's
+</I>&gt;&gt;<i> actually need for some kind of a security system anyway, similiar to web
+</I>&gt;&gt;<i> certificates and so on, to create a level of security for the entire
+</I>&gt;&gt;<i> experience AND communicate it to the users, so that they feel confident
+</I>&gt;&gt;<i> enough to make purchases and let the virtual content business flourish.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In fact one of the good things about virtual reality is the fact that when
+</I>&gt;&gt;<i> the user is logged in, he/she most likely has some kind of a payment system
+</I>&gt;&gt;<i> ready to go, be it LindeX, PayPal or whatever. Ths would completely remove
+</I>&gt;&gt;<i> the hurdle of digging out your credit card and giving personal info to some
+</I>&gt;&gt;<i> site on the net to be able to pay for the goods. This would, of course,
+</I>&gt;&gt;<i> remove one hurdle from the legitimate customer's road to enjoying the
+</I>&gt;&gt;<i> purchase, making legitimate goods more competitive with the pirated stuff.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Although probably not the most decisive issue for legitimate customers,
+</I>&gt;&gt;<i> but not having t ofeel stupid for paying something most others are using for
+</I>&gt;&gt;<i> free is sort of a service as well. The really important thing is making sure
+</I>&gt;&gt;<i> that the content creation business is a huge success and there's plenty of
+</I>&gt;&gt;<i> exciting stuff for everyone to enjoy. Ensuring that will be important for
+</I>&gt;&gt;<i> the success of the virtual reality, especially in the near future and if
+</I>&gt;&gt;<i> this DRM scheme can help, it's worth considering.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;And if you want to rely on the viewer to run it?  Someone's going to
+</I>&gt;&gt;<i> hack the viewer to avoid authentication, and distribute their hacked
+</I>&gt;&gt;<i> viewer.&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Well I wouldn't want to rely on the viewer doing anything the user doesn't
+</I>&gt;&gt;<i> want to. The integration of DRM features to the viewer would probably be in
+</I>&gt;&gt;<i> the form of parental locks and such.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;I've been trying to find a way to design a system that doesn't rely on
+</I>&gt;&gt;<i> making bits harder to copy.  I've been trying to find a way to design
+</I>&gt;&gt;<i> a system that doesn't rely on some arbitrary third party making
+</I>&gt;&gt;<i> decisions.  I've been trying to find a way for evidence to be
+</I>&gt;&gt;<i> collected that would be sufficient to satisfy the only
+</I>&gt;&gt;<i> currently-authorized-by-law third party (the court system), and then
+</I>&gt;&gt;<i> only in situations where it's been specifically asked to intervene.&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Sounds interesting. The thing to remember is that there probably never
+</I>&gt;&gt;<i> will be a foolproof system, we're always talking about percentages.
+</I>&gt;&gt;<i> Personally I don't think making bits harder to copy would raise the
+</I>&gt;&gt;<i> percentage of legitimate customers very much, but I don't have any
+</I>&gt;&gt;<i> statistics here and who knows, maybe the entertainment industry earns a
+</I>&gt;&gt;<i> couple of bucks by using copy protections systems?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Court system and virtual worlds is an interesting issue. One of the
+</I>&gt;&gt;<i> problems with copyright stuff and global networks is the difficulty of
+</I>&gt;&gt;<i> across the borders -co-operation and lack of internationally useful laws.
+</I>&gt;&gt;<i> But that's a huge issue in itself, althoug han important one, laws can bring
+</I>&gt;&gt;<i> about an atmosphere of trust and security, which is usually good for
+</I>&gt;&gt;<i> business.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;The entire VW community, and the entire Internet community, has been
+</I>&gt;&gt;<i> designing things at odds with the current legal regime since its dawn.
+</I>&gt;&gt;<i> We've seen the courts reach in and mandate things, and our tools have
+</I>&gt;&gt;<i> been extremely unsuited to the task of compliance.  I'd much prefer to
+</I>&gt;&gt;<i> have a design on the table that satisfies all the compliance issues in
+</I>&gt;&gt;<i> a way that is easily understood.  I'd much prefer to have a design on
+</I>&gt;&gt;<i> the table that stops viewing the end-user as an entity to be feared
+</I>&gt;&gt;<i> solely because they can take what they're shown and change themselves
+</I>&gt;&gt;<i> from 'end-user' to 'content presenter' without authorization of the
+</I>&gt;&gt;<i> owner of the content they're presenting.  I'd like to move away from
+</I>&gt;&gt;<i> any attempt to mandate content handling, and instead cooperate with
+</I>&gt;&gt;<i> the end-user to identify locations where unauthorized copies of
+</I>&gt;&gt;<i> content are distributed from, and leverage those to reduce the content
+</I>&gt;&gt;<i> misappropriation.&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> One of the problems with virtual worlds is that they're difficult to
+</I>&gt;&gt;<i> understand for the parties that handle legislation and hold political power.
+</I>&gt;&gt;<i> So far we've seen pretty negative press from a couple of cases, and that's a
+</I>&gt;&gt;<i> problem for the young industry. Virtual worlds haven't been established as a
+</I>&gt;&gt;<i> necessity for life and business like the Internet, and are thus a much
+</I>&gt;&gt;<i> easier target for fishing concerned parents' votes for the next election.
+</I>&gt;&gt;<i> Again, if we want the industry to blossom in the near future, we have to
+</I>&gt;&gt;<i> consider all sorts of issues and hopefully solve them in a way that suits
+</I>&gt;&gt;<i> everyone. Or at least someone.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &quot;This is why I want the viewer to be cooperative in a way that doesn't
+</I>&gt;&gt;<i> damage the end-user's experience.  I realize I'm in the minority...
+</I>&gt;&gt;<i> but I'm sick of being treated like something less than a dignified
+</I>&gt;&gt;<i> human being.  I'm sick of being treated like a criminal.  I'm sick of
+</I>&gt;&gt;<i> my money going toward systems that prevent me from using what I've
+</I>&gt;&gt;<i> licensed.&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I don't disagree.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Antti Ilom&#228;ki
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">antti.ilomaki at adminotech.com</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I></PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001664.html">[Opensim-dev] Interrelated difficult problems related to asset	portability
+</A></li>
+	<LI>Next message: <A HREF="001672.html">[Opensim-dev] Interrelated difficult problems related to asset	portability
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1670">[ date ]</a>
+              <a href="thread.html#1670">[ thread ]</a>
+              <a href="subject.html#1670">[ subject ]</a>
+              <a href="author.html#1670">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

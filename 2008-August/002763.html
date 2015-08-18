@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] About Processing on Assets Table (Discussion	#2057)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20About%20Processing%20on%20Assets%20Table%20%28Discussion%0A%09%232057%29&In-Reply-To=%3C286a06680808282122lb09c634t7f3faca76c21ba52%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002740.html">
+   <LINK REL="Next"  HREF="002769.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] About Processing on Assets Table (Discussion	#2057)</H1>
+    <B>Tao YANG (GMAIL)</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20About%20Processing%20on%20Assets%20Table%20%28Discussion%0A%09%232057%29&In-Reply-To=%3C286a06680808282122lb09c634t7f3faca76c21ba52%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] About Processing on Assets Table (Discussion	#2057)">thomas.tao.yang at gmail.com
+       </A><BR>
+    <I>Fri Aug 29 06:22:24 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002740.html">[Opensim-dev] About Processing on Assets Table (Discussion	#2057)
+</A></li>
+        <LI>Next message: <A HREF="002769.html">[Opensim-dev] About Processing on Assets Table	(Discussion	#2057)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2763">[ date ]</a>
+              <a href="thread.html#2763">[ thread ]</a>
+              <a href="subject.html#2763">[ subject ]</a>
+              <a href="author.html#2763">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks a lot, Melanie, Michael and Sean!
+OK, since it is a hard rule of protocol that assets are immutable and out of
+our control, we have to keep it.
+But I am really worried that let asset table increase without limit and
+there is no way to clear garbage.
+And I do not like the term asset here.  It could be matter, resource or even
+object, etc.
+I suggest that we could create a new table to save those which are really
+assets.(TBD)
+:<i>-)
+</I>
+Well, the issue could turn to attachment processing.
+*** 0 ***
+I have to ask a primary question first.
+Why the object is saved in prims, primshapes and primitems tables when it is
+created on the grand,
+but deleted from the 3 tables and saved in assets table when it is attached?
+
+Actually, the object is saved in all the 4 tables when it is attached for
+the first time and deleted from 3 primXXX tables when it is detached for the
+first time.
+But in memory, the object is always SceneObjectGroup's object no matter it
+is on the ground or attached to the avatar.
+
+*** 1 ***
+Michael wrote
+&gt;<i>If it is creating a new asset every time a user simple attaches/detaches a
+</I>prim, then it is something that should be looked at. As I don't think it
+should be happening.
+Exactly speaking, only detach makes it creating a new asset.
+You know there is no process especially for saving the changes of an
+attached object.
+So, the detach process is doing the followings.
+1. Detaches the attached object (deleting the object from scene, updating
+avatar's inventory item)
+2. Saves the latest information of the attached object to assets table by
+creating a new asset and make avatar's corresponding inventory item change
+its reference to the new one.
+    Here I want to point out that in the following 2 conditions, this
+process will make the previous asset garbage which is never be used and no
+longer known by the world.
+    A. the attached object changed but its asset only belongs to one avatar
+    B. there is no changes on the attached object
+I think it could resolve it checking whether the attached object has been
+changed in condition b.
+In condition A, it seems no way but to create a new asset because we should
+keep the rule no update on asset.
+
+*** 2 ***
+Attachment point is saved in avatarattachments table, but other information
+of attachment and other properties of the object are still saved in assets
+table, such as
+position(offset), rotation, shape, color, light, flexible path, texture,
+script, etc., which can be edit in Edit Windows of Viewer.
+I also noticed that the attachment info has been defined in class
+SceneObjectPart but not Serializable.
+        [XmlIgnore]
+        public bool IsAttachment = false;
+        [XmlIgnore]
+        public LLUUID AttachedAvatar = LLUUID.Zero;
+        [XmlIgnore]
+        public LLVector3 AttachedPos = LLVector3.Zero;
+        [XmlIgnore]
+        public uint AttachmentPoint = (byte)0;
+Could anyone explain the relationship of the two implements for attachment
+info?
+
+*** 3 ***
+Although based on updating the existing asset, I am considering the
+persistence of attachment.
+I am discussing with Melanie in #2064, where Melanie wrote
+&gt;<i>Currently, this is by design. There is no method to save changes during
+</I>edit, as that would create yet more asset bloat. It really should save on
+closing the edit window, but we don't get a notification of that.
+Function ProcessBackup() in class SceneObjectGroup is saving the prims
+background.  Should we use it for reference?
+I tried to make a patch but not completed for some problem.  And I will
+attach the patch to #2064 for reference only later.
+
+Thomas
+
+
+2008/8/28 Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>&gt;
+
+&gt;<i> Michael Wright wrote:
+</I>&gt;<i> &gt; If it is creating a new asset every time a user simple attaches/detaches
+</I>&gt;<i> a prim, then it is something that should be looked at. As I don't think it
+</I>&gt;<i> should be happening.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; But as Melanie explain in the mantis issue, if a user makes a change,
+</I>&gt;<i> like changes the attachment point, then this does result in a new asset
+</I>&gt;<i> being created. Assets are sharable and as Melanie explained you never know
+</I>&gt;<i> who else has a refference to that asset. So you can't update it, as it would
+</I>&gt;<i> effect everyone who is using that asset.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; There has been talk in the past about lots of different possible changes
+</I>&gt;<i> to the asset system. But any big changes would need a lot of changes deep in
+</I>&gt;<i> the core of opensim.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; &quot;Tao YANG (GMAIL)&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">thomas.tao.yang at gmail.com</A>&gt; wrote: Hi everyone,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I discussed this issue a little with melanie in Mantis #2057.  Thanks
+</I>&gt;<i> melanie!
+</I>&gt;<i> &gt; Even though #2057 was turned into resolved, not fixable,
+</I>&gt;<i> &gt; I still have some questions and want to discuss it with you all.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Please allow me describe this issue again in brief.
+</I>&gt;<i> &gt; I first noticed the problem when I was testing attachment using MySQL,
+</I>&gt;<i> &gt; that &quot;assets&quot; table increased without limit if you attach/detach
+</I>&gt;<i> repeatedly.
+</I>&gt;<i> &gt;   Reading source code, there is no real deleting, updating, but adding on
+</I>&gt;<i> the table.
+</I>&gt;<i> &gt; So I report it in #2057 and tried to attach a patch.
+</I>&gt;<i> &gt; And melanie explained the reason why assets cannot be updated or deleted.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;  The point could be whether the records in assets table can be updated or
+</I>&gt;<i> deleted.
+</I>&gt;<i> &gt; 1. Is it good technically that asset table is increasing without any
+</I>&gt;<i> limit?
+</I>&gt;<i> &gt;  2. In case of attachment, for example,
+</I>&gt;<i> &gt;    if an attached object is not shared with others, after modifying or
+</I>&gt;<i> when
+</I>&gt;<i> &gt;    detaching it, should we still create a new record in assets table,
+</I>&gt;<i> letting
+</I>&gt;<i> &gt;    the previous one become garbage and never be used?
+</I>&gt;<i> &gt;     I think the process on attachment should be improved.  But that could
+</I>&gt;<i> be based
+</I>&gt;<i> &gt;    on how assets work.
+</I>&gt;<i>
+</I>&gt;<i> Also remember, assets being immutable is a function of the protocol.
+</I>&gt;<i> The client will never fetch an asset that it already has, so if you were
+</I>&gt;<i> to ever update an assets content you would need to force all viewers to
+</I>&gt;<i> clear their caches and restart their viewers.  This is a protocol
+</I>&gt;<i> optimization which may be good or bad, but it out of our control.
+</I>&gt;<i>
+</I>&gt;<i>        -Sean
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Sean Dague / Neas Bade
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+</I>&gt;<i> <A HREF="http://dague.net">http://dague.net</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080829/292e4bb8/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080829/292e4bb8/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002740.html">[Opensim-dev] About Processing on Assets Table (Discussion	#2057)
+</A></li>
+	<LI>Next message: <A HREF="002769.html">[Opensim-dev] About Processing on Assets Table	(Discussion	#2057)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2763">[ date ]</a>
+              <a href="thread.html#2763">[ thread ]</a>
+              <a href="subject.html#2763">[ subject ]</a>
+              <a href="author.html#2763">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

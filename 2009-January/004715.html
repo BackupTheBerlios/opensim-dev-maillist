@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Regions larger then 256x256
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Regions%20larger%20then%20256x256&In-Reply-To=%3C32670.41292.qm%40web23001.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004704.html">
+   <LINK REL="Next"  HREF="004716.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Regions larger then 256x256</H1>
+    <B>MW</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Regions%20larger%20then%20256x256&In-Reply-To=%3C32670.41292.qm%40web23001.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Regions larger then 256x256">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Tue Jan 27 11:56:07 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004704.html">[Opensim-dev] Regions larger then 256x256
+</A></li>
+        <LI>Next message: <A HREF="004716.html">[Opensim-dev] Regions larger then 256x256
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4715">[ date ]</a>
+              <a href="thread.html#4715">[ thread ]</a>
+              <a href="subject.html#4715">[ subject ]</a>
+              <a href="author.html#4715">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think with a bit of trickery its also possible to have multiple region servers managing a 256X256 area. As apart from terrain, a region can tell a client that objects are outside its own 256X256 area. 
+
+So if you had 9 regions set up in a 3X3 array. With the centre 256x256 area being where everything actually would be. Then each of those region servers could manage a 85X85 area (numbers rounded down) of that centre area. 
+
+As I said terrain would be a problem, so the centre server would have to send all the terrain data for that 256X256 area, while the others would maybe send data to show their terrain was under water. 
+
+But for the prims and avatars in each area, each server would just need to be configured to manage a 85X85 area. And then when it is sending data to the client, just offset the data so that the client got the correct positions in that 256X256 centre area.
+
+I also don't think border crossings would require too much extra work, if the region server had been set up to consider its region as 85X85, it would just do a normal transfer to the next region when a avatar moved outside that area. Again some converting of position data would be required in that process but I don't think it would be too much.
+
+So while it would take some work to get opensim to be able to run like this, I don't think it would be a great amount. 
+
+Cristina Videira Lopes &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lopes at ics.uci.edu</A>&gt; wrote: It should be possible to have regions larger than 256, at least in 
+multiples of 256. The LL client assumes that as the size, and that is 
+hardocded all over the place (regionhandles etc), so if we continue to 
+use this client we need to live with that;  but I strongly suspect it is 
+possible to trick it, to some extent.
+
+Mircea Kitsune wrote:
+&gt;<i> I too had this wish for Opensim, but gave up on it understanding it 
+</I>&gt;<i> would be too difficult to implement and would hold too many issues. 
+</I>&gt;<i> Sure, region *x* arrangements are possible and commonly used, but it 
+</I>&gt;<i> does cause more complexity that way and moving all of them together or 
+</I>&gt;<i> tweaking each individually could be a bit harder.
+</I>&gt;<i>
+</I>&gt;<i> My idea back then was being allowed to create regions in powers of 2 
+</I>&gt;<i> (eg: 256x256 as now, then 128x128 smaller or larger 512x512). First 
+</I>&gt;<i> thing which wouldn't work here however would be positioning them 
+</I>&gt;<i> correctly over certain X and Y coordinates in order to fit smaller 
+</I>&gt;<i> sims around larger ones, which would end up causing grid coordinates 
+</I>&gt;<i> such as 1000.5, 1001.25. Second, I don't think the client actually 
+</I>&gt;<i> supports simulators larger then 256 x 256 so the client would probably 
+</I>&gt;<i> need modifying as well to do that. Third, exporting and importing 
+</I>&gt;<i> settings and stuff (such as terrain or .oar archives) between 
+</I>&gt;<i> different sizes of simulators could be problematic and buggy. And 
+</I>&gt;<i> fourth, larger single sims could possibly cause performance issues 
+</I>&gt;<i> even with computers in our days.
+</I>&gt;<i>
+</I>&gt;<i> If some of these issues didn't exist though this might be doable and 
+</I>&gt;<i> could be fun. Anyway the best practical way at the moment are region 
+</I>&gt;<i> groups of 2x2 or 3x3 or how many you wish for having a larger square, 
+</I>&gt;<i> which isn't that bad in the end.
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adamascj at hotmail.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Date: Mon, 26 Jan 2009 07:46:04 -0300
+</I>&gt;<i> Subject: [Opensim-dev] Regions larger then 256x256
+</I>&gt;<i>
+</I>&gt;<i>   Like there are the problem of performance when we have more than 
+</I>&gt;<i> 15/20 avatares inside one sim , I believe that is important to have 
+</I>&gt;<i> regions smaller than 256x256. By example, a &quot;mini-region&quot; having  
+</I>&gt;<i> 32x32. Using grid and a server for each of 64 glued mini-regions we 
+</I>&gt;<i> can have a superpopulated area of 256x256   running well.
+</I>&gt;<i>  
+</I>&gt;<i> Americo
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> check out the rest of the Windows Live&#153;. More than mail&#150;Windows Live&#153; 
+</I>&gt;<i> goes way beyond your inbox. More than messages 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> Invite your mail contacts to join your friends list with Windows Live 
+</I>&gt;<i> Spaces. It's easy! Try it! 
+</I>&gt;<i>  
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090127/d62d3a2e/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090127/d62d3a2e/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004704.html">[Opensim-dev] Regions larger then 256x256
+</A></li>
+	<LI>Next message: <A HREF="004716.html">[Opensim-dev] Regions larger then 256x256
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4715">[ date ]</a>
+              <a href="thread.html#4715">[ thread ]</a>
+              <a href="subject.html#4715">[ subject ]</a>
+              <a href="author.html#4715">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

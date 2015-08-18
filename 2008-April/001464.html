@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] things I learned today about Timers
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20things%20I%20learned%20today%20about%20Timers&In-Reply-To=%3C20080416110830.GB22178%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001466.html">
+   <LINK REL="Next"  HREF="001467.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] things I learned today about Timers</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20things%20I%20learned%20today%20about%20Timers&In-Reply-To=%3C20080416110830.GB22178%40dague.net%3E"
+       TITLE="[Opensim-dev] things I learned today about Timers">sean at dague.net
+       </A><BR>
+    <I>Wed Apr 16 13:08:30 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001466.html">[Opensim-dev] RealXtend not working with new server....
+</A></li>
+        <LI>Next message: <A HREF="001467.html">[Opensim-dev] HOWTO: asterisk-opensim interconnect using	AsteriskVoiceModule
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1464">[ date ]</a>
+              <a href="thread.html#1464">[ thread ]</a>
+              <a href="subject.html#1464">[ subject ]</a>
+              <a href="author.html#1464">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>They aren't thread safe:
+
+<A HREF="http://msdn2.microsoft.com/en-us/library/system.timers.timer.aspx">http://msdn2.microsoft.com/en-us/library/system.timers.timer.aspx</A>
+
+Previously in the Sim Stats collection we were Enabling, Disabling the
+timer as a mutex, which is very very wrong based on what I've now read
+in the Mono source code (check out the Timer.cs Enabled = true property
+some time.  It does *a lot*).
+
+I modified Sim Stats to just use a lock instead.  I believe this is at
+least part of the solution to the invoke_void crash (too early to call
+it fixed).  I also think this is related to my 100% CPU issue (though
+still too early to say there).  Regardless, the old approach was
+proovably incorrect, and the new one is the way things should be done.
+
+    -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080416/035819c7/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080416/035819c7/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001466.html">[Opensim-dev] RealXtend not working with new server....
+</A></li>
+	<LI>Next message: <A HREF="001467.html">[Opensim-dev] HOWTO: asterisk-opensim interconnect using	AsteriskVoiceModule
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1464">[ date ]</a>
+              <a href="thread.html#1464">[ thread ]</a>
+              <a href="subject.html#1464">[ subject ]</a>
+              <a href="author.html#1464">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

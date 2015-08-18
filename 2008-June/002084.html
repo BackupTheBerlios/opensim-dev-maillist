@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim threads culture and regional settings	(Windows XP)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20threads%20culture%20and%20regional%20settings%0A%09%28Windows%20XP%29&In-Reply-To=%3CBLU142-DS43B02D0DC62051D3FA52ED5A20%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002102.html">
+   <LINK REL="Next"  HREF="002106.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim threads culture and regional settings	(Windows XP)</H1>
+    <B>Laurent B.</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20threads%20culture%20and%20regional%20settings%0A%09%28Windows%20XP%29&In-Reply-To=%3CBLU142-DS43B02D0DC62051D3FA52ED5A20%40phx.gbl%3E"
+       TITLE="[Opensim-dev] OpenSim threads culture and regional settings	(Windows XP)">grumly57 at hotmail.com
+       </A><BR>
+    <I>Fri Jun 27 09:49:38 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002102.html">[Opensim-dev] OpenSim codebase statistics.
+</A></li>
+        <LI>Next message: <A HREF="002106.html">[Opensim-dev] RemoteAdmin Executable
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2084">[ date ]</a>
+              <a href="thread.html#2084">[ thread ]</a>
+              <a href="subject.html#2084">[ subject ]</a>
+              <a href="author.html#2084">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+I have noticed some issues when running OpenSim on Windows XP which regional settings are set to a different culture than en-US.
+
+Please take a look on <A HREF="http://opensimulator.org/mantis/view.php?id=1611">http://opensimulator.org/mantis/view.php?id=1611</A> and <A HREF="http://opensimulator.org/mantis/view.php?id=1382.">http://opensimulator.org/mantis/view.php?id=1382.</A>
+
+I noticed that Framework.Culture.SetCurrentCulture() is called to force the thread culture to en-US when the simulator is being started.
+
+However, it seems that threads which are created during OpenSim execution are using a CultureInfo based on the operating system regional settings. I suppose this happens to the scripts threads. I have included a snapshot in mantis 1611 that shows the current thread culture and the result of a vector ToString() conversion in the Watch box during debug mode in VS2008.
+
+The french culture I am using uses decimal symbol as coma &quot;,&quot; instead of point &quot;.&quot;. This makes convert, tryparse and tostring() methods to fail or send erroneous results. For example, Vector parsing operation and some deserialization operations. For example, llSetPrimitiveParams([PRIM_SIZE], &lt;10,10,10&gt;]); gives a flat prim that correspond to a &lt;10,0,10&gt; scale 
+
+I have tried to hack the ThreadTracker to force the threads culture to en-US in Add() method, and everything is ok. I dont think this would be a recommended solution because ThreadTracker has not been design for this purpose. For now I switched the regional settings of Windows to en-US.
+
+Because I think OpenSim aims to be culture independant, I think the best is to force the en-US culture at some &quot;root&quot; level for threads too. Another solution consists in passing the right cultureinfo to every culture-sentive methods. I have seen that 1382 is assigned to Adam. I dont know what is the best to do and I welcome recommendations.
+
+Oh, by the way, I have no clue whether it happens with Linux and MacOSX operating system.
+
+Cheers,
+Laurent.
+Forest Klaar (SL)
+Grumly TheBear (Francogrid and others...)
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080627/c1370947/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080627/c1370947/attachment.html</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: Emoticon1.gif
+Type: image/gif
+Size: 257 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080627/c1370947/attachment.gif">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080627/c1370947/attachment.gif</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002102.html">[Opensim-dev] OpenSim codebase statistics.
+</A></li>
+	<LI>Next message: <A HREF="002106.html">[Opensim-dev] RemoteAdmin Executable
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2084">[ date ]</a>
+              <a href="thread.html#2084">[ thread ]</a>
+              <a href="subject.html#2084">[ subject ]</a>
+              <a href="author.html#2084">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,438 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] multiple robust instances
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20multiple%20robust%20instances&In-Reply-To=%3C50F4AF9F.401%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011612.html">
+   <LINK REL="Next"  HREF="011615.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] multiple robust instances</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20multiple%20robust%20instances&In-Reply-To=%3C50F4AF9F.401%40googlemail.com%3E"
+       TITLE="[Opensim-dev] multiple robust instances">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Jan 15 02:23:43 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011612.html">[Opensim-dev] multiple robust instances
+</A></li>
+        <LI>Next message: <A HREF="011615.html">[Opensim-dev] multiple robust instances
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11613">[ date ]</a>
+              <a href="thread.html#11613">[ thread ]</a>
+              <a href="subject.html#11613">[ subject ]</a>
+              <a href="author.html#11613">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>In git master 1c240cd I made the config print out the full stack trace on failure, which should help with debugging 
+rather than just the unhelpful &quot;Object reference not set&quot; message.  It would also help if you could run this in --debug 
+mode if on mono to get line numbers.
+
+However, from a quick glance at grid.ini, I would guess it's because you don't have an [AssetService] section there, which
+
+[GridService]
+...
+AssetService = &quot;OpenSim.Services.AssetService.dll:AssetService&quot;
+
+is referring to.
+
+With the [AssetService] section, this would contact the asset database directly with it's own asset service, rather than 
+going through the other robust instance that is hosting AssetService.  I don't think this is really a problem and would 
+be the easiest message.  The alternative would be to try and get the grid ROBUST instance to contact the asset ROBUST 
+instance but I'm not sure how to configure this or whether it's really possible at this point.
+
+I guess this isn't
+
+AssetService = &quot;OpenSim.Services.HypergridService.dll:HGAssetService&quot;
+
+instead because the grid service only needs to access local assets for map tiles, though you could try this anyway and 
+maybe it will reuse [HGAssetService] (no idea if this will work).
+
+Also, a small tip is that if you want to see the config the server is definitely using, on OpenSimulator 0.7.5 you can 
+type &quot;config show&quot; from the robust instance (assuming it will start up).
+
+Unfortunately, with both splitting ROBUST services and using HG you're into advanced config territory for which 
+unfortunately little documentation currently exists.
+
+If you've broken this into three separate config files
+On 14/01/13 22:20, ssm2017 wrote:
+&gt;<i> following the radams1 recommendations in irc, i have made this :
+</I>&gt;<i>
+</I>&gt;<i> in the file : OpenSim/Services/AssetService/AssetServiceBase.cs
+</I>&gt;<i> line 51 was changed from
+</I>&gt;<i> if (configName != string.Empty)
+</I>&gt;<i> to
+</I>&gt;<i> if (!String.IsNullOrEmpty(configName))
+</I>&gt;<i>
+</I>&gt;<i> in the file : OpenSim/Server/Base/ServerUtils.cs
+</I>&gt;<i> line 284 was changed from
+</I>&gt;<i> interfaceName, dllName, e.InnerException == null ? e.Message : e.InnerException.Message);
+</I>&gt;<i> to
+</I>&gt;<i> interfaceName, dllName, e.InnerException == null ? e.ToString() : e.InnerException.Message);
+</I>&gt;<i>
+</I>&gt;<i> and there is not any other error displayed in the console or the log file.
+</I>&gt;<i> the result is the same.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> 2013/1/14 Adams, Robert &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">robert.adams at intel.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">robert.adams at intel.com</A>&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>     The stack trace does not come out on the console. The console only displays the error while the error and
+</I>&gt;<i>     (hopefully) the stack trace is output into the &#8220;OpenSim.log&#8221; logfile.____
+</I>&gt;<i>
+</I>&gt;<i>     __ __
+</I>&gt;<i>
+</I>&gt;<i>     -- ra____
+</I>&gt;<i>
+</I>&gt;<i>     __ __
+</I>&gt;<i>
+</I>&gt;<i>     *From:*<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;
+</I>&gt;<i>     [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;] *On Behalf Of *ssm2017
+</I>&gt;<i>     *Sent:* Monday, January 14, 2013 10:15 AM
+</I>&gt;<i>     *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     *Subject:* Re: [Opensim-dev] multiple robust instances____
+</I>&gt;<i>
+</I>&gt;<i>     __ __
+</I>&gt;<i>
+</I>&gt;<i>     here is a screenshot of the console at the time the error occurs (screenshot to get colors)
+</I>&gt;<i>     <A HREF="http://i.imagebanana.com/img/n3wemq2h/Slection_002.png___">http://i.imagebanana.com/img/n3wemq2h/Slection_002.png___</A>_
+</I>&gt;<i>
+</I>&gt;<i>     and here are my ini files :____
+</I>&gt;<i>
+</I>&gt;<i>     inventory.ini :
+</I>&gt;<i>     ***********************************************************
+</I>&gt;<i>     [Startup]
+</I>&gt;<i>
+</I>&gt;<i>     [ServiceList]
+</I>&gt;<i>     InventoryInConnector = &quot;8003/OpenSim.Server.Handlers.dll:XInventoryInConnector&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [Network]
+</I>&gt;<i>     port = 8003
+</I>&gt;<i>
+</I>&gt;<i>     [DatabaseService]
+</I>&gt;<i>     StorageProvider = &quot;OpenSim.Data.MySQL.dll&quot;
+</I>&gt;<i>     ConnectionString = &quot;Data Source=localhost;Database=****;User ID=opensim;Password=***;Old Guids=true;&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [InventoryService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.InventoryService.dll:XInventoryService&quot;
+</I>&gt;<i>     ***********************************************************____
+</I>&gt;<i>
+</I>&gt;<i>     asset.ini :
+</I>&gt;<i>     ***********************************************************
+</I>&gt;<i>     [Startup]
+</I>&gt;<i>
+</I>&gt;<i>     [ServiceList]
+</I>&gt;<i>     AssetServiceConnector = &quot;8004/OpenSim.Server.Handlers.dll:AssetServiceConnector&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [Network]
+</I>&gt;<i>     port = 8004
+</I>&gt;<i>
+</I>&gt;<i>     [DatabaseService]
+</I>&gt;<i>     StorageProvider = &quot;OpenSim.Data.MySQL.dll&quot;
+</I>&gt;<i>     ConnectionString = &quot;Data Source=localhost;Database=****;User ID=opensim;Password=****;Old Guids=true;&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [AssetService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.AssetService.dll:AssetService&quot;
+</I>&gt;<i>     DefaultAssetLoader = &quot;OpenSim.Framework.AssetLoader.Filesystem.dll&quot;
+</I>&gt;<i>     AssetLoaderArgs = &quot;./assets/AssetSets.xml&quot;
+</I>&gt;<i>     ***********************************************************____
+</I>&gt;<i>
+</I>&gt;<i>     grid.ini :
+</I>&gt;<i>     ***********************************************************
+</I>&gt;<i>     [Startup]
+</I>&gt;<i>
+</I>&gt;<i>     [ServiceList]
+</I>&gt;<i>     VoiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector&quot;
+</I>&gt;<i>     GridServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:GridServiceConnector&quot;
+</I>&gt;<i>     GridInfoServerInConnector = &quot;8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector&quot;
+</I>&gt;<i>     AuthenticationServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector&quot;
+</I>&gt;<i>     OpenIdServerConnector = &quot;8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector&quot;
+</I>&gt;<i>     AvatarServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:AvatarServiceConnector&quot;
+</I>&gt;<i>     LLLoginServiceInConnector = &quot;8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector&quot;
+</I>&gt;<i>     PresenceServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:PresenceServiceConnector&quot;
+</I>&gt;<i>     UserAccountServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:UserAccountServiceConnector&quot;
+</I>&gt;<i>     GridUserServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:GridUserServiceConnector&quot;
+</I>&gt;<i>     FriendsServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:FriendsServiceConnector&quot;
+</I>&gt;<i>     MapAddServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:MapAddServiceConnector&quot;
+</I>&gt;<i>     MapGetServiceConnector = &quot;8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector&quot;
+</I>&gt;<i>
+</I>&gt;<i>     ; hg
+</I>&gt;<i>     GatekeeperServiceInConnector = &quot;8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector&quot;
+</I>&gt;<i>     UserAgentServerConnector = &quot;8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector&quot;
+</I>&gt;<i>     HeloServiceInConnector = &quot;8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector&quot;
+</I>&gt;<i>     HGFriendsServerConnector = &quot;8002/OpenSim.Server.Handlers.dll:HGFriendsServerConnector&quot;
+</I>&gt;<i>     InstantMessageServerConnector = &quot;8002/OpenSim.Serverm_log.Handlers.dll:InstantMessageServerConnector&quot;
+</I>&gt;<i>     HGInventoryServiceConnector = &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">HGInventoryService at 8002</A>/OpenSim.Server.Handlers.dll:XInventoryInConnector
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">HGInventoryService at 8002</A>/OpenSim.Server.Handlers.dll:XInventoryInConnector&gt;&quot;
+</I>&gt;<i>     HGAssetServiceConnector = &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">HGAssetService at 8002</A>/OpenSim.Server.Handlers.dll:AssetServiceConnector
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">HGAssetService at 8002</A>/OpenSim.Server.Handlers.dll:AssetServiceConnector&gt;&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [Network]
+</I>&gt;<i>     port = 8002
+</I>&gt;<i>
+</I>&gt;<i>     [DatabaseService]
+</I>&gt;<i>     StorageProvider = &quot;OpenSim.Data.MySQL.dll&quot;
+</I>&gt;<i>     ConnectionString = &quot;Data Source=localhost;Database=****;User ID=opensim;Password=****;Old Guids=true;&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [GridService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.GridService.dll:GridService&quot;
+</I>&gt;<i>     HypergridLinker = true
+</I>&gt;<i>     AssetService = &quot;OpenSim.Services.AssetService.dll:AssetService&quot;
+</I>&gt;<i>     Region_Beta = &quot;DefaultRegion, FallbackRegion&quot;
+</I>&gt;<i>     HypergridLinker = true
+</I>&gt;<i>     Gatekeeper = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [FreeswitchService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.FreeswitchService.dll:FreeswitchService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [AuthenticationService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [OpenIdService]
+</I>&gt;<i>     AuthenticationServiceModule = &quot;OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService&quot;
+</I>&gt;<i>     UserAccountServiceModule = &quot;OpenSim.Services.UserAccountService.dll:UserAccountService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [UserAccountService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.UserAccountService.dll:UserAccountService&quot;
+</I>&gt;<i>     AuthenticationService = &quot;OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService&quot;
+</I>&gt;<i>     PresenceService = &quot;OpenSim.Services.PresenceService.dll:PresenceService&quot;
+</I>&gt;<i>     GridService = &quot;OpenSim.Services.GridService.dll:GridService&quot;
+</I>&gt;<i>     InventoryService = &quot;OpenSim.Services.InventoryService.dll:XInventoryService&quot;
+</I>&gt;<i>     AvatarService = &quot;OpenSim.Services.AvatarService.dll:AvatarService&quot;
+</I>&gt;<i>     CreateDefaultAvatarEntries = true
+</I>&gt;<i>
+</I>&gt;<i>     [GridUserService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.UserAccountService.dll:GridUserService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [PresenceService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.PresenceService.dll:PresenceService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [AvatarService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.AvatarService.dll:AvatarService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [FriendsService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.FriendsService.dll:FriendsService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [LibraryService]
+</I>&gt;<i>     LibraryName = &quot;OpenSim Library&quot;
+</I>&gt;<i>     DefaultLibrary = &quot;./inventory/Libraries.xml&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [LoginService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.LLLoginService.dll:LLLoginService&quot;
+</I>&gt;<i>     UserAccountService = &quot;OpenSim.Services.UserAccountService.dll:UserAccountService&quot;
+</I>&gt;<i>     GridUserService = &quot;OpenSim.Services.UserAccountService.dll:GridUserService&quot;
+</I>&gt;<i>     AuthenticationService = &quot;OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService&quot;
+</I>&gt;<i>     InventoryService = &quot;OpenSim.Services.InventoryService.dll:XInventoryService&quot;
+</I>&gt;<i>     AvatarService = &quot;OpenSim.Services.AvatarService.dll:AvatarService&quot;
+</I>&gt;<i>     PresenceService = &quot;OpenSim.Services.PresenceService.dll:PresenceService&quot;
+</I>&gt;<i>     GridService = &quot;OpenSim.Services.GridService.dll:GridService&quot;
+</I>&gt;<i>     SimulationService =&quot;OpenSim.Services.Connectors.dll:SimulationServiceConnector&quot;
+</I>&gt;<i>     LibraryService = &quot;OpenSim.Services.InventoryService.dll:LibraryService&quot;
+</I>&gt;<i>     UserAgentService = &quot;OpenSim.Services.HypergridService.dll:UserAgentService&quot;
+</I>&gt;<i>     FriendsService = &quot;OpenSim.Services.FriendsService.dll:FriendsService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     WelcomeMessage = &quot;Welcome, Avatar!&quot;
+</I>&gt;<i>     AllowRemoteSetLoginLevel = &quot;false&quot;
+</I>&gt;<i>
+</I>&gt;<i>     MapTileURL = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;;
+</I>&gt;<i>     GatekeeperURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>
+</I>&gt;<i>     SRV_HomeURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>     SRV_InventoryServerURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>     SRV_AssetServerURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>     SRV_ProfileServerURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>     SRV_FriendsServerURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>     SRV_IMServerURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>
+</I>&gt;<i>     DSTZone = &quot;America/Los_Angeles;Pacific Standard Time&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [MapImageService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.MapImageService.dll:MapImageService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [GridInfoService]
+</I>&gt;<i>     login = <A HREF="http://login.beta.francogrid.org:8002/">http://login.beta.francogrid.org:8002/</A>
+</I>&gt;<i>     gridname = &quot;FrancoGrid Beta&quot;
+</I>&gt;<i>     gridnick = &quot;fgbeta&quot;
+</I>&gt;<i>     welcome = <A HREF="http://beta.francogrid.org/loginpage">http://beta.francogrid.org/loginpage</A>
+</I>&gt;<i>     about = <A HREF="http://beta.francogrid.org">http://beta.francogrid.org</A>
+</I>&gt;<i>     register = <A HREF="http://beta.francogrid.org/user/register">http://beta.francogrid.org/user/register</A>
+</I>&gt;<i>     help = <A HREF="http://beta.francogrid.org/aide">http://beta.francogrid.org/aide</A>
+</I>&gt;<i>     password = <A HREF="http://beta.francogrid.org/user/password">http://beta.francogrid.org/user/password</A>
+</I>&gt;<i>     gatekeeper = <A HREF="http://hg.beta.francogrid.org:8002/">http://hg.beta.francogrid.org:8002/</A>
+</I>&gt;<i>     uas = <A HREF="http://hg.beta.francogrid.org:8002/">http://hg.beta.francogrid.org:8002/</A>
+</I>&gt;<i>
+</I>&gt;<i>     [GatekeeperService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.HypergridService.dll:GatekeeperService&quot;
+</I>&gt;<i>     UserAccountService = &quot;OpenSim.Services.UserAccountService.dll:UserAccountService&quot;
+</I>&gt;<i>     UserAgentService = &quot;OpenSim.Services.HypergridService.dll:UserAgentService&quot;
+</I>&gt;<i>     PresenceService = &quot;OpenSim.Services.PresenceService.dll:PresenceService&quot;
+</I>&gt;<i>     GridService = &quot;OpenSim.Services.GridService.dll:GridService&quot;
+</I>&gt;<i>     AuthenticationService = &quot;OpenSim.Services.Connectors.dll:AuthenticationServicesConnector&quot;
+</I>&gt;<i>     SimulationService =&quot;OpenSim.Services.Connectors.dll:SimulationServiceConnector&quot;
+</I>&gt;<i>     ExternalName = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>     AllowTeleportsToAnyRegion = true
+</I>&gt;<i>
+</I>&gt;<i>     [UserAgentService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.HypergridService.dll:UserAgentService&quot;
+</I>&gt;<i>     GridUserService = &quot;OpenSim.Services.UserAccountService.dll:GridUserService&quot;
+</I>&gt;<i>     GridService = &quot;OpenSim.Services.GridService.dll:GridService&quot;
+</I>&gt;<i>     GatekeeperService = &quot;OpenSim.Services.HypergridService.dll:GatekeeperService&quot;
+</I>&gt;<i>     PresenceService = &quot;OpenSim.Services.PresenceService.dll:PresenceService&quot;
+</I>&gt;<i>     FriendsService  = &quot;OpenSim.Services.FriendsService.dll:FriendsService&quot;
+</I>&gt;<i>     UserAccountService = &quot;OpenSim.Services.UserAccountService.dll:UserAccountService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [HGInventoryService]
+</I>&gt;<i>     LocalServiceModule    = &quot;OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     UserAccountsService = &quot;OpenSim.Services.UserAccountService.dll:UserAccountService&quot;
+</I>&gt;<i>     AvatarService = &quot;OpenSim.Services.AvatarService.dll:AvatarService&quot;
+</I>&gt;<i>     HomeURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [HGAssetService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.HypergridService.dll:HGAssetService&quot;
+</I>&gt;<i>     UserAccountsService = &quot;OpenSim.Services.UserAccountService.dll:UserAccountService&quot;
+</I>&gt;<i>     HomeURI = &quot;<A HREF="http://hg.beta.francogrid.org:8002">http://hg.beta.francogrid.org:8002</A>&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [HGFriendsService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.HypergridService.dll:HGFriendsService&quot;
+</I>&gt;<i>     UserAgentService = &quot;OpenSim.Services.HypergridService.dll:UserAgentService&quot;
+</I>&gt;<i>     FriendsService = &quot;OpenSim.Services.FriendsService.dll:FriendsService&quot;
+</I>&gt;<i>     UserAccountService = &quot;OpenSim.Services.UserAccountService.dll:UserAccountService&quot;
+</I>&gt;<i>     GridService = &quot;OpenSim.Services.GridService.dll:GridService&quot;
+</I>&gt;<i>     PresenceService = &quot;OpenSim.Services.PresenceService.dll:PresenceService&quot;
+</I>&gt;<i>
+</I>&gt;<i>     [HGInstantMessageService]
+</I>&gt;<i>     LocalServiceModule = &quot;OpenSim.Services.HypergridService.dll:HGInstantMessageService&quot;
+</I>&gt;<i>     GridService = &quot;OpenSim.Services.GridService.dll:GridService&quot;
+</I>&gt;<i>     PresenceService = &quot;OpenSim.Services.PresenceService.dll:PresenceService&quot;
+</I>&gt;<i>     UserAgentService = &quot;OpenSim.Services.HypergridService.dll:UserAgentService&quot;
+</I>&gt;<i>     InGatekeeper = True
+</I>&gt;<i>
+</I>&gt;<i>     [Messaging]
+</I>&gt;<i>     OfflineMessageURL = <A HREF="http://beta.francogrid.org/grid/services/offline-messages">http://beta.francogrid.org/grid/services/offline-messages</A>
+</I>&gt;<i>     ForwardOfflineGroupMessages = true
+</I>&gt;<i>
+</I>&gt;<i>     ***********************************************************____
+</I>&gt;<i>
+</I>&gt;<i>     __ __
+</I>&gt;<i>
+</I>&gt;<i>     2013/1/14 ssm2017 &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ssm2017 at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ssm2017 at gmail.com</A>&gt;&gt;____
+</I>&gt;<i>
+</I>&gt;<i>     there is no stack trace and all the rest of the console output is clean and the grid is working :)____
+</I>&gt;<i>
+</I>&gt;<i>     i only have one red line that is this one but maybe i have made a mistake in the robust configuration with my
+</I>&gt;<i>     myltiple instances____
+</I>&gt;<i>
+</I>&gt;<i>     __ __
+</I>&gt;<i>
+</I>&gt;<i>     2013/1/14 Adams, Robert &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">robert.adams at intel.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">robert.adams at intel.com</A>&gt;&gt;____
+</I>&gt;<i>
+</I>&gt;<i>     If you are lucky, there is a stack trace after that error in the OpenSim.log file. Creating a Mantis entry with that
+</I>&gt;<i>     stack trace would help pinpointing the error.____
+</I>&gt;<i>
+</I>&gt;<i>     ____
+</I>&gt;<i>
+</I>&gt;<i>     -- ra____
+</I>&gt;<i>
+</I>&gt;<i>     ____
+</I>&gt;<i>
+</I>&gt;<i>     *From:*<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;
+</I>&gt;<i>     [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;] *On Behalf Of *ssm2017
+</I>&gt;<i>     *Sent:* Sunday, January 13, 2013 3:48 PM
+</I>&gt;<i>     *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     *Subject:* [Opensim-dev] multiple robust instances____
+</I>&gt;<i>
+</I>&gt;<i>     ____
+</I>&gt;<i>
+</I>&gt;<i>     hello____
+</I>&gt;<i>
+</I>&gt;<i>     using 0.7.5-rc1 under a debian 6 with mono 2.10.8.1____
+</I>&gt;<i>
+</I>&gt;<i>     i have separated robut on 3 parts : grid/assets/inventory____
+</I>&gt;<i>
+</I>&gt;<i>     following this procedure :
+</I>&gt;<i>     <A HREF="http://opensimulator.org/wiki/Configuration#Running_multiple_ROBUST_service_instances___">http://opensimulator.org/wiki/Configuration#Running_multiple_ROBUST_service_instances___</A>_
+</I>&gt;<i>
+</I>&gt;<i>     everything looks working but i see a non blocking error when i start the grid robust instance :
+</I>&gt;<i>     Error loading plugin OpenSim.Services.Interfaces.IAssetService from OpenSim.Services.AssetService.dll. Exception:
+</I>&gt;<i>     Object reference not set to an in
+</I>&gt;<i>     stance of an object____
+</I>&gt;<i>
+</I>&gt;<i>     any idea about what it could be ?____
+</I>&gt;<i>
+</I>&gt;<i>     if there are any errors on the wiki page, is it possible please to update it ?____
+</I>&gt;<i>
+</I>&gt;<i>     __ __
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev___">https://lists.berlios.de/mailman/listinfo/opensim-dev___</A>_
+</I>&gt;<i>
+</I>&gt;<i>     __ __
+</I>&gt;<i>
+</I>&gt;<i>     __ __
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011612.html">[Opensim-dev] multiple robust instances
+</A></li>
+	<LI>Next message: <A HREF="011615.html">[Opensim-dev] multiple robust instances
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11613">[ date ]</a>
+              <a href="thread.html#11613">[ thread ]</a>
+              <a href="subject.html#11613">[ subject ]</a>
+              <a href="author.html#11613">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

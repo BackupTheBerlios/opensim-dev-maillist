@@ -1,0 +1,181 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] On Mantis #1370 (avatar persistence)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3Cb046ff2a0806102129x484a0eb2xd4e30345e85d1d9c%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001788.html">
+   <LINK REL="Next"  HREF="001791.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] On Mantis #1370 (avatar persistence)</H1>
+    <B>liu xiaolu</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3Cb046ff2a0806102129x484a0eb2xd4e30345e85d1d9c%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] On Mantis #1370 (avatar persistence)">lulurun at gmail.com
+       </A><BR>
+    <I>Wed Jun 11 06:29:57 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001788.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+        <LI>Next message: <A HREF="001791.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1790">[ date ]</a>
+              <a href="thread.html#1790">[ thread ]</a>
+              <a href="subject.html#1790">[ subject ]</a>
+              <a href="author.html#1790">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>To JustinCC
+
+
+&gt;<i> Yeah, there is a mechanism in the inventory code that other functions
+</I>&gt;<i> use to complete execution only when the inventory is received (such as
+</I>&gt;<i> opening a folder, at least under UDP rather than CAPS).  The appearance
+</I>&gt;<i> mechanism should probably use that.   Probably everything should be
+</I>&gt;<i> using that mechanism (rather than just checking if RootFolder != null
+</I>&gt;<i> which I suspect is what is currently being done).
+</I>&gt;<i>
+</I>
+What you said is correct, but making request synchronous is not the main
+point
+of this problem. (Even though it LOOKs like that appearance persistence
+works if the
+&quot;getinventory&quot; is synchronous)
+
+I think the main problem is:
+we are using(in function TryGetAvatarAppearance) the data(wearable uuids)
+which we
+don't trust(in function SetAppearanceAsset).
+
+we have to do some work to let us feel safe to use our data.
+the &quot;check&quot; should be done when the data is updated(inserted), not after
+selected.
+
+and another sub-problem is:
+appearance and inventory has close relationship, but they are stored in
+separated
+servers.
+
+&gt;<i>
+</I>&gt;<i> &gt; *NOTE*: as I tested, in windows there is no timing problem, Line19:
+</I>&gt;<i> &gt; &quot;getinventory&quot; in windows is SYNC.  :@
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ---------------------------------------
+</I>&gt;<i> &gt;  1| 20:20:13 - [CONNECTION DEBUGGING]: Expect User called, starting
+</I>&gt;<i> &gt; agent setup ...
+</I>&gt;<i> &gt;  2| 20:20:13 - [CONNECTION DEBUGGING]: Main agent detected
+</I>&gt;<i> &gt;  3| 20:20:13 - [CONNECTION DEBUGGING]: Triggering welcome for
+</I>&gt;<i> &gt; e8738a41-d260-4030-9b54-31688164b260 into 10996215791947776
+</I>&gt;<i> &gt;  4| 20:20:13 - [CAPS]: Setting up CAPS handler for root agent
+</I>&gt;<i> &gt; e8738a41-d260-4030-9b54-31688164b260 in WolfDrawer
+</I>&gt;<i> &gt;  5| 20:20:13 - [CONNECTION DEBUGGING]: Creating new circuit code
+</I>&gt;<i> &gt; (1590320709) for avatar e8738a41-d260-4030-9b54-31688164b260 at
+</I>&gt;<i> WolfDrawer
+</I>&gt;<i> &gt;  6| 20:20:13 - [OGS1 GRID SERVICES]: Welcoming new user...
+</I>&gt;<i> &gt;  7| 20:20:15 - [CAPS]: Seed Caps Request in region: WolfDrawer
+</I>&gt;<i> &gt;  8| 20:20:15 - [UDPSERVER]: Adding New Client
+</I>&gt;<i> &gt;  9| 20:20:15 - [CLIENT]: Started up new client thread to handle incoming
+</I>&gt;<i> &gt; request
+</I>&gt;<i> &gt; 10| 20:20:15 - [CLIENT]: Got authenticated connection from
+</I>&gt;<i> &gt; 219.106.248.145:62864 &lt;<A HREF="http://219.106.248.145:62864">http://219.106.248.145:62864</A>&gt;
+</I>&gt;<i> &gt; 11| 20:20:15 - [CLIENT]: Adding viewer agent to scene
+</I>&gt;<i> &gt; 12| 20:20:15 - [CONNECTION DEBUGGING]: Creating new client for
+</I>&gt;<i> &gt; e8738a41-d260-4030-9b54-31688164b260 at WolfDrawer
+</I>&gt;<i> &gt; 13| 20:20:15 - [REGION]: Add New Scene Presence
+</I>&gt;<i> &gt; 14| 20:20:15 - [APPEARANCE]: appearance not found for
+</I>&gt;<i> &gt; e8738a41-d260-4030-9b54-31688164b260, creating default
+</I>&gt;<i> &gt; 15| 20:20:15 - [APPEARANCE]: Appearance not found, creating default
+</I>&gt;<i> &gt; 16| 20:20:15 - [SCENE]:WolfDrawer: Creating new child agent.
+</I>&gt;<i> &gt; 17| 20:20:16 - [GROUP]: Adding lulu run to OpenSimulator Testing
+</I>&gt;<i> &gt; 18| 20:20:17 - [CLIENT]: Entered loop
+</I>&gt;<i> &gt; 19| 20:20:17 - [OGS1 INVENTORY SERVICE]: Requesting inventory from
+</I>&gt;<i> &gt; <A HREF="http://osgrid.org:8004/GetInventory/">http://osgrid.org:8004/GetInventory/</A> for user
+</I>&gt;<i> &gt; e8738a41-d260-4030-9b54-31688164b260
+</I>&gt;<i> &gt; 20| 20:20:17 - [SUN]: Initial update for new client
+</I>&gt;<i> &gt; 21| 20:20:17 - [FRIEND]: Claiming lulu run in region:10996215791947776.
+</I>&gt;<i> &gt; 22| 20:20:17 - [CAPS]: Setting up CAPS handler for root agent
+</I>&gt;<i> &gt; e8738a41-d260-4030-9b54-31688164b260 in WolfDrawer
+</I>&gt;<i> &gt; 23| 20:20:18 - [OSG1 USER SERVICES]: Successfully updated user record
+</I>&gt;<i> &gt; 24| 20:20:18 - [APPEARANCE]: appearance not found for
+</I>&gt;<i> &gt; e8738a41-d260-4030-9b54-31688164b260, creating default
+</I>&gt;<i> &gt; 25| 20:20:18 - [APPEARANCE]: Appearance not found, creating default
+</I>&gt;<i> &gt; 26| 20:20:19 - [OGS1 INVENTORY SERVICE]: Received inventory response for
+</I>&gt;<i> &gt; user e8738a41-d260-4030-9b54-31688164b260 containing 15 folders and 4
+</I>&gt;<i> items
+</I>&gt;<i> &gt; 27| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> &gt; 28| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> &gt; 29| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> &gt; 30| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> &gt; 31| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> &gt; 32| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> &gt; 33| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> &gt; 34| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> &gt; 35| 20:20:21 - [APPEARANCE]: Sending Appearance to All Other Agents
+</I>&gt;<i> &gt; 36| 20:20:21 - [CLIENT]: unhandled AgentHeightWidth packet
+</I>&gt;<i> &gt; 37| 20:20:21 - [CLIENT]: unhandled MuteListRequest packet
+</I>&gt;<i> &gt; 38| 20:20:22 - [CLIENT]: unhandled AgentHeightWidth packet
+</I>&gt;<i> &gt; 39| 20:20:22 - [APPEARANCE]: Sending Own Appearance
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; --
+</I>&gt;<i> &gt; Liu Xiaolu
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> justincc
+</I>&gt;<i> Justin Clark-Casey
+</I>&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+
+-- 
+Liu Xiaolu
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080611/2ec4dd28/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080611/2ec4dd28/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001788.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+	<LI>Next message: <A HREF="001791.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1790">[ date ]</a>
+              <a href="thread.html#1790">[ thread ]</a>
+              <a href="subject.html#1790">[ subject ]</a>
+              <a href="author.html#1790">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

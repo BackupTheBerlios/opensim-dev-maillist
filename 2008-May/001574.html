@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] IStreamHandler vs IStreamedHandler
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IStreamHandler%20vs%20IStreamedHandler&In-Reply-To=%3COF2DBFBFCC.7D368397-ON8525744B.003C4A3E-8525744B.00408C02%40us.ibm.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001572.html">
+   <LINK REL="Next"  HREF="001571.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] IStreamHandler vs IStreamedHandler</H1>
+    <B>Alan M Webb</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IStreamHandler%20vs%20IStreamedHandler&In-Reply-To=%3COF2DBFBFCC.7D368397-ON8525744B.003C4A3E-8525744B.00408C02%40us.ibm.com%3E"
+       TITLE="[Opensim-dev] IStreamHandler vs IStreamedHandler">alan_webb at us.ibm.com
+       </A><BR>
+    <I>Fri May 16 13:45:00 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001572.html">[Opensim-dev] IStreamHandler vs IStreamedHandler
+</A></li>
+        <LI>Next message: <A HREF="001571.html">[Opensim-dev] enhancing IStream(ed)Handler interface to pass in request/response object
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1574">[ date ]</a>
+              <a href="thread.html#1574">[ thread ]</a>
+              <a href="subject.html#1574">[ subject ]</a>
+              <a href="author.html#1574">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes, I had looked at this as well, and come to the same (inconclusive) 
+conclusions. My view was that it is pretty unlikely that a single model 
+would ever fit the bill, so the IStreamHandler/IStreamedHandler issue 
+seemed moot. What I was trying to get my head around was whether or note 
+there was a better way to filter between different handler types, and 
+whether or not, in fact, a whole new one was needed for REST. On the basis 
+that the current stream handlers are fundamentally useless in this 
+respect, for the reasons you cite here and in subsequent notes.
+
+BaseHttpServer seems to do a pretty efficient job of obtaining requests 
+and handing them off to other threads for processing (default of 25 worker 
+threads), so I don't see why it should be the source of lag in the system. 
+Multiple listeners (multiple BaseHttpServer's) might address concerns in 
+this area - that is if we had a basis for apportioning traffic to 
+different sockets. But how much traffic actually flows through 
+BaseHttpServer? I wasn't sure and have been too lazy to work it out; my 
+intuition is that it is actually pretty small (logons....what else?)
+
+We clearly need a better handler for REST, with no access to the headers 
+we are too functionally impaired. At the moment the stream handlers take 
+priority over content-based allocation. Maybe we could use the headers 
+more effectively to route work through the handler? I looked at what we 
+get from the SL client, unfortunately it does nothing to distinguish its 
+flows, just text/xml. But that wouldn't stop us from handling our own 
+agents directly. E.g. make the first check a check on User-Agent, and if 
+there is a handler for a specific agent, pass it to that, otherwise do the 
+generic processing we have today. I already have a version of 
+BaseHttpServer that does something along these lines (because I wanted 
+header acces for REST).
+
+Best regards
+Alan
+-------------------
+T.J. Watson Research Center, Hawthorne, NY
+1-914-784-7286
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>
+
+
+
+Dr Scofield &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt; 
+Sent by: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+05/16/2008 05:35 AM
+Please respond to
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+
+
+To
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+cc
+
+Subject
+[Opensim-dev] IStreamHandler vs IStreamedHandler
+
+
+
+
+
+
+trying to grok the inner beauty of BaseHttpServer i came across 
+IStreamHandler and IStreamedHandler.
+
+from the comments in BaseHttpServer ---
+
+                    // Okay, so this is bad, but should be considered 
+temporary until everything is IStreamHandler.
+
+
+--- one can conclude that IStreamedHandler's days should be counted, but 
+there are actually very few handlers implementing IStreamHandler 
+(basically Inventory code makes use of it via RestDeserializedhandler) 
+and quite a lot (still?) implementing IStreamedHandler.
+
+so, question: is the intention that IStreamHandler should rule and 
+IStreamedHandler should go?
+
+    cheers,
+    dirk
+
+-- 
+dr dirk husemann ---- virtual worlds research ---- ibm zurich research lab
+SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080516/02b6ead8/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080516/02b6ead8/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001572.html">[Opensim-dev] IStreamHandler vs IStreamedHandler
+</A></li>
+	<LI>Next message: <A HREF="001571.html">[Opensim-dev] enhancing IStream(ed)Handler interface to pass in request/response object
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1574">[ date ]</a>
+              <a href="thread.html#1574">[ thread ]</a>
+              <a href="subject.html#1574">[ subject ]</a>
+              <a href="author.html#1574">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Robotics in OpenSim?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Robotics%20in%20OpenSim%3F&In-Reply-To=%3C278202.94808.qm%40web51309.mail.re2.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001510.html">
+   <LINK REL="Next"  HREF="001516.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Robotics in OpenSim?</H1>
+    <B>dan miller</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Robotics%20in%20OpenSim%3F&In-Reply-To=%3C278202.94808.qm%40web51309.mail.re2.yahoo.com%3E"
+       TITLE="[Opensim-dev] Robotics in OpenSim?">danbmil99 at yahoo.com
+       </A><BR>
+    <I>Mon May  5 20:35:33 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001510.html">[Opensim-dev] Robotics in OpenSim?
+</A></li>
+        <LI>Next message: <A HREF="001516.html">[Opensim-dev] Robotics in OpenSim?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1514">[ date ]</a>
+              <a href="thread.html#1514">[ thread ]</a>
+              <a href="subject.html#1514">[ subject ]</a>
+              <a href="author.html#1514">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>hi Ben --
+
+We've met at a conference or two.  I'm danx0r on IRC (not there much lately), and I contributed some of the original ODE physics code here.  I also do robotics by day, and I'm interested (some might say obsessed) with the intersection between robotics, simulation, and immersive 3D environments.
+
+I'd love to talk more about your proposal.  Here are a couple notes on your original post:
+
+
+--- On Thu, 5/1/08, Ben Goertzel &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ben at goertzel.org</A>&gt; wrote:
+
+&gt;<i> I am interested in the possibility of using OpenSim to have
+</I>&gt;<i> human-controlled avatars
+</I>&gt;<i> interact with realistically-controlled simulations of
+</I>&gt;<i> robots.
+</I>
+Me too.
+
+&gt;<i> Question is whether it's feasible or not.
+</I>
+I've ruminated on this here and elsewhere.  The short answer, I think, is maybe, but it may not be the best choice depending on your goals.
+
+&gt;<i> My thought is to integrate the Player framework
+</I>&gt;<i> into OpenSim somehow
+</I>...
+&gt;<i> best option is just to hook Player up to OpenSim to that in
+</I>&gt;<i> effect OpenSim replaces Gazebo.
+</I>
+The problem here is that the physics as it is presently implemented in opensim will not provide many of the features you need to do realistic robots that you get from a 'real' simulator such as Gazebo.  You'll be chasing features in opensim's ODE layer that are already there in p/s/g.  My first-draft opinion is that it would be more efficient (development-wise) to use Gazebo as the physics plug-in, in place of the ODE plugin or POS.  Then you could start exposing robotics-oriented features of Gazebo.
+
+&gt;<i>  The question is whether OpenSim is open to
+</I>&gt;<i> having the skeleton of a character controlled by some
+</I>&gt;<i> external process (which would
+</I>&gt;<i> simulate a servomotor attached to each joint) rather than
+</I>&gt;<i> controlled by a fixed set of
+</I>&gt;<i> animations.   
+</I>
+That's a good question.  My understanding is, the answer here is a resounding No (* see end note).  However, scripted objects (controlled server-side) _can_ behave in ways similar to the way human characters do.  The problem is, they live in a somewhat separate world.  Character animation is done client-side, whereas scripted objects are controlled server-side.  The client side knows absolutely nothing about physics, BTW.  Anything apparently physical about character animation was baked in when the animation was created.
+
+&gt;<i> I suppose the situation where Player controls a skeleton
+</I>&gt;<i> is not that fundamentally different from the one where a skeleton is
+</I>&gt;<i> controlled by some inverse kinematics equations or what-not.
+</I>
+Ahh, that's the crux.  As stated previously, the Player does not control a skeleton in that way.  It launches animations that each client logged onto the system faithfully reproduce.  Player actions are then broadcast, and each player's client code animates each player's character accordingly.
+
+&gt;<i> What I'm looking for is an indication of whether
+</I>&gt;<i> OpenSim experts think this is
+</I>&gt;<i> a generally feasible direction; and if so, any clues on the
+</I>&gt;<i> best technical approach.
+</I>&gt;<i> 
+</I>&gt;<i> I have more experience with Second Life and Multiverse than
+</I>&gt;<i> OpenSim.
+</I>
+Have you looked at OpenCroquet?  Not to say OpenSim isn't feasible for this, but the honest answer is that this concept is well outside its design envelope.  In my opinion, there is a massive cognitive disconnect between how the server handles things (scene db, physics, scripts) and how the client handles its responsibilities (basically a 3D animation package with a parametric humanoid skeleton model).
+
+To give you an example of the impact of this design, note that avatars are modelled in the physics engine as egg-shaped 'capsules'.  There is no attempt at present to indicate to the physics layer that the character even has limbs, much less where they are located in 3-space.  These design decisions are IMSHO an artifact of SL's (and immersive social worlds in general) technical heritage, having been conceived basically as a MMOG for adult socializing, with different visuals and game goals, but similar technical requirements.  MMOG's in turn inherit the basic philosophy of RPG's and FPS gaming.  If you go back far enough, the human-controlled character (avatar) is basically a cursor in a 2D world (2600 anyone?), controlled with NWSE commands.  Interaction with the environment is achieved through high-level requests such as &quot;pick up that chalice&quot;, and an inventory of objects is kept.  This of course long predates any attempt at 3D versimilitude.  The
+ upshot is that the basic philosophy is to treat 3D, including physics, as eye candy that sits on top of the fundamental walkabout/pick up objects/cast spells metaphor.
+
+It's interesting I think to contrast this development branch with simulation-based games such as flight simulators and the more realistic driving games.  By choice and design, they tended to treat the simulation as the core basis for their reality, and all interaction and gameplay was derived from the concept of physical interaction (weapons and direct interaction, ie crashing).
+
+I'd love to talk more about this at length if you're game.
+
+Daniel B. Miller
+danbmil99 at yahoo dot com
+artiphys.blogspot.com
+
+
+* note: there's an unfortunate issue you should be aware of.  OpenSim is BSD-licensed, whereas Linden Lab's open-source viewer (client) is released under GPL.  Without rehashing lots of politics, the upshot is that in general, OpenSim developers will have nothing at all to do with the client code, to the point where any substantial involvement in client code development will get you banished from the OpenSim dev community.  What this means in practice is that anyone who wants to maintain the possibility of contributing to OpenSim (including myself) is, by design, unwilling and unable to understand or converse deeply on how the client actually operates.  In my case, I'm quite curious about certain issues such as client-side animation and how 'prims' are meshed for visualization, but I've kept my options open by not downloading and perusing Linden's code.  This complicates the issue of discussing projects such as yours that may require deep understanding
+ of both server and client operation.
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001510.html">[Opensim-dev] Robotics in OpenSim?
+</A></li>
+	<LI>Next message: <A HREF="001516.html">[Opensim-dev] Robotics in OpenSim?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1514">[ date ]</a>
+              <a href="thread.html#1514">[ thread ]</a>
+              <a href="subject.html#1514">[ subject ]</a>
+              <a href="author.html#1514">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

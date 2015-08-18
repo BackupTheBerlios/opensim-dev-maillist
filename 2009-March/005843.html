@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] function libraries for script engine
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20function%20libraries%20for%20script%20engine&In-Reply-To=%3C49C94E57.9030506%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005842.html">
+   <LINK REL="Next"  HREF="005821.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] function libraries for script engine</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20function%20libraries%20for%20script%20engine&In-Reply-To=%3C49C94E57.9030506%40t-data.com%3E"
+       TITLE="[Opensim-dev] function libraries for script engine">melanie at t-data.com
+       </A><BR>
+    <I>Tue Mar 24 22:19:19 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005842.html">[Opensim-dev] function libraries for script engine
+</A></li>
+        <LI>Next message: <A HREF="005821.html">[Opensim-dev] density
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5843">[ date ]</a>
+              <a href="thread.html#5843">[ thread ]</a>
+              <a href="subject.html#5843">[ subject ]</a>
+              <a href="author.html#5843">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have really broken my head over this. The API module system I have 
+implemented actually allows loading of APIs by name, so the &quot;worker&quot; 
+stuff could be made dynamic with only trivial effort.
+
+However, adding actual methods to the script base class is proving a 
+challenge. Specifically, language extension modules need to supply a 
+file that augments a partial class, therefore must be present at 
+compile-time.
+
+Of course, an invocation method osCallModule() could get around 
+that, but i's a horrible kludge, IMHO. I'd much rather add native 
+support for adding real methods, if at all possible.
+
+Theoretically, I can easily let scripts use &quot;using&quot; and reference 
+additional modules. However, the LSL2CS converter errors out at 
+every Class.Member notation, exclept for a few permitted ones. 
+Therefore, this would become usable for scripting in other languages 
+only, but not for OSSL.
+
+As I'm writing this, I actually thought of a way to do this, but I 
+have to investigate further.
+The idea would be to do a text replace after the LSL translation. 
+This means that I would have each module provide it's method names 
+and the module name, and then the naked method names would be used 
+in the script.
+Then, after parsing, the script would be scanned for the naked 
+method names, and they would be replaced by &quot;Module.Method&quot;.
+
+So, this:
+
+state_entry()
+{
+	MyModuleMethod();
+}
+
+becomes:
+
+state_entry()
+{
+	MyModule.MyModuleMethod();
+}
+
+and is then passed to the compiler.
+
+It would still have to use some form of call gate to break out of 
+the app domain, which may need more references magic,but it seems 
+doable and not too ugly.
+
+Melanie
+
+
+Justin Clark-Casey wrote:
+&gt;<i> Mic Bowman wrote:
+</I>&gt;&gt;<i> opensim currently has the LSL and OSL APIs that implement functions
+</I>&gt;&gt;<i> for scripting. is there an good/easy/appropriate way to add a library
+</I>&gt;&gt;<i> of functions dynamically? can i register new script functions through
+</I>&gt;&gt;<i> a region module?
+</I>&gt;<i> 
+</I>&gt;<i> Just fyi Mic, there was also some discussion about this on
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://justincc.wordpress.com/2009/02/27/reflections-on-writing-an-opensim-region-module/">http://justincc.wordpress.com/2009/02/27/reflections-on-writing-an-opensim-region-module/</A>
+</I>&gt;<i> 
+</I>&gt;<i> with a few possible avenues from lsba71 and Rob Smart by which it might be possible to get this done.  However, they 
+</I>&gt;<i> would all require some infrastructure work if they are viable.
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005842.html">[Opensim-dev] function libraries for script engine
+</A></li>
+	<LI>Next message: <A HREF="005821.html">[Opensim-dev] density
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5843">[ date ]</a>
+              <a href="thread.html#5843">[ thread ]</a>
+              <a href="subject.html#5843">[ subject ]</a>
+              <a href="author.html#5843">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

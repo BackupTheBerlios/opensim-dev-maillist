@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] 0.5.9 Problems: Linking prims via libomv
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%200.5.9%20Problems%3A%20Linking%20prims%20via%20libomv&In-Reply-To=%3Cab84ceb10809031716n1fc75c01v2e8c12708dfbbd8%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002844.html">
+   <LINK REL="Next"  HREF="002846.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] 0.5.9 Problems: Linking prims via libomv</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%200.5.9%20Problems%3A%20Linking%20prims%20via%20libomv&In-Reply-To=%3Cab84ceb10809031716n1fc75c01v2e8c12708dfbbd8%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] 0.5.9 Problems: Linking prims via libomv">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Thu Sep  4 02:16:18 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002844.html">[Opensim-dev] 0.5.9 Problems: Linking prims via libomv
+</A></li>
+        <LI>Next message: <A HREF="002846.html">[Opensim-dev] 0.5.9 Problems: Linking prims via libomv
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2845">[ date ]</a>
+              <a href="thread.html#2845">[ thread ]</a>
+              <a href="subject.html#2845">[ subject ]</a>
+              <a href="author.html#2845">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have a builder bot that is based on libsl r1915 and modeled after the
+testclient import command. I haven't seen any problems similar to yours when
+I've used it with any versions of Opensim to date, but sometimes I do see
+link failures when using it on the Linden grid.
+I haven't seen that libsl client compatibility is currently a goal of any of
+the opensim developers or of the team in general. Most testing is done with
+the Linden viewer or derivatives. Given those constraints, I suspect making
+use of the xml import functionality of Opensim may be the easiest path.
+
+
+On Wed, Sep 3, 2008 at 1:21 PM, Shack Dougall &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">shack at liferain.com</A>&gt; wrote:
+
+&gt;<i> As part of Prim Composer for 3ds Max, I'm writing a libomv-based
+</I>&gt;<i> importer for SL and OpenSim.  The importer, called maxport, performs
+</I>&gt;<i> this set of basic operations:
+</I>&gt;<i>
+</I>&gt;<i> * rezzes prims, sets their position, name, and permissions
+</I>&gt;<i> * uploads images, puts them in inventory, sets their permissions,
+</I>&gt;<i> applies them to prims
+</I>&gt;<i> * links prims
+</I>&gt;<i>
+</I>&gt;<i> This week I started using OpenSim's tags/0.5.9-released branch in SVN.
+</I>&gt;<i> Previously, I was running the 0.5.8 binary release.  All of my testing
+</I>&gt;<i> so far has been in standalone mode, basicphysics, and SQLite
+</I>&gt;<i>
+</I>&gt;<i> 0.5.8 seemed rock solid.  It took just about anything I could throw at
+</I>&gt;<i> it.  Sometimes, I had to slow things down for it, but it worked
+</I>&gt;<i> predictably.  0.5.9 seems less solid and in particular, I'm encountering
+</I>&gt;<i> huge problems with linking.
+</I>&gt;<i>
+</I>&gt;<i> I've created a series of data sets with 100, 200, and 400 prims.  And
+</I>&gt;<i> also different amounts of linking, from no linking to 100 prim
+</I>&gt;<i> linksets.  The naming convention is &quot;link_x_boxes_y&quot; which indicates
+</I>&gt;<i> that it contains y boxes that are linked into x linksets.  So,
+</I>&gt;<i> link_10_boxes_100 means that there are 100 prims that have been linked
+</I>&gt;<i> into 10 linksets of 10 prims each.  link_2_boxes_100 means 100 prims in
+</I>&gt;<i> 2 linksets of 50 prims each.
+</I>&gt;<i>
+</I>&gt;<i> I started seeing problems immediately in 0.5.9.  link_2_boxes_4 should
+</I>&gt;<i> produce 4 prims that are linked into two pairs of 2.  And it did this in
+</I>&gt;<i> 0.5.8.  But in 0.5.9, it produced 3 prims that were linked together with
+</I>&gt;<i> a 4th prim that was unlinked and out of position.
+</I>&gt;<i>
+</I>&gt;<i> Larger linksets do even crazier things.  Linksets with 50 prims or more
+</I>&gt;<i> will spontaneously link to other prims in the sim that were never
+</I>&gt;<i> specified in the link request.  And I'm seeing duplicate prims that get
+</I>&gt;<i> linked in strange ways.  Some of the duplicates get their position set
+</I>&gt;<i> to half a sim away from where the originals were created.  It is bizarre.
+</I>&gt;<i>
+</I>&gt;<i> I would probably think that I'd done something wrong, except that the
+</I>&gt;<i> same program works perfectly when run against 0.5.8.
+</I>&gt;<i>
+</I>&gt;<i> Seems like there is a multi-threading issue or something similar going
+</I>&gt;<i> on that is causing things to go haywire inside of OpenSim 0.5.9 when
+</I>&gt;<i> linking is done.  It's probably a small bug, but it is doing serious
+</I>&gt;<i> damage.
+</I>&gt;<i>
+</I>&gt;<i> So, here's the thing.  I have more information that I can provide.  I've
+</I>&gt;<i> made a lot of observations.  I'd be glad to give you a compiled copy of
+</I>&gt;<i> the program I'm using and the data I use to perform the tests.  Just let
+</I>&gt;<i> me know what you'd like.
+</I>&gt;<i>
+</I>&gt;<i> --Shack
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080903/0881882c/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080903/0881882c/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002844.html">[Opensim-dev] 0.5.9 Problems: Linking prims via libomv
+</A></li>
+	<LI>Next message: <A HREF="002846.html">[Opensim-dev] 0.5.9 Problems: Linking prims via libomv
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2845">[ date ]</a>
+              <a href="thread.html#2845">[ thread ]</a>
+              <a href="subject.html#2845">[ subject ]</a>
+              <a href="author.html#2845">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

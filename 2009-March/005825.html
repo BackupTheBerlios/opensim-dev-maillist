@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] density
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20density&In-Reply-To=%3C34cc66250903221707x7cc9671co8c55b45cf90a949%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005824.html">
+   <LINK REL="Next"  HREF="005826.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] density</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20density&In-Reply-To=%3C34cc66250903221707x7cc9671co8c55b45cf90a949%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] density">teravus at gmail.com
+       </A><BR>
+    <I>Mon Mar 23 01:07:22 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005824.html">[Opensim-dev] density
+</A></li>
+        <LI>Next message: <A HREF="005826.html">[Opensim-dev] density
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5825">[ date ]</a>
+              <a href="thread.html#5825">[ thread ]</a>
+              <a href="subject.html#5825">[ subject ]</a>
+              <a href="author.html#5825">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Interesting thoughts.
+
+Currently they are configurable.  Though, there's nothing to say that
+material rubber has different settings then material plywood.
+
+There's also no defined procedure for changing the settings.    One of
+the reasons being...   it's something that's partially mathematic and
+partially qualitative (does this object react well to being hit with a
+train?).
+
+I believe that all current LSL scripts that are worth their weight in
+$L get the mass of the avatar first..  and multiply the intended
+forces by it to get the 'effective' force..  so you're right in that
+the default density of avatar makes no difference to scripts.    The
+PID controller, however, is specifically tuned.   I'm sure there have
+been some people who have changed some of the properties and saw weird
+things happen like avatar go through walls when flying at high speeds
+in certain directions or falling through objects as a result.
+
+Anyway, I think what ckrinke is advocating here is a group of physics
+settings based on material.
+
+Regards
+
+Teravus
+
+On 3/22/09, Dahlia Trimble &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.com</A>&gt; wrote:
+&gt;<i> I'm trying to imagine the consequences of having the wrong density for an
+</I>&gt;<i> avatar. The most common physics application that I'm aware of for avatars
+</I>&gt;<i> are flight assists, which may be less common in OpenSim as there is no
+</I>&gt;<i> flight ceiling. Another application may be push type teleporting systems.
+</I>&gt;<i> Applications which require accurate physics usually use the results of
+</I>&gt;<i> llGetMass() as a term for any calculations which could lessen the need for
+</I>&gt;<i> accurate default density.
+</I>&gt;<i>
+</I>&gt;<i> It is a problem that many of the values for physics are empirically derived,
+</I>&gt;<i> and that there are so many variations across implementations, such as the
+</I>&gt;<i> differences between 32 and 64 bit systems and between different 64 bit
+</I>&gt;<i> systems. This suggests that any deviation from the established values may
+</I>&gt;<i> need to be a configuration option (if they aren't already), and that some
+</I>&gt;<i> experiments may need to be designed and carried out to determine optimum
+</I>&gt;<i> values. Perhaps, if all of the important values would be user-configurable,
+</I>&gt;<i> a procedure could be developed for calibrating the physics engine for any
+</I>&gt;<i> given installation?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Sun, Mar 22, 2009 at 3:03 PM, Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; We have m_density defined in two different places with two different
+</I>&gt;<i> values.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; One is in:
+</I>&gt;<i> ...\OpenSim\Region\Physics\OdePlugin\ODECharacter.cs - (72,
+</I>&gt;<i> 22) :
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; public float m_density = 60f;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Another is in:
+</I>&gt;<i> ...\OpenSim\Region\Physics\OdePlugin\ODEPrim.cs(152):
+</I>&gt;<i>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;  private float m_density = 10.000006836f; // Aluminum g/cm3;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; And in looking at the usage to calculate mass, it looks like the math is
+</I>&gt;<i> right, but yet, the avatar seems to have a higher density then the prim.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I know that these are empirically determined, but in trying to look
+</I>&gt;<i> forward to a world where we actually might use the density of metal, rubber,
+</I>&gt;<i> glass, rock, plywood to do some additional physics *stuff*, it seems that we
+</I>&gt;<i> might want to see if we can harmonize our notion of density a little bit.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Perhaps I am just missing the boat here. But, I would like to understand
+</I>&gt;<i> how we might be able to move forward a little bit on density some time.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Charles
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005824.html">[Opensim-dev] density
+</A></li>
+	<LI>Next message: <A HREF="005826.html">[Opensim-dev] density
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5825">[ date ]</a>
+              <a href="thread.html#5825">[ thread ]</a>
+              <a href="subject.html#5825">[ subject ]</a>
+              <a href="author.html#5825">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,186 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] what to use for serializing structures? LLSD?	XmlSerializer? JSON?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20what%20to%20use%20for%20serializing%20structures%3F%20LLSD%3F%0A%09XmlSerializer%3F%20JSON%3F&In-Reply-To=%3C6b9359640805140640x729954d3p71ca4e614735cf08%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001550.html">
+   <LINK REL="Next"  HREF="001553.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] what to use for serializing structures? LLSD?	XmlSerializer? JSON?</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20what%20to%20use%20for%20serializing%20structures%3F%20LLSD%3F%0A%09XmlSerializer%3F%20JSON%3F&In-Reply-To=%3C6b9359640805140640x729954d3p71ca4e614735cf08%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] what to use for serializing structures? LLSD?	XmlSerializer? JSON?">aerowolf at gmail.com
+       </A><BR>
+    <I>Wed May 14 15:40:32 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001550.html">[Opensim-dev] what to use for	serializing	structures?	LLSD?	XmlSerializer? JSON?
+</A></li>
+        <LI>Next message: <A HREF="001553.html">[Opensim-dev] what to use for serializing structures? LLSD?	XmlSerializer? JSON?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1551">[ date ]</a>
+              <a href="thread.html#1551">[ thread ]</a>
+              <a href="subject.html#1551">[ subject ]</a>
+              <a href="author.html#1551">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>XML is not &quot;lightweight&quot;.  It takes a LOT to be able to use it
+properly, and this reduces its utility and increases the barrier to
+entry.
+
+(Yes, it's possible to prove of XML that 'it matches the schema'
+[presuming the schema is defined], but even then I tend to think that
+values usually aren't checked for sanity before use.)
+
+JSON has the advantage of being easy to parse, decreasing network
+protocol overhead, having many implementations, being directly
+mappable to C# primitives and classes without expensive overhead, not
+requiring a predefined schema, and allowing for more useful data
+handling...  as well as being much more easily read by people who
+understand C or C# without having to worry about learning some kind of
+markup that has begun to rival SGML for sheer attempted generality
+(and thus complexity).
+
+To get a grasp of what it is I'm talking about, look at the number of
+pages in the XML standard.  Then look at the number of pages in the
+JSON description (RFC 4627).  And then look at <A HREF="http://json.org/">http://json.org/</A> to
+figure out how many implementations of JSON parsing there are for C#.
+(not to mention how few diagrams are actually required to describe the
+language.)
+
+I believe that XML, while useful in many contexts, suffers from the
+same problems that the Electronic Data Interchange standard has (such
+as &quot;the schema must be known at both ends&quot;).  As well, It is far too
+formalized, the tag lengths are far too arbitrary, and the sheer
+number of times those tags must be duplicated is insane (and, while it
+makes adaptive-dictionary compression work really well, that's the
+kind of redundancy that is really inappopriate for any kind of network
+protocol).
+
+I'm forced to remind everyone of something that they've all seemed to
+forget: increasing the amount of data to be transferred increases the
+number of packets that must be transmitted.  Increasing the number of
+packets transmitted increases the amount of work that the network must
+do.  Increasing the amount of data to be transferred also increases
+memory usage on the client and server -- as well as the amount of
+memory that must be used on each router and gateway in between.  (Why
+can't the designers of new systems be nice to the network operators
+for once, and not force them to non-trivial expansions of their
+network capacity?)
+
+JSON is MUCH easier to parse than XML.  While, yes, our systems have
+more raw processing power than ever before in our history, our systems
+have been getting slower because everyone has been much more lax about
+&quot;we have lots of memory and processing power to play with&quot;.  This
+includes the W3C.  This also includes the people who use the standards
+promulgated by them.  This includes the people who have written the
+parsers which have been created for use with XML.
+
+I would vote that we should reduce the processing power required, so
+that more simultaneous connections can be dealt with.  I would vote
+that we should reduce the protocol overhead, so that it is easier to
+process and transfer.  I would vote that we keep in mind that just
+because there's more processing power to play with doesn't mean that
+we should extend the sandbox beyond the very minimum necessary to make
+it easy to play within.
+
+And above all, I would vote that it be made a guiding principle in the
+design to minimize resource impact -- both data storage (hard
+disk/database) and data transmission (network).
+
+-Kyle H
+
+On Wed, May 14, 2008 at 5:55 AM, Justin Clark-Casey
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+&gt;<i> Dr Scofield wrote:
+</I>&gt;<i>  &gt; Stefan Andersson wrote:
+</I>&gt;<i>  &gt;&gt; Ok, next time, I'll half the dose of that cough syrup.
+</I>&gt;<i>  &gt;&gt;
+</I>&gt;<i>  &gt;&gt; Aaanyway : I still think it's a REALLY bad idea to put forward as a
+</I>&gt;<i>  &gt;&gt; 'standard region API' something that is more
+</I>&gt;<i>  &gt;&gt; application-and-environment specific (JSON) when there is something
+</I>&gt;<i>  &gt;&gt; that is less application-and-environment specific (XML)
+</I>&gt;<i>  &gt; oops...this is not a standard region API, this is supposed to be a
+</I>&gt;<i>  &gt; control API to allow us to control region specific information of an
+</I>&gt;<i>  &gt; OpenSim instance.
+</I>&gt;<i>  &gt;&gt; Is there a concrete win with Json over Xml that I'm missing?
+</I>&gt;<i>  &gt; i'd say, easy to parse from AJAX side, less verbose, doesn't require
+</I>&gt;<i>  &gt; knowledge of the class definition to make sense of it (well, at least to
+</I>&gt;<i>  &gt; some extent).
+</I>&gt;<i>
+</I>&gt;<i>   From what I've read of JSON, I don't believe it's tied to any specific
+</I>&gt;<i>  language - to some extent it just happens to be directly evaluatable in
+</I>&gt;<i>  Javascript since that was from where it originated.
+</I>&gt;<i>
+</I>&gt;<i>  However, I do personally prefer XML - there are just more tools and
+</I>&gt;<i>  libraries out there for it and it's more familiar.  I'm not sure the
+</I>&gt;<i>  possible advantages of JSON (e.g. less verbosity, though I'm not sure
+</I>&gt;<i>  that's an issue here) outweigh that.
+</I>&gt;<i>
+</I>&gt;<i>  Oh, and regarding LLSD - yes, let's confine that to linden interop and
+</I>&gt;<i>  not use it as our core REST format.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>  &gt;&gt;
+</I>&gt;<i>  &gt;&gt; And, it would be great if the api was formulated as a set of abstract
+</I>&gt;<i>  &gt;&gt; classes, interfaces and event hooks, so however you decide to
+</I>&gt;<i>  &gt;&gt; implement the protocol layer, somebody else could implement it
+</I>&gt;<i>  &gt;&gt; differently. (SOAP, anybody?)
+</I>&gt;<i>  &gt; hmm...not sure whether i really want to add lots and lots of code around
+</I>&gt;<i>  &gt; a simple control API.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; we've got a specific need in mind: control an OpenSim instance via REST
+</I>&gt;<i>  &gt; instead of via console. REST appears to be resource/state centric,
+</I>&gt;<i>  &gt; XmlRpc/SOAP/et al seems to be more object--method oriented.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>
+</I>&gt;<i>  I would agree.  Let's have a nice simple REST interface (alongside the
+</I>&gt;<i>  existing XMLRPC for now).  If we need to elaborate this can happen later
+</I>&gt;<i>  on...
+</I>&gt;<i>
+</I>&gt;<i>  --
+</I>&gt;<i>  justincc
+</I>&gt;<i>  Justin Clark-Casey
+</I>&gt;<i>  <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i>  Opensim-dev mailing list
+</I>&gt;<i>  <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001550.html">[Opensim-dev] what to use for	serializing	structures?	LLSD?	XmlSerializer? JSON?
+</A></li>
+	<LI>Next message: <A HREF="001553.html">[Opensim-dev] what to use for serializing structures? LLSD?	XmlSerializer? JSON?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1551">[ date ]</a>
+              <a href="thread.html#1551">[ thread ]</a>
+              <a href="subject.html#1551">[ subject ]</a>
+              <a href="author.html#1551">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

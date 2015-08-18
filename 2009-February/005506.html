@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Authentication, take 2: Capabilities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%2C%20take%202%3A%20Capabilities&In-Reply-To=%3C49A96C1C.5030404%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005505.html">
+   <LINK REL="Next"  HREF="005507.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Authentication, take 2: Capabilities</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%2C%20take%202%3A%20Capabilities&In-Reply-To=%3C49A96C1C.5030404%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Authentication, take 2: Capabilities">diva at metaverseink.com
+       </A><BR>
+    <I>Sat Feb 28 17:53:48 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005505.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+        <LI>Next message: <A HREF="005507.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5506">[ date ]</a>
+              <a href="thread.html#5506">[ thread ]</a>
+              <a href="subject.html#5506">[ subject ]</a>
+              <a href="author.html#5506">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I've come full circle on this issue of security and the Linden Viewer, 
+and I have something to propose.
+
+First, my conclusions:
+
+(1) Capabilities are a fantastic idea for secure open systems. &lt;3's it!
+(2) The Linden viewer, as it's going in practice, is unsafe for an open 
+Virtual Worlds system.
+
+My proposal:
+
+(a) Let's design OpenSim around the organizing concept of capabilities. 
+We're already half-way there, thanks to the Linden Viewer, even if it 
+took us there kicking and screaming. Designing OpenSim around the 
+organizing concept of capabilities means that no sensitive service 
+should ever be exposed face-value on the web; it should always be 
+exposed behind a capability URL. For example, the inventory access 
+services that we have now are fundamentally unsafe. Someone tried to add 
+an authorization step (session id), but that failed badly and was 
+abandoned. Melanie and others doing walled-gardens rely on placing these 
+services behind firewalls or in obscure places that only 2 or 3 people 
+know the address. Security through obscurity works well in certain 
+cases, but it's fragile and it simply doesn't work in open systems. It 
+will not work for the Hypergrid.
+
+By placing the services behind capability URLs, instead of face-value 
+URLs, we can expose the servers on the public web and still be sure that 
+only authorized components will access them -- this, without having to 
+verify the credentials of the caller over and over again with expensive 
+remote calls: the simple fact that the caller knows the secret URL is 
+enough for authorization.
+
+What this means is that regions must gain Capabilities to access both 
+the users' agents and the users' services as the users move into them. 
+Or not. Right now, we're giving the regions all the capabilities, some 
+explicitly (for the users' agents), some implicitly (services). The 
+explicit ones are those that the regions get by calling the SEED Cap URL 
+-- which mainly serves to get the very important cap for the viewer's 
+Event Queue. The implicit ones are those currently hard-coded: the 
+inventory services, the asset services, IM, etc. We should make those 
+also explicit; then it will be up to the *policies* (a separate thing) 
+to define which components get which caps.
+
+We should create a Capabilities service, which can be run off a separate 
+server (or the user server -- again, I wish this was configurable too!). 
+This Caps service will be responsible for managing the capabilities 
+pertaining to users and regions within one domain of trust (UGAIMs). So, 
+users and regions who log in to this domain of trust will be given 
+initial capabilities, and these may be expanded and retracted  as 
+certain actions occur.
+
+Different domains of trust may have different capability policies. For 
+example LCO's Cap service may very well give all of its regions all the 
+capabilities to access the backbone services directly, as well as the 
+capability to access all agents' Event Queues, no questions asked. 
+OSGrid may not give its regions the capability to access the inventory 
+service while still giving its regions the capability to access the 
+agents' Event Queues; and for regions that are not registered in OSGrid, 
+OSGrid may very well not give them the capability to access the users 
+agents' Event Queues.
+
+(The EQ's are the key element in Teleports; if a region doesn't have 
+access to the viewer's EQ, it cannot teleport the agent. The user, 
+however, may have an agent in the home system with an open EQ to the 
+viewer, so that Teleports can happen controlled by the home system -- 
+this is the cool new Teleport procedure that I'm going to experiment with)
+
+Capabilities have an additional positive side-effect: they force us to 
+slice monoliths into small, independent services (&quot;capabilities&quot;) 
+explicitly mapped to names, that can then be implemented by different 
+components. Very much in line with our design principles.
+
+(b) With respect to the limitations of the Linden Viewer, there's only 
+one way forward: a reference web application that replaces the 
+security-critical functions that the Linden viewer is incapable of doing 
+in a secure manner. These include: inventory access, agent transfers and 
+IM. This web application should use capabilities fully and properly. It 
+can be accessed using the embedded browser, so immersion shouldn't 
+suffer that much.
+
+I will gladly start the work on (a) right now if there's general 
+agreement that this is a good way forward.
+
+Crista
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005505.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+	<LI>Next message: <A HREF="005507.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5506">[ date ]</a>
+              <a href="thread.html#5506">[ thread ]</a>
+              <a href="subject.html#5506">[ subject ]</a>
+              <a href="author.html#5506">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

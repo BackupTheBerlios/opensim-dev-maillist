@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OAuth as authentication and authorisation (capability) specification
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OAuth%20as%20authentication%20and%20authorisation%0A%20%28capability%29%20specification&In-Reply-To=%3C49F38110.8050100%40comlounge.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006306.html">
+   <LINK REL="Next"  HREF="006309.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OAuth as authentication and authorisation (capability) specification</H1>
+    <B>Christian Scholz</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OAuth%20as%20authentication%20and%20authorisation%0A%20%28capability%29%20specification&In-Reply-To=%3C49F38110.8050100%40comlounge.net%3E"
+       TITLE="[Opensim-dev] OAuth as authentication and authorisation (capability) specification">cs at comlounge.net
+       </A><BR>
+    <I>Sat Apr 25 23:30:56 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006306.html">[Opensim-dev] OAuth as authentication and authorisation (capability) specification
+</A></li>
+        <LI>Next message: <A HREF="006309.html">[Opensim-dev] OAuth as authentication and authorisation (capability) specification
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6308">[ date ]</a>
+              <a href="thread.html#6308">[ thread ]</a>
+              <a href="subject.html#6308">[ subject ]</a>
+              <a href="author.html#6308">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Diva Canto schrieb:
+&gt;<i> Christian Scholz wrote:
+</I>&gt;&gt;<i> We have been talking about it quite a bit in early 2008 in the 
+</I>&gt;&gt;<i> DataPortability Group. There was also some discussion about that concept 
+</I>&gt;&gt;<i> in the DiSo group.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [...]
+</I>&gt;<i> 
+</I>&gt;<i> Cool.
+</I>&gt;<i> 
+</I>&gt;&gt;&gt;<i> Point 4 is also pretty much covered, with code already in place in 
+</I>&gt;&gt;&gt;<i> OpenSim, used by Grider. The client requests these tokens from the 
+</I>&gt;&gt;&gt;<i> User Server (ID server, whatever you want to call it), sends them to 
+</I>&gt;&gt;&gt;<i> each server it wants to use, including regions, the servers in turn 
+</I>&gt;&gt;&gt;<i> verify them with the User Server.
+</I>&gt;&gt;<i> But I assume that this won't work with services outside the OpenSim 
+</I>&gt;&gt;<i> realm? (e.g. MySpace)
+</I>&gt;<i> 
+</I>&gt;<i> I haven't been thinking of those uses, but I don't see any reason why it 
+</I>&gt;<i> shouldn't work in exactly the same way. You need: (a) an ID server; (b) 
+</I>&gt;<i> a client for the user; (c) a bunch of services that the user uses.
+</I>&gt;<i> Upon login, a master key is given to the client. That master key is then 
+</I>&gt;<i> used by the client to request tokens from the ID server for each service 
+</I>&gt;<i> that the user wants to use. Those tokens are sent along the first time 
+</I>&gt;<i> the client accesses the services, and the services verify the tokens 
+</I>&gt;<i> with the given authority in them.
+</I>
+I think that's basically the idea behind many of the proposals. You have 
+some relationship manager which holds has associations to all the 
+services you use. You then only authorize that relationship manager to 
+give out tokens to some third party on your behalf. This then can be 
+automatic or you might choose to being asked each time you teleport.
+I yet have to understand the details of ProtectServe but it seems to be 
+something along those lines based on OAuth. Additionally I think they 
+also handle contacts between those services so that you can define in 
+detail which service has access to what data. But I am not sure on this 
+point right now.
+
+&gt;<i> If you want to see how this key request/verification process currently 
+</I>&gt;<i> works in OpenSim, take a look at 
+</I>&gt;<i> OpenSim/Framework/Communications/UserManagerBase -- at the very end of 
+</I>&gt;<i> that file.
+</I>
+Will do (but tomorrow, getting late here).
+
+&gt;<i> Those keys are sent along authenticated requests, like for example
+</I>&gt;<i> OpenSim/Framework/Communications/Services/HGInventoryService
+</I>&gt;<i> This particular service then establishes a bunch of CAP URLS for secure 
+</I>&gt;<i> access to inventory.
+</I>&gt;<i> 
+</I>&gt;<i> Service discovery is another matter, I think. For starters, we can 
+</I>&gt;<i> assume that the user explicitly specifies the URLs of the services it 
+</I>&gt;<i> uses -- so that service catalogue you mentioned -- in his/her ID server.
+</I>
+What exactly is the ID server? And if you have some sort of server then 
+I guess it would be easy to write some web frontend to create some XRDS 
+or XRD file, after all it's rather simple XML. (Some OpenID or XRI 
+providers even let you edit your XRDS file already).
+
+&gt;&gt;<i> The reason I like OpenID and OAuth is that it will allow in the future 
+</I>&gt;&gt;<i> to manage a limited set of identities properly. There is no need to 
+</I>&gt;&gt;<i> create yet another account with profiles etc. on each service. This is 
+</I>&gt;&gt;<i> also very much where the discussions in the social networking space are 
+</I>&gt;&gt;<i> heading right now and it would be great if I can reuse the same things 
+</I>&gt;&gt;<i> in OpenSim, too.
+</I>&gt;<i> 
+</I>&gt;<i> You don't need OpenID redirects to do this. You login directly with your 
+</I>&gt;<i> ID service.
+</I>
+Well, that means though that I am bound to that service and probably 
+need yet another login/password to remember.
+
+But I think in general the best would be a flexible authentication 
+architecture where the user can choose between different mechanisms, be 
+it OpenID, simple username/password, an InformationCard/CardSpace 
+approach or the SSL solution. What the user support could also be stored 
+in the XRD file and what the service supports could be stored in the 
+service's XRD file (as you can of course use the same concept for 
+checking on the services a region provides, much like GridInfo).
+
+-- Christian
+
+
+&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+COM.lounge GmbH
+<A HREF="http://comlounge.net">http://comlounge.net</A>
+Hanbrucher Strasse 33, 52064 Aachen
+Amtsgericht Aachen HRB 15170
+Gesch&#228;ftsf&#252;hrer: Dr. Ben Scheffler, Christian Scholz
+
+email: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">info at comlounge.net</A>
+fon: +49-241-4007300
+fax: +49-241-97900850
+
+personal email: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cs at comlounge.net</A>
+personal blog: <A HREF="http://mrtopf.de/blog">http://mrtopf.de/blog</A>
+personal podcasts: <A HREF="http://openweb-podcast.de,">http://openweb-podcast.de,</A> <A HREF="http://datawithoutborders.net">http://datawithoutborders.net</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006306.html">[Opensim-dev] OAuth as authentication and authorisation (capability) specification
+</A></li>
+	<LI>Next message: <A HREF="006309.html">[Opensim-dev] OAuth as authentication and authorisation (capability) specification
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6308">[ date ]</a>
+              <a href="thread.html#6308">[ thread ]</a>
+              <a href="subject.html#6308">[ subject ]</a>
+              <a href="author.html#6308">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] RFC: RESTful dealings with regions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20RESTful%20dealings%20with%20regions&In-Reply-To=%3C482AFB75.60000%40xyzzyxyzzy.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001555.html">
+   <LINK REL="Next"  HREF="001557.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] RFC: RESTful dealings with regions</H1>
+    <B>Dr Scofield</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20RFC%3A%20RESTful%20dealings%20with%20regions&In-Reply-To=%3C482AFB75.60000%40xyzzyxyzzy.net%3E"
+       TITLE="[Opensim-dev] RFC: RESTful dealings with regions">DrScofield at xyzzyxyzzy.net
+       </A><BR>
+    <I>Wed May 14 16:47:17 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001555.html">[Opensim-dev] RFC: RESTful dealings with regions
+</A></li>
+        <LI>Next message: <A HREF="001557.html">[Opensim-dev] RFC: RESTful dealings with regions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1556">[ date ]</a>
+              <a href="thread.html#1556">[ thread ]</a>
+              <a href="subject.html#1556">[ subject ]</a>
+              <a href="author.html#1556">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sean Dague wrote:
+&gt;<i> On Tue, May 13, 2008 at 08:09:54PM +0200, Dr Scofield wrote:
+</I>&gt;<i>   
+</I>&gt;&gt;<i> we are currently trying to figure out what the best approach for a REST 
+</I>&gt;&gt;<i> &quot;API&quot; for regions is and would like to solicit comments :-)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> currently the idea is to have a scheme as follows:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     * <A HREF="http://opensim.foobar.org:9000/admin/regions">http://opensim.foobar.org:9000/admin/regions</A> ---
+</I>&gt;&gt;<i>           o GET returns an array of (UUID, name, x location, y location,
+</I>&gt;&gt;<i>             region's REST URL)
+</I>&gt;&gt;<i>     
+</I>&gt;<i> 	    I think this should just return UUIDs  Let's not overload
+</I>&gt;<i> 	    the list functionality with the actual data, as it may get
+</I>&gt;<i> 	    you much more than you care about.
+</I>&gt;<i>   
+</I>yeah...was wondering about that. so we'd return region URL with is 
+/regions/UUID, agree?
+&gt;<i>   
+</I>&gt;&gt;<i>           o POST would create a region
+</I>&gt;&gt;<i>     * <A HREF="http://opensim.foobar.org:9000/admin/regions/4b787c46-1e3c-40ae-9494-2c924428f8e5/">http://opensim.foobar.org:9000/admin/regions/4b787c46-1e3c-40ae-9494-2c924428f8e5/</A>
+</I>&gt;&gt;<i>           o GET would return detailed information about region
+</I>&gt;&gt;<i>           o DELETE would delete region
+</I>&gt;&gt;<i>           o PUT would update region information
+</I>&gt;&gt;<i>     * <A HREF="http://opensim.foobar.org:9000/admin/regions/4b787c46-1e3c-40ae-9494-2c924428f8e5/name">http://opensim.foobar.org:9000/admin/regions/4b787c46-1e3c-40ae-9494-2c924428f8e5/name</A>
+</I>&gt;&gt;<i>           o GET would return name of region
+</I>&gt;&gt;<i>           o PUT would update name of region
+</I>&gt;&gt;<i>           o [similar for other region attributes if it makes sense]
+</I>&gt;&gt;<i>     
+</I>&gt;<i>
+</I>&gt;<i> +1, I like all of that.  My only question is really why have the /admin
+</I>&gt;<i> at all.
+</I>&gt;<i>   
+</I>just wanted to avoid clashing with anything else...actually it currently 
+is configurable :-)
+&gt;<i>   
+</I>&gt;&gt;<i> current planning is to have this as an ApplicationPlugin level set of 
+</I>&gt;&gt;<i> RestPlugins. an alternative would be to use region modules plus an 
+</I>&gt;&gt;<i> ApplicationPlugin (for GET/POST on /admin/regions).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> this applies to region (meta) data. the next question would be how to 
+</I>&gt;&gt;<i> structure this for avatar information and also for stuff like inventory: 
+</I>&gt;&gt;<i> something along the lines below?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     * <A HREF="http://opensim.foobar.org/admin/avatars">http://opensim.foobar.org/admin/avatars</A>
+</I>&gt;&gt;<i>           o GET returns list of known avatars?
+</I>&gt;&gt;<i>           o POST creates account?
+</I>&gt;&gt;<i>     
+</I>&gt;<i>
+</I>&gt;<i> I think the right resource name here is &quot;users&quot; instead of &quot;avatars&quot;
+</I>&gt;<i>   
+</I>ok.
+&gt;<i>   
+</I>&gt;&gt;<i>     * <A HREF="http://opensim.foobar.org/admin/avatars/430f1da7-0e35-4c0f-985d-15046c077967/">http://opensim.foobar.org/admin/avatars/430f1da7-0e35-4c0f-985d-15046c077967/</A>
+</I>&gt;&gt;<i>           o GET returns detailed information about avatar?
+</I>&gt;&gt;<i>           o PUT updates?
+</I>&gt;&gt;<i>           o DELETE deletes?
+</I>&gt;&gt;<i>     * <A HREF="http://opensim.foobar.org/admin/avatars/430f1da7-0e35-4c0f-985d-15046c077967/inventory/">http://opensim.foobar.org/admin/avatars/430f1da7-0e35-4c0f-985d-15046c077967/inventory/</A>
+</I>&gt;&gt;<i>           o GET returns inventory listing?
+</I>&gt;&gt;<i>           o POST adds items to inventory?
+</I>&gt;&gt;<i>           o DELETE deletes inventory items?
+</I>&gt;&gt;<i>     
+</I>&gt;<i>
+</I>&gt;<i> I think that as we dig into users -&gt; inventory what we'll actually get
+</I>&gt;<i> is.
+</I>&gt;<i>
+</I>&gt;<i> /admin/avatars/430f1da7-0e35-4c0f-985d-15046c077967/inventory/ =&gt; 302 =&gt;
+</I>&gt;<i> /admin/inventory/XXXX-...
+</I>&gt;<i>
+</I>&gt;<i> Which takes us into an inventory resource tree.  Remember, in using REST
+</I>&gt;<i> and HTTP you get to use all the HTTP semantics including all the 30x
+</I>&gt;<i> redirects.
+</I>&gt;<i>   
+</I>nice!
+
+thx for the feedback!
+
+    cheers,
+    dr scofield/dirk
+
+-- 
+dr dirk husemann, mathmatics and computer science, ibm zurich research lab
+SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001555.html">[Opensim-dev] RFC: RESTful dealings with regions
+</A></li>
+	<LI>Next message: <A HREF="001557.html">[Opensim-dev] RFC: RESTful dealings with regions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1556">[ date ]</a>
+              <a href="thread.html#1556">[ thread ]</a>
+              <a href="subject.html#1556">[ subject ]</a>
+              <a href="author.html#1556">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Standardizing OpenSim data formats
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Standardizing%20OpenSim%20data%20formats&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D7F846BD9%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006336.html">
+   <LINK REL="Next"  HREF="006339.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Standardizing OpenSim data formats</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Standardizing%20OpenSim%20data%20formats&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D7F846BD9%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Standardizing OpenSim data formats">john.hurliman at intel.com
+       </A><BR>
+    <I>Wed Apr 29 02:24:55 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006336.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+        <LI>Next message: <A HREF="006339.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6337">[ date ]</a>
+              <a href="thread.html#6337">[ thread ]</a>
+              <a href="subject.html#6337">[ subject ]</a>
+              <a href="author.html#6337">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>This is fine if your use case is to consider the prim format I posted as a canonical format for all virtual world objects, where everything will only be plus or minus a few fields from that format. I don't think that's going to be the case moving forward.
+
+I would prefer to see content-types attached to formats. A Second Life prim is recognized as application/vnd.ll.primitive, while a realXtend mesh might be application/x-realxtend-mesh (or something to that effect). That way you can add support in the future for objects that share very little in common with Second Life prims. It also fits nicely into larger asset framework where you can do this type of standardization for notecards, clothing assets, etc.
+
+John
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev- 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Frisby, Adam
+</I>&gt;<i> Sent: Tuesday, April 28, 2009 4:56 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Standardizing OpenSim data formats
+</I>&gt;<i> 
+</I>&gt;<i> The parser needs to not barf if it sees an unknown element in there.
+</I>&gt;<i> Eg, ModRex mesh parameters, etc.
+</I>&gt;<i> 
+</I>&gt;<i> Ideally the SaveToXYZ function should fire an event on the object
+</I>&gt;<i> called something like say 'OnSaveRequest(out List&lt;???&gt; extraData)'
+</I>&gt;<i> which allows other modules to save additional data. On-load/On-
+</I>&gt;<i> construct should probably also fire an event which allows the data to
+</I>&gt;<i> be restored.
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Hurliman, John
+</I>&gt;&gt;<i> Sent: Tuesday, 28 April 2009 4:32 PM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: [Opensim-dev] Standardizing OpenSim data formats
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Currently, OpenSim server&lt;-&gt;server communication is primarily made up
+</I>&gt;&gt;<i> of .NET XML serialization. As a side effect of this, I've seen the wire
+</I>&gt;&gt;<i> format between simulator and grid services or grid service to grid
+</I>&gt;&gt;<i> service change many times since I started working on backend services.
+</I>&gt;&gt;<i> The OAR file format has also changed at least once while retaining the
+</I>&gt;&gt;<i> same version number because the underlying prim XML format changed. I
+</I>&gt;&gt;<i> am working on a libomv OAR reader/writer at the moment, and trying to
+</I>&gt;&gt;<i> deal with hacks for supporting pre and post change OAR files.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> To increase compatibility between versions of OpenSim and with third
+</I>&gt;&gt;<i> party services I'd like to propose a standardization of (eventually)
+</I>&gt;&gt;<i> all over-the-wire communication in OpenSim. I started with an
+</I>&gt;&gt;<i> attempt at an LLIDL definition for primitives:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> <A HREF="http://opensimulator.org/wiki/PrimitiveFormatProposal">http://opensimulator.org/wiki/PrimitiveFormatProposal</A>
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Is anything missing? Does this look like a reasonable start?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> John
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006336.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+	<LI>Next message: <A HREF="006339.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6337">[ date ]</a>
+              <a href="thread.html#6337">[ thread ]</a>
+              <a href="subject.html#6337">[ subject ]</a>
+              <a href="author.html#6337">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

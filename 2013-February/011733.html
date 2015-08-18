@@ -1,0 +1,177 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Change JSON constants to be able to act as independent flags?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Change%20JSON%20constants%20to%20be%20able%20to%20act%20as%0A%20independent%20flags%3F&In-Reply-To=%3CCAJaF1_Hs4r4zweM73%3DPmL%2B8riPycRo7PYTJXx9NT7iEzv%3DTV1A%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011732.html">
+   <LINK REL="Next"  HREF="011734.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Change JSON constants to be able to act as independent flags?</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Change%20JSON%20constants%20to%20be%20able%20to%20act%20as%0A%20independent%20flags%3F&In-Reply-To=%3CCAJaF1_Hs4r4zweM73%3DPmL%2B8riPycRo7PYTJXx9NT7iEzv%3DTV1A%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Change JSON constants to be able to act as independent flags?">cmickeyb at gmail.com
+       </A><BR>
+    <I>Wed Feb 20 00:25:58 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011732.html">[Opensim-dev] Change JSON constants to be able to act as independent flags?
+</A></li>
+        <LI>Next message: <A HREF="011734.html">[Opensim-dev] Diva Groups and Offline IM
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11733">[ date ]</a>
+              <a href="thread.html#11733">[ thread ]</a>
+              <a href="subject.html#11733">[ subject ]</a>
+              <a href="author.html#11733">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>then lets go with #2. i really dislike bit constants unless size matters
+and it absolutely does not in this case. and &quot;lsl does it&quot; doesn't carry
+any weight with me (as you well know). :-)
+
+--mic
+
+
+On Tue, Feb 19, 2013 at 2:40 PM, Justin Clark-Casey &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+
+&gt;<i> On 19/02/13 18:01, Mic Bowman wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> I'm generally not in favor of bit fields. they are too hard to extend.
+</I>&gt;&gt;<i> two alternatives that might work based on the
+</I>&gt;&gt;<i> idea that there are really two pieces of information we want to convey...
+</I>&gt;&gt;<i> the type of the JSON node (null, object/hash,
+</I>&gt;&gt;<i> array, value) and the type of value in a value node.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> An LSL integer would give you 31 bits to play with - do you envisage
+</I>&gt;<i> needing more than 31 constants (ignoring the potential to use negative
+</I>&gt;<i> constants)?  I'm also curious as to what extendability you're thinking of -
+</I>&gt;<i> JSON is unlikely to change.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> 0) take the OSD approach and just return the type of the node/value
+</I>&gt;&gt;<i> (which is where I had planned to end up), null is 0,
+</I>&gt;&gt;<i> hash/object is 1, array is 2, value is anything greater than 2, string is
+</I>&gt;&gt;<i> 3, integer 4, etc...
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> The caller then has to know that there is an order to the constants.  If I
+</I>&gt;<i> want to see if something is a value then I need to do &gt; JSON_TYPE_VALUE
+</I>&gt;<i> whereas for any other type I would use ==, which doesn't feel particularly
+</I>&gt;<i> intuitive to me.
+</I>&gt;<i>
+</I>&gt;<i> Using a flag approach also appears very common in LSL and would work more
+</I>&gt;<i> as scripters expect (using bit operators for comparison, etc.).  I know
+</I>&gt;<i> you're not a fan of LSL but I believe it's better to try and work with the
+</I>&gt;<i> grain where possible.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> 1) partition the return into a node type and value type. use the bottom
+</I>&gt;&gt;<i> three bits for node type and the rest for the
+</I>&gt;&gt;<i> value type if the node is a value node; this at least provides some space
+</I>&gt;&gt;<i> for future extensibility
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I think a mixed bits and values approach is the worst of both worlds -
+</I>&gt;<i> callers then need to know which constants can be tested with bit operators
+</I>&gt;<i> and which cannot!
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> 2) split the operations into two.. JsonGetNodeType() and
+</I>&gt;&gt;<i> JsonGetValueType()
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> You could do that.  It would match the JsonGetValue(), JsonSetValue(),
+</I>&gt;<i> etc. functions.  I would argue they are still both better off using flag
+</I>&gt;<i> constants for the reasons above.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> --mic
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Mon, Feb 18, 2013 at 5:02 PM, Justin Clark-Casey &lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.</A>**com&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt;&gt;
+</I>&gt;&gt;<i> wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Hi Mic.  One small thing in case I don't catch you on IRC - could we
+</I>&gt;&gt;<i> change the Json node types to be independently
+</I>&gt;&gt;<i>     flaggable values rather than 0, 1, 2, 3 as they are at the moment?
+</I>&gt;&gt;<i>  That way, one would be able to more easily flag
+</I>&gt;&gt;<i>     a node as both Value and String in the future, for example.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     --
+</I>&gt;&gt;<i>     Justin Clark-Casey (justincc)
+</I>&gt;&gt;<i>     OSVW Consulting
+</I>&gt;&gt;<i>     <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;&gt;<i>     <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;&gt;<i>     ______________________________**___________________
+</I>&gt;&gt;<i>     Opensim-dev mailing list
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.</A>**berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;&lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> OSVW Consulting
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20130219/86bfba1a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20130219/86bfba1a/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011732.html">[Opensim-dev] Change JSON constants to be able to act as independent flags?
+</A></li>
+	<LI>Next message: <A HREF="011734.html">[Opensim-dev] Diva Groups and Offline IM
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11733">[ date ]</a>
+              <a href="thread.html#11733">[ thread ]</a>
+              <a href="subject.html#11733">[ subject ]</a>
+              <a href="author.html#11733">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

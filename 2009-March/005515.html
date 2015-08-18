@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Authentication and oAuth
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%20and%20oAuth&In-Reply-To=%3C49AACD99.1010709%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005511.html">
+   <LINK REL="Next"  HREF="005516.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Authentication and oAuth</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%20and%20oAuth&In-Reply-To=%3C49AACD99.1010709%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Authentication and oAuth">diva at metaverseink.com
+       </A><BR>
+    <I>Sun Mar  1 19:02:01 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005511.html">[Opensim-dev] Authentication and oAuth
+</A></li>
+        <LI>Next message: <A HREF="005516.html">[Opensim-dev] Authentication and oAuth
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5515">[ date ]</a>
+              <a href="thread.html#5515">[ thread ]</a>
+              <a href="subject.html#5515">[ subject ]</a>
+              <a href="author.html#5515">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Tommil,
+
+Thanks for the pointers about OAuth. I think this is really important. 
+We need to figure out what security scheme works best for open Virtual 
+Worlds. I don't necessarily think that we need to tie OpenSim to one 
+specific scheme, but we really need to figure out what the user 
+experience will be with the different schemes. My belief is that Virtual 
+Worlds are [should be] slightly different than plain Web because of the 
+focus on identity preservation, which the Web has sucked at big time, 
+and things that work well for [these annoyingly identity-unaware] Web 
+apps may not work so well for VWs. Or, put in another way, we can make 
+VWs work better than the Web -- that's my goal, at least :-)
+
+Being a researcher, I am naturally unimpressed by credentials on paper / 
+standards, etc; we always need to think through the details and find out 
+the real consequences of applying one thing vs. the other in the 
+concrete context we have here.
+
+All this is relatively new to me, so I may not have the complete 
+picture, but let me make that much needed attempt at comparing 
+Capabilities and OAuth in the context of something very concrete in 
+OpenSim: inventory access. I'm going to be using a mix of OAuth terms 
+and caps terms.
+
+Let's assume that in both cases the untrusted regions are not given 
+a-priori the authorization to access the user's inventory service (this 
+is policy, not mechanism). Instead, the client that the user is directly 
+using will be given that capability/authorization. So assets will flow 
+directly from the Service provider to the User's client, without the 
+region ever being involved.
+
+The interesting thing is what happens when the user Rezzes something 
+from her inventory onto the region. Let's walk through the details in 
+each case.
+
+*** Capabilities ***
+
+That POST will be guarded by two capabilities:
+
+(1) The first Capability is the one granted (or not) by the region to 
+the user's agent for the function of posting something to it. This cap 
+is obtained in the initial negotiation that happens when the user's 
+agent connects to the region. This would precede or replace or build 
+upon the existing &quot;permissions&quot; -- we would basically move the existing 
+authorization logic to capability exchanges. Then posting something is 
+just a matter of invoking a secret CAP URL on the region.
+
+(2) The second Capability is the one granted by the user to the region 
+for the function of accessing that specific item in her inventory 
+service provider. So the user's client would do two things, under the hood:
+(a) Instruct the inventory service to place a service handle at a 
+specific secret URL, for example:
+<A HREF="http://osgrid.org:8004/d65bdadd-781f-41f8-ae68-d1791e7e3af4/&lt;ItemUUID">http://osgrid.org:8004/d65bdadd-781f-41f8-ae68-d1791e7e3af4/&lt;ItemUUID</A>&gt;
+(b) Send that secret Cap URL to the region
+
+Note that this would all happen without explicit user intervention; the 
+simple fact that the user has issued the &quot;order&quot; to rez an object from 
+her inventory in that region would trigger all these capability 
+exchanges automatically.
+
+*** OAuth+OpenID ***
+
+The Rez scenario is as follows:
+
+(1) The user's agent posts the order to rez the object to the consumer 
+region. There needs to be logic on the region side dictating whether 
+that user has the authorization to do such a thing. This logic defies 
+OAuth as it is designed, because it would require the region admin (a 
+person) to explicitly give the authorization. OAuth assumes that there 
+is a *person* involved in the authorization step. So this &quot;person&quot; needs 
+to be coded in the regions, more or less like what it is now -- 
+ACL-style. The mechanics can be the same, i.e. OAuth protocol, but the 
+authorization step is ACL-style, which means that the region needs to 
+authenticate the user in another separate/prior step, before the ACL 
+logic is run. That authentication would use OpenID - that is, the user's 
+request would send her OpenID information; the region would then ask the 
+OpenID provider if it has that user there.
+
+After all that, the user's agent finally acquires the authorized token 
+to post something to that region.
+
+(2) This second step is the most clean for the typical OAuth use case. 
+The region contacts the user's inventory server in order to request a 
+token for authorization to access the item. The inventory service 
+provider proceeds with the normal OAuth protocol, prompting the user for 
+explicit authorization. This is a redundant step from the User's point 
+of view, given that the user has, indeed, initiated the process. But 
+this redundant step is necessary, because the region might very well try 
+to grab an item from the user's inventory without the user having 
+started that. So the inventory service really needs to prompt the user 
+for authorization. The best we can do is to keep state and logic in the 
+client, so that when that prompt comes from the inventory server, it can 
+be replied to automatically.
+
+*** Discussion ***
+
+My impression is that the OAuth style of authorization will end up being 
+a lot more complicated to implement in the context of VWs than the 
+Capabilities style. This is sort of expected, in a way. If you look at 
+OAuth, it is designed with very clear roles in mind: there's (a) 
+consumers, (b) service providers and (c) users. The users are logged in 
+to a specific service (google, flickr, Linden Lab, etc), and OAuth helps 
+in giving an eager 3rd party (the consumer) a limited entry in the 
+interactions between the user and that service provider.
+
+This works well for the Web.
+
+However, in our case the lines between consumers and service providers 
+(and even users) are a lot more blurred. The regions are both consumers 
+of the users' assets and service providers -- they allow users to place 
+things there, as a service. Mutual authentication and mutual 
+authorization is required.
+
+But, those of you who know OpenID+OAuth better than me, please point out 
+the mistakes I have done on my walking through the details.
+
+
+Tommi Laukkanen wrote:
+&gt;<i> Hello
+</I>&gt;<i>  
+</I>&gt;<i> Everyone who is interested in authentication should check this out:
+</I>&gt;<i>  
+</I>&gt;<i> <A HREF="http://oauth.net/core/1.0/">http://oauth.net/core/1.0/</A>
+</I>&gt;<i>  
+</I>&gt;<i> Looks well established standard which does OpenId+Tokens and is 
+</I>&gt;<i> getting adopted in web industry. What do you think?
+</I>&gt;<i>  
+</I>&gt;<i> regards,
+</I>&gt;<i> Tommi
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090301/e97fcde3/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090301/e97fcde3/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005511.html">[Opensim-dev] Authentication and oAuth
+</A></li>
+	<LI>Next message: <A HREF="005516.html">[Opensim-dev] Authentication and oAuth
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5515">[ date ]</a>
+              <a href="thread.html#5515">[ thread ]</a>
+              <a href="subject.html#5515">[ subject ]</a>
+              <a href="author.html#5515">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

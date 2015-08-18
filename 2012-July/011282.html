@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] llDetectedType and NPC's
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20llDetectedType%20and%20NPC%27s&In-Reply-To=%3C4FFB7289.6040805%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011346.html">
+   <LINK REL="Next"  HREF="011281.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] llDetectedType and NPC's</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20llDetectedType%20and%20NPC%27s&In-Reply-To=%3C4FFB7289.6040805%40googlemail.com%3E"
+       TITLE="[Opensim-dev] llDetectedType and NPC's">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Jul 10 02:08:41 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011346.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+        <LI>Next message: <A HREF="011281.html">[Opensim-dev] RemoteAdmin reminder: the parameter &quot;region_id&quot; will	be default soon
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11282">[ date ]</a>
+              <a href="thread.html#11282">[ thread ]</a>
+              <a href="subject.html#11282">[ subject ]</a>
+              <a href="author.html#11282">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I agree.  Ideally, I think no LL function would be extended.  However, in terms of general mechanisms (e.g. event, 
+sensors), extension has effectively already taken place.
+
+On 08/07/12 19:26, Dahlia Trimble wrote:
+&gt;<i> In general it's not a good idea to extend any &quot;ll&quot; function beyond the equivalent SL definition as there is no guarantee
+</I>&gt;<i> that LL may add any new functionality that may conflict in the future. If this were to happen it would be difficult to
+</I>&gt;<i> resolve the conflicts as there would be scripts in use that depend on the conflicting definitions. Also some scripters
+</I>&gt;<i> don't always use symbolic constants (a terrible practice but it does happen) so it's not just a matter of changing a
+</I>&gt;<i> conflicting value for  a constant and recompiling. If your solution is dependent on deviating from  the SL definition
+</I>&gt;<i> for any &quot;ll&quot; API call, it may be easier for all involved in the future if you can redesign it such as to avoid future
+</I>&gt;<i> incompatibilities.
+</I>&gt;<i>
+</I>&gt;<i> On Sun, Jul 8, 2012 at 3:14 AM, Argus &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">argus at archimuh.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">argus at archimuh.de</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     Hi.
+</I>&gt;<i>
+</I>&gt;<i>       I have a problem with the way that NPCs might be implemented in llDetectedType. A patch can be found in Mantis 6066.
+</I>&gt;<i>
+</I>&gt;<i>       In the events touch, collision and sensor one can use the function llDetectedType which return some basic infos on
+</I>&gt;<i>     what type of object/agent... has been detected by the event. To complete this function, we still need to add NPCs as
+</I>&gt;<i>     type. Sofar, so good...
+</I>&gt;<i>
+</I>&gt;<i>       NPC do however also have the possebility to be created using OS_NPC_SENCE_AS_AGENT. This was implemented sothat
+</I>&gt;<i>     NPCs would work with sensor events ( without changing the lsl script). At that time NPCs were not implemented to
+</I>&gt;<i>     llDetectedType which one could have easely used to change the lsl script to work with NPCs and/OR agents instead of
+</I>&gt;<i>     implementing OS_NPC_SENCE_AS_AGENT. The result is, that using OS_NPC_SENCE_AS_AGENT would return an agent when using
+</I>&gt;<i>     llDetected AND that there is NO way to know if the event was triggered by an agent or NPC without forcing the users
+</I>&gt;<i>     to enable osIsNPC for everybody,  and I do realy mean everybody. For me and some other projects I know of, this will
+</I>&gt;<i>     have fatal sideeffects.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>        Let look at our 3 avatar type, normal agent, liblibomv bot and NPC's and how these can be used for identification.
+</I>&gt;<i>
+</I>&gt;<i>     Situation 1) A closed grid with hypergrid disabled.
+</I>&gt;<i>
+</I>&gt;<i>     - Normal agent = registered at grid, unique uuid + name within grid, controled by human
+</I>&gt;<i>     - Bots = basicaly same as agent, registered at grid,  with unique uuid + name within grid, but remotly controled by
+</I>&gt;<i>     software
+</I>&gt;<i>     - NPC = NOT registered, unique uuid within grid, ANY fictional OR existing name possible and like bots remotly
+</I>&gt;<i>     controled.
+</I>&gt;<i>
+</I>&gt;<i>     If llDetectedType return agent for NPCs using OS_NPC_SENSE_AGENT we only could detect the NPC using
+</I>&gt;<i>     llRequestAgentData to see if we get a posetive respone via DATA_NAME (unless the region itself detects the online
+</I>&gt;<i>     NPC as agent and returns the NPC data, havnt tested that yet.) In any case, the uuid remains unique and can always
+</I>&gt;<i>     be used to identify a single agent/npc/bot
+</I>&gt;<i>
+</I>&gt;<i>     Situation 2) Multigrid system with hypergrid enabled.
+</I>&gt;<i>
+</I>&gt;<i>     - Normal agent = registered at grid, unique uuid + name within grid, controled by human, surname changes with
+</I>&gt;<i>     hypergrid, name supplies griddata on hypergrid travels
+</I>&gt;<i>     - Bots = basicaly same as agent, registered at grid,  with unique uuid + name within grid, but remotly controled by
+</I>&gt;<i>     software, surname changes with hypergrid, name supplies griddata on hypergrid travels
+</I>&gt;<i>     - NPC = NOT registered, unique uuid within grid, ANY fictional OR existing name possible and like bots remotly
+</I>&gt;<i>     controled.
+</I>&gt;<i>
+</I>&gt;<i>       The uuid - name relation is still unique WITHIN a grid, but the same uuid-name relationship can be used in
+</I>&gt;<i>     multiple grids by DIFFRENT users. However when hypergrid traveling the name changes and one can extract the agents
+</I>&gt;<i>     origin grid sothat one recieves a unique uuid+name+grid relationship. In a multigrid system were llDetectedType
+</I>&gt;<i>     return agent for NPCs using OS_NPC_SENSE_AGENT there is NO method using plain lsl to get the unique uuid+name+grid
+</I>&gt;<i>     relationship,  llRequestAgentData is not available in all grids from the hypergrid visitor. The names of NPCs are
+</I>&gt;<i>     NOT unique within a grid AND the uuid could already exist in another grid for an agent. The uuid alone CAN'T be used
+</I>&gt;<i>     to identify a single agent/bot/npc in a multi grid system which is hypergrid enabled.
+</I>&gt;<i>
+</I>&gt;<i>       Short summary: In a mutligrid system with hypergrid each agent/bot has a unique uuid - name - grid relationship
+</I>&gt;<i>     were 2 elements are needed for identification, in a single grid without hypergrid the uuid is enough to identify
+</I>&gt;<i>     each agent/bot/npc. In a multigrid system NPC have to be identified as NPC sothat one can identify the NPC using
+</I>&gt;<i>     uuid + grid.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     As mentioned there is no plain lsl method for identification in a multiple grid system with hypergrid if
+</I>&gt;<i>     llDetectedType returns an Agent for NPCs using OS_NPC_SENSE_AGENT. In Opensim we do have OSSL function which could
+</I>&gt;<i>     be used to help to distinguish between a registered agent and a NPC, eg. osIsNPC. The problem is however, that a
+</I>&gt;<i>     multigrid system would have to have multiple scripts available for all sorts of ossl combinations.
+</I>&gt;<i>
+</I>&gt;<i>     a) No NPCs allowed for anyone - script does not need any NPCs and all event can only be triggered by agents.
+</I>&gt;<i>     b) NPCs allowed  for 1 or more users, osIsNPC not enabled - Our script CAN'T recognize an NPC, so the service has to
+</I>&gt;<i>     be excluded and may not be used on that region
+</I>&gt;<i>     c) NPC allowed for 1 or more users, osIsNPC enabled for those users - Our script CAN'T recognize an NPC if the
+</I>&gt;<i>     script is owned by someone not enabled to use osIsNPC, so the service has to be excluded and may not be used on that
+</I>&gt;<i>     region.
+</I>&gt;<i>     d) NPC allowed for 1 or more users, osIsNPC enabled for everyone - Our script can now use osIsNPC nowmatter who the
+</I>&gt;<i>     owner is, only now we can recognize NPCs
+</I>&gt;<i>
+</I>&gt;<i>     So if your offering a multigrid service, were we need 2 elements for identification, it is required to have atleast
+</I>&gt;<i>     2 script. 1 script for regions were noone can use NPCs and another were osIsNPC is enabled for everyone. This means
+</I>&gt;<i>     that atleast 2 scripts need to be maintained by the scriptor and a huge support team which has to personaly speak to
+</I>&gt;<i>     each customer to explain what script to use etc etc. Latest after 1 year the customer has forgotten everything and
+</I>&gt;<i>     changes the NPC settings, which messes up the agent identification or the region owner changes something without
+</I>&gt;<i>     notifying the parcelwoners because he himself only wants to try something.
+</I>&gt;<i>
+</I>&gt;<i>       Now if the script is in a hud, then we never know what region settings are configured on the region we visit. So
+</I>&gt;<i>     as we dont know anything about the settings, our entire uuid+name+grid relation is useless and we have NO method
+</I>&gt;<i>     atall for identification in a multigrid system with hypergrid enabled. All ossl that could be used for NPC detection
+</I>&gt;<i>     must be considered not avialble while NPC can be used by others.
+</I>&gt;<i>
+</I>&gt;<i>     One could create extra modules to help us, but latest if a closed grid is involved we are not able to run our
+</I>&gt;<i>     additional module. So thats also not an option.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     R&#233;sum&#233;: The only method that would help in a multigrid system is, if llDetectedType ALWAYS returns NPC nomatter what
+</I>&gt;<i>     settings is used and AGENT for any agent/bot. Enabling OS_NPC_SENSE_AGENT to alow llDetectedType to return agent
+</I>&gt;<i>     makes all 3rd party systems in a multigrid hypergrid enabled enviroment virtualy impossible to handle.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     It was thus also my intention to get this issue solved prior to implementation of osNPCTouch, but for that it is to
+</I>&gt;<i>     late now anyway :(.
+</I>&gt;<i>
+</I>&gt;<i>     Michelle Argus
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     _________________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011346.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+	<LI>Next message: <A HREF="011281.html">[Opensim-dev] RemoteAdmin reminder: the parameter &quot;region_id&quot; will	be default soon
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11282">[ date ]</a>
+              <a href="thread.html#11282">[ thread ]</a>
+              <a href="subject.html#11282">[ subject ]</a>
+              <a href="author.html#11282">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,337 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Interop
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Interop&In-Reply-To=%3CAANLkTik0ciL_kok7Rb-a6Bzy8ckS6UW9npstLHY2gB9C%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009482.html">
+   <LINK REL="Next"  HREF="009484.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Interop</H1>
+    <B>Meadhbh Hamrick</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Interop&In-Reply-To=%3CAANLkTik0ciL_kok7Rb-a6Bzy8ckS6UW9npstLHY2gB9C%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Interop">ohmeadhbh at gmail.com
+       </A><BR>
+    <I>Thu Sep  2 06:26:44 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009482.html">[Opensim-dev] Interop
+</A></li>
+        <LI>Next message: <A HREF="009484.html">[Opensim-dev] Interop
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9483">[ date ]</a>
+              <a href="thread.html#9483">[ thread ]</a>
+              <a href="subject.html#9483">[ subject ]</a>
+              <a href="author.html#9483">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>hi christa
+
+since you're new to the VWRAP list, you're probably unfamiliar with
+the work on security models we've done over the last year.
+
+david lavine worked out a list of &quot;deployment use cases&quot; in
+<A HREF="http://tools.ietf.org/html/draft-levine-vwrap-deploy-01">http://tools.ietf.org/html/draft-levine-vwrap-deploy-01</A> .
+
+that draft just expired, so we moved some of the salient points into
+the most recent intro draft:
+<A HREF="https://datatracker.ietf.org/doc/draft-ietf-vwrap-intro/">https://datatracker.ietf.org/doc/draft-ietf-vwrap-intro/</A> .
+
+other points are to be addressed in the upcoming draft of the &quot;auth
+spec&quot; due out this month.
+
+you are welcome, at any point, to participate in this discussion on
+the mailing list and at in-person events held at various IETF
+meetings.
+
+if you have specific issues with the deployment or trust model for
+VWRAP, you are encouraged to start a detailed technical discussion on
+the VWRAP mailing list. or, if you don't have time, you can explain
+your issues to john or daliah who i've seen participate on the list.
+
+if you wish to propose hypergrid's model as a trust option for VWRAP,
+you should write a proposal and send it to the vwrap mailing list. or,
+open a text editor and write an internet draft. it's actually not that
+hard. john, david or myself can possibly tutor you through the
+process.
+
+keep in mind that like many IETF standards, VWRAP defines mechanism,
+and not policy. so when we describe an authentication technique, we're
+not saying that that is the ONLY technique that a vwrap implementation
+can support. ditto for trust models. but because we define mechanism,
+we DO say the equivalent of &quot;if you claim to be VWRAP compliant, and
+you claim to support *such-and-such* trust model and auth scheme, you
+have to do it like this...&quot; (and then you reference the section of the
+spec.)
+
+but like i said, we're supporting multiple &quot;trust models&quot; and
+&quot;deployment patterns&quot; in VWRAP. you can find a synthesis of the three
+distinct views that have come to light in the article by Bell, Levine
+and Dinova @ <A HREF="http://internetmessagingtechnology.org/pubs/VWRAP-for-Virtual-Worlds-Interoperability-mic2010010073.pdf">http://internetmessagingtechnology.org/pubs/VWRAP-for-Virtual-Worlds-Interoperability-mic2010010073.pdf</A>
+(warning, PDF).
+
+(as a note... yes, we started with the concept of an agent domain, and
+i think some people besides linden liked the idea, but as time went on
+we got little agreement over which services should be in an agent
+domain and which in a region. david / zha pointed out that at the end
+of the day, you don't really need the domains if you have a
+sufficiently robust trust model, and they were getting in the way of
+consensus. so, we dropped them.)
+
+to recap, we're supporting the following use cases for server-to-server trust:
+
+a. stand-alone : all services provided by a single organization that
+trusts itself. in this use case, deployed services use minimal
+authentication of peers within their own trust domain. the idea here
+is that if all your services are hosted by machines that YOU operate,
+you can simply give a list of IP addresses you're hosting services on.
+or you could have an admin LAN that's trusted while the public
+interface to client's required client auth, etc. note that in this use
+case, services may be DEPLOYED on multiple hosts; but it's the &quot;trust&quot;
+that's stand-alone
+
+b. the direct trust use case : in this use case, trust relationships
+are explicitly enumerated. that is, a service is being operated on
+host A in trust domain 1, and host B is being operated in trust domain
+2. trust domains 1 and 2 explicitly agree that A and B should trust
+each other. you can ramp this up to include more than 2 hosts in more
+than 2 trust domains, but the key here is that each service operator
+has a list of other hosts it explicitly trusts. this may be
+implemented in many ways: an IPSec VPN or by using client certs with
+HTTP(S). but the key here is that each host has a list of other hosts
+it trusts.
+
+c. the federated trust use case : in this use case, you have a central
+trusted party that other parties explicitly trust and trust to make
+good decisions about who else is trustworthy. this is akin to the
+trust model behind X.509 PKIs with transitive trust. we think this is
+the kind of trust model we would encounter in corporate or educational
+environments. we assume it would leverage existing PKI systems like MS
+Active Directory, etc.
+
+d. client-mediated trust use case (aka the tourist model) : the three
+use cases above, it's the network services themselves who decide who
+they trust. and these trust relationships are considered to be &quot;long
+lived.&quot; in other words, we think they'll last longer than a single
+user session. but there's another option where the client establishes
+trust relationships with each service provider, then tells them each
+about each other. so you might have a simulation service in one trust
+domain that doesn't know anything about a particular asset service in
+another. but if the client establishes a trust relationship with both
+of them, and at login-time contacts each of them, telling them to
+trust each other on the client's behalf, then you've got the core of
+the tourist model down. there's also been some talk about the
+&quot;semi-tourist&quot; model where some services are client-mediated and
+others are federated or direct or what have you.
+
+e. nil trust : welcome to the intarwebs! in the nil trust model, all
+security is by obscurity. if a user agent or a peer service can get to
+you, you trust it. not recommended for public use unless you want to
+turn your virtual world into the equivalent of a spam laden wiki. but
+for people who want to operate a virtual world inside a corporate
+network, they may be okay with trading trust for ease of use. ymmv.
+
+anyway, so these are the five basic use cases. the upcoming draft maps
+each one to a collection of mechanisms for carrying information about
+trust.
+
+with help from john hurliman, david levine and dahlia tremble, we were
+able to extract a number of salient points re HG trust. one critique
+of the HG security model is that it seemed to support no option for
+federated trust. this was a bit of a deal killer for some
+participants; but perfectly acceptable to others.
+
+it would have been nice if there were multiple trust model options in
+OpenSim, but hey, you boil the ocean one thimble at a time. i
+encourage you to look at the upcoming auth &amp; trust model draft ( i
+think it's due out on the 17th of september or the 1st of october. )
+we're documenting trust models that may not have been early
+requirements for OpenSIm or HyperGrid. they're being documented for
+the purpose of being referenced by other people.
+
+also, the next document we draft need not be the last. if there are
+glaring omissions or if we document some bit of the trust model in a
+way that makes it difficult or impossible for HyperGrid to be
+represented with it, PLEASE let us know.
+
+but, we're behind schedule on a lot of the drafts, and we simply ask
+that you participate on the mailing list with clear comments sooner
+rather than later.
+
+-cheers
+--
+meadhbh hamrick * it's pronounced &quot;maeve&quot;
+@OhMeadhbh * <A HREF="http://meadhbh.org/">http://meadhbh.org/</A> * <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">OhMeadhbh at gmail.com</A>
+
+
+
+On Wed, Sep 1, 2010 at 6:48 PM,  &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+&gt;<i> [Changing the subject; long email full of technical and historical details;
+</I>&gt;<i> should perhaps cross-list to vwrap, but the chair there doesn't like
+</I>&gt;<i> cross-postings, understandably; I don't know how to solve that, so goes here
+</I>&gt;<i> only for now...]
+</I>&gt;<i>
+</I>&gt;<i> OGP was a nice demo, and certainly had a lot of impact because it pointed
+</I>&gt;<i> towards what people wanted. It was incomplete, and the agent domain part was
+</I>&gt;<i> never made available for people to use on their own grids. But those weren't
+</I>&gt;<i> the only problems, they weren't even the major problems... The only reason
+</I>&gt;<i> why that demo worked at all was because OpenSim, at the time, was a
+</I>&gt;<i> _complete_security_hole_! :D
+</I>&gt;<i>
+</I>&gt;<i> Basically, if you had a modified client that would make a certain remote
+</I>&gt;<i> call into any OpenSim out there, it would create an agent on the sim,
+</I>&gt;<i> without asking any questions. In other words, you could enter any grid
+</I>&gt;<i> bypassing credential checks altogether. That's how logins and TPs worked
+</I>&gt;<i> when I started playing with OpenSim. A couple of people noticed this at some
+</I>&gt;<i> point or another, and sent us private bug reports. I'm saying this now,
+</I>&gt;<i> because this affects very old versions of OpenSim that probably no one is
+</I>&gt;<i> running anymore -- I hope!
+</I>&gt;<i>
+</I>&gt;<i> The very first version of HG1.0 exploited the same vulnerability. Later, I
+</I>&gt;<i> added a session check across the board, which would at least verify that
+</I>&gt;<i> there was some sort of authority on the sending side, and that such
+</I>&gt;<i> authority would confirm the existence of that session. I'm not sure people
+</I>&gt;<i> were still using OGP at this point, but OGP would have stopped working with
+</I>&gt;<i> this session check, because I didn't have access to the agent domain code in
+</I>&gt;<i> order to add this check to it.
+</I>&gt;<i>
+</I>&gt;<i> The Hypergrid progressed empirically by me identifying all these security
+</I>&gt;<i> holes and, basically, fix them. The holes were the path to the solutions --
+</I>&gt;<i> I didn't have to make anything up!
+</I>&gt;<i>
+</I>&gt;<i> I think the people who did OGP had conscience of how broken that SL/OpenSim
+</I>&gt;<i> demo was, and knew it needed a whole lot more. Documents out there explain
+</I>&gt;<i> what they were thinking about (e.g.
+</I>&gt;<i> <A HREF="http://wiki.secondlife.com/wiki/Structural_Design">http://wiki.secondlife.com/wiki/Structural_Design</A>).
+</I>&gt;<i>
+</I>&gt;<i> There are many similarities between what they were thinking and HG1.5. What
+</I>&gt;<i> that extended protocol is missing is the authentication between the multiple
+</I>&gt;<i> parties involved: what they call the Region domain (similar to the
+</I>&gt;<i> Gatekeeper), what they call the Agent domain (similar to the user agent
+</I>&gt;<i> service), the region itself, and the viewer. *And authentication is the
+</I>&gt;<i> critical piece for making this secure.*
+</I>&gt;<i>
+</I>&gt;<i> Since they didn't seem to have any solution for the multi-party
+</I>&gt;<i> authentication problem, that led to the initial idea that interop could
+</I>&gt;<i> never be true S4S, but would have to have some sort of real-world authority
+</I>&gt;<i> that would establish and enforce the rules of engagement in a federation of
+</I>&gt;<i> VWs -- that would make the nasty problem of authentication go away with the
+</I>&gt;<i> addition of lawyers!
+</I>&gt;<i>
+</I>&gt;<i> Melanie and I figured out how to make the multi-party authentication work.
+</I>&gt;<i> It's basically a series of data flows and verifications that rely 100% on
+</I>&gt;<i> the basic Internet architecture -- DNS and TCP/IP addresses -- and on the
+</I>&gt;<i> social organization that we can expect on top of this architecture. Nothing
+</I>&gt;<i> fancy, really, just back to the basics. And it works. This is not the only
+</I>&gt;<i> way to solve the multi-party authentication problem, but it's probably the
+</I>&gt;<i> simplest.
+</I>&gt;<i>
+</I>&gt;<i> HG1.5 is fairly secure, there's only a couple of obscure corner cases. It's
+</I>&gt;<i> more complicated and unsafe than it needs to be, if we had a client that
+</I>&gt;<i> would cooperate and do the right things. The LL client is a major
+</I>&gt;<i> fixed-point in this, it restricts a lot what we can do.
+</I>&gt;<i>
+</I>&gt;<i> But I've started to like the LL client like it is. Call it Stockholm
+</I>&gt;<i> syndrome! :D
+</I>&gt;<i> There's an interesting thing about the LL architecture: the client talks
+</I>&gt;<i> only to the server(s) that it connects to, and not to the resource servers
+</I>&gt;<i> directly. We hate this, of course. But this is how web browsers work too --
+</I>&gt;<i> or at least how they are forced to work by web servers. When you get a page
+</I>&gt;<i> from a site, the resources you are allowed to get via the dynamic
+</I>&gt;<i> connections are only from that site, and not others (the origin
+</I>&gt;<i> restriction). So if someone would ever do a Web-browser-based rendering
+</I>&gt;<i> engine (something I would love to see!) we would be dealing with essentially
+</I>&gt;<i> the same situation that we are dealing now. Think about it!
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 01/09/10 14:56, Mike Dickson wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> More on OGP below.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Like Diva, I also think that good standards very often only come out
+</I>&gt;&gt;&gt;&gt;<i> of working implementations. Hence, though I've
+</I>&gt;&gt;&gt;&gt;<i> been following the VWRAP lists (and OGP before that) I haven't been
+</I>&gt;&gt;&gt;&gt;<i> participating since there's been a lot of
+</I>&gt;&gt;&gt;&gt;<i> hard-to-follow discussion without much real-world consequence. And as
+</I>&gt;&gt;&gt;&gt;<i> a working developer I don't have the luxury of
+</I>&gt;&gt;&gt;&gt;<i> sitting on my tush and contemplating the Platonic world of future
+</I>&gt;&gt;&gt;&gt;<i> standards all day ;) (joking).
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> This is really the issue that has always bothered me. There's been an
+</I>&gt;&gt;&gt;<i> assertion that working code was more important than &quot;standards&quot;. Truth
+</I>&gt;&gt;&gt;<i> is, standards are hard work, its more fun to hack code. And there *was*
+</I>&gt;&gt;&gt;<i> an existing implementation. LL and IBM demonstrated some limited cross
+</I>&gt;&gt;&gt;<i> grid functionality (hence the OGP work). And asserting politics was an
+</I>&gt;&gt;&gt;<i> issue is just lame. Linden Labs put forward a *working* system as a
+</I>&gt;&gt;&gt;<i> starting point along with some jointly developed code demonstrating
+</I>&gt;&gt;&gt;<i> limited interoperability. The code was even available to the OpenSim
+</I>&gt;&gt;&gt;<i> team. So if there was a &quot;political agenda&quot; it was on both sides. LL
+</I>&gt;&gt;&gt;<i> wanting to preserve some compatibility with their existing system (but
+</I>&gt;&gt;&gt;<i> willing to consider changes) and on the HyperGrid side a desire to
+</I>&gt;&gt;&gt;<i> explore and research ideas.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> What still remains is the hard work of creating a standard that defines
+</I>&gt;&gt;&gt;<i> interoperability. It would be great to see that progress, along with the
+</I>&gt;&gt;&gt;<i> code.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I certainly agree that standards are hard work, which is why creating them
+</I>&gt;&gt;<i> without reference to any working examples seems an almost impossible task to
+</I>&gt;&gt;<i> me. &#160;But that's just my own opinion which is not burdened by decades of
+</I>&gt;&gt;<i> experience :)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I also have to echo what Dahlia said earlier. &#160;OGP was extremely limited,
+</I>&gt;&gt;<i> afaik being nothing beyond transporting an avatar name to a 'default' avatar
+</I>&gt;&gt;<i> on another grid. &#160;There was no other identity or appearance preservation,
+</I>&gt;&gt;<i> let alone access to inventory - all extremely tough problems to address in
+</I>&gt;&gt;<i> any scalable or secure manner.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Dahlia's phrase &quot;OpenSim community&quot; rather than &quot;OpenSim team&quot; illuminates
+</I>&gt;&gt;<i> very well the structures in play here. &#160;In terms of the core group, I
+</I>&gt;&gt;<i> wouldn't say that we were a team as such but more a community of people with
+</I>&gt;&gt;<i> a reasonably common set of interests who agree to abide by certain norms and
+</I>&gt;&gt;<i> a few rules. &#160;There was never really an &quot;OpenSim team&quot; to respond to OGP
+</I>&gt;&gt;<i> proposals. &#160;Rather, some people were interested in it and implemented the
+</I>&gt;&gt;<i> required bits and pieces and other people were ambivalent or more interested
+</I>&gt;&gt;<i> in alternative architectures.
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009482.html">[Opensim-dev] Interop
+</A></li>
+	<LI>Next message: <A HREF="009484.html">[Opensim-dev] Interop
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9483">[ date ]</a>
+              <a href="thread.html#9483">[ thread ]</a>
+              <a href="subject.html#9483">[ subject ]</a>
+              <a href="author.html#9483">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] llDetectedType and NPC's
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20llDetectedType%20and%20NPC%27s&In-Reply-To=%3C4FFE13F3.2010405%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011292.html">
+   <LINK REL="Next"  HREF="011294.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] llDetectedType and NPC's</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20llDetectedType%20and%20NPC%27s&In-Reply-To=%3C4FFE13F3.2010405%40googlemail.com%3E"
+       TITLE="[Opensim-dev] llDetectedType and NPC's">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Jul 12 02:01:55 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011292.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+        <LI>Next message: <A HREF="011294.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11293">[ date ]</a>
+              <a href="thread.html#11293">[ thread ]</a>
+              <a href="subject.html#11293">[ subject ]</a>
+              <a href="author.html#11293">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>That's a neat solution, Argus.  Since the intention of OS_NPC_SENSE_AS_AGENT was to provide compatibility rather than 
+'fool', I think returning both NPC and AGENT flags would be perfectly acceptable.  Let's see if there are any other 
+comments, otherwise I think we can proceed along those lines.  I'm still not that happy with extending llDetectedType() 
+but leakage has already occurred and I suspect its inevitable.
+
+On another note, I'm not sure what 'plausibility' checks you're referring to.
+
+On 11/07/12 13:04, Argus wrote:
+&gt;<i> I am fully aware of the open source factor and that in each open grid everything can be changed, which is why one always
+</I>&gt;<i> needs backend function to make sure no fals information is passed on to the central service. One can however filter 99%
+</I>&gt;<i> of the fals data in the local sim which helps the central service because it does not need to process every single
+</I>&gt;<i> plausability checks. In a multi grid environment with closed grids we even have a lower chance of false data beeing
+</I>&gt;<i> passed than in a open grid only environment.
+</I>&gt;<i>
+</I>&gt;<i>   We have the same situations in opensim were the simulator often does some local plausability checks before it send
+</I>&gt;<i> data to the gridservers. The gridservers again do a plausability check combined with other methods which are not
+</I>&gt;<i> available on the local sim. Only if all steps are plausable the data gets processed further.
+</I>&gt;<i>
+</I>&gt;<i> Anyway, I added a new patch for llDetectedType were NPCs always return NPC and useing OS_NPC_SENSE_AS_AGENT will returns
+</I>&gt;<i> AGENT + NPC. I think that is an acceptable compromize... I also added an example script were the true NPC detection
+</I>&gt;<i> always makes sense  ;)
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Am 11.07.2012 02:01, schrieb Justin Clark-Casey:
+</I>&gt;&gt;<i> Argus, if your system relies on always reliably identifying unique avatars then that is simply not possible in any
+</I>&gt;&gt;<i> OpenSimulator environment where simulators are controlled by third parties or where hypergrid travel is allowed.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Even if OS_NPC_SENSE_AS_AGENT did not exist, then people would be able to compile a version of the code that did have
+</I>&gt;&gt;<i> that functionality. This is not about ideology - it's about what is physically possible!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Equally, it is perfectly possible to create duplicate HG details - anything can be put in the agent data that comes
+</I>&gt;&gt;<i> from a foreign grid (<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">justin at hg.osgrid.org</A> or whatever).  You cannot rely on these to be unique either.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Without any central authority (like DNS, the secure certificate infrastructure of something like Bitcoin block chains)
+</I>&gt;&gt;<i> it is simply not possible to uniquely identify avatars.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I don't see this as much different from the web where one has to get people to create unique accounts with passwords
+</I>&gt;&gt;<i> in order to identify them later.  Such a thing has to be done in some authority system outside of OpenSimulator itself.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> If your point is that without OS_NPC_SENSE_AS_AGENT then the vast majority of systems would always present NPCs as
+</I>&gt;&gt;<i> NPCs (rather than agents) then I would agree.  In fact, in practice most people won't use OS_NPC_SENSE_AS_AGENT anyway
+</I>&gt;&gt;<i> as it's the option rather than the default.  But you cannot rely on uniquely identifying avatars on any environment
+</I>&gt;&gt;<i> outside those that you directly control.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On a minor note, script functions that don't make any sense for NPCs should behave as if the UUID they received did
+</I>&gt;&gt;<i> not relate to a valid entity for that function.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011292.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+	<LI>Next message: <A HREF="011294.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11293">[ date ]</a>
+              <a href="thread.html#11293">[ thread ]</a>
+              <a href="subject.html#11293">[ subject ]</a>
+              <a href="author.html#11293">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

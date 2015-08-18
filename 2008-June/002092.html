@@ -1,0 +1,181 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal to subdivide the assets table
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20to%20subdivide%20the%20assets%20table&In-Reply-To=%3C4864BF9A.6040307%40xyzzyxyzzy.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002089.html">
+   <LINK REL="Next"  HREF="002095.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal to subdivide the assets table</H1>
+    <B>Dr Scofield</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20to%20subdivide%20the%20assets%20table&In-Reply-To=%3C4864BF9A.6040307%40xyzzyxyzzy.net%3E"
+       TITLE="[Opensim-dev] Proposal to subdivide the assets table">DrScofield at xyzzyxyzzy.net
+       </A><BR>
+    <I>Fri Jun 27 12:23:22 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002089.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+        <LI>Next message: <A HREF="002095.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2092">[ date ]</a>
+              <a href="thread.html#2092">[ thread ]</a>
+              <a href="subject.html#2092">[ subject ]</a>
+              <a href="author.html#2092">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Stefan Andersson wrote:
+&gt;<i>  
+</I>&gt;<i> &gt; Well, to make a long story short: Regions don't own assets. Regions
+</I>&gt;<i> &gt; use assets. Users own assets.
+</I>&gt;<i>
+</I>&gt;<i> I do know that you are primarily interested in the SL paradigm.
+</I>&gt;<i>  
+</I>&gt;<i> But from where I'm coming, there's definitively scenarios where 
+</I>&gt;<i> regions can own assets.
+</I>&gt;<i>  
+</I>&gt;<i> The question is whether those assets can then leave the region.
+</I>hmm...if we wanted them to be able to leave (do you mean &quot;leave&quot; as in 
+&quot;go away&quot; or &quot;leave&quot; as in &quot;take a copy&quot;?) the region's asset server 
+could serve them to wherever they are going.
+&gt;<i>
+</I>&gt;<i> &gt; So, a centralized asset storage is certainly needed, tied into the
+</I>&gt;<i> &gt; concepts around asset portability, possibly several centralized
+</I>&gt;<i> &gt; asset servers.
+</I>&gt;<i>
+</I>&gt;<i> I don't think portable assets should be our base case.
+</I>&gt;<i>
+</I>&gt;<i> &gt; But assets are immutable and a region is a finite space. This makes
+</I>&gt;<i> &gt; it an ideal situation for a persistent cache.
+</I>&gt;<i>  
+</I>&gt;<i> Totally so.
+</I>&gt;<i>  
+</I>&gt;<i> &gt; Tier 1: referenced assets, indefinite retention
+</I>&gt;<i> &gt; Tier 2: unreferenced assets, short term retention
+</I>&gt;<i>
+</I>&gt;<i> How would one decide what assets are 'referenced'?
+</I>&gt;<i>  
+</I>&gt;<i> &gt; However, because of the ability to reference an asset by it's UUID,
+</I>&gt;<i> &gt; letting a region &quot;own&quot; an asset is still not possible.
+</I>&gt;<i>
+</I>&gt;<i> Actually, there is still a 'calling context' around that reference.
+</I>&gt;<i>  
+</I>&gt;<i> Building from what I call the 'base case' you can definitively solve a 
+</I>&gt;<i> lot of these references, one feature at a time.
+</I>&gt;<i>  
+</I>&gt;<i> (For example, if each avatar had a 'home asset server' that is 
+</I>&gt;<i> supposed to serve the avatars assets, the case of resolving 
+</I>&gt;<i> 'wearables' would mean going thru the wearables, requesting them from 
+</I>&gt;<i> the home asset server, and caching them - possibly under a _local_ id. 
+</I>&gt;<i> Of course, the next step would be resolving assets referenced by those 
+</I>&gt;<i> wearables, but that's the next step.)
+</I>&gt;<i>  
+</I>&gt;<i> (A 'home asset server' could have a 'default gateway asset server' 
+</I>&gt;<i> that it falls back upon if it can't find an asset. And again, 
+</I>&gt;<i> permanently cache it if found 'upstreams'.)
+</I>&gt;<i>
+</I>&gt;<i> &gt; But, now there are three scenarios:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 1) The prim is pushed across a region boundary. The destination
+</I>&gt;<i> &gt; region requests the texture from the asset server and fails. The
+</I>&gt;<i> &gt; prim will turn gray.
+</I>&gt;<i>
+</I>&gt;<i> a) Provided the scenario allows pushing local prims across boundaries.
+</I>&gt;<i> b) The Prim can have a 'home asset server' which is the first region.
+</I>exactly.
+&gt;<i>
+</I>&gt;<i> &gt; 2) The prim has previously been &quot;take&quot;n. A copy exists in egent
+</I>&gt;<i> &gt; inventory, but the list of the resources needed to reconstitute this
+</I>&gt;<i> &gt; &quot;object&quot; is hidden in the asset, actually, multiple asset records.
+</I>&gt;<i> &gt; If the texture has been removed from the central server, rezzing
+</I>&gt;<i> &gt; this object in any region where the texture is not in use will fail.
+</I>&gt;<i>
+</I>&gt;<i> a) Provided the scenario allows local prims to be 'taken'
+</I>&gt;<i> b) See 1, I guess?
+</I>&gt;<i>
+</I>&gt;<i> &gt; 3) If i deleted the texture, there is no guarantee that I have also
+</I>&gt;<i> &gt; lost it's UUID. I may have a notecard with all my texture UUIDs and
+</I>&gt;<i> &gt; use them in scripts. Such scripts, taken to other regions, would fail.
+</I>&gt;<i>
+</I>&gt;<i> So, what happens if we let go of the paradigms of the online social 
+</I>&gt;<i> game Second Life and think more of how the web works?
+</I>&gt;<i>  
+</I>&gt;<i> There is definitively a lot of 404's and broken image links out there. 
+</I>&gt;<i> And somehow, it's still useable.
+</I>agree. i'm afraid that we will have to live with the occasional grey prim...
+&gt;<i>
+</I>&gt;<i> &gt; Issue 1 could be addressed by transferring the needed resources
+</I>&gt;<i> &gt; along with the object, however, on a distributed grid like OSGrid,
+</I>&gt;<i> &gt; this can be time-consuming, as home DSL may be involved.
+</I>&gt;<i>
+</I>&gt;<i> Maybe I misunderstand you, but in order to forward it to the agent, we 
+</I>&gt;<i> need to transfer it to the region anyway.
+</I>&gt;<i>
+</I>&gt;<i> &gt; Issue 3 could be addressed by creating a list of resources needed at
+</I>&gt;<i> &gt; the time of the &quot;take&quot; and making that part of the inventory record.
+</I>&gt;<i> &gt; This would significantly bloat the inventory table, as each prim's
+</I>&gt;<i> &gt; inventory, face textures and all sounds/animations it might play are
+</I>&gt;<i> &gt; listed in the database.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Issue 3 cannot be reasonably addressed.
+</I>&gt;<i>
+</I>&gt;<i> I beg to differ. I think this very doable. I just think we need to 
+</I>&gt;<i> boil the use case down.
+</I>&gt;<i>
+</I>&gt;<i> &gt; Therefore, caching, which is something I have looked into and am
+</I>&gt;<i> &gt; going to write some code for, is an absolutely viable solution for
+</I>&gt;<i> &gt; many of the raised issues, but weeding the central server's contents
+</I>&gt;<i> &gt; in such a way seems to be impracticable.
+</I>&gt;<i>
+</I>&gt;<i> Yay!
+</I>&gt;<i>  /Stefan
+</I>&gt;<i>  
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+
+-- 
+dr dirk husemann ---- virtual worlds research ---- ibm zurich research lab
+SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002089.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+	<LI>Next message: <A HREF="002095.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2092">[ date ]</a>
+              <a href="thread.html#2092">[ thread ]</a>
+              <a href="subject.html#2092">[ subject ]</a>
+              <a href="author.html#2092">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

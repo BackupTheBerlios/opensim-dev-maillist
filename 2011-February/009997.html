@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Map Tiles for Viewer 2.4.x
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Map%20Tiles%20for%20Viewer%202.4.x&In-Reply-To=%3CAANLkTinDOmVvo0ss5jw%2Bg6TCNd1jA%3DX1kGmcvLbXAKeC%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009996.html">
+   <LINK REL="Next"  HREF="009998.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Map Tiles for Viewer 2.4.x</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Map%20Tiles%20for%20Viewer%202.4.x&In-Reply-To=%3CAANLkTinDOmVvo0ss5jw%2Bg6TCNd1jA%3DX1kGmcvLbXAKeC%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Map Tiles for Viewer 2.4.x">cmickeyb at gmail.com
+       </A><BR>
+    <I>Fri Feb 11 22:35:08 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009996.html">[Opensim-dev] Map Tiles for Viewer 2.4.x
+</A></li>
+        <LI>Next message: <A HREF="009998.html">[Opensim-dev] Opensim Inventory Parser to Obj or other formats?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9997">[ date ]</a>
+              <a href="thread.html#9997">[ thread ]</a>
+              <a href="subject.html#9997">[ subject ]</a>
+              <a href="author.html#9997">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>the simian map service does have a few interesting quirks.
+
+the region module really doesn't do much... it just uploads the level1
+detail to the simian server. as part of the upload the other levels are
+computed (on the server). since every upload currently triggers an immediate
+recompute of all higher levels, bringing up a bunch of regions can pretty
+much overwhelm the simian grid server (recompute every level for every
+region that uploads its maptile). fixing the problem isn't hard... just
+requires time &amp; a reason to bump it up the priority stack.
+
+--mic
+
+
+On Thu, Feb 10, 2011 at 11:59 AM, Ai Austin &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ai.ai.austin at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hi ssm2017, I believe that the Simian Map Tile module does most of what is
+</I>&gt;<i> needed and can be generalised... if an HTTP handler was added to Robust it
+</I>&gt;<i> may be close to working already with the code in that module.
+</I>&gt;<i>
+</I>&gt;<i> Here are two relevant Mic Bowman postings in January...
+</I>&gt;<i>
+</I>&gt;<i>  Mic Bowman &lt;mailto:opensim-dev%40lists.berlios.de
+</I>&gt;&gt;<i> ?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BSIMIAN%20MAPTILE%5D%20-%20generalize%20to%20a%20core%20function%3F&amp;In-Reply-To=%3CAANLkTikj2FEz5LcLtKaDAKWhY1Mo%3Dg7MCK1Po5uOrfme%
+</I>&gt;&gt;<i> 40mail.gmail.com%3E&gt;cmickeyb at gmail.com
+</I>&gt;&gt;<i> Mon Jan 10 17:39:19 CET 2011
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Simian isn't doing anything special. It takes the existing map images that
+</I>&gt;&gt;<i> are generated (no changes at all to the map generator, it uses what ever
+</I>&gt;&gt;<i> is
+</I>&gt;&gt;<i> already configured) and *also* pushes a copy up to the grid frontend for
+</I>&gt;&gt;<i> inclusion in the map functions there.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The module I added moves the code that used to be in the
+</I>&gt;&gt;<i> SimianGridServiceConnector (when it was a full region module) out into a
+</I>&gt;&gt;<i> region module of its own. When we converted the SimianGridServiceConnector
+</I>&gt;&gt;<i> into a &quot;real&quot; connector, we lost the handle to the scene &amp; that was
+</I>&gt;&gt;<i> functionality that should have been in a separate module anyway.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> That being said... all that module does right now is &quot;every so often&quot; it
+</I>&gt;&gt;<i> asks the existing map tile generator to generate a tile, converts it to a
+</I>&gt;&gt;<i> png and uploads it to the simian grid service point.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Ai: The same basic structure could be used to push other data to other
+</I>&gt;&gt;<i> locations... but its probably easier to just copy the module for your
+</I>&gt;&gt;<i> specific requirements since the location of the data in this case is
+</I>&gt;&gt;<i> pretty
+</I>&gt;&gt;<i> much the only &quot;interesting&quot; functionality in that module.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>  Mic Bowman &lt;mailto:opensim-dev%40lists.berlios.de
+</I>&gt;&gt;<i> ?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BSIMIAN%20MAPTILE%5D%20-%20generalize%20to%20a%20core%20function%3F&amp;In-Reply-To=%3CAANLkTina7P05OxoXvydxpz0YA%3DWn_wF81KFzLZk-M2%3DM%
+</I>&gt;&gt;<i> 40mail.gmail.com%3E&gt;cmickeyb at gmail.com
+</I>&gt;&gt;<i> Tue Jan 11 17:35:20 CET 2011
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yeah... I think that module could easily be used for other map services
+</I>&gt;&gt;<i> right now. It is labeled as part of Simian because the SGF needs it.
+</I>&gt;&gt;<i> However, you cold enable it, set a new URL, and pump map images wherever
+</I>&gt;&gt;<i> you
+</I>&gt;&gt;<i> want.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110211/052a754a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110211/052a754a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009996.html">[Opensim-dev] Map Tiles for Viewer 2.4.x
+</A></li>
+	<LI>Next message: <A HREF="009998.html">[Opensim-dev] Opensim Inventory Parser to Obj or other formats?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9997">[ date ]</a>
+              <a href="thread.html#9997">[ thread ]</a>
+              <a href="subject.html#9997">[ subject ]</a>
+              <a href="author.html#9997">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

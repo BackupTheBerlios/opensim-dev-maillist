@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Problem with User server in grid mode retrieving	User Profile
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Problem%20with%20User%20server%20in%20grid%20mode%20retrieving%0A%09User%20Profile&In-Reply-To=%3Cc5851bcf0811210156v543bec97jed719d3c90cba5c9%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003669.html">
+   <LINK REL="Next"  HREF="003678.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Problem with User server in grid mode retrieving	User Profile</H1>
+    <B>Impalah</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Problem%20with%20User%20server%20in%20grid%20mode%20retrieving%0A%09User%20Profile&In-Reply-To=%3Cc5851bcf0811210156v543bec97jed719d3c90cba5c9%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Problem with User server in grid mode retrieving	User Profile">impalah at gmail.com
+       </A><BR>
+    <I>Fri Nov 21 10:56:36 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003669.html">[Opensim-dev] Problem with User server in grid mode	retrieving	User Profile
+</A></li>
+        <LI>Next message: <A HREF="003678.html">[Opensim-dev] Problem with User server in grid mode retrieving	User Profile
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3675">[ date ]</a>
+              <a href="thread.html#3675">[ thread ]</a>
+              <a href="subject.html#3675">[ subject ]</a>
+              <a href="author.html#3675">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ok, I've been reviewing the code and think that there isn't any way to
+authenticate an user from a service published on Opensim.exe (grid mode); I
+suposse will be the same to other servers. User server does not provide
+methods for authetication.
+
+I pretend something like that:
+- I have an Opensim(mono) plugin, managed from Opensim.exe.
+- In the initialization I publish a service in the xmlrpc server (is exactly
+the way RemoteController does)
+                    m_httpd.AddXmlRPCHandler(&quot;execute_command&quot;,
+XmlRpcExecuteCommandMethod, false);
+- I receive username/lastname and password in the xmlrpc request; the
+command XmlRpcExecuteCommandMethod is executed.
+
+And now, the problem: I have access to OpenSimBase, which allows me to
+access to communicationsManager, and from here to any server, but I can't
+find any method in user server to auth.
+LoginServer.cs has the public method AuthenticateUser(UserProfileData
+profile, string password) which only returns a boolean but it isn't
+published in the UserServer for remote authentication.
+
+If you are asking why the hell I could need this thing... the answer is
+simple: I'm improving the RemoteAdmin service, which I need to my Henshin
+(autocad to sl/opensim importer) tool. I want to provide a secure plugin for
+opensim users who want to use this tool (me, for example). The improvement
+is simple: I have included a Facade and a Command Factory pattern which will
+allow anyone to create &quot;admin&quot; plugins accesible from xmlrpc and are
+isolated from the &quot;opensim engine&quot; (if one core method changes, only some
+commands will be affected and not the whole system)
+
+I could have used libopenmv, but I prefer a &quot;native&quot; solution and not to use
+hacks.
+
+I'm not a security expert so if anyone can tell me which security
+implications could have this way to &quot;remote authenticate&quot;...
+
+Greetings
+
+
+
+
+2008/11/21 Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;
+
+&gt;<i>  Uhh it should be salted.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> There's a passwordSalt field for a reason.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Adam
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> *From:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] *On Behalf Of *Alan M Webb
+</I>&gt;<i> *Sent:* Thursday, 20 November 2008 4:14 PM
+</I>&gt;<i> *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> *Subject:* Re: [Opensim-dev] Problem with User server in grid mode
+</I>&gt;<i> retrieving User Profile
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I believe it exports a service which you can pass the login data you
+</I>&gt;<i> received and get an authentication response (true or false). I don't have my
+</I>&gt;<i> system up at the moment, so I can't check the details. OpenSim doesn't
+</I>&gt;<i> actually use any salt when it stores the password, so that makes it easier
+</I>&gt;<i> to handle.
+</I>&gt;<i>
+</I>&gt;<i> You need one of the grid owners to respond, I use stand-alone pretty much
+</I>&gt;<i> exclusively.
+</I>&gt;<i>
+</I>&gt;<i> Best regards
+</I>&gt;<i> Alan
+</I>&gt;<i> -------------------
+</I>&gt;<i> T.J. Watson Research Center, Hawthorne, NY
+</I>&gt;<i> 1-914-784-7286
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>
+</I>&gt;<i>
+</I>&gt;<i>   From:
+</I>&gt;<i>
+</I>&gt;<i> Impalah &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i> To:
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>
+</I>&gt;<i> Date:
+</I>&gt;<i>
+</I>&gt;<i> 11/20/2008 06:32 PM
+</I>&gt;<i>
+</I>&gt;<i> Subject:
+</I>&gt;<i>
+</I>&gt;<i> Re: [Opensim-dev] Problem with User server in grid mode retrieving
+</I>&gt;<i>  User Profile
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>  ------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Damn!!!
+</I>&gt;<i>
+</I>&gt;<i> Then, is there another &quot;clean&quot; way to authenticate an user when using
+</I>&gt;<i> xmlrpc calls? (like RemoteAdmin does).
+</I>&gt;<i>
+</I>&gt;<i> The dirty trick of setting a &quot;master&quot; password in opensim.ini is quite...
+</I>&gt;<i> well if I had a &quot;commercial&quot; grid the idea of delivering an unique password
+</I>&gt;<i> to everyone who wants to use some services will make me sweat... :-(
+</I>&gt;<i>
+</I>&gt;<i> Thanks for the quick response, Alan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> 2008/11/21 Alan M Webb &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i> Yes, I stumbled over the same thing too. What I discovered (well actually
+</I>&gt;<i> Mic Bowman or John Hurliman): For security reasons, the user server
+</I>&gt;<i> suppresses password information in remote requests for user profile
+</I>&gt;<i> information. This is deliberate and necessary to preserve the fragile shreds
+</I>&gt;<i> of security we currently have.
+</I>&gt;<i>
+</I>&gt;<i> Best regards
+</I>&gt;<i> Alan
+</I>&gt;<i> -------------------
+</I>&gt;<i> T.J. Watson Research Center, Hawthorne, NY
+</I>&gt;<i> 1-914-784-7286*
+</I>&gt;<i> *<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>
+</I>&gt;<i>
+</I>&gt;<i> From:
+</I>&gt;<i>
+</I>&gt;<i> Impalah &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i> To:
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>
+</I>&gt;<i> Date:
+</I>&gt;<i>
+</I>&gt;<i> 11/20/2008 06:13 PM
+</I>&gt;<i>
+</I>&gt;<i> Subject:
+</I>&gt;<i>
+</I>&gt;<i> [Opensim-dev] Problem with User server in grid mode retrieving User
+</I>&gt;<i>  Profile
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>  ------------------------------
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Hi:
+</I>&gt;<i>
+</I>&gt;<i> I'm having a strange problem retrieving user profiles only in GRID mode
+</I>&gt;<i> (standalone works ok): the field PasswordHash (I need this field to do a
+</I>&gt;<i> xmlrpc authentication) is empty.
+</I>&gt;<i>
+</I>&gt;<i> I'm using version 0.6, I can't remember the svn release, it's from 1 week
+</I>&gt;<i> ago, Windows XP SP3, Net 2.0 and Mysql.
+</I>&gt;<i>
+</I>&gt;<i> I couldn't find any issue in Mantis so my question is: is this a feature
+</I>&gt;<i> for grid mode or something similar?
+</I>&gt;<i>
+</I>&gt;<i> The code in MySQLUserData.cs is the same for both modes and couldn't find
+</I>&gt;<i> any &quot;strange&quot; line in User Server code:
+</I>&gt;<i>
+</I>&gt;<i> IDbCommand result = dbm.Manager.Query(&quot;SELECT * FROM &quot; + m_agentsTableName
+</I>&gt;<i> + &quot; WHERE UUID = ?uuid&quot;,
+</I>&gt;<i>                                                     param);
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Any idea?
+</I>&gt;<i>
+</I>&gt;<i> Greetings
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list*
+</I>&gt;<i> *<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>*
+</I>&gt;<i> *<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list*
+</I>&gt;<i> *<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>*
+</I>&gt;<i> *<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081121/036bc0b7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081121/036bc0b7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003669.html">[Opensim-dev] Problem with User server in grid mode	retrieving	User Profile
+</A></li>
+	<LI>Next message: <A HREF="003678.html">[Opensim-dev] Problem with User server in grid mode retrieving	User Profile
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3675">[ date ]</a>
+              <a href="thread.html#3675">[ thread ]</a>
+              <a href="subject.html#3675">[ subject ]</a>
+              <a href="author.html#3675">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

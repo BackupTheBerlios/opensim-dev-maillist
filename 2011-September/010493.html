@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Will an SSD drive make OS any faster?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Will%20an%20SSD%20drive%20make%20OS%20any%20faster%3F&In-Reply-To=%3C1316203104.3566.42.camel%40localhost.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010492.html">
+   <LINK REL="Next"  HREF="010495.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Will an SSD drive make OS any faster?</H1>
+    <B>Sean McNamara</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Will%20an%20SSD%20drive%20make%20OS%20any%20faster%3F&In-Reply-To=%3C1316203104.3566.42.camel%40localhost.localdomain%3E"
+       TITLE="[Opensim-dev] Will an SSD drive make OS any faster?">smcnam at gmail.com
+       </A><BR>
+    <I>Fri Sep 16 21:58:24 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010492.html">[Opensim-dev] Will an SSD drive make OS any faster?
+</A></li>
+        <LI>Next message: <A HREF="010495.html">[Opensim-dev] Will an SSD drive make OS any faster?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10493">[ date ]</a>
+              <a href="thread.html#10493">[ thread ]</a>
+              <a href="subject.html#10493">[ subject ]</a>
+              <a href="author.html#10493">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+On Fri, 2011-09-16 at 14:46 -0400, David Kaplan wrote:
+&gt;<i> I'm getting ready to build a box specifically to run bunch of HG OS 
+</I>&gt;<i> regions. The box will likely have no other purpose. It's not going to be 
+</I>&gt;<i> expensive... I'm basically going to pour my money into a nice quad core 
+</I>&gt;<i> CPU and RAM. But, I wanted to know if anyone here has any experience 
+</I>&gt;<i> running OS using a high speed drive such as Seagate's Cheetah or SSDs. 
+</I>&gt;<i> I'm really interested to hear if anyone has any experience with SSDs as 
+</I>&gt;<i> they seem to be the fastest in terms of retrieval and storage.
+</I>
+They are fastest, but they also don't handle frequent, repeated writes
+very well. I mean it'll be fast, but you can wear the drive out much
+quicker than you can wear out an HDD. The manufacturers have not yet
+solved this problem to *my* satisfaction (your opinion may differ) --
+the usable life of an SSD for database workloads is pretty poor. It's
+much better for scenarios where you do a lot more reading than writing.
+But you do almost as much writing as reading in opensim, where objects
+are constantly being modified, etc.
+
+What I think would speed up an opensim instance more than anything else
+is having tons of RAM. This boosts your performance almost regardless of
+which backend you use to persist opensim data. Even if your backend
+likes to write to disk a lot, and calls fsync() a lot, reads will still
+be insanely fast out of the operating system's page cache. But without a
+lot of RAM, the page cache can't grow very big, so more likely than not
+you end up getting page faults that have to be handled by the HDD/SSD.
+
+IMHO you would be much better off with getting ~24GB of DDR3 RAM (or
+more, if you are looking at a server chassis and motherboard) than
+worrying about SSDs. Heck, if you get *a whole honking lot of RAM* (&quot;a
+lot&quot; is defined by the number of expected users and object complexity on
+your sims) you could run opensim with the persistence completely in
+memory! You'd need something like a UPS solution for power outages, with
+enough battery life to I/O your entire in-memory database to persistent
+storage (disk) before the battery dies, but it would be WAY faster than
+an SSD. 
+
+In my experience, DDR3 RAM is only slightly more expensive than SSDs,
+gigabyte for gigabyte. But the problem with SSDs is that they use flash
+memory, which wears out after many repeated writes; and SSDs use the
+traditional hard disk bus paths (e.g. SATA) which are much slower, and
+much higher latency than your memory controller. If you're willing to
+shell out boku bucks for an SSD, shell out slightly more and buy the
+equivalent in cheap DDR3 RAM (unbuffered 1066 MHz is more than
+sufficient). You'll be able to keep a large portion (or all) of your
+sim's persistent data cached in RAM, which is still *way* faster than
+even the fastest SSD.
+
+As for the software mechanism that would enable you to run your entire
+database in RAM, I'd say you should take a look at the various memory
+filesystem projects out there. It depends on the OS you run, too, but in
+general you'll have better support for this kind of thing on Linux. You
+just need to set up *some* way to eventually get the written data back
+to a persistent storage (disk), which could be anything from an
+occasional cron job backup, or only persist to disk when shutting down
+the system and hook up a UPS that triggers a graceful system shutdown
+when you lose main power. You could also look into the &quot;null db&quot; and
+persisting your data with OAR backups.
+
+HTH,
+
+Sean
+
+&gt;<i> 
+</I>&gt;<i> My theory is that OS is read/write intensive. Would a regular 7200 RPM 
+</I>&gt;<i> drive create a bottleneck? If so, would and SSD drive help?
+</I>&gt;<i> 
+</I>&gt;<i> TYIA!
+</I>&gt;<i> 
+</I>&gt;<i> David Kaplan
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010492.html">[Opensim-dev] Will an SSD drive make OS any faster?
+</A></li>
+	<LI>Next message: <A HREF="010495.html">[Opensim-dev] Will an SSD drive make OS any faster?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10493">[ date ]</a>
+              <a href="thread.html#10493">[ thread ]</a>
+              <a href="subject.html#10493">[ subject ]</a>
+              <a href="author.html#10493">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

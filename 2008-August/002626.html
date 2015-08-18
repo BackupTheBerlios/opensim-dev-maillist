@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Standardizing types in OpenSim
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Standardizing%20types%20in%20OpenSim&In-Reply-To=%3CD6A10607992B12488CE4BE6021C28F950539BB5C%40orsmsx415.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002625.html">
+   <LINK REL="Next"  HREF="002627.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Standardizing types in OpenSim</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Standardizing%20types%20in%20OpenSim&In-Reply-To=%3CD6A10607992B12488CE4BE6021C28F950539BB5C%40orsmsx415.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Standardizing types in OpenSim">john.hurliman at intel.com
+       </A><BR>
+    <I>Tue Aug 19 03:58:22 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002625.html">[Opensim-dev] Standardizing types in OpenSim
+</A></li>
+        <LI>Next message: <A HREF="002627.html">[Opensim-dev] Standardizing types in OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2626">[ date ]</a>
+              <a href="thread.html#2626">[ thread ]</a>
+              <a href="subject.html#2626">[ subject ]</a>
+              <a href="author.html#2626">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sure thing. Most of the functions haven't changed, but a lot of new
+things have been added to make it on par with XNA/Mono.Xna/Axiom
+functionality. I'll ping back when the api freeze note and api change
+docs are online. And yes, the types are all marked [Serializable] :-).
+
+ 
+
+John
+
+ 
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Frisby, Adam
+Sent: Monday, August 18, 2008 6:51 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Standardizing types in OpenSim
+
+ 
+
+I'd like to attach on another request.
+
+ 
+
+A document guiding what the changes are - specifically the old type
+names, the new type names, if any method signatures have changed, a list
+of those changes too.
+
+ 
+
+There's a couple of us sitting on the outside with region modules that
+will need to be updated accordingly, and I'd have a preference if this
+was as painless as possible.
+
+ 
+
+Regards,
+
+ 
+
+Adam
+
+ 
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Dahlia
+Trimble
+Sent: Monday, 18 August 2008 6:23 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Standardizing types in OpenSim
+
+ 
+
+Thanks for addressing those issues John :)
+
++1
+
+On Mon, Aug 18, 2008 at 4:13 PM, Hurliman, John
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">john.hurliman at intel.com</A>&gt; wrote:
+
+Thank you everyone who has responded, it sounds like there is a common
+set of concerns that can be addressed.
+
+* Taking advice from this thread, I split libOpenMetaverse into
+OpenMetaverseTypes.dll and OpenMetaverse.dll, with the latter depending
+on the former. OpenMetaverseTypes.dll is a very small library (64KB)
+only containing UUID, Vector2, Vector3, Vector3d, Vector4, Quaternion,
+Matrix4, Ray, Color4, and a static Utils class with common math and
+conversion routines.
+
+* An API freeze will happen immediately on the types library. I'll draft
+up a wiki page to put it into more detail, but what this means
+specifically is nothing will change names, no function signatures will
+change, and the existing functions will behave the same throughout any
+new revisions. New structs or functions may be added over time. It's
+been in development for two years now, and I think the core
+functionality is nailed down.
+
+* The patch I wrote doesn't attempt to homogenize 100% of the types in
+OpenSim. The LSL types serve a different function from the rest of the
+types, and the PhysicsVector/Vertex/Triangle set is used in a unique way
+that can't easily be replicated with a common type library. However,
+there is a lot of room to go from five or six different implementations
+down to two or three, and this patch errors on the side of caution in
+that regard.
+
+* libomv (and libomvtypes) will continue to be BSD licensed and do not
+include any GPL licensed code. There is a separate GPL library for prim
+meshing, but there is no dependency from libomv to the GPL mesher or
+back, and the GPL code does not exist in the libomv SVN anywhere. It
+will be released as a separate project for those who wish to use it.
+
+The libomv team has been happy with the move toward independent modules
+that break a lot of cyclic dependencies, and is generally going to be
+the trend for new development in that library (including a Capability
+server implementation). Let me know if anything else needs to be
+addressed with the new types library. Some work needs to be done on my
+end now to recreate the patch against the new OpenMetaverseTypes.dll.
+
+-John
+
+
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Melanie
+Sent: Friday, August 08, 2008 7:50 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Standardizing types in OpenSim
+
+Hi,
+
+I have to second the move for independence. Much time, also mine,
+has gone into removing or avoiding libsl references in core. Libsl
+has it's place in LLClientStack, where it provides connectivity to
+the one client that actually uses that protocol.
+
+Countless hours have been spent to refactor _from_ libsl tyoes _to_
+axiom, and the LSL implementations are different again, and need to
+be, if we want scripts to run unmodified, and, thinking onwards,
+achieve SL interoperability on a binary level.
+
+Libomv seems to be a requirement only for the one use case of
+emulating SL, for any other scenario not using the SL client, that
+lib creates a huge amount of code overhead. Much of it isn't used in
+OpenSim as it stands.
+
+Actually, it should even be broken up further.
+
+libMetavrseTypes: Quaternion, Vector3, Color4, LLUUID, etc
+libPackets: _Packets_.cs and the needed stuff to support using it.
+libOpenMetaverse: All the rest, that OpenSim doesn't ever need.
+
+Then libMetaverseTypes, which should have an API stability guarantee
+and whose types should be made serializable again, could be used
+throughout.
+
+libPackets would be used in the LLClientStack exclusively
+
+libOpenMetaverse would not be needed by this project.
+
+Melanie
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080818/f8d94d4d/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080818/f8d94d4d/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002625.html">[Opensim-dev] Standardizing types in OpenSim
+</A></li>
+	<LI>Next message: <A HREF="002627.html">[Opensim-dev] Standardizing types in OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2626">[ date ]</a>
+              <a href="thread.html#2626">[ thread ]</a>
+              <a href="subject.html#2626">[ subject ]</a>
+              <a href="author.html#2626">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

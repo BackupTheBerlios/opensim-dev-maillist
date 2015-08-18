@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] How to Implement a wind simulation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20How%20to%20Implement%20a%20wind%20simulation&In-Reply-To=%3Cab84ceb10806252134m717f66bbt53f6c3c6b2ae5e51%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002049.html">
+   <LINK REL="Next"  HREF="002064.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] How to Implement a wind simulation</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20How%20to%20Implement%20a%20wind%20simulation&In-Reply-To=%3Cab84ceb10806252134m717f66bbt53f6c3c6b2ae5e51%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] How to Implement a wind simulation">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Thu Jun 26 06:34:08 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002049.html">[Opensim-dev] OSGrid, Electric Sheep and other things
+</A></li>
+        <LI>Next message: <A HREF="002064.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2053">[ date ]</a>
+              <a href="thread.html#2053">[ thread ]</a>
+              <a href="subject.html#2053">[ subject ]</a>
+              <a href="author.html#2053">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm interested in possibly adding support for a wind simulation in opensim,
+and I've been doing a little research.
+
+According to <A HREF="http://wiki.secondlife.com/wiki/LayerData">http://wiki.secondlife.com/wiki/LayerData</A> there is wind data
+sent for 16x16 meter cells in a region. I'm not sure yet how often it is
+sent, but libsecondlife has a data throttle for it so I'll assume it's
+periodically updated. I have tested wind-responsive flexy prims on the Agni
+grid and they appear to move with strikingly close synchronization between
+different viewers. They do not correspond well to wind vectors obtained with
+llWind() in the same 16x16 meter section of a region, there seems to be a
+several second time lag *as if* the llWind() data have a much lower update
+frequency, or a time lag on the order of many seconds.
+<A HREF="http://wiki.secondlife.com/wiki/LlCloud">http://wiki.secondlife.com/wiki/LlCloud</A> mentions a relationship between
+clouds and wind but is lacking detail. These data are encoded with a custom
+discreet cosine transform routine similar to jpeg before encoding into
+packets to be sent to the viewer.
+
+Given the 16x16 meter cell size, I think a fairly simple model will suffice
+for the purpose of adding realism to the user experience when using the
+Linden viewer. Input requirements may be as simple as region time of day and
+sun position, and perhaps water level and average terrain height for a cell.
+Such a model may need little CPU and memory requirements and shouldn't
+noticibly impact sim performance. More realistic simulation may require a
+higher cell density and prim mesh data from the physics engine and could be
+offloaded to a seperate thread or external process if necessary. Output from
+the model should be sent to the viewer and made available to the scripting
+engine to allow access via llWind() and llCloud().
+
+I'd prefer to initially develop a simple model this with a plug-in
+architecture that would provide the necessary hooks so more elaborate models
+could be developed at a later date for those who may have interest in such
+an endeavour. I realize that there are some concerns with the current
+architecture and possible alternatives are being discussed, so I would ask
+those to consider these needs in their discussions. I originally posted some
+ideas about this topic to that thread but they appear to have been buried in
+the chatter so I'm posting this as a new topic with hope that it may gain
+more exposure.
+
+Please comment!
+
+Thanks,
+-&quot;dahlia&quot;
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080625/15f91ba1/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080625/15f91ba1/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002049.html">[Opensim-dev] OSGrid, Electric Sheep and other things
+</A></li>
+	<LI>Next message: <A HREF="002064.html">[Opensim-dev] Proposal to subdivide the assets table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2053">[ date ]</a>
+              <a href="thread.html#2053">[ thread ]</a>
+              <a href="subject.html#2053">[ subject ]</a>
+              <a href="author.html#2053">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

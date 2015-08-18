@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Fixing &quot;Unknown User&quot; problems using the database
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fixing%20%22Unknown%20User%22%20problems%20using%20the%20database&In-Reply-To=%3C1380023503149-7578750.post%40n2.nabble.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011907.html">
+   <LINK REL="Next"  HREF="011909.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Fixing &quot;Unknown User&quot; problems using the database</H1>
+    <B>Oren Hurvitz</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fixing%20%22Unknown%20User%22%20problems%20using%20the%20database&In-Reply-To=%3C1380023503149-7578750.post%40n2.nabble.com%3E"
+       TITLE="[Opensim-dev] Fixing &quot;Unknown User&quot; problems using the database">orenh at kitely.com
+       </A><BR>
+    <I>Tue Sep 24 13:51:43 CEST 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011907.html">[Opensim-dev] Reminder: OpenSim Meetup in Zurich
+</A></li>
+        <LI>Next message: <A HREF="011909.html">[Opensim-dev] Fixing &quot;Unknown User&quot; problems using the database
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11908">[ date ]</a>
+              <a href="thread.html#11908">[ thread ]</a>
+              <a href="subject.html#11908">[ subject ]</a>
+              <a href="author.html#11908">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I started using Hypergrid recently, and came across the &quot;Unknown User&quot;
+problem. So far I've seen UserUMMAU4 and UserUMMTGUN9. I poked around to see
+if I can do anything about this, and it seems that the mapping of UUID -&gt;
+Name is stored in memory only (UserManagementModule.m_UserCache). This has
+the following consequences:
+
+1. Simulators don't share what they know.
+2. When a simulator is restarted, it forgets even those bindings that it did
+know before.
+
+The simulators do attempt to rebuild their cache on startup, by examining
+all the prims in the scene. But this is insufficient. E.g., inventory items
+also have creators.
+
+I think we should create a table in Robust, similar to UserAccounts (or
+perhaps in UserAccounts itself), which stores these name mappings.
+Simulators would use this table as a fallback if they don't find a mapping
+in their own cache. This will solve all (or at least most) of the &quot;Unknown
+User&quot; problems.
+
+What do you think? Am I missing something?
+
+Oren
+
+
+
+--
+View this message in context: <A HREF="http://opensim-dev.2196679.n2.nabble.com/Fixing-Unknown-User-problems-using-the-database-tp7578750.html">http://opensim-dev.2196679.n2.nabble.com/Fixing-Unknown-User-problems-using-the-database-tp7578750.html</A>
+Sent from the opensim-dev mailing list archive at Nabble.com.
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011907.html">[Opensim-dev] Reminder: OpenSim Meetup in Zurich
+</A></li>
+	<LI>Next message: <A HREF="011909.html">[Opensim-dev] Fixing &quot;Unknown User&quot; problems using the database
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11908">[ date ]</a>
+              <a href="thread.html#11908">[ thread ]</a>
+              <a href="subject.html#11908">[ subject ]</a>
+              <a href="author.html#11908">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

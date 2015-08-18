@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Upcoming work on alternative client stack
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Upcoming%20work%20on%20alternative%20client%20stack&In-Reply-To=%3CBLU134-W21A27C93D4BEBED5ED38FDD56E0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002604.html">
+   <LINK REL="Next"  HREF="002603.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Upcoming work on alternative client stack</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Upcoming%20work%20on%20alternative%20client%20stack&In-Reply-To=%3CBLU134-W21A27C93D4BEBED5ED38FDD56E0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Upcoming work on alternative client stack">stefan at tribalmedia.se
+       </A><BR>
+    <I>Mon Aug 18 12:28:18 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002604.html">[Opensim-dev] Bit packing
+</A></li>
+        <LI>Next message: <A HREF="002603.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2602">[ date ]</a>
+              <a href="thread.html#2602">[ thread ]</a>
+              <a href="subject.html#2602">[ subject ]</a>
+              <a href="author.html#2602">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Just a couple of quick points, what with being one of the guardians of the architectural spirit;
+ 
+* First of all, can the whole InPacket() construct in client manager be refactored so that the specific type knowledge moves into the client stack? One could argue that those parts of the client manager that uses fields like 'circuit code' and 'packet' should be in a LLClientManager that keeps track of all LL-compatible clients. You probably would want an RexClientManager that handled Rex clients; the 'ClientManager' would then keep track of all 'local' clientmanagers, in an protocol-agnostic way.
+ 
+I believe we need this, as it seems we're nearing a situation where we have three-four, maybe five different client stacks coming up. (And only god knows how many separately developed - I would love to see a minimal Xenki-optimized stack)
+ 
+* Passing objects around and recasting them is generally an indication of needing to re-think things.
+ 
+* This work that's done on implementing a non-libsl stack is great, optimized or not, as well as the work done with implementing a rex-stack - this is a great driver and the real pudding-proof of our long-term goals of being able to serve various clients. (Even if these are all LL variations, it's a big first step)
+ 
+I don't think we need to do this work in a separate branch to prove it - I think we should just do it; retain the orginal stack, let people switch preferred stack and see what works best.
+ 
+The challenge is to refactor the comms code so we can use separate stacks for separate clients - something I've been longing for for a long time to happpen. :D
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+&gt;<i> Date: Mon, 18 Aug 2008 09:08:43 +0900&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] Upcoming work on alternative client stack&gt; &gt; Hi Adam,&gt; &gt; On Sun, 17 Aug 2008 14:27:12 -0400&gt; &quot;Frisby, Adam&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; wrote:&gt; &gt; &gt; Please be careful here.&gt; &gt; &gt; &gt; I'm doing some work with the RealXtend guys to move their custom code&gt; &gt; into a set of Region Modules, however I need the SendPacket(Packet x)&gt; &gt; function on IClientAPI to do so.&gt; &gt; &gt; &gt; Now admittedly there's only a few custom packets, and we could extend&gt; &gt; IClientAPI to support them - these are:&gt; &gt; &gt; &gt; 1. GenericMessagePacket - Rex has moved to using these to&gt; &gt; overload all their messages onto (so that the existing client ignores&gt; &gt; them safely), we don't have a IClientAPI.SendGenericMessage(string[]&gt; &gt; msg) equivalent yet. This could be one way we get around this.&gt; &gt; &gt; &gt; 2. Convert to SendPacket(Byte[] x), then run&gt; &gt; GenericMessagePacket.ToBytes() before passing it to IClientAPI?&gt; &gt; I'm not sure I fully understand the issue.&gt; &gt; My changes in IClientAPI is to replace Packet with object:&gt; &gt; IClientAPI:&gt; - void InPacket(Packet NewPack);&gt; + void InPacket(object NewPack);&gt; &gt; This way the interface doesn't dictate the datatype of the packet, but&gt; the implementing class does:&gt; &gt; LLClientView (implements IClientAPI):&gt; - public virtual void InPacket(Packet NewPack)&gt; + public virtual void InPacket(object NewPack)&gt; {&gt; - m_PacketHandler.InPacket(NewPack);&gt; + // Cast NewPack to Packet.&gt; + m_PacketHandler.InPacket((Packet) NewPack);&gt; }&gt; &gt; Since the interface expects an object, anything can be passed around,&gt; be it byte[], Packet or GenericMessagePacket.&gt; &gt; Does that still pose any issues for you?&gt; &gt; Mike&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080818/8b8497ec/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080818/8b8497ec/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002604.html">[Opensim-dev] Bit packing
+</A></li>
+	<LI>Next message: <A HREF="002603.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2602">[ date ]</a>
+              <a href="thread.html#2602">[ thread ]</a>
+              <a href="subject.html#2602">[ subject ]</a>
+              <a href="author.html#2602">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

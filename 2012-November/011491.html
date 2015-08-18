@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] ScriptEvents Module
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20ScriptEvents%20Module&In-Reply-To=%3CCAAQTD4X-%2ByAZEt8kNhRmhi9YgS%3D8JXvUnUEZJXvuVTs2q4Qs%2BQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011495.html">
+   <LINK REL="Next"  HREF="011492.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] ScriptEvents Module</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20ScriptEvents%20Module&In-Reply-To=%3CCAAQTD4X-%2ByAZEt8kNhRmhi9YgS%3D8JXvUnUEZJXvuVTs2q4Qs%2BQ%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] ScriptEvents Module">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Mon Nov 19 03:48:51 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011495.html">[Opensim-dev] ScriptEvents Module
+</A></li>
+        <LI>Next message: <A HREF="011492.html">[Opensim-dev] ScriptEvents Module
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11491">[ date ]</a>
+              <a href="thread.html#11491">[ thread ]</a>
+              <a href="subject.html#11491">[ subject ]</a>
+              <a href="author.html#11491">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Diva,
+
+With pathfinding, a NPC has to navigate between virtual &quot;waypoints&quot; along a
+path to reach a goal. Currently I have a region module that can be queried
+by scripts and will generate a path that a NPC should be able to follow,
+then the NPC controller script checks the position of the NPC every 0.5
+seconds and makes a decision if a waypoint has been reached or passed and
+which direction to travel in to reach the next waypoint. One problem I have
+is that the NPCs don't have a &quot;at_target&quot; event and that the 0.5 second
+default minimum timer interval is really too long to wait. Another issue is
+knowing when a NPC has reached a waypoint; it's possible that something may
+have influenced the NPC's direction and position while travelling to a
+waypoint and it has deviated from the straight path that was assumed when
+the path was generated. This becomes especially difficult when navigating
+around narrow areas with tight corners and many potential obstructions.
+Ideally I'd like the NPCs to be controlled by scripts but if I could
+generate events from a region module that the script could process, then
+the region module could use more complex logic to determine how well a path
+is being followed and if any corrections are necessary. I've not researched
+how such events can be passed to a script yet, but if you think this may be
+a potential application for your event system, I'd like to look into it
+further and maybe try a few ideas.
+
+-dahlia
+
+On Sun, Nov 18, 2012 at 5:28 PM, Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+
+&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> I am working on a module that passes interesting scene events up to the
+</I>&gt;<i> scripts in a manner that's very easy to act upon. An example is attached at
+</I>&gt;<i> the end of this message.
+</I>&gt;<i>
+</I>&gt;<i> Question: What other events would people like to grab? The idea is to have
+</I>&gt;<i> the module do all the complicated logic, and pass only simple facts to the
+</I>&gt;<i> scripts.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     state_entry()
+</I>&gt;<i>     {
+</I>&gt;<i>         llSay(0, &quot;Script running&quot;);
+</I>&gt;<i>         modSendCommand(&quot;Script Events&quot;, &quot;subscribe|AvatarArrived&quot;,
+</I>&gt;<i> llGetKey());
+</I>&gt;<i>         modSendCommand(&quot;Script Events&quot;, &quot;subscribe|LastAvatarLeft&quot;,
+</I>&gt;<i> llGetKey());
+</I>&gt;<i>     }
+</I>&gt;<i>
+</I>&gt;<i>     link_message(integer sender_num, integer num, string message, key id)
+</I>&gt;<i>     {
+</I>&gt;<i>         list parts = llParseString2List(message, [&quot;|&quot;], []);
+</I>&gt;<i>         if (llGetListLength(parts) &gt;= 2) {
+</I>&gt;<i>             if (llList2String(parts, 1) == &quot;AvatarArrived&quot;) {
+</I>&gt;<i>                 // message is: event|AvatarArrived|True or False &lt;--
+</I>&gt;<i> LocalTeleport or HG Teleport
+</I>&gt;<i>                 if (llGetListLength(parts) &gt;= 3) {
+</I>&gt;<i>                     if (llList2String(parts, 2) == &quot;True&quot;) {
+</I>&gt;<i>                         llInstantMessage(id, &quot;Welcome to the Gateway!
+</I>&gt;<i> Choose your destination by walking into one of the teleporters.&quot;);
+</I>&gt;<i>                         llRegionSay(region_channel, &quot;ports foreign&quot;);
+</I>&gt;<i>                     } else {
+</I>&gt;<i>                         llInstantMessage(id, &quot;Welcome to the Virtual Lab's
+</I>&gt;<i> Gateway! Choose your local destination by walking into one of the
+</I>&gt;<i> teleporters.&quot;);
+</I>&gt;<i>                         llRegionSay(region_channel, &quot;ports local&quot;);
+</I>&gt;<i>                     }
+</I>&gt;<i>                 } else {
+</I>&gt;<i>                     llSay(0, &quot;Malformed message &quot; + message + &quot; &quot; +
+</I>&gt;<i> (string)llGetListLength(parts)**);
+</I>&gt;<i>                 }
+</I>&gt;<i>                 play_music();
+</I>&gt;<i>             } else if (llList2String(parts, 1) == &quot;LastAvatarLeft&quot;) {
+</I>&gt;<i>                 // message is: event|LastAvatarLeft
+</I>&gt;<i>                 llRegionSay(region_channel, &quot;ports reset&quot;);
+</I>&gt;<i>             }
+</I>&gt;<i>         }
+</I>&gt;<i>     }
+</I>&gt;<i>
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20121118/e425e2a5/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20121118/e425e2a5/attachment.html</A>&gt;
+</PRE>
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011495.html">[Opensim-dev] ScriptEvents Module
+</A></li>
+	<LI>Next message: <A HREF="011492.html">[Opensim-dev] ScriptEvents Module
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11491">[ date ]</a>
+              <a href="thread.html#11491">[ thread ]</a>
+              <a href="subject.html#11491">[ subject ]</a>
+              <a href="author.html#11491">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

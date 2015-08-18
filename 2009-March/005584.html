@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Ini file(s) loading
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ini%20file%28s%29%20loading&In-Reply-To=%3C49AFD3D2.4020902%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005581.html">
+   <LINK REL="Next"  HREF="005587.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Ini file(s) loading</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ini%20file%28s%29%20loading&In-Reply-To=%3C49AFD3D2.4020902%40t-data.com%3E"
+       TITLE="[Opensim-dev] Ini file(s) loading">melanie at t-data.com
+       </A><BR>
+    <I>Thu Mar  5 14:29:54 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005581.html">[Opensim-dev] Ini file(s) loading
+</A></li>
+        <LI>Next message: <A HREF="005587.html">[Opensim-dev] Ini file(s) loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5584">[ date ]</a>
+              <a href="thread.html#5584">[ thread ]</a>
+              <a href="subject.html#5584">[ subject ]</a>
+              <a href="author.html#5584">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>To me, what would make the most sense is this:
+
+- break up the Opensim.ini.example into chunks, and but them into a 
+config directory
+- read this directory first
+- then read the inimaster
+- then read the inifile
+- this means that new opensim.ini options would, in the future, 
+appear in these defaults files, which could be left unchanged in 
+most cases, therefore adding new options is easy on grid operators, 
+no more merging
+
+Melanie
+
+
+Mic Bowman wrote:
+&gt;<i> fwiw... we use a shared inimaster as the &quot;base&quot; for the configuration
+</I>&gt;<i> of simulators running on multiple servers. then each simulator has a
+</I>&gt;<i> very small opensim.ini, typically just to configure the network ports
+</I>&gt;<i> and the storage parameters. that is, the local opensim.ini overwrites
+</I>&gt;<i> the shared values in the inimaster. bulk changes are easy (just change
+</I>&gt;<i> the inimaster) and customizations are very small.
+</I>&gt;<i> 
+</I>&gt;<i> --mic
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> On Wed, Mar 4, 2009 at 4:14 PM, MW &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt; wrote:
+</I>&gt;&gt;<i> Well I only inserted the loading from the config folder, inbetween the two
+</I>&gt;&gt;<i> existing steps. It has always been that the 'masterini' file was loaded
+</I>&gt;&gt;<i> first (if one was given as a argument) and then opensim.ini (or whatever was
+</I>&gt;&gt;<i> set with -inifile) was loaded.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The original idea behind the master being that it could be a master file for
+</I>&gt;&gt;<i> say a whole grid, while each one had some local changes in the
+</I>&gt;&gt;<i> bin\opensim.ini.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But I agree that it can be confusing, especially with the chosen names. So
+</I>&gt;&gt;<i> maybe we do need to rethink that.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --- On Wed, 4/3/09, Sean Hennessee &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at uci.edu</A>&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> From: Sean Hennessee &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at uci.edu</A>&gt;
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Ini file(s) loading
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Date: Wednesday, 4 March, 2009, 10:37 PM
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yay!! +1
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Updating ini files is often a pain. This is an excellent step in the right
+</I>&gt;&gt;<i> direction.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In this scenario, my suggestion/preference would be to have the bin/config
+</I>&gt;&gt;<i> directory contain all the SVN default values, (any number of files), with NO
+</I>&gt;&gt;<i> bin/opensim.ini file present by default. Then I could create a
+</I>&gt;&gt;<i> bin/opensim.ini file as a very small set of overriding values specific to my
+</I>&gt;&gt;<i> grids. The inimaster really wouldn't be used since it would always get
+</I>&gt;&gt;<i> overwritten.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Below are my suggestions instead of using this parsing order.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Looking at the three steps, I'm not sure I understand the logic of the order
+</I>&gt;&gt;<i> chosen. The 'inimaster' sounds like it should be the &quot;master&quot; and not ever
+</I>&gt;&gt;<i> be overwritten, i.e. it should be parsed last. To keep things at least more
+</I>&gt;&gt;<i> familiar to what they are now, I would prefer that the bin/opensim.ini file
+</I>&gt;&gt;<i> be the same one it is now, the default one that comes with the SVN, and
+</I>&gt;&gt;<i> parsed first. The bin/config directory would then be the second set of ini's
+</I>&gt;&gt;<i> parsed to allow my multiple ini files to override the standard default.
+</I>&gt;&gt;<i> Then, if one specifically identifies an inimaster, that should override
+</I>&gt;&gt;<i> everything else, especially since you have to specify it on the command
+</I>&gt;&gt;<i> line. My line of thinking is that if you are specifically saying &quot;use this
+</I>&gt;&gt;<i> inimaster&quot; on the command line that would mean you really want to use it
+</I>&gt;&gt;<i> only, as in a testing scenario without having to worry about default/other
+</I>&gt;&gt;<i> overrides. IIRC other linux/server type programs, like sendmail, behave
+</I>&gt;&gt;<i> similar to this.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It might also be nice to have an &quot;include&quot; type of statement in the ini
+</I>&gt;&gt;<i> file/url allowing you to reference files/urls without having them in a
+</I>&gt;&gt;<i> special location as well as specifying the order you want them read instead
+</I>&gt;&gt;<i> of having to make them alphabetical for order.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Anyway, my OS$2. And thanks for working on this!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Peace,
+</I>&gt;&gt;<i> Sean
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> MW wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Last week, I added the ability for opensim to search a folder for ini files
+</I>&gt;&gt;<i> and load (and merge together) all of those files.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> By default it will look for the folder 'bin\config' and search that for .ini
+</I>&gt;&gt;<i> files. The folder it searches can be changed by using the command line
+</I>&gt;&gt;<i> argument -inidirectory=&lt;path&gt;.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So now our ini loading is a three step process:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Step 1: If the -inimaster=&lt;filepath or url&gt; command line argument was used,
+</I>&gt;&gt;<i> load that file/url.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Step 2: Then check if the config directory (default 'bin\config' or one set
+</I>&gt;&gt;<i> by -inidirectory=&lt;path&gt;)  exists and search that folder for ini files and
+</I>&gt;&gt;<i> load them. They are merged on top of the inimaster file. So any duplicate
+</I>&gt;&gt;<i> entries will be overwrote.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Step 3: Load the inifile, which by default is 'bin\opensim.ini' but can be
+</I>&gt;&gt;<i> changed by using the -inifile=&lt;filepath or url&gt; command line argument. This
+</I>&gt;&gt;<i> again is merged on top of all previous settings so will overwrite the older
+</I>&gt;&gt;<i> (from previous steps) settings.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Now the question is how we should set things up in SVN as the default. It
+</I>&gt;&gt;<i> would be nice to split up the opensim.ini, into multiple ini files in the
+</I>&gt;&gt;<i> config directory. And then just have a small opensim.ini that contains the
+</I>&gt;&gt;<i> values likely to change ofter, like network settings etc.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But because the config directory overwrites the master file, this could
+</I>&gt;&gt;<i> cause problems for people who have already set things up for using a master
+</I>&gt;&gt;<i> file/url. Of course the simple solution for them would be just to delete the
+</I>&gt;&gt;<i> config directory.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But anyway what does everyone think?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ________________________________
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Sean Hennessee
+</I>&gt;&gt;<i> Central Computing Support
+</I>&gt;&gt;<i> Network &amp; Academic Computing Services
+</I>&gt;&gt;<i> UC Irvine
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ... . .- -. /  .... . -. -. . ... ... . .
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005581.html">[Opensim-dev] Ini file(s) loading
+</A></li>
+	<LI>Next message: <A HREF="005587.html">[Opensim-dev] Ini file(s) loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5584">[ date ]</a>
+              <a href="thread.html#5584">[ thread ]</a>
+              <a href="subject.html#5584">[ subject ]</a>
+              <a href="author.html#5584">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

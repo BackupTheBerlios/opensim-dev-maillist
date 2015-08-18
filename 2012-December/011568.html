@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] IRegisterInterface for extending scene entities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IRegisterInterface%20for%20extending%20scene%20entities&In-Reply-To=%3CAAE09D093609C24B8163782ABA2A418225B13455%40FMSMSX102.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011567.html">
+   <LINK REL="Next"  HREF="011569.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] IRegisterInterface for extending scene entities</H1>
+    <B>Adams, Robert</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IRegisterInterface%20for%20extending%20scene%20entities&In-Reply-To=%3CAAE09D093609C24B8163782ABA2A418225B13455%40FMSMSX102.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] IRegisterInterface for extending scene entities">robert.adams at intel.com
+       </A><BR>
+    <I>Fri Dec 28 19:38:25 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011567.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+        <LI>Next message: <A HREF="011569.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11568">[ date ]</a>
+              <a href="thread.html#11568">[ thread ]</a>
+              <a href="subject.html#11568">[ subject ]</a>
+              <a href="author.html#11568">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I agree with &quot;not reinventing the wheel&quot;.  And your valid concerns about the implementation are probably just the tip of the iceberg.
+
+I have been toying with the architectural idea that OpenSim core only provides a basic framework. Functionalities are added as plugin modules rather than implemented as if's and tests imbedded in core. For instance, could linksets be implemented as a plugin module[1]? Or maybe entity physical representation (meshing)? 
+
+I merely consider llSetKeyFrameMotion as a test case to expose needed core features which support plugin modules (Necessary events available? Correct data-structures exposed/hidden? ...)  Like you, I am pretty sure the ability to programmatically extend scene entities will be needed and is a Good Thing.
+
+Since llSetKeyframeMotion has already been completed and will be incorporated soon, I'll look for another simple test case to exercise the requirements for full featured plugin modules.
+
+-- ra
+
+[1] Why would one want to do this? I've been thinking about fancy linksets where the joints are not fixed and static but could be parameterized and dynamic (hinges, sliders, 6DOF, ...). This could be used to support skeletons, doors with real hinges and/or weird and wonderful vehicles. Rather than mangling OpenSim core with lots of experimental code, it would be nice if I could build an &quot;ExtendedLinksets&quot; module that could be plugged in and experimented with.
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Melanie
+Sent: Friday, December 28, 2012 12:44 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] IRegisterInterface for extending scene entities
+
+Hi,
+
+first off, extending scene entities is a Good Thing. I'll think a bit about the ins and outs of it and the caveats (for instance, module load order will have some hidden traps for the unwary) and serialization - well, there be dragons, you can't serialize module refs/interfaces since the destination may not have them.....
+
+llSetKeyfranedMotion can most likely not be implemented that way. We know, because we have implemented it. Also, there is no need to reinvent the wheel - llSetKeyframedMotion has been slated for core release for a while now, we just haven't found the dev time to extract it. So there is really no need for a second, competing implementation.
+
+So, in summary
+
++1 on extension points for scene entities
+
+-0 on a second implementation of llSetKeyframedMotion as a tested and working one already exists.
+
+That's -0 because of you really want it I won't kee you from doing it - it's just a waste of effort.
+
+Melanie
+
+On 28/12/2012 08:38, Adams, Robert wrote:
+&gt;<i> The discussion about the implementation of the llKeyframeMotion function hinted at a need for region modules to be able to add data and functions to existing scene items. Here is a modest proposal for discussion[1].
+</I>&gt;<i> 
+</I>&gt;<i> Define a general module/interface registration interface to add to EntityBase (and thus to SceneObjectGroup and ScenePresence).
+</I>&gt;<i> 
+</I>&gt;<i> IRegisterInterface
+</I>&gt;<i>                Void RegisterInterface&lt;T&gt;(T iface);
+</I>&gt;<i>                Bool TryGet&lt;T&gt;(out T iface);
+</I>&gt;<i>                T Get&lt;T&gt;();
+</I>&gt;<i>                Void ClearRegisteredInterfaces();
+</I>&gt;<i> 
+</I>&gt;<i> Any class that implements the IRegisterInterface interface would contain a:
+</I>&gt;<i>                Private Dictionary&lt;Type, object&gt; m_registeredInterfaces 
+</I>&gt;<i> = new Dictionary&lt;Type, object&gt;();
+</I>&gt;<i> 
+</I>&gt;<i> 'Scene' already has a RegisterModule interface which has a bunch of neat features (like being able to register multiple instances of the same interface type) but I'm not sure that is needed here (discussion?) Particularly industrious changing could merge this proposed interface and the existing 'Scene' functions.
+</I>&gt;<i> 
+</I>&gt;<i> So, something like a llKeyframeMotion implementing region module could register a KeyframeMotionState type structure on the SOG to save information about the keyframe for that SOG. Other uses could be a uniform way for adding classes of functionality to scene objects (&quot;get me the interface for extracting the physical mesh for this SOG&quot;) or just adding limpet like code to a scene entity.
+</I>&gt;<i> 
+</I>&gt;<i> Not sure of the nuances of serialization. I believe that the registered interfaces would just be serialized with the SOG (thus saving and restoring the values in the registered interface instances) but I can't be totally sure of that.
+</I>&gt;<i> 
+</I>&gt;<i> Anyway, run your sword through this strawman.
+</I>&gt;<i> 
+</I>&gt;<i> -- ra
+</I>&gt;<i> 
+</I>&gt;<i> [1] This is similar to other interfaced proposed in the past (particularly one by Adam Frizby).
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011567.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+	<LI>Next message: <A HREF="011569.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11568">[ date ]</a>
+              <a href="thread.html#11568">[ thread ]</a>
+              <a href="subject.html#11568">[ subject ]</a>
+              <a href="author.html#11568">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

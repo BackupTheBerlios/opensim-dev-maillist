@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Stability &amp; Memory issues
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Stability%20%26%20Memory%20issues&In-Reply-To=%3C47E8D665.9080101%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001197.html">
+   <LINK REL="Next"  HREF="001200.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Stability &amp; Memory issues</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Stability%20%26%20Memory%20issues&In-Reply-To=%3C47E8D665.9080101%40t-data.com%3E"
+       TITLE="[Opensim-dev] Stability &amp; Memory issues">melanie at t-data.com
+       </A><BR>
+    <I>Tue Mar 25 11:39:33 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001197.html">[Opensim-dev] Stability &amp; Memory issues
+</A></li>
+        <LI>Next message: <A HREF="001200.html">[Opensim-dev] [opensim-core] FYI - Network downtime on	OpenSimulator.org
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1206">[ date ]</a>
+              <a href="thread.html#1206">[ thread ]</a>
+              <a href="subject.html#1206">[ subject ]</a>
+              <a href="author.html#1206">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+as far as I see this, it is a locking issue.
+
+When cutting hollows from prims, OpenSim pauses for a while, and 
+runs heavy database accesses. Database accesses are done under 
+locks, and those locks prevent the response to the master UUID query 
+to be received in time.
+For my sims (4000+prims in 4 regions) the only way I found to get 
+them started was to modify the UUID request timeout in the source, 
+so that the reply received and queued would still be considered 
+valid after all prim cutting has been done.
+
+To really fix this, the quick way is to either wait for the master 
+UUID request to be complete before entering the prim hollow cutting 
+portion, or to not request that UUID until later, after all hollows 
+are cut.
+
+The right way to fix it would be to eliminate the excessive locking 
+and break long-held locks occasionally.
+
+Melanie
+
+
+Justin Clark-Casey wrote:
+&gt;<i> Charles Krinke wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 1. There are many times when regions must be started more then once. 
+</I>&gt;&gt;<i> That is, they throw and exception and refuse to start. This is usually 
+</I>&gt;&gt;<i> a master user UUID exception, but sometimes a timeout. It seems that 
+</I>&gt;&gt;<i> finding those things which throw fatal exceptions is to our advantage.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> Ooop, any chance of a stack trace?
+</I>&gt;<i> 
+</I>&gt;<i> I've also heard that some people have resolved this by fiddling with the 
+</I>&gt;<i> database (I know no details about this, so this is just to provoke a 
+</I>&gt;<i> revelation if there is one out there).
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001197.html">[Opensim-dev] Stability &amp; Memory issues
+</A></li>
+	<LI>Next message: <A HREF="001200.html">[Opensim-dev] [opensim-core] FYI - Network downtime on	OpenSimulator.org
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1206">[ date ]</a>
+              <a href="thread.html#1206">[ thread ]</a>
+              <a href="subject.html#1206">[ subject ]</a>
+              <a href="author.html#1206">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

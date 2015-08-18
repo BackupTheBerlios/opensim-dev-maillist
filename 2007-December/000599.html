@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Partial libSL.Packet fix submitted
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Partial%20libSL.Packet%20fix%20submitted&In-Reply-To=%3CBLU134-W15936DF30399B202D01FCED55D0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000598.html">
+   <LINK REL="Next"  HREF="000603.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Partial libSL.Packet fix submitted</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Partial%20libSL.Packet%20fix%20submitted&In-Reply-To=%3CBLU134-W15936DF30399B202D01FCED55D0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Partial libSL.Packet fix submitted">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Dec 20 09:22:51 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000598.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+        <LI>Next message: <A HREF="000603.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#599">[ date ]</a>
+              <a href="thread.html#599">[ thread ]</a>
+              <a href="subject.html#599">[ subject ]</a>
+              <a href="author.html#599">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sorry, just had to take the opportunity to point out that this is why you avoid using and overriding or using ToString() at all. Formatting should be application and context specific just because if it's not, changing it later is so damn hard. Not to mention the complexity of trying to find out exactly WHY that Formatter-dependant string doesn't turn out the way you'd expect.
+ 
+I'd say the list is:
+1) The formatting should be done by the serializing context.
+2) Of course we also need to update the ones that are in the database (and correct the database datatypes as we go along - neither binary nor varchar is the right way.)
+3) Never ever again rely on ToString or related functions on non-system types./Stefan
+
+
+
+&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">johan at ngigroup.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Date: Thu, 20 Dec 2007 16:37:19 +0900&gt; Subject: Re: [Opensim-dev] Partial libSL.Packet fix submitted&gt; &gt; This problem is not caused by my work, but of changes in later versions&gt; of LibSL. It has changed from using ToString (unhyphenated) and&gt; ToStringHyphenated(), to only using ToString() (hyphenated). This means&gt; that there is no way of getting an unhyphenated string from libSL&gt; anymore. I changed all instances of ToStringHyphenated() in OpenSim to&gt; ToString(), but I didn't realize that there would be a problem with&gt; plain ToString() calls.&gt; &gt; The basic problem is that we are relying on a libSL behaviour that is&gt; outside our control, and has changed. If we want to keep up to date with&gt; libSL I suggest that the problem is solved.&gt; &gt; Possible solutions:&gt; 1. Identify the problematic ToString() calls and use a utility function&gt; (Util.ConvertToUnhyphentated) to fix them like before.&gt; 2. Write scripts to update the current databases to use hyphenated&gt; GUID:s&gt; 3. Change the code not to use ToString at all.&gt; &gt; I prefer option 3, and to be compatible it could output unhyphenated&gt; GUIDs. At least this means that we won't have problems every time libSL&gt; is refactored (and ToString is meant as a debug tool, not as a provider&gt; of keys to a database)&gt; &gt; &gt; On Wed, 2007-12-19 at 23:55 -0700, Nebadon Izumi wrote:&gt; &gt; I got the following errors on my grid when i updated to 2765&gt; &gt; on the machine that is running the UGAI and Sim i got the following&gt; &gt; errors:&gt; &gt; <A HREF="http://www.pastebin.ca/824868">http://www.pastebin.ca/824868</A>&gt; &gt; &gt; &gt; on the remote sim servers i got these following errors:&gt; &gt; <A HREF="http://www.pastebin.ca/824870">http://www.pastebin.ca/824870</A>&gt; &gt; &gt; &gt; needless to say my Grid does not run at all when updating to r2765.&gt; &gt; &gt; &gt; &gt; &gt; On Dec 19, 2007 10:55 PM, Johan Berntsson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">johan at ngigroup.com</A>&gt; wrote:&gt; &gt; &gt;From the IRC:&gt; &gt; &gt; &gt; 02:44:09 PM) CIA-1: opensim: chi11ken * r2765 /trunk/ (43&gt; &gt; files in 20&gt; &gt; dirs): Added patch from Johan. First attempt to solve the&gt; &gt; LibSL.Packet&gt; &gt; GC problem. Works with LibSL rev&gt;1532&gt; &gt; (02:50:40 PM) joha2: The patch implements a PacketPool&gt; &gt; (currently in &gt; &gt; UPDServer.cs) which recycles packages. It is used by all&gt; &gt; incoming&gt; &gt; packets, and the RegionHandshakePacket, and can easily be&gt; &gt; extended to&gt; &gt; all outgoing packages later. I have submitted a libSL patch&gt; &gt; which is&gt; &gt; included from rev. 1532, but the libsecondlife.dll version in&gt; &gt; OpenSim is&gt; &gt; based on rev 1498 with these files from the later version&gt; &gt; (mapgenerator.cs, Types.cs, template.cs). Rev. 1532 compiles&gt; &gt; and works,&gt; &gt; but the avatar's clothes are gray, so something is wrong. I&gt; &gt; don't think &gt; &gt; this is caused by my changes, but by other changes in LibSL,&gt; &gt; and I'm&gt; &gt; hoping that someone can figure out what's wrong. Until then&gt; &gt; 1498 + the&gt; &gt; patched files from 1532 should be ok.&gt; &gt; ---&gt; &gt; I will need to expand the fix to work for all packets and do&gt; &gt; performance &gt; &gt; testing to verify that it works better, but this should work&gt; &gt; for now.&gt; &gt; &gt; &gt; Cheers,&gt; &gt; Johan&gt; &gt; &gt; &gt; &gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; &gt; &gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071220/1295ce70/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071220/1295ce70/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000598.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+	<LI>Next message: <A HREF="000603.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#599">[ date ]</a>
+              <a href="thread.html#599">[ thread ]</a>
+              <a href="subject.html#599">[ subject ]</a>
+              <a href="author.html#599">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

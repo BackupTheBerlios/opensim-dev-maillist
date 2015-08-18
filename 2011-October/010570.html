@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Attachments Module question
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Attachments%20Module%20question&In-Reply-To=%3CB18EBEE5753EC141A5BD3C697274349B16E8353A%40ORSMSX101.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010569.html">
+   <LINK REL="Next"  HREF="010574.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Attachments Module question</H1>
+    <B>Lake, Dan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Attachments%20Module%20question&In-Reply-To=%3CB18EBEE5753EC141A5BD3C697274349B16E8353A%40ORSMSX101.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Attachments Module question">dan.lake at intel.com
+       </A><BR>
+    <I>Tue Oct  4 01:57:57 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010569.html">[Opensim-dev] Attachments Module question
+</A></li>
+        <LI>Next message: <A HREF="010574.html">[Opensim-dev] Question/Suggestion regarding *.ini files
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10570">[ date ]</a>
+              <a href="thread.html#10570">[ thread ]</a>
+              <a href="subject.html#10570">[ subject ]</a>
+              <a href="author.html#10570">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>As you know, we are trying to separate the idea of ScenePresence and IClientAPI so that a presence can exist without needed a client. Since what the attachments module does is attache scene objects to scene presences, it generally doesn't care if there is a client behind it or not. I'm hoping it can just trigger events when attachments change and that if there IS a client listening that the right packets can be sent out.
+
+
+~Dan
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+Sent: Monday, October 03, 2011 4:56 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Attachments Module question
+
+Great stuff.  Passing in just the ControllingClient often means we then have to do some busy work retrieving the SP from 
+the scene index again!
+
+On 04/10/11 00:53, Lake, Dan wrote:
+&gt;<i> Thanks, Justin. The public interface to AttachmentsModule needed some cleanup too. In every place where interface functions are called, the caller has a ScenePresence but calls the function with sp.ControllingClient. In every case, the AttachmentsModule function implementation would do: m_scence.GetScenePresence(client.agentID) to get the SP back again. I'm changing the public interface to use SP and only the client handlers will still have a need for IClientAPI. In that case, they will look up the SP in scene and call the public interface function. That way, all entry points have the same behavior. So far I have not changed any semantics, just interfaces and removed a lot of duplicated code.
+</I>&gt;<i>
+</I>&gt;<i> ~Dan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;<i> Sent: Monday, October 03, 2011 3:07 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Attachments Module question
+</I>&gt;<i>
+</I>&gt;<i> This is a probably a bug, though I never got round to changing it since I didn't have time to check that the trigger
+</I>&gt;<i> didn't cause anything funky to happen if it was moved lower down.
+</I>&gt;<i>
+</I>&gt;<i> On 03/10/11 22:01, Lake, Dan wrote:
+</I>&gt;&gt;<i> There are two primary versions of AttachObject in the attachments module. One of them is only called as the Client.OnObjectAttach handler. The other version is called in one place each by AttachmentsModuleTests, Scene and LSL_Api to attach an SOG to a SP.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The client handler version of AttachObject looks up the SP, looks up the SOG, checks CanTakeObject permission, then calls the other version of AttachObject. After that returns, it calls TriggerOnAttach. TriggerOnAttach is only called in the client event handler version of AttachObject but not when AttachObject is called from Scene or LSL_Api. Does anyone know why that is?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ~Dan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010569.html">[Opensim-dev] Attachments Module question
+</A></li>
+	<LI>Next message: <A HREF="010574.html">[Opensim-dev] Question/Suggestion regarding *.ini files
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10570">[ date ]</a>
+              <a href="thread.html#10570">[ thread ]</a>
+              <a href="subject.html#10570">[ subject ]</a>
+              <a href="author.html#10570">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

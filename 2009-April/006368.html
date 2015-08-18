@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving away from grid vs. standalone
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F97526.2030305%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006366.html">
+   <LINK REL="Next"  HREF="006372.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving away from grid vs. standalone</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F97526.2030305%40t-data.com%3E"
+       TITLE="[Opensim-dev] moving away from grid vs. standalone">melanie at t-data.com
+       </A><BR>
+    <I>Thu Apr 30 11:53:42 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006366.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+        <LI>Next message: <A HREF="006372.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6368">[ date ]</a>
+              <a href="thread.html#6368">[ thread ]</a>
+              <a href="subject.html#6368">[ subject ]</a>
+              <a href="author.html#6368">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Well, region modules make the most sense. The new style region 
+modules especially, since they have better loading/unloading and are 
+now suitable for this.
+Also, region modules can reference each other even when in spearate 
+DLLs. So, one packager may want to put LocalComms and GridComms into 
+one DLL and not expose any config, while another one may put local 
+comms into a dll itself and not ship grid comms at all. yet another 
+may make separate DLLs and ref local services in grid services.
+
+Finally, I have an interface in Scene that allows multiple region 
+modules to share an interface - the script engines use it. Region 
+modules are infinitely flexible there.
+
+So, we don't need
+ILocalUserService
+IGridUserService
+IHGUserService
+
+all we need is
+
+IUserService
+
+Each of the stacked modules can then decide whether it is it's call 
+or not. That would be via strings in config, as it is for other 
+region modules now. As done in permissions, I have found new 
+semantics to call events with return values as well, where I can 
+harvest all return values, not just the latest. There is a lot more 
+flexibility in all of this than has been used up to now.
+
+I'll be happy to talk about how and create skeletons for this as well.
+
+Melanie
+
+
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+&gt;<i> OK, let me backtrack. There are really two separate issues going on.
+</I>&gt;<i> 
+</I>&gt;<i> a) One issue is the means by which we specify different service 
+</I>&gt;<i> connectors. The dlls + entry class is the right way. Unfortunately, that 
+</I>&gt;<i> isn't in place yet, and I'm not sure I'm the right person to do it :-/
+</I>&gt;<i> 
+</I>&gt;<i> b) Another issue is whether Local/OGS1/Hypergrid are really alternatives 
+</I>&gt;<i> in the true sense of the word, just like MySql is an alternative to 
+</I>&gt;<i> SqlLite, or ODE is and alternative to Bullet. I don't think they are; I 
+</I>&gt;<i> think they are generalizations, in that precise order:
+</I>&gt;<i> OGS1=Local+more (you can see this in the dependencies)
+</I>&gt;<i> Hypergrid=OGS1+more (again, see the dependencies)
+</I>&gt;<i> Being generalizations, one can simplify things by having the most 
+</I>&gt;<i> general model, and configuring it to obtain the more specific behaviors. 
+</I>&gt;<i> (This is independent of how we split the model physically)
+</I>&gt;<i> 
+</I>&gt;<i> So, I guess I'm torn here. On the one hand, I can see how things would 
+</I>&gt;<i> improve dramatically if we had a plugin thing really going, whatever 
+</I>&gt;<i> plugin thing that would be.
+</I>&gt;<i> 
+</I>&gt;<i> On the other hand, the plugin thing doesn't exist, and I don't see it on 
+</I>&gt;<i> the horizon anytime soon. We're stuck with having to define behavior by 
+</I>&gt;<i> configuration variables, instead of dlls. Hence my original proposal, 
+</I>&gt;<i> which did *not* include specifying dlls.
+</I>&gt;<i> 
+</I>&gt;<i> [I'm having the same feeling I had just before I did RESTComms... so 
+</I>&gt;<i> this may very well end up going Melanie's suggestion of region modules 
+</I>&gt;<i> again... or I'll just give up trying to fix this in general, and focus 
+</I>&gt;<i> on the much narrower things that matter to me which are the security 
+</I>&gt;<i> configurations for the hypergrid -- the hell with OGS1]
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006366.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+	<LI>Next message: <A HREF="006372.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6368">[ date ]</a>
+              <a href="thread.html#6368">[ thread ]</a>
+              <a href="subject.html#6368">[ subject ]</a>
+              <a href="author.html#6368">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

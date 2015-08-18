@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] scene import/export to another app: oar? dotscene? collada?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20scene%20import/export%20to%20another%20app%3A%20oar%3F%0A%20dotscene%3F%20collada%3F&In-Reply-To=%3C4AB14555.4070802%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007555.html">
+   <LINK REL="Next"  HREF="007563.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] scene import/export to another app: oar? dotscene? collada?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20scene%20import/export%20to%20another%20app%3A%20oar%3F%0A%20dotscene%3F%20collada%3F&In-Reply-To=%3C4AB14555.4070802%40googlemail.com%3E"
+       TITLE="[Opensim-dev] scene import/export to another app: oar? dotscene? collada?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed Sep 16 22:06:45 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007555.html">[Opensim-dev] scene import/export to another app: oar? dotscene? collada?
+</A></li>
+        <LI>Next message: <A HREF="007563.html">[Opensim-dev] scene import/export to another app: oar? dotscene? collada?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7562">[ date ]</a>
+              <a href="thread.html#7562">[ thread ]</a>
+              <a href="subject.html#7562">[ subject ]</a>
+              <a href="author.html#7562">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Toni Alatalo wrote:
+&gt;<i> Paul Fishwick kirjoitti:
+</I>&gt;&gt;<i> Could OAR be generalized to include scene graphs with meshes? That would
+</I>&gt;&gt;<i> be really nice as it would create two things not currently supported: 
+</I>&gt;&gt;<i> hierarchical scene graphs and triangular mesh. If an importer is written to opensim,
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> It is possible. A simple hack would putting a reference to a mesh asset 
+</I>&gt;<i> to the place where &lt;shape&gt; entry with the geom data is used for prims. 
+</I>&gt;<i> As OAR is a serialization of the internal SOG/SOP data structure, and 
+</I>&gt;<i> ModRex extends those to have the mesh references in the scene, it in a 
+</I>&gt;<i> way already does that. Like Mikko Pallari commented to this discussion 
+</I>&gt;<i> on rex-dev yesterday, we could easily add another serializer in ModRex 
+</I>&gt;<i> that would do that: save OARs where 'prims' are not prims but scene 
+</I>&gt;<i> nodes with mesh references, and have ogre mesh assets in the assets dir 
+</I>&gt;<i> of the oar.
+</I>&gt;<i> 
+</I>&gt;<i> That would already be useful for what OARs are for: saving scenes from 
+</I>&gt;<i> OpenSim and loading them back, in that case just with also the Rex 
+</I>&gt;<i> (Ogre) data. But it might not be helpful at all for exchanging scenes 
+</I>&gt;<i> between Opensim and other applications, which is what I'm looking into now.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> then it is a matter of coaxing the viewer to render these.. In your list of 
+</I>&gt;&gt;<i> options, you might also consider the indexedfaceset of X3D for the mesh (X3D also supports 
+</I>&gt;&gt;<i> a true scene graph).
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> Yes, it is a possible format also.
+</I>&gt;<i> 
+</I>&gt;<i> I've now been leaning against writing OAR support elsewhere exactly 
+</I>&gt;<i> 'cause it is the internal structure and perhaps awkward for what need 
+</I>&gt;<i> now. For example there is no single file with the scene as positions of 
+</I>&gt;<i> all objects, but a separate file for every object which has both the 
+</I>&gt;<i> scene pos and in case of prims the shape. And if SOG/SOP refactoring 
+</I>&gt;<i> happens within OpenSim, it easily changes the OAR 'format' as well, and 
+</I>&gt;<i> would break reading archives written using some custom thing that would 
+</I>&gt;<i> write the files as they are now .. right?
+</I>
+That's theoretically true, but I should think that the old format will still be 
+loadable in some way since changes here would break everybody's existing content 
+(which would be a bad thing).
+
+Separate files for objects and assetes were used in order to potentially allow 
+regions to be more easily composed out of world from separate components. 
+Whether this is a good thing or whether there are more advantages to a single 
+monolithic file is, I'm sure, something that could be debated.
+
+&gt;<i> 
+</I>&gt;<i> DotScene is somewhat attractive 'cause it's simple and there are working 
+</I>&gt;<i> exporters for Blender, Max, Maya and for some editors written using Ogre 
+</I>&gt;<i> itself. There's a C# loader we've used in our company before when using 
+</I>&gt;<i> MOgre, <A HREF="http://www.ogre3d.org/wiki/index.php/MOGRE_dotSceneLoader">http://www.ogre3d.org/wiki/index.php/MOGRE_dotSceneLoader</A> . 
+</I>&gt;<i> Downsides of DotScene are that it's Ogre specific, and contains *only* 
+</I>&gt;<i> the scene, leaving textures and meshes etc. out .. which may be ok 
+</I>&gt;<i> though, 'cause textures are just images and there is separate code for 
+</I>&gt;<i> mesh export so getting those over too is just a matter of packaging 
+</I>&gt;<i> files for transport (perhaps in a .oar like container).
+</I>&gt;<i> 
+</I>&gt;<i> Collada and X3D would be engine independent standards that would 
+</I>&gt;<i> probably easily cover all I need now, so probably must give them another 
+</I>&gt;<i> look before starting to port that encouraginly simple dotSceneLoader (a 
+</I>&gt;<i> single simple 600 lines c# file) to OpenSim.. so will be googling for 
+</I>&gt;<i> .net libs for Collada and X3D next I guess (there's exports to both from 
+</I>&gt;<i> Blender, am not sure if the X3D one does scenes though .. and am a bit 
+</I>&gt;<i> afraid of how complex and big collada stuff may be, but hopefully that 
+</I>&gt;<i> fear is in vain).
+</I>&gt;<i> 
+</I>&gt;<i> Thanks for input!
+</I>&gt;<i> 
+</I>&gt;&gt;<i> -p
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> ~Toni
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Toni Alatalo wrote:
+</I>&gt;&gt;<i>   
+</I>&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I started looking into implementing scene exchange between Opensim and 
+</I>&gt;&gt;&gt;<i> Blender yesterday, and am planning to continue later today. Was reading 
+</I>&gt;&gt;&gt;<i> OARs and the code in OpenSim.Region.Framework.Scenes.Serialization .. 
+</I>&gt;&gt;&gt;<i> where SceneObjectPart #region XML Schema seems to be the fields that are 
+</I>&gt;&gt;&gt;<i> autoserialized by some .net writer, right?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> It seems well possible to read and write OAR elsewhere, but I'm not sure 
+</I>&gt;&gt;&gt;<i> if it makes sense, or whether it's more the internal representation in 
+</I>&gt;&gt;&gt;<i> Opensim. Are there any alternatives? With Ogre we've sometimes used the 
+</I>&gt;&gt;&gt;<i> simple DotScene (.scene) made for it, and basically that would cover the 
+</I>&gt;&gt;&gt;<i> info I'm interested in now (positions of meshes in a scene, not prim 
+</I>&gt;&gt;&gt;<i> geom 'cause am not having prims in Blender at least right now anyway). 
+</I>&gt;&gt;&gt;<i> There is an existing DotScene exporter for Blender, would it make sense 
+</I>&gt;&gt;&gt;<i> to write an importer to OpenSim? Or a Collada scene importer perhaps? I 
+</I>&gt;&gt;&gt;<i> haven't looked (yet) what the scene format there looks like. For the 
+</I>&gt;&gt;&gt;<i> Ogre format there is a 15 line complete scene example at 
+</I>&gt;&gt;&gt;<i> <A HREF="http://www.ogre3d.org/wiki/index.php/DotScene">http://www.ogre3d.org/wiki/index.php/DotScene</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> In one way the question is: does OAR loading work with 'partial' data, 
+</I>&gt;&gt;&gt;<i> or would I have to make the exporter write all the fields? Am now 
+</I>&gt;&gt;&gt;<i> looking into exchanging this data first:
+</I>&gt;&gt;&gt;<i> &lt;GroupPosition&gt;&lt;X&gt;123&lt;/X&gt;&lt;Y&gt;129.55&lt;/Y&gt;&lt;Z&gt;29.340004&lt;/Z&gt;&lt;/GroupPosition&gt;
+</I>&gt;&gt;&gt;<i> &lt;OffsetPosition&gt;&lt;X&gt;0&lt;/X&gt;&lt;Y&gt;0&lt;/Y&gt;&lt;Z&gt;0&lt;/Z&gt;&lt;/OffsetPosition&gt;
+</I>&gt;&gt;&gt;<i> &lt;RotationOffset&gt;&lt;X&gt;0&lt;/X&gt;&lt;Y&gt;0&lt;/Y&gt;&lt;Z&gt;0&lt;/Z&gt;&lt;W&gt;1&lt;/W&gt;&lt;/RotationOffset&gt;
+</I>&gt;&gt;&gt;<i> &lt;Scale&gt;&lt;X&gt;17.7774&lt;/X&gt;&lt;Y&gt;22.8028&lt;/Y&gt;&lt;Z&gt;69.2987&lt;/Z&gt;&lt;/Scale&gt;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> and things like velocity would not apply .. also, are valid region 
+</I>&gt;&gt;&gt;<i> handles, creator-id etc. required, and should I generate GUIDs at export?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I'll experiment what happens at loads of partial data etc., and of 
+</I>&gt;&gt;&gt;<i> course can just make the exporter write all those fields, but hints are 
+</I>&gt;&gt;&gt;<i> welcome so would not be banging my head against the most irrelevant walls.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> ~Toni
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>   
+</I>&gt;&gt;&gt;<i>     
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.org">http://justincc.org</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007555.html">[Opensim-dev] scene import/export to another app: oar? dotscene? collada?
+</A></li>
+	<LI>Next message: <A HREF="007563.html">[Opensim-dev] scene import/export to another app: oar? dotscene? collada?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7562">[ date ]</a>
+              <a href="thread.html#7562">[ thread ]</a>
+              <a href="subject.html#7562">[ subject ]</a>
+              <a href="author.html#7562">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,212 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] User Authentication
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20Authentication&In-Reply-To=%3C00a701c995fe%2441a56540%24c4f02fc0%24%40biz%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005324.html">
+   <LINK REL="Next"  HREF="005337.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] User Authentication</H1>
+    <B>Ralf Haifisch</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20Authentication&In-Reply-To=%3C00a701c995fe%2441a56540%24c4f02fc0%24%40biz%3E"
+       TITLE="[Opensim-dev] User Authentication">ralf at ralf-haifisch.biz
+       </A><BR>
+    <I>Mon Feb 23 22:32:40 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005324.html">[Opensim-dev] User Authentication
+</A></li>
+        <LI>Next message: <A HREF="005337.html">[Opensim-dev] [REX] [Fwd:  User Authentication]
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5332">[ date ]</a>
+              <a href="thread.html#5332">[ thread ]</a>
+              <a href="subject.html#5332">[ subject ]</a>
+              <a href="author.html#5332">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi there,
+
+Tokens is definitely the right technique to choose.
+
+It does not adresse trust concerns against the token-provider (i.g. the
+gridserver operator) and does not implement a fully trusted &amp; secure stack.
+
+But it&#146;s a major step towards the goal and a decision to choose the right
+and most actual weapon.
+
+The OpenidTokenExchange seems to be promising.  Project Geneva SDK from
+Microsoft may be an alternative, as well (providing opened and SAML).
+However, being compatible with other systems would be great, but a opened
+basis should be fine.
+
+Dirk is right - usually  (got some presentation here if someone wants to get
+that emailed). The access resource doesn not know about the Username etc.
+
+This technique is what is used in professional access management for a
+while, i.e. Novell, Microsoft use this.
+
+Kebereos was a early implementation of this idea, and searching for a
+standard most companys did choose LDAP as the user database.  Tokens are
+time limited.
+
+However - in newer days, the idea is used in extend to right management
+system and will be compatible with this idea.
+A single attribute of in identity is handled as a claim.
+
+To give an example about usage of tokens and claims:
+
+You are logged in into osgrid.
+You want to visit a place, that is adult rated.
+You did approve to be an adult, what is a attribute of your identity.
+
+You hypergrid to that place, maybe an adult shop.
+
+You need to be identified (what Diva did outline).
+So you send the target system your token.
+
+The token is verified at the osgrid server.
+
+The target systems asks the osgridserver for your adult check.
+
+The osgrid server asks you for permission on that claim
+
+You accept, and the target has 
+a) identified you
+b) does now, that you are an adult - but does not even know your real name
+
+
+--&gt; This is a maybe future story, but it would be possible via a decision
+for token and later for claims.
+
+
+For now, the pure identification could be implemented and the token-flow is
+puerely between server in 2 roles:
+- identification server, handling tokens
+- resource server (as a hypergrid target system) using token to identify
+user
+
+The user still uses purely Username/Passwort from Client to identification
+server.
+
+
+We have a perfect model that this works in Microsoft Windows:
+
+Windows NT was username/password based
+Windows 2000 introduced stuff from *nix like LDAP and Kerberos (and
+BIND-comp. DNS, and other stuff)
+
+So for a migration phase , the clients did still use the old style
+(NT-logon) while modern server did use the token mechanism.
+
+Today, token are used in all directions - wich enables Microsoft to Offer
+Claimbased access (Windows Cardspace) and simple right management
+integration.
+
+
+
+Cheers,
+Ralf
+
+
+------------------------------
+
+Date: Mon, 23 Feb 2009 21:48:00 +0100
+From: &quot;Dirk Krause&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dirk.krause at pixelpark.com</A>&gt;
+Subject: Re: [Opensim-dev] User Authentication
+To: &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+Message-ID:
+	&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">72C1C9E5780A134F896530D480F22BB702142986 at hermes.bitlab.de</A>&gt;
+Content-Type: text/plain; charset=&quot;iso-8859-1&quot;
+
+I recently talked to mrtopf/tao takashi about getting openid into opensim
+because I was/am hoping to sink a couple of developer days into implementing
+this.
+
+from what I understood one the tricky parts is to implement openid in the
+client, since from an openid standpoint you dont want the server to receive
+username and password at all. after the negotiation between the client and
+the openid provider there is some additional token sent to the server to
+double check that this negotiation really happened.
+
+
+
+
+-----Urspr?ngliche Nachricht-----
+Von: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> im Auftrag von Toni Alatalo
+Gesendet: Mo 23.02.2009 21:37
+An: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Betreff: Re: [Opensim-dev] User Authentication
+ 
+Tommi Laukkanen kirjoitti:
+&gt;<i> I got promising link from yesterday from Ryan (sempuki):
+</I>&gt;<i> <A HREF="http://dev.aol.com/OpenidTokenExchange">http://dev.aol.com/OpenidTokenExchange</A> 
+</I>&gt;<i> That seems to be developed to solve exactly this problem. First point 
+</I>&gt;<i> of authentication fetches tokens from token
+</I>
+yep and a token is also what the original / current rexserver uses for 
+the 'global avatar system' uses to address this issue. there the client 
+can connect to any world, tell who it is, pass a one-time(?) token 
+gotten from auth a second ago, which the world then uses to verify from 
+the auth the user uses (and the server has decided to trust).
+
+the plan is probably to switch to openid and that in Rex as well, i.e. 
+to 'standards instead of Finnish magic' (in J. Hurlman's words from the 
+other day :) . we did the mistake back then 1,5 years ago when worked on 
+rexauth that, when thought too much of avatars and other VW specific 
+stuff also, even though did realize that one part is only about 
+identity, failed to realize that openid would have helped (maybe the 
+token exchange wasn't there yet even, iirc it's more recent than oauth?) 
+.. also because the ppl who got the idea didn't know about openid i 
+guess (i didn't know much either so failed to make the connection).
+
+the other mistake i guess was that didn't consider how it could work 
+with the existing user server in opensim, i guess because we thought 
+that's somehow tied to the grid-bound auth used in SL and Opensim 
+otherwise (which Rex got rid of and instead has the independent auth 
+that can work for any grid or server, like openid).
+
+at least the guys did get it implemented quickly and afaik it has been 
+working ok since and kinda proves that model partly at least?
+
+and now it seems we have a chance to get it with standards and properly. 
+yay!
+
+&gt;<i> Tommi
+</I>
+ ~Toni
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005324.html">[Opensim-dev] User Authentication
+</A></li>
+	<LI>Next message: <A HREF="005337.html">[Opensim-dev] [REX] [Fwd:  User Authentication]
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5332">[ date ]</a>
+              <a href="thread.html#5332">[ thread ]</a>
+              <a href="subject.html#5332">[ subject ]</a>
+              <a href="author.html#5332">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

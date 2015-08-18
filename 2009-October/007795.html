@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] open sim UUID and Passwordhash
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20open%20sim%20UUID%20and%20Passwordhash&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE6647354D6E5BEC%40winxbeus19.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007794.html">
+   <LINK REL="Next"  HREF="007796.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] open sim UUID and Passwordhash</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20open%20sim%20UUID%20and%20Passwordhash&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE6647354D6E5BEC%40winxbeus19.exchange.xchg%3E"
+       TITLE="[Opensim-dev] open sim UUID and Passwordhash">adam at deepthink.com.au
+       </A><BR>
+    <I>Fri Oct 16 15:05:03 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007794.html">[Opensim-dev] open sim UUID and Passwordhash
+</A></li>
+        <LI>Next message: <A HREF="007796.html">[Opensim-dev] open sim UUID and Passwordhash
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7795">[ date ]</a>
+              <a href="thread.html#7795">[ thread ]</a>
+              <a href="subject.html#7795">[ subject ]</a>
+              <a href="author.html#7795">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Just because other software may do it wrong does not mean it is secure.
+
+Drupal using a plain MD5 is alarming - since it allows for very quick plain lookups in existing databases (no need to calculate the dictionary + permuation with your fixed salt). Storing a custom salt for each user is essential if you wish to make dictionary attacks significantly more expensive. (Actually it also allows for plain collision attacks too.)
+
+Consider this case:
+
+&#183;         Calculate Every Permutation of the Dictionary plus a couple of common modifications, plus your fixed salt. (this will get ~80%+ of user passwords).
+Versus
+
+&#183;         Do the above, but for each user - since the salt is changing per user.
+
+The second will take 'n' times longer to calculate (where N is equivalent to the size of your database), it also works in the inverse - if you have a 10 million user database, it means you need 1/10millionth of the time to try calculate a valid hit. It adds up. Bigtime.
+
+A unique hash for the whole application helps against global world-wide MD5 databases, but it still does not help the above situation.
+
+Frankly the storage and transmission size arguments are complete bunk. We are talking 128-bits extra data per user for a good salt which adds up to about 'jack shit' when summed over the lifetime of the application. It takes very little extra time, and we already stuff that data into our default database schemas.
+
+Likewise, having a long salt versus a short salt makes very little difference - because it's the uniqueness that counts (see the two cases above.)
+
+Short summary of the above: Do it if you have any desire to follow good security practices with your users. It takes almost no extra time and gives you appreciable benefits.
+
+Adam
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Impalah Shenzhou
+Sent: Friday, 16 October 2009 4:37 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] open sim UUID and Passwordhash
+
+Thanks for the info Melanie.
+
+Adam, I consider Drupal, for example, a CMS with a decent security and it only uses md5(plain_password) to store user passwords. Some php frameworks (for example Code Igniter, Cake php...) use, but not mandatory, an unique hash for all the application.
+
+A random hash for every user improves security, you're right, but increases the data sent between DB and servers for every authentication. I prefer not to overload data transmission for something I think is overprotection. Maybe for 10 or 100 users there won't be no problems, but think on 10000 and each byte will count (they aren't cheap).
+
+If you have a long, secret and unique hash for your servers, who can make an effective attack to you (at least in reasonable time)?
+
+Maybe the difference could be that Drupal used to be deployed over Apache, and it can be protected against dictionary attacks activating some modules, while Opensim/UGAIM are servers &quot;per se&quot;, basic servers.
+
+It's my opinion, if you don't like it, I have more :-P
+
+Greetings
+
+2009/10/16 Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;&gt;
+A long fixed salt doesn't help over the simple &quot;:&quot; in any practical way. The salt must be unique for each user for decent security.
+
+Adam
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt; [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;] On Behalf Of Impalah Shenzhou
+Sent: Friday, 16 October 2009 3:44 AM
+
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+Subject: Re: [Opensim-dev] open sim UUID and Passwordhash
+
+This comes from UserManagerBase.AddUser (0.6.6):
+
+string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + &quot;:&quot; + String.Empty);
+
+The salt should be where String.Empty is.
+
+I think it doesn't change in the most recent versions, so the &quot;create user&quot; method of the console (both standalone and ugaim) are unsecure by default.
+
+
+Anyway, I agree with Melanie and Adam that the salt is needed for improving security, if not a random salt every time you create an user, at least a long and secret unique salt.
+
+Greetings
+
+2009/10/16 Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;&gt;
++1 to Melanie, that code is *not* secure. It is salted with a &quot;:&quot; but that's a fixed known salt.
+
+This is what I suggest:
+
+$passwordSalt = md5(time() . utime() . mt_rand(0,mt_getrandmax())); // or any other good random source
+$passwordHash = md5(md5($password) . ':' . $passwordSalt);
+
+$passwordSalt should be unique among your database (very likely with the above code); if there are duplicates, then it allows dictionary attacks to be done, the more duplicates, the more effective it is.
+
+Adam
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt; [mailto:opensim-dev-&lt;mailto:opensim-dev-&gt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>&gt;] On Behalf Of Melanie
+</I>&gt;<i> Sent: Thursday, 15 October 2009 4:14 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> Subject: Re: [Opensim-dev] open sim UUID and Passwordhash
+</I>&gt;<i>
+</I>&gt;<i> Please don't use that code. It creates unsalted hashes, which are
+</I>&gt;<i> not secure.
+</I>&gt;<i> The &quot;&quot; should be a ranndom salt, stored in the passwordSalt field in
+</I>&gt;<i> the DB. If that is blank, you're running a very insecure system
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Rich White wrote:
+</I>&gt;<i> &gt; here is the PHP code - $password_hash = md5(md5($password) . &quot;:&quot;
+</I>&gt;<i> .&quot;&quot;);
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; an md5 hash of an md5 hash
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; =====
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 2009/10/15 M&#225;rcio Cardoso &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">marciomaiden at gmail.com</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">marciomaiden at gmail.com</A>&gt;&gt;:
+</I>&gt;<i> &gt;&gt; Good night,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; will be possible that someone could help me with 2 problems I have?
+</I>&gt;<i> I'm
+</I>&gt;<i> &gt;&gt; trying to create a stored procedure in mysql to add users, but do
+</I>&gt;<i> not know
+</I>&gt;<i> &gt;&gt; how UUID  is generated. anyone have any idea how this happens?
+</I>&gt;<i> Another
+</I>&gt;<i> &gt;&gt; problem is how is the encoding of the password.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; The ideal was to have access to the code that  opensim uses to add
+</I>&gt;<i> avatars.
+</I>&gt;<i> &gt;&gt; but I got tired of looking and nothing. I thank you for your help.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Greetings,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; M&#225;rcio Cardoso
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20091016/4c50b832/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20091016/4c50b832/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007794.html">[Opensim-dev] open sim UUID and Passwordhash
+</A></li>
+	<LI>Next message: <A HREF="007796.html">[Opensim-dev] open sim UUID and Passwordhash
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7795">[ date ]</a>
+              <a href="thread.html#7795">[ thread ]</a>
+              <a href="subject.html#7795">[ subject ]</a>
+              <a href="author.html#7795">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SceneObject* Metadata
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SceneObject%2A%20Metadata&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D4A692801%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003722.html">
+   <LINK REL="Next"  HREF="003720.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SceneObject* Metadata</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SceneObject%2A%20Metadata&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D4A692801%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] SceneObject* Metadata">john.hurliman at intel.com
+       </A><BR>
+    <I>Wed Nov 26 22:21:03 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003722.html">[Opensim-dev] SceneObject* Metadata
+</A></li>
+        <LI>Next message: <A HREF="003720.html">[Opensim-dev] SceneObject* Metadata
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3725">[ date ]</a>
+              <a href="thread.html#3725">[ thread ]</a>
+              <a href="subject.html#3725">[ subject ]</a>
+              <a href="author.html#3725">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>For what it's worth, this is similar to how the distributed asset server works. The Metadata object has a field called ExtraData which is of type OpenMetaverse.StructuredData.OSD so complex data structures can be held. Every storage provider is responsible for knowing how to persist OSD (most of them just serialize to JSON and stuff it in a file or database BLOB), and frontend handlers can either pick through this data looking for something interesting or blindly serialize it to a wire format. Everyone in between is just passing Metadata objects around and won't look in there unless it's interested in something.
+
+John
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;<i> Sent: Wednesday, November 26, 2008 1:07 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] SceneObject* Metadata
+</I>&gt;<i>
+</I>&gt;<i> Frisby, Adam wrote:
+</I>&gt;&gt;<i> +1.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I guess the question is then - can we make the columns dynamic to
+</I>&gt;&gt;<i> allow third party stuff? Mesh was just one example - there's quite a
+</I>&gt;&gt;<i> few rex properties now (mesh, collision mesh, material settings x10,
+</I>&gt;&gt;<i> etc) -- perhaps if we can serialise all the object properties into a
+</I>&gt;&gt;<i> dictionary? &lt;Property, Value&gt;, which the DB adapters can then adjust
+</I>&gt;&gt;<i> their tables for[?]
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> At this point one of those pure XML DB's might not be a horrible idea.
+</I>&gt;&gt;<i> (At least it handles hierarchical data properly)
+</I>&gt;<i>
+</I>&gt;<i> Maybe one could give the Dictionary object to the DB and let it decide
+</I>&gt;<i> how it wants to handle it.  Then at that layer it could either be
+</I>&gt;<i> serialized or something more fancy done in the case of a pure XML db
+</I>&gt;<i> (or just put the data in columns if you want to improve performance.
+</I>&gt;<i>
+</I>&gt;<i> Giving the database a license to do things how it wants is both an
+</I>&gt;<i> advantage and a disadvantage - we've been trying to get away from
+</I>&gt;<i> inconsistency between databases recently though much of that was
+</I>&gt;<i> without good reason.
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Adam
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;&gt;&gt;<i> Sent: Wednesday, 26 November 2008 6:46 AM
+</I>&gt;&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> Subject: Re: [Opensim-dev] SceneObject* Metadata
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Frisby, Adam wrote:
+</I>&gt;&gt;&gt;&gt;<i> Well,
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> If we save it in RexEntity - then every storage provider needs to
+</I>&gt;&gt;&gt;<i> recognise it. RexEntity does and will exist - however when it comes to
+</I>&gt;&gt;&gt;<i> packaging the data up and putting it in a storage provider, we then
+</I>&gt;&gt;&gt;<i> need to make customised versions for each. The metadata field provides
+</I>&gt;&gt;&gt;<i> a convenient way of storing the extra properties in a backwards
+</I>&gt;&gt;&gt;<i> compatible way. Is a mesh UUID really metadata?  I agree with Melanie
+</I>&gt;&gt;&gt;<i> - it would seem to be more a property of the object than metadata
+</I>&gt;&gt;&gt;<i> about the object. I also see it being generally useful, so I would
+</I>&gt;&gt;&gt;<i> argue that it would merit a proper column in a region db table.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I imagine the entire Metadata dictionary would need serialization into
+</I>&gt;&gt;&gt;<i> a single column in the regions table.  There would inevitably be a
+</I>&gt;&gt;&gt;<i> performance cost associated with packing and unpacking such a
+</I>&gt;&gt;&gt;<i> structure.  However, I do see that one might be generally useful and
+</I>&gt;&gt;&gt;<i> even necessary for other types of data.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Regarding serialization formats for storing inventory - these will
+</I>&gt;&gt;&gt;<i> need to evolve.  It's already proving to be problematic in any
+</I>&gt;&gt;&gt;<i> elimination of SOG or general code refactoring (since there's a
+</I>&gt;&gt;&gt;<i> &lt;SceneObjectGroup&gt; tag in there and everything).  I'm wondering if it
+</I>&gt;&gt;&gt;<i> wouldn't be better to have separate code serializing SOP rather than
+</I>&gt;&gt;&gt;<i> just using .NET's object serialization - I think Stefan may have
+</I>&gt;&gt;&gt;<i> suggested this a couple of times in the past.  Those damn things also
+</I>&gt;&gt;&gt;<i> really need to have a version number embedded in them, I think.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Adam
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;&gt;&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;&gt;&gt;&gt;&gt;<i> Sent: Wednesday, 26 November 2008 4:58 AM
+</I>&gt;&gt;&gt;&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Subject: Re: [Opensim-dev] SceneObject* Metadata
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> ideally, Rex data should be in a RexEntity, not the LLEntity or
+</I>&gt;&gt;&gt;&gt;&gt;<i> IEntity.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> I'm +1 on the metadata as such, but I think meshes should not be
+</I>&gt;&gt;&gt;&gt;&gt;<i> metadata. As a stopgap measure maybe, but not as an architectural
+</I>&gt;&gt;&gt;&gt;&gt;<i> choice.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Personally, I see no call to bend over backwards for Rex, What have
+</I>&gt;&gt;&gt;&gt;&gt;<i> they done for the project or me lately?
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> If we do change the serialization stuff, let's please make the
+</I>&gt;&gt;&gt;&gt;&gt;<i> format accommodate coalesced objects, too?
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Melanie
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Frisby, Adam wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Hi everyone,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> I'd like to add another parameter onto SceneObjectPart and group
+</I>&gt;&gt;&gt;&gt;&gt;<i> called 'Metadata' - Metadata would be a Dictionary&lt;string,string&gt;
+</I>&gt;&gt;&gt;&gt;&gt;<i> which is serialised with the object when loaded and saved from
+</I>&gt;&gt;&gt;&gt;&gt;<i> inventory, archives, etc.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> This change would require all the storage providers to handle
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> the
+</I>&gt;&gt;&gt;<i> new
+</I>&gt;&gt;&gt;&gt;&gt;<i> metadata fields. The purpose of this field is mainly to support
+</I>&gt;&gt;&gt;&gt;&gt;<i> things that the stock OpenSim parts do not - without breaking
+</I>&gt;&gt;&gt;<i> compatibility.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> An example of such usage would be a &quot;MeshUUID&quot; metafield for the
+</I>&gt;&gt;&gt;&gt;&gt;<i> Modular Rex components we're building inside DeepThink - this would
+</I>&gt;&gt;&gt;&gt;&gt;<i> allow the Rex metadata to be attached to a otherwise normal field,
+</I>&gt;&gt;&gt;&gt;&gt;<i> but would only be understood and handled by the simulator if you had
+</I>&gt;&gt;&gt;&gt;&gt;<i> the modular rex components installed.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Another example might be tagging keywords for search and
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> indexing
+</I>&gt;&gt;&gt;&gt;&gt;<i> purposes, AI, etc. All the metadata properties would be accessible
+</I>&gt;&gt;&gt;&gt;&gt;<i> from region modules and they can write and add new ones relatively
+</I>&gt;&gt;&gt;&gt;&gt;<i> easily under the proposal. (Just grab the SOG/SOP, then edit the
+</I>&gt;&gt;&gt;&gt;&gt;<i> metadata dictionary).
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Thoughts?
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Adam
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> ---------------------------------------------------------------- -
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> - -
+</I>&gt;&gt;&gt;<i> --
+</I>&gt;&gt;&gt;&gt;&gt;<i> ---
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --
+</I>&gt;&gt;&gt;<i> justincc
+</I>&gt;&gt;&gt;<i> Justin Clark-Casey
+</I>&gt;&gt;&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> -- justincc Justin Clark-Casey <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> _______________________________________________ Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003722.html">[Opensim-dev] SceneObject* Metadata
+</A></li>
+	<LI>Next message: <A HREF="003720.html">[Opensim-dev] SceneObject* Metadata
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3725">[ date ]</a>
+              <a href="thread.html#3725">[ thread ]</a>
+              <a href="subject.html#3725">[ subject ]</a>
+              <a href="author.html#3725">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

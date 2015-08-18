@@ -1,0 +1,400 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Update for group module &amp; flotsam
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3C50860284.7090105%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011443.html">
+   <LINK REL="Next"  HREF="011442.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Update for group module &amp; flotsam</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3C50860284.7090105%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Update for group module &amp; flotsam">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Oct 23 04:35:48 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011443.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+        <LI>Next message: <A HREF="011442.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11445">[ date ]</a>
+              <a href="thread.html#11445">[ thread ]</a>
+              <a href="subject.html#11445">[ subject ]</a>
+              <a href="author.html#11445">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes, there is considerable overlap here, thanks for posting, Dahlia.  Unfortunately I wasn't aware/had forgotten about 
+this setting.
+
+It is the case that MessageOnlineUsersOnly should be more efficient as it performs its analysis much higher up in the 
+stack, so only needing one (cached) presence call.  I wrote this code because of the input from Michelle and what I 
+thought was reports of large-group messaging problems on OSgrid.
+
+However, it turns out that the default for ForwardOfflineGroupMessages is true and people may simply not have set it to 
+false.  This has been the case on the OSGrid plazas, for instance.  Michelle, have you tried making sure this setting is 
+false?  I believe the default should be false rather than true.
+
+In principle, ForwardOfflineGroupMessages shouldn't actually have a direct impact since the offline storage is done on a 
+separate thread for each user.  But possibly in a very large group or in a situation where many groups are being 
+messaged at once, many threads are being tied up for each message and perhaps this is having an effect on the runtime 
+(this is speculation).
+
+On 20/10/12 09:43, Dahlia Trimble wrote:
+&gt;<i> Justin, would that conflict with this?
+</I>&gt;<i> <A HREF="http://opensimulator.org/viewgit/?a=commit&amp;p=opensim&amp;h=1e899704c1c19a8c42ff313677a13f35b46605da">http://opensimulator.org/viewgit/?a=commit&amp;p=opensim&amp;h=1e899704c1c19a8c42ff313677a13f35b46605da</A>
+</I>&gt;<i>
+</I>&gt;<i> On Fri, Oct 19, 2012 at 7:32 PM, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     Regarding the groups work, I have now implemented an OpenSimulator experimental option, MessageOnlineUsersOnly in
+</I>&gt;<i>     [Groups] as of git master 1937e5f.  When set to true this will only send group IMs to online users.  This does not
+</I>&gt;<i>     require a groups service update.  I believe OSGrid is going to test this more extensively soon though it appears to
+</I>&gt;<i>     work fine on Wright Plaza.
+</I>&gt;<i>
+</I>&gt;<i>     It's temporarily a little spammy on the console right now (what isn't!) with a debug message that says how many
+</I>&gt;<i>     online users it is sending to and how long a send takes.
+</I>&gt;<i>
+</I>&gt;<i>     Unlike Michelle's solution, this works by querying the Presence service for online users, though it also caches this
+</I>&gt;<i>     data to avoid hitting the presence service too hard.
+</I>&gt;<i>
+</I>&gt;<i>     Even though I implemented this, I'm not convinced that it's the best way to go - I think Michelle's approach of
+</I>&gt;<i>     sending login/logoff status directly from simulator to groups service could still be better.  My chief concern with
+</I>&gt;<i>     the groups approach is the potential inconsistency between online status stored there and in the Presence service.
+</I>&gt;<i>       However, this could be a non-issue.  Need to give it more thought.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     On 14/10/12 22:53, Akira Sonoda wrote:
+</I>&gt;<i>
+</I>&gt;<i>         IMHO finding out which group members are online and sending group IM/Notice etc. to them actually should not be
+</I>&gt;<i>         done by
+</I>&gt;<i>         the region server from which the group IM/notice etc. is sent.
+</I>&gt;<i>         This is a task which should be done centrally in case of OSgrid in Dallas TX (
+</I>&gt;<i>         <A HREF="http://wiki.osgrid.org/index.__php/Infrastructure">http://wiki.osgrid.org/index.__php/Infrastructure</A> &lt;<A HREF="http://wiki.osgrid.org/index.php/Infrastructure">http://wiki.osgrid.org/index.php/Infrastructure</A>&gt; ). The
+</I>&gt;<i>         region server should only collect the group IM/notice etc. and
+</I>&gt;<i>         send it to the central group server or in the other way receiving IM/notice etc. from the central group server and
+</I>&gt;<i>         distribute it to the Agents active on the region(s).
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     That concentrates all distribution on a central point rather than spreading it amongst simulators.  Then OSGrid has
+</I>&gt;<i>     the problem of scaling this up.
+</I>&gt;<i>
+</I>&gt;<i>     Having said that, there are advantages to funnelling things through a reliable central point.  As to which is better
+</I>&gt;<i>     is a complicated engineering issue - the kind of which there are many in the MMO/VW space.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         But there are even other places which can and should be improved. I did some tests with some viewers counting
+</I>&gt;<i>         the web
+</I>&gt;<i>         requests to the central infrastructure:
+</I>&gt;<i>
+</I>&gt;<i>         Test 1: Teleport from a Plaza to one of my regions located on a server in Europe and afterwards logging out:
+</I>&gt;<i>
+</I>&gt;<i>         Cool VL Viewer: 912 Requests mostly SynchronousRestForms POST <A HREF="http://presence.osgrid.org/__presence">http://presence.osgrid.org/__presence</A>
+</I>&gt;<i>         &lt;<A HREF="http://presence.osgrid.org/presence">http://presence.osgrid.org/presence</A>&gt; ( i guess to inform
+</I>&gt;<i>         all my 809 friends [mostly only 5% online] I am going offline because the calls to the presence service were
+</I>&gt;<i>         done after
+</I>&gt;<i>         i closed the viewer)
+</I>&gt;<i>         Singularity Veiwer: 921 Requests mostly calls to presence after logoff
+</I>&gt;<i>         Teapot viewer: 910 Requests mostly calls to presence after logoff
+</I>&gt;<i>         Astra Viewer: 917 Requests mostly calls to presence after logoff
+</I>&gt;<i>         Firestorm: 1005 Requests mostly calls to presence after logoff
+</I>&gt;<i>         Imprudence: 918 mostly calls to presence after logoff
+</I>&gt;<i>
+</I>&gt;<i>         So far so good. I have no idea why my 760 offline friends have to be informed that I went offline ...
+</I>&gt;<i>         (Details can be found here: <A HREF="https://docs.google.com/open?__id=__0B301xueh1kxdNG1wLWo2YVVfYjA">https://docs.google.com/open?__id=__0B301xueh1kxdNG1wLWo2YVVfYjA</A>
+</I>&gt;<i>         &lt;<A HREF="https://docs.google.com/open?id=0B301xueh1kxdNG1wLWo2YVVfYjA">https://docs.google.com/open?id=0B301xueh1kxdNG1wLWo2YVVfYjA</A>&gt; )
+</I>&gt;<i>
+</I>&gt;<i>         Test 2: Direct Login onto my Region and then Logoff-( with FetchInventory2 disabled )
+</I>&gt;<i>
+</I>&gt;<i>         Cool VL Viewer: 2232 Requests mostly calls to presence ~800 during login and ~800 during logout and xinventory
+</I>&gt;<i>         Singularity Viwer: 2340 Requests mostly calls to presence and xinventory
+</I>&gt;<i>         Teapot Viewer: Produced 500+ Threads in a very short time and then the OpenSim.exe crashed
+</I>&gt;<i>         Astra Viewer: 2831 Request mostly calls to presence and xinventory
+</I>&gt;<i>         Firestorm Viwer: ACK Timeout for me. OpenSim.exe survived on 500 Threads for 30+ minutes producing 4996 Requests
+</I>&gt;<i>         mostly
+</I>&gt;<i>         xinventory
+</I>&gt;<i>         Imprudence: 1745 Requests mostly presence
+</I>&gt;<i>
+</I>&gt;<i>         Again why do all my 809 friends have do be verified with single requests? Then why this difference in xinventory
+</I>&gt;<i>         Requests? And why are both Teapot and Firestorm producing so many Threads in such a short time? and bring
+</I>&gt;<i>         OpenSim.exe to
+</I>&gt;<i>         crash or closely to crash ...
+</I>&gt;<i>         ( Details can be found here: <A HREF="https://docs.google.com/open?__id=__0B301xueh1kxdMDJxWm5UR2QtU2c">https://docs.google.com/open?__id=__0B301xueh1kxdMDJxWm5UR2QtU2c</A>
+</I>&gt;<i>         &lt;<A HREF="https://docs.google.com/open?id=0B301xueh1kxdMDJxWm5UR2QtU2c">https://docs.google.com/open?id=0B301xueh1kxdMDJxWm5UR2QtU2c</A>&gt; )
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     The presence information is useful data and it was possible in git master commit da2b23f to change the Friends
+</I>&gt;<i>     module to fetch all presence data in one call for status notification when a user goes on/offline, rather than make
+</I>&gt;<i>     a separate call for each friend.
+</I>&gt;<i>
+</I>&gt;<i>     This should be more efficient since only the latency and resources of one call is required.  However, since each
+</I>&gt;<i>     friend still has to be messaged separately to tell them of the status change I'm not sure how much practical effect
+</I>&gt;<i>     this will have.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         Test 3: Direct Login to my Region with FetchInventory2 enabled.
+</I>&gt;<i>
+</I>&gt;<i>         Teapot Viewer: I closed the viwer after 30 minutes. Number of Threads were still rising up to 260. In the end i
+</I>&gt;<i>         counted
+</I>&gt;<i>         30634 xinventory requests... My Inventory has 14190 items !!!
+</I>&gt;<i>         Firestorm Viwer: Quite normal approx 2020 Requests ... quite some slow FetchInventoryDescendandts2 Caps. with
+</I>&gt;<i>         100 sec max
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     Regarding inventory service, unfortunately many viewers appear to behave very aggressively when fetching inventory
+</I>&gt;<i>     information.  For instance, I'm told that if you have certain types of AO enabled - some viewers will fetch your
+</I>&gt;<i>     entire inventory.  The LL infrastructure may be able to cope with this but the more modest machines running grids
+</I>&gt;<i>     can have trouble, it seems.
+</I>&gt;<i>
+</I>&gt;<i>     I'm not sure what the long term solution is.  I suspect it's possible to greatly increase inventory fetch
+</I>&gt;<i>     efficiency, possibly by some kind of call batching.  Or perhaps there's some viewer-side caching that OpenSimulator
+</I>&gt;<i>     isn't working with properly.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         ( Details can be found here: <A HREF="https://docs.google.com/open?__id=__0B301xueh1kxdNEtEeUVFamU1QUE">https://docs.google.com/open?__id=__0B301xueh1kxdNEtEeUVFamU1QUE</A>
+</I>&gt;<i>         &lt;<A HREF="https://docs.google.com/open?id=0B301xueh1kxdNEtEeUVFamU1QUE">https://docs.google.com/open?id=0B301xueh1kxdNEtEeUVFamU1QUE</A>&gt; )
+</I>&gt;<i>
+</I>&gt;<i>         Just my observations this week end.
+</I>&gt;<i>         Akira
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         2012/10/13 Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;
+</I>&gt;<i>         &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.__com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>              Hi Michelle.  I've now had some more time to think about this.  In fact, I established a proposal summary
+</I>&gt;<i>         page at
+</I>&gt;<i>              [1] which I'll change as we go along (or please feel free to change yourself).  We do need to fix this
+</I>&gt;<i>         problem of
+</I>&gt;<i>              group IM taking massive time with groups that aren't that big.
+</I>&gt;<i>
+</I>&gt;<i>              I do like the approach of caching online status (and login time) in the groups service.
+</I>&gt;<i>
+</I>&gt;<i>              1.  It's reasonably simple.
+</I>&gt;<i>              2.  One network call to fetch online group members per IM.
+</I>&gt;<i>              3.  May allow messaging across multiple OpenSimulator installations.
+</I>&gt;<i>
+</I>&gt;<i>              However, this approach does mean
+</I>&gt;<i>
+</I>&gt;<i>              1.  Independently updating the groups services on each login/logout.  I'm not saying this is a problem,
+</I>&gt;<i>         particularly
+</I>&gt;<i>              if it saves traffic later on.
+</I>&gt;<i>              2.  Groups service has to deal with extra information.  Again, this is fairly simple so not necessarily a fatal
+</I>&gt;<i>              issue though it does mean every groups implementations needs to do this in some manner.
+</I>&gt;<i>              3.  Online cache is not reusable by other services in the future.
+</I>&gt;<i>
+</I>&gt;<i>              On a technical note, the XmlRpc groups module does in theory cache data for 30 seconds by default, so a
+</I>&gt;<i>         change in
+</I>&gt;<i>              online status may not be seen for upto 30 seconds.  I personally think that this is a reasonable tradeoff.
+</I>&gt;<i>
+</I>&gt;<i>              Rather, of the above cons, 3 is the one I'm finding most serious.  If other services would also benefit
+</I>&gt;<i>         from online
+</I>&gt;<i>              status caching in the future, they would have to implement their own caches (and be updated from simulators).
+</I>&gt;<i>
+</I>&gt;<i>              I do agree that making a GridUser.LoggedIn() call for every single group member on every single IM is
+</I>&gt;<i>         unworkable.
+</I>&gt;<i>                Even if this is only done once and cached for a certain period of time it could be a major issue for
+</I>&gt;<i>         large groups.
+</I>&gt;<i>
+</I>&gt;<i>              So an alternative approach could be to add a new call to GridUser service (maybe LoggedIn(List&lt;UUID&gt;) that
+</I>&gt;<i>         will only
+</I>&gt;<i>              return GridInfo for those that are logged in.  This could then be cached simulator-side for a certain
+</I>&gt;<i>         period of time
+</I>&gt;<i>              (e.g. 30 seconds like the groups information) and used for group IM.
+</I>&gt;<i>
+</I>&gt;<i>              This has the advantages that
+</I>&gt;<i>
+</I>&gt;<i>              1.  Groups and future services don't need to do their own login caching.
+</I>&gt;<i>              2.  Future services can use the same information and code rather than have to cache login information
+</I>&gt;<i>         themselves.
+</I>&gt;<i>
+</I>&gt;<i>              However, it does
+</I>&gt;<i>
+</I>&gt;<i>              1.  Require GridUserInfo caching simulator-side, I would judge this to be a more complex approach.
+</I>&gt;<i>              2.  Mean that during the cache period, new online group messages will not receive messages.  (this is going to
+</I>&gt;<i>              happen with GetGroupMembers() caching anyway).
+</I>&gt;<i>              3.  Traffic is still generated to the GridUser service at the end of every simulator-side caching period.
+</I>&gt;<i>           This is
+</I>&gt;<i>              probably not a huge burden.
+</I>&gt;<i>
+</I>&gt;<i>              So right now, I'm somewhat more in favour of a GridUserInfo simulator-side caching approach than caching login
+</I>&gt;<i>              information within the groups service.  However, unlike you, I haven't actually tried to implement this
+</I>&gt;<i>         approach so
+</I>&gt;<i>              there may well be issues that I haven't seen.
+</I>&gt;<i>
+</I>&gt;<i>              What do you think, Michelle (or anybody else)?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>              On 10/10/12 19:47, Michelle Argus wrote:
+</I>&gt;<i>
+</I>&gt;<i>         <A HREF="http://code.google.com/p/____flotsam/">http://code.google.com/p/____flotsam/</A> &lt;<A HREF="http://code.google.com/p/__flotsam/">http://code.google.com/p/__flotsam/</A>&gt; &lt;<A HREF="http://code.google.com/p/__flotsam/">http://code.google.com/p/__flotsam/</A>
+</I>&gt;<i>         &lt;<A HREF="http://code.google.com/p/flotsam/">http://code.google.com/p/flotsam/</A>&gt;&gt; is the the current flotsam version and
+</I>&gt;<i>
+</I>&gt;<i>                  points to the github repro which I forked and
+</I>&gt;<i>                  then patched.
+</I>&gt;<i>
+</I>&gt;<i>                  None of the changes I proposed in my git fork have been implemented, neither in opensim nor in flotsam.
+</I>&gt;<i>
+</I>&gt;<i>                     Consider my proposal as a quick fix for the time beeing which does not solve all other issues
+</I>&gt;<i>         mentioned by later
+</I>&gt;<i>                  mailings.
+</I>&gt;<i>
+</I>&gt;<i>                  Am 09.10.2012 10:24, schrieb Ai Austin:
+</I>&gt;<i>
+</I>&gt;<i>                      Michelle Argus on Wed Oct 3 18:00:23 CEST 2012:
+</I>&gt;<i>
+</I>&gt;<i>                          I have added some changes to the group module of OpenSim and the flotsam server.
+</I>&gt;<i>                          ...
+</I>&gt;<i>                          The changes can be found in the 2 gits here: &lt;<A HREF="https://github.com/__MAReantals_">https://github.com/__MAReantals_</A>_
+</I>&gt;<i>         &lt;<A HREF="https://github.com/MAReantals__">https://github.com/MAReantals__</A>&gt;&gt;<A HREF="https://github.__com/MAReantals">https://github.__com/MAReantals</A> &lt;<A HREF="https://github.com/MAReantals">https://github.com/MAReantals</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                          NB: Both changes to flotsam and opensim are backward compatible and do
+</I>&gt;<i>                          not require that both parts are updated. If some simulators are not
+</I>&gt;<i>                          updated it can happen that some groupmembers do not receive
+</I>&gt;<i>                          groupmessages as their online status is not updated correctly. In a grid
+</I>&gt;<i>                          like OSgrid my recomendation would thus be to first update the
+</I>&gt;<i>                          simulators and at a later stage flotsam.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                      Hi Michelle... I am looking at what is needed to update the Openvue grid which is using the flotsam
+</I>&gt;<i>         XmlRpcGroups
+</I>&gt;<i>                      module.  the GITHub repository has the changes from a few days ago... but I wonder if there has been an
+</I>&gt;<i>                      update/commit
+</I>&gt;<i>                      into the main Opensim Github area already.  I cannot see a  related commit looking back over the
+</I>&gt;<i>         last week
+</I>&gt;<i>                      or so.  Is
+</I>&gt;<i>                      the core system updated so this module is up to date in that?  I also note that the
+</I>&gt;<i>         Opensim.ini.example file
+</I>&gt;<i>                      contains
+</I>&gt;<i>                      a reference to <A HREF="http://code.google.com/p/____flotsam/">http://code.google.com/p/____flotsam/</A> &lt;<A HREF="http://code.google.com/p/__flotsam/">http://code.google.com/p/__flotsam/</A>&gt;
+</I>&gt;<i>         &lt;<A HREF="http://code.google.com/p/__flotsam/">http://code.google.com/p/__flotsam/</A> &lt;<A HREF="http://code.google.com/p/flotsam/">http://code.google.com/p/flotsam/</A>&gt;&gt; for details of how to
+</I>&gt;<i>
+</I>&gt;<i>                      install the service.. but that seems to be
+</I>&gt;<i>                      pointing at an out of date version?
+</I>&gt;<i>
+</I>&gt;<i>                      I think for the flotsam php end it is straightforward and I obtained the changed groups.sql and
+</I>&gt;<i>         xmlrpc.php files
+</I>&gt;<i>                      needed.  But note that people are still pointed via the opensim.ini.example comments at the old
+</I>&gt;<i>         version on
+</I>&gt;<i>         <A HREF="http://code.google.com/p/____flotsam/">http://code.google.com/p/____flotsam/</A> &lt;<A HREF="http://code.google.com/p/__flotsam/">http://code.google.com/p/__flotsam/</A>&gt; &lt;<A HREF="http://code.google.com/p/__flotsam/">http://code.google.com/p/__flotsam/</A>
+</I>&gt;<i>         &lt;<A HREF="http://code.google.com/p/flotsam/">http://code.google.com/p/flotsam/</A>&gt;&gt; so that either needs updating to teh
+</I>&gt;<i>
+</I>&gt;<i>                      latest version, or the comment in
+</I>&gt;<i>                      opensim.ini.exmaple needs to be changed.
+</I>&gt;<i>
+</I>&gt;<i>                      To avoid mistakes, I wonder if you can clarify where to go for the parts needed and at what
+</I>&gt;<i>         revision/date of
+</I>&gt;<i>                      OpenSim
+</I>&gt;<i>                      0.7.5 dev master this was introduced, what to get and what to change for an existing service in
+</I>&gt;<i>         terms of the
+</I>&gt;<i>                      data base
+</I>&gt;<i>                      tables, OpenSim.exe instance and the web support php code areas?
+</I>&gt;<i>
+</I>&gt;<i>                      Thanks Michelle, Ai
+</I>&gt;<i>
+</I>&gt;<i>                      ___________________________________________________
+</I>&gt;<i>                      Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.__berlios.de</A>
+</I>&gt;<i>         &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/____mailman/listinfo/opensim-dev">https://lists.berlios.de/____mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>         &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>         &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>                  ___________________________________________________
+</I>&gt;<i>                  Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.__berlios.de</A>
+</I>&gt;<i>         &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/____mailman/listinfo/opensim-dev">https://lists.berlios.de/____mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>         &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>         &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>              --
+</I>&gt;<i>              Justin Clark-Casey (justincc)
+</I>&gt;<i>              OSVW Consulting
+</I>&gt;<i>         <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i>         <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>              ___________________________________________________
+</I>&gt;<i>              Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.__berlios.de</A>
+</I>&gt;<i>         &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/____mailman/listinfo/opensim-dev">https://lists.berlios.de/____mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>         &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>         &lt;<A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>         _________________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     --
+</I>&gt;<i>     Justin Clark-Casey (justincc)
+</I>&gt;<i>     OSVW Consulting
+</I>&gt;<i>     <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i>     <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>     _________________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011443.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+	<LI>Next message: <A HREF="011442.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11445">[ date ]</a>
+              <a href="thread.html#11445">[ thread ]</a>
+              <a href="subject.html#11445">[ subject ]</a>
+              <a href="author.html#11445">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

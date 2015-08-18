@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Should%20SOG%20and%20SOP%20be%20combined%20into%20a%20single%20object%0A%09in%20a%20linked%20hierarchy%3F&In-Reply-To=%3C49185C6F.7030201%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003553.html">
+   <LINK REL="Next"  HREF="003549.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Should%20SOG%20and%20SOP%20be%20combined%20into%20a%20single%20object%0A%09in%20a%20linked%20hierarchy%3F&In-Reply-To=%3C49185C6F.7030201%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Mon Nov 10 17:08:15 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003553.html">[Opensim-dev] Version Numbering Schemes
+</A></li>
+        <LI>Next message: <A HREF="003549.html">[Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3548">[ date ]</a>
+              <a href="thread.html#3548">[ thread ]</a>
+              <a href="subject.html#3548">[ subject ]</a>
+              <a href="author.html#3548">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Somewhat separately from Adam's other post, I'd like to raise this issue on the mailing list since it keeps popping up. 
+   I'll confess that I'm not 100% convinced yet that SOG and SOP should simply be combined, though I do accept that the 
+code does need some architectural changes.  Unfortunately, I'm not quite up to drawing diagrams yet.
+
+This discussion may also have come up on the mailing list in some way before so references are welcome, as are 
+clarifications to the statements below.
+
+Melanie's proposal, as I understand it, is to combine the current SOG and SOP into a single object (let's call it 
+LLEntity).  LLEntity's would be linked into a tree, so there can be something like
+
+
+            LLEntity
+           /    |   \
+          /     |    \
+         /      |     \
+        /       |      \
+LLEntity   LLEntity    LLEntity
+                |
+                |
+            LLEntity
+
+
+
+Here are some of the pros and cons as I see them.  Adam has already talked about some of these in his blog post.
+
+Pros
+
+1.  At the moment we can only have one level of prim linking (as effectively dictated by the LL Second Life client). 
+Linking into a tree would allow multiple levels of linking (though with the assumption of single parents).
+
+2.  It makes manipulation of prims much easier.  Instead of having to reference SOPs in and out of SOG, everything is 
+done on a single class.  Some properties can be set on a SOP reference without having to worry about whether they are a 
+root SOP or not (see below).
+
+3.  The Second Life client protocol wants to manipulate SOPs directly in many situations (e.g. individual prim selection 
+of a group, the fact that local ids are passed around that reference prims rather than linksets).
+
+4.  Get rid of the root part checks on object deletion.  However, a lot of these come from the fact that we null out 
+m_rootPart after object deletion when there may be no need to - I'm anticipating that extraneous info sent to a viewer 
+about a deleted object will be simply ignored.  This is a change we should try soon now that we're at the start of a 
+release process.
+
+
+Cons
+
+1.  LLEntity becomes very large and potentially complex.  SOG and SOP are already large and complex.  It may be possible 
+to improve this by further refactoring.
+
+2.  Every setting and getting of a property in LLEntity has to delegate up to its root LLEntity unless it is the root. 
+Therefore, code such as
+
+         public virtual Vector3 Velocity
+         {
+             get { return m_velocity; }
+             set { m_velocity = value; }
+         }
+
+becomes something like
+
+         public virtual Vector3 Velocity
+         {
+             get
+             {
+                 if (ParentEntity != null)
+                     return ParentEntity.Velocity;
+                 else
+                     return m_velocity;
+             }
+
+             set
+             {
+                 if (ParentEntity != null)
+                    ParentEntity.Velocity = value;
+                 else
+                    m_velocity = value;
+             }
+         }
+
+One also needs to be careful to set the publicly available property so that delegation happens if required, rather than 
+the private field to avoid state such as 'attached' becoming inconsistent (this is a potential source of bugs).
+
+3.  It leads to an increase in property duplication at the database and serialization levels.  Every LLEntity will have 
+a set of fields, even though some of those conceptually only apply to a linkset/SceneObjectGroup.  This probably isn't 
+serious but I think that it will make things harder to work with at those levels.
+
+
+This isn't a full set of pros and cons, just the ones that occur to me right now.  I'm sorry this is a long post but I 
+feel that we need to a get a long form view of this as change here will stay with us for a considerable time into the 
+future.  If there isn't any major discussion then this may go ahead anyway (since Melanie, for one, is quite keen and I 
+may be the only person really bothered about this).
+
+At the moment I'm actually leaning towards the single LLEntity suggestion, though I'm a little concerned about the 
+duplication that ends up at the database/serialization level.  But I'd really like to hear what other people think.
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003553.html">[Opensim-dev] Version Numbering Schemes
+</A></li>
+	<LI>Next message: <A HREF="003549.html">[Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3548">[ date ]</a>
+              <a href="thread.html#3548">[ thread ]</a>
+              <a href="subject.html#3548">[ subject ]</a>
+              <a href="author.html#3548">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

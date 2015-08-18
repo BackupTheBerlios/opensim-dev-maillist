@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] The essence of &quot;grid&quot;
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20The%20essence%20of%20%22grid%22&In-Reply-To=%3CEB42A785155049B5A034E37D5CE763F2%40KEVINPC%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006211.html">
+   <LINK REL="Next"  HREF="006231.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] The essence of &quot;grid&quot;</H1>
+    <B>Mystical Demina</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20The%20essence%20of%20%22grid%22&In-Reply-To=%3CEB42A785155049B5A034E37D5CE763F2%40KEVINPC%3E"
+       TITLE="[Opensim-dev] The essence of &quot;grid&quot;">MysticalDemina at xrgrid.com
+       </A><BR>
+    <I>Fri Apr 17 04:52:40 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006211.html">[Opensim-dev] The essence of &quot;grid&quot;
+</A></li>
+        <LI>Next message: <A HREF="006231.html">[Opensim-dev] The essence of &quot;grid&quot;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6227">[ date ]</a>
+              <a href="thread.html#6227">[ thread ]</a>
+              <a href="subject.html#6227">[ subject ]</a>
+              <a href="author.html#6227">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>If you look at the grid as active directory and simulators and web servers
+then the simulators will get the request to access a resource and need to
+have the user authenticated and authorized and as such I would support your
+model.  But I would suggest that most people would probably implement some
+kind of active directory so that they can centrally manage users and roles.
+
+I believe OpenSim is close to this model with simulators when they log into
+the grid.  It should be possible to force a simulator off the grid from a
+central point by failing its token which I don't think exist right now.
+
+To me the UGAIM is the services of the grid and even though the grid server
+doesn't do much the grid as a whole provides services of which one is
+authentication.
+
+What I seem is the more interesting challenge is how the authentication
+interfaces are designed so that when a request comes into a simulator it can
+choose to allow anonymous access to some things and require authentication
+for some other things.  Also how the interfaces can be designed to have a
+default authentication model but then support hooks to use other forms of
+authentication.  Also I see it should work in a chain so that trust can be
+deferred; for instance the simulator may defer authentication to a grid and
+then that grid may defer it to another grid or to LiveID or something like
+that.
+
+There other part I think can make this complicated is how the layers are
+defined.  Using the OSI model there are many layers where authorization can
+be implemented, like in the TCP/IP socket itself can control access to the
+computer like how NT will not let you have access to a resource on the box,
+but if it lets you have access it creates a principle and identity object
+that layers above it can use.  In the case of a web site that may be an
+anonymous users so it will them force an authentication by requesting a
+forms authentication which will then change the principle object and
+identity to give it additional authorization.
+
+What I don't see 100% clearly is how when a request goes into a region and
+then that region request to do changes against my inventory that we can make
+sure that region really has authority to do that and limit either accidental
+or intentional changes in the UGAIM that a region does not have authority to
+do.  I think it needs to work something like how integrated security works
+in that my tokens are pass a long with the request to the UGAIM servers.
+Not sure how to prevent a simulator from abusing that it has my tokens and
+do thing I didn't request to do other than making the tokens expire or only
+allow one time use.
+
+The main thing I see architecturally is that there needs to be kind of a
+grid layer that the simulator sits on that does certain services like how an
+application sit on the operating system and as such the authentication stuff
+should be pulled out into a layer that is performed before anything else
+happens in a process.
+
+I think Microsoft's Membership API is a good model to look at if you
+haven't.  It supports a default authentication or you can override it with
+your own custom authentication.  There are probably others.
+
+Kevin Tweedy
+IRC: Mystical
+
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+[mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Diva Canto
+Sent: Thursday, April 16, 2009 11:45 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] The essence of &quot;grid&quot;
+
+Right.
+This whole issue can be formulated in one very simple question:
+If the client is to delegate authority to the server-side, should it do 
+it to the specific simulator or to this other server that speaks for a 
+collection of simulators, aka &quot;grid&quot;?
+
+Under the Apache model, the answer is &quot;to the specific simulator&quot; which 
+then can get its response from some other server, if it wishes to do so. 
+But in a lot of discussions related to webs of VWs, there is an implicit 
+assumption that there needs to be this other controller with which the 
+clients have to interact.
+
+As I said, this is not philosophy. As I'm doing Grider, I need to decide 
+with which server it interacts for purposes of authority delegation. I 
+think it should interact with specific simulators. But I just wanted to 
+shake things a bit and see what's out there in people's minds, 
+specifically for this concept of what a &quot;grid&quot; is.
+
+
+Michael Cortez wrote:
+&gt;<i> Michael Cortez wrote:
+</I>&gt;&gt;<i> My thoughts:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> To me, a Grid is a virtual space that can be of any given size, and to 
+</I>&gt;&gt;<i> date, currently consists of one or more discrete Regions that are laid 
+</I>&gt;&gt;<i> out in a two dimensional grid pattern.  A Grid allows for these 
+</I>&gt;&gt;<i> discrete individual spaces to be joined together to provide a seamless 
+</I>&gt;&gt;<i> virtual space that viewers can traverse as if they were a single large 
+</I>&gt;&gt;<i> simulation.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> A Grid can consist of just a single Region, or many Regions.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Within a Grid, it may be desirable to assign ownership of virtual 
+</I>&gt;&gt;<i> space to specific agents for administration.  Those agents, through 
+</I>&gt;&gt;<i> their viewers (or other means) should be able to determine who may 
+</I>&gt;&gt;<i> enter their space, what those visitors can do once there, including 
+</I>&gt;&gt;<i> what communications are available and what objects they may simulate.  
+</I>&gt;&gt;<i> Currently we determine areas of administration in 256m^2 regions of 
+</I>&gt;&gt;<i> space, that are then sub-divided by parcels.
+</I>&gt;<i> Oh, and I forgot to mention, I fully expect to see Grids of Grids  -- in 
+</I>&gt;<i> fact, OSGrid could be seen as a grid of grids.  It consists of many 
+</I>&gt;<i> individual Regions of space, that can on their own be considered a grid.
+</I>&gt;<i> 
+</I>&gt;<i> I'll state it again here, for those that don't care to read my other 
+</I>&gt;<i> longer rambling message -- each instance of OpenSim is to a certain 
+</I>&gt;<i> extent a self contained grid.  In standalone mode it has nearly all the 
+</I>&gt;<i> same services as what is currently called a &quot;Grid&quot; -- and those services 
+</I>&gt;<i> that are missing could be added.  In fact, &quot;Grid Mode&quot; is simply the 
+</I>&gt;<i> delegation of specific subsets of responsibility to another entity.
+</I>&gt;<i> 
+</I>&gt;<i> --
+</I>&gt;<i> Michael Cortez
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006211.html">[Opensim-dev] The essence of &quot;grid&quot;
+</A></li>
+	<LI>Next message: <A HREF="006231.html">[Opensim-dev] The essence of &quot;grid&quot;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6227">[ date ]</a>
+              <a href="thread.html#6227">[ thread ]</a>
+              <a href="subject.html#6227">[ subject ]</a>
+              <a href="author.html#6227">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

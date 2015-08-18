@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] NPC Module?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20NPC%20Module%3F&In-Reply-To=%3C495FEFCE.807%40pseudospace.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004312.html">
+   <LINK REL="Next"  HREF="004310.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] NPC Module?</H1>
+    <B>John Sheridan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20NPC%20Module%3F&In-Reply-To=%3C495FEFCE.807%40pseudospace.net%3E"
+       TITLE="[Opensim-dev] NPC Module?">john at pseudospace.net
+       </A><BR>
+    <I>Sun Jan  4 00:07:58 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004312.html">[Opensim-dev] NPC Module?
+</A></li>
+        <LI>Next message: <A HREF="004310.html">[Opensim-dev] Regionstore and all changes happening there.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4316">[ date ]</a>
+              <a href="thread.html#4316">[ thread ]</a>
+              <a href="subject.html#4316">[ subject ]</a>
+              <a href="author.html#4316">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&quot;I can't remember seeing one off the top of my head - I'm not sure 
+exactly how functional those sections of code are right now.&quot;
+
+That seems fair enough, although I have to admit those sections do look 
+pretty interesting! :)
+
+&quot;Perhaps you could give it a bit more detail about this. What problem 
+are you looking to solve that can't be handled by prim inventory or the 
+built in library? I don't yet understand why you need to take this 
+approach.&quot;
+
+Mainly we're taking sort of an Arcadia Asylum type of approach in 
+regards to the in-world economy therefore nothing can be sold (as our 
+grid's currency has no real value and never will as we'll never link it 
+to a funding source) and should be given away for free, full or 
+minimally limited permissions using a temporary in-world library which 
+would be broken down and placed into the grid's inventory based library 
+every so often when it fills up.  When I first started planning and 
+testing for my grid the I had an aweful time trying to import into the 
+inventory based library and by the time I finally got it all to import 
+properly into the grid servers I found I had to repeat the same 
+procedure on the rest of the servers running the sims.  After spending 
+about 15 hours fighting with the perl scripts, cleaning up file names, 
+and tinkering with xml files only to realize I'd have to do the same 
+thing over twice more for the remaining servers I finally gave up and 
+decided to just leave everything in world until a better solution for 
+library management was available. 
+
+This sort of works fine for now, just as long as the boxes are sitting 
+there idle.  They still seem to eat a bit of memory while sitting idle, 
+but the real problem occurs when someone tries to copy and open the 
+boxes, which will usually take about 15 minutes to come up after opening 
+in the case of the larger texture sets if it doesn't wind up failing or 
+timing out.  What I had in mind as a solution and possibly a neat little 
+feature was to create something similar to an in world client / server 
+based vendor system wherein the items were stored in a user's inventory 
+instead of in world inside of the server prim.  Although, this would 
+require the addition of scripting functions which would allow for items 
+to be given directly from a user's inventory regardless as to whether or 
+not they're online.  My thoughts regarding use of an NPC were to be an 
+alternative if I couldn't get a give agent inventory type of function to 
+work wherein the NPC would simply act as the server for the vendors and 
+give items or folders from its own inventory based on chat commands.
+
+Mind you all of this was of course before I had a light bulb moment last 
+night as to how to go about getting around the problem with the 
+inventory based library where separate copies of the same library had to 
+exist in different places.  Instead of having to rebuild the library's 
+file structure three separate times, once for each server I found that 
+all I had to do was to move the inventory and asset folders out of the 
+local bin folder for each server and onto a network filesystem share.  
+ From there I just had to create a few filesystem links to point the 
+missing folders from the bin on each server to the network share, build 
+the library structure on one server, and then fire them all up.  Each 
+server (grid and sim) will now read from a common copy of the files 
+therefore saving the pain of having to continually perform three or more 
+separate build / imports each time we have more items to add.  Albeit 
+its still somewhat painful to create the library structures on disk but, 
+I'm willing to just suck it up and get used to that now that I know I 
+wont have to do it three or more times over.  :)
+
+In the end I sort of wound up solving the original problem on my own, 
+however from a feature standpoint for OpenSim itself, the ability to 
+give items from a user's inventory via script could be an interesting 
+way of making things a bit more efficient in regards to those who are 
+running economy based grids and may wind up creating a hippo-vend type 
+of setup.  :)
+
+Thanks, :)
+
+ - John Sheridan aka Orion Pseudo :)
+
+
+
+Justin Clark-Casey wrote:
+&gt;<i> John Sheridan wrote:
+</I>&gt;<i>   
+</I>&gt;&gt;<i> I've been doing a bit of digging around inside the OpenSim code these 
+</I>&gt;&gt;<i> past few days and I noticed a few sections which appear to be sort of a 
+</I>&gt;&gt;<i> built in non-playing character.  It almost appears to be a sim based 
+</I>&gt;&gt;<i> avatar or bot.  I was wondering how far along this is and if its ready 
+</I>&gt;&gt;<i> for use?  If so, would anyone happen to have a quick tutorial or example 
+</I>&gt;&gt;<i> to work off of?
+</I>&gt;&gt;<i>     
+</I>&gt;<i>
+</I>&gt;<i> I can't remember seeing one off the top of my head - I'm not sure exactly how functional those sections of code are 
+</I>&gt;<i> right now.
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>&gt;&gt;<i> Right now as an alternative to using the inventory based library as I'm 
+</I>&gt;&gt;<i> running in grid mode (not to mention each attempt at importing directly 
+</I>&gt;&gt;<i> to the library has failed horribly) I'm currently storing an aweful lot 
+</I>&gt;&gt;<i> of assets in world using freely copyable boxes.  While this works well 
+</I>&gt;&gt;<i> as a temporary fix until a better solution for the inventory based 
+</I>&gt;&gt;<i> library can be formed, it also tends to eat alot of the server's memory 
+</I>&gt;&gt;<i> - so much so that I've had to limit that one server down to three sims 
+</I>&gt;&gt;<i> meanwhile another of the same configuration is able to handle eight. 
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> While poking around I came up with the idea of an OS function that could 
+</I>&gt;&gt;<i> be used to give inventory items out of a script owner's inventory, 
+</I>&gt;&gt;<i> however I cant seem to figure out how exactly to get that to work.  So 
+</I>&gt;&gt;<i> far the only functions I could find only seem to work using a prim's 
+</I>&gt;&gt;<i> inventory.  While I'm still digging around for a solution on that one 
+</I>&gt;&gt;<i> (my apologies as I'm a bit of a newbie to the OpenSim code base), as an 
+</I>&gt;&gt;<i> alternative I wonder if an NPC / bot based method could also work 
+</I>&gt;&gt;<i> wherein an NPC module could be setup to respond to certain chat commands 
+</I>&gt;&gt;<i> and then give items or folders from its own inventory. 
+</I>&gt;&gt;<i>     
+</I>&gt;<i>
+</I>&gt;<i> Perhaps you could give it a bit more detail about this.  What problem are you looking to solve that can't be handled by 
+</I>&gt;<i> prim inventory or the built in library?  I don't yet understand why you need to take this approach.
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004312.html">[Opensim-dev] NPC Module?
+</A></li>
+	<LI>Next message: <A HREF="004310.html">[Opensim-dev] Regionstore and all changes happening there.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4316">[ date ]</a>
+              <a href="thread.html#4316">[ thread ]</a>
+              <a href="subject.html#4316">[ subject ]</a>
+              <a href="author.html#4316">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

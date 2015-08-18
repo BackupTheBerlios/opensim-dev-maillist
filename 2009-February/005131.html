@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Please do not revert fixes	without	careful	comtemplation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Please%20do%20not%20revert%20fixes%0A%09without%09careful%09comtemplation&In-Reply-To=%3CBLU134-W2190841F7AE89CEB355FE4D5B40%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005129.html">
+   <LINK REL="Next"  HREF="005132.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Please do not revert fixes	without	careful	comtemplation</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Please%20do%20not%20revert%20fixes%0A%09without%09careful%09comtemplation&In-Reply-To=%3CBLU134-W2190841F7AE89CEB355FE4D5B40%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Please do not revert fixes	without	careful	comtemplation">stefan at tribalmedia.se
+       </A><BR>
+    <I>Tue Feb 17 15:31:07 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005129.html">[Opensim-dev] Please do not revert fixes without	careful	comtemplation
+</A></li>
+        <LI>Next message: <A HREF="005132.html">[Opensim-dev] Please do not revert fixes without careful	comtemplation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5131">[ date ]</a>
+              <a href="thread.html#5131">[ thread ]</a>
+              <a href="subject.html#5131">[ subject ]</a>
+              <a href="author.html#5131">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+ 
+
+&gt;<i> &gt; 1. We have a significant number of assets whose name is &quot;blank&quot; that are 
+</I>&gt;<i> &gt; created with a default constructor. And I suspect are never accessible.
+</I>&gt;<i> 
+</I>
+&gt;<i> In fact, this field has always seemed redundant to me since the user only ever manipulates assets by their inventory 
+</I>&gt;<i> name, which is entirely separate from the asset name. The asset name is never visible to the user (and afaik is not 
+</I>&gt;<i> used anywhere else in the code).
+</I>&gt;<i>
+</I>&gt;<i> At one point I thought about proposing to remove it. Possibly this issue should be revisited.
+</I>
+
+I believe it's kept there just as a convenience - to be able to get some kind of semantics, not necessarily exact, when browsing the table.
+
+ 
+&gt;<i> &gt; 2. We have a significant number of assets of each and every edit of 
+</I>&gt;<i> &gt; terrain, where only the very last one is accessible.
+</I>&gt;<i> 
+</I>&gt;<i> Yes, this does seem wasteful to me since old terrain assets are not used by anything, afaik.
+</I>
+
+I have proposed a number of times that we could have a virtual asset_key as well as an asset_id - so that things that would rewrite assets could use the asset_key as an aux method to actually try to overwrite the asset. In the terrain case, the asset would be overwritten by key, not by id. This would allow us to implement a number of parallell schemas where some assets would be overwritten (asset_key = asset_id) and some where we would keep a history (only asset_key) and some where doing either or would be configurable.
+
+ 
+&gt;<i> &gt; 3. We have a significant number of assets of each and every text edit 
+</I>&gt;<i> &gt; for each and every textual assets. Where only the last one should be 
+</I>&gt;<i> &gt; accessible.
+</I>&gt;<i> 
+</I>&gt;<i> Unfortunately, this is not the case. For instance, imagine that you create a script in your inventory. You drag this 
+</I>&gt;<i> script into a region object. At this point, both the entry in your inventory and the entry in the region point to the 
+</I>&gt;<i> same textual asset.
+</I>&gt;<i> 
+</I>&gt;<i> But then you edit the script in your inventory. After the edit it points to a new asset containing the edited text. 
+</I>&gt;<i> However, the region object is still pointing to the old script asset. So we need to keep both the old and new textual 
+</I>&gt;<i> assets.
+</I>
+
+Not to mention the fact that the viewer caches stuff.
+
+
+&gt;<i> However, you're right in that textual assets which are never used elsewhere (i.e. are intermediate edits that never get 
+</I>&gt;<i> dragged into an object, given to someone else, or otherwise transmitted) might possibly be eliminated with some 
+</I>&gt;<i> sufficiently careful scheme.
+</I>
+
+Binary de-duplication and added semantics in the form of 'key' or 'class' would probably go a long way.
+
+
+&gt;<i> &gt; Its a bit like collecting every scrap of paper ever written with either 
+</I>&gt;<i> &gt; text or binary glyphs and putting them in a big filing cabinet.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; After a while, finding the ones that are &quot;interesting&quot; in a &quot;timely&quot; 
+</I>&gt;<i> &gt; manner starts to get a little &quot;challenging&quot;.
+</I>
+
+Let's keep the shining torch of this discussion burning.
+
+ 
+
+/Stefan
+
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090217/1744b355/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090217/1744b355/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005129.html">[Opensim-dev] Please do not revert fixes without	careful	comtemplation
+</A></li>
+	<LI>Next message: <A HREF="005132.html">[Opensim-dev] Please do not revert fixes without careful	comtemplation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5131">[ date ]</a>
+              <a href="thread.html#5131">[ thread ]</a>
+              <a href="subject.html#5131">[ subject ]</a>
+              <a href="author.html#5131">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

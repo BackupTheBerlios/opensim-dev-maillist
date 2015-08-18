@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] 3rd party libs and build system revisited
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%203rd%20party%20libs%20and%20build%20system%20revisited&In-Reply-To=%3CBAY108-W1910FD3F7F9637673A552DD5B20%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000105.html">
+   <LINK REL="Next"  HREF="000089.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] 3rd party libs and build system revisited</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%203rd%20party%20libs%20and%20build%20system%20revisited&In-Reply-To=%3CBAY108-W1910FD3F7F9637673A552DD5B20%40phx.gbl%3E"
+       TITLE="[Opensim-dev] 3rd party libs and build system revisited">stefan at tribalmedia.se
+       </A><BR>
+    <I>Fri Sep 28 10:03:27 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000105.html">[Opensim-dev] 3rd party libs and build system revisited
+</A></li>
+        <LI>Next message: <A HREF="000089.html">[Opensim-dev] (no subject)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#92">[ date ]</a>
+              <a href="thread.html#92">[ thread ]</a>
+              <a href="subject.html#92">[ subject ]</a>
+              <a href="author.html#92">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE> 
+&gt;<i> Like today, when a libsl update was done as part of the inventory grid&gt; enablement. It did not go smoothly.
+</I>The problem could have been solved if we had tagged what revision of libsl we had in our repository.
+ 
+Also, I was quite naive and took the risk of just getting 'head' on libsl, building and shipping it as it worked fine for me; and I have no way to test for Linux/Mac compatibility.
+ &gt; Right now we've got at minimum 5 architectures we need to build .so for:&gt; MS 32 &amp; 64bit, Linux 32 &amp; 64 bit (intel), Mac. I also noticed someone&gt; on IRC yesterday trying out Linux on sparc, and I'll be looking into&gt; Linux on PPC in a couple of months.
+Don't forget that 'Linux' is in it self a bushy tree; also, some are using BSD et.c.
+ 
+Somewhere, we have to draw the line. And I question if the line should incorporate 'all Linux varieties'.
+&gt;<i> libsecondlife exists in subversion, which means that it would be&gt; possible to define an svn external&gt; (<A HREF="http://svnbook.red-bean.com/en/1.1/ch07s04.html">http://svnbook.red-bean.com/en/1.1/ch07s04.html</A>) and build&gt; libsecondlife as source with the current OpenSim tree (the same approach&gt; could probably be used for ode).
+</I>We would definitively not be doing an external to 'head', but to some specific revision. We would still have to do a manual update and thorough testing on all supported platforms before we changed that external.
+ 
+Otherwise, libsl could do a breaking change without us knowing it.
+&gt;<i> However, in order to do this, we'd need to do significantly more with&gt; our build system. Which means I think we need to revisit the current&gt; approach on the build system. Right now there is the meta build system&gt; of Prebuild that generates very basic build files for msbuild and nant.&gt; Doing something as complicated as native code through this kind of&gt; system only leads to madness, and something I don't think we should go&gt; anywhere near.
+</I>I'm totally for re-evaluating prebuild and what we need.
+&gt;<i> If we were to consider a pure nant based solution here (as nant is cross&gt; platform) we could actually integrate all of this (and as I'm suggesting&gt; this approach, would take on the responsibility of making this work).&gt; It would also open up the ability to do prechecks prior to build (look&gt; for old mono, missing libraries, etc), and integration of nunit tests.
+</I>I have no beef with nant, it's an excellent build environment for automated builds. The concept of building more from source sits well with me, but:
+&gt;<i> I know this degrades some of the experience of MS VS developers. Not&gt; being one, I'm not sure how to quantify losses on that front vs. gains&gt; on solving a lot of these other issues we're getting on a regular basis&gt; on IRC. Hopefully others can comment there.
+</I>It doesn't just degrade it, it would completely demolish it. As an integrated IDE VS uses project information for cross-referencing when doing operations on code; it discerns binary references from project references, so that you can immediately follow code paths within the solution; it uses the information to calculate the scope of a refactoring et c.
+ 
+Working with separate files that is not part of a project that is not part of a solution would in effect cut the vs developers out of the loop. 
+ 
+We have worked VERY HARD to make a peaceful and fruitful co-existence between MS/.NET/VS users and Linux/Mono/vi users; Although not perfect, Prebuild is the best compromise we've found so far.
+&gt;<i> This is a proposal for group discussion. Please fire back with&gt; comments and/or counter proposals.
+</I>Things I think would make the world a better place:
+* Always update binaries in discrete commits, enter the revision that the binary was made from into the log message
+* We can ship binaries for several configurations in separate x64/Linux directories; it would be up to whoever found out that a binary has to be rebuild for their environment to make sure it's done.
+* We provide 'official releases' (which we've been on about for quite some while) that are somewhat tested for several configurations.
+* We and agree that trunk can be functionally broken (it should always build, but might not run) for a certain configuration, and agree to help each other in fixing it. The 'you broke it, you fix it' attitude is asocial, childish and counter-productive.
+* We don't tell newcomers to 'checkout trunk and build it', but rather to start with some 'official release' and take it from there.
+ 
+/Stefan
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20070928/49e3ef42/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20070928/49e3ef42/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000105.html">[Opensim-dev] 3rd party libs and build system revisited
+</A></li>
+	<LI>Next message: <A HREF="000089.html">[Opensim-dev] (no subject)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#92">[ date ]</a>
+              <a href="thread.html#92">[ thread ]</a>
+              <a href="subject.html#92">[ subject ]</a>
+              <a href="author.html#92">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

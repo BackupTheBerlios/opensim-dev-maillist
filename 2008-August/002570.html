@@ -1,0 +1,221 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Standardizing types in OpenSim
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Standardizing%20types%20in%20OpenSim&In-Reply-To=%3C34cc66250808081515l398d34fdi40c852cfd9672a27%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002569.html">
+   <LINK REL="Next"  HREF="002571.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Standardizing types in OpenSim</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Standardizing%20types%20in%20OpenSim&In-Reply-To=%3C34cc66250808081515l398d34fdi40c852cfd9672a27%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Standardizing types in OpenSim">teravus at gmail.com
+       </A><BR>
+    <I>Sat Aug  9 00:15:41 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002569.html">[Opensim-dev] Standardizing types in OpenSim
+</A></li>
+        <LI>Next message: <A HREF="002571.html">[Opensim-dev] Standardizing types in OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2570">[ date ]</a>
+              <a href="thread.html#2570">[ thread ]</a>
+              <a href="subject.html#2570">[ subject ]</a>
+              <a href="author.html#2570">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I start this letter by saying, I respect John and I agree on type
+standardization being important.
+
+Having said that, I disagree that the libomv types are the types to
+standardize on.   Essentially what this means is we will be bringing
+libomv/libsecondlife /back/ into the core parts of opensimulator.   It's my
+understanding that we've spent countless hours trying to eliminate reliance
+on the library so that we are insulated from the breaking changes that we
+invariably see in libomv/libsecondlife between versions.
+
+Also, to the 'trademark changes'...   no, we adopted this approach before
+all of the 'trademark related' changes.    We adopted this around
+LibSecondLife Revision 1550.   There were 3 non trademark breaking changes
+between the previous release version and this revision.  There was one
+breaking change between Revision 1450 and revision 1550.   Two of those
+breaking changes were subtle, meaning the compiler wouldn't notify you that
+something nasty happened.  I'll list the changes here for brevity;
+
+1. LLUUID, LLVector3, and LLQuaternion were no longer serializable.   Base
+types *MUST* be serializable for Grid communications to work.   (Silent and
+nasty) (took approximately 8 man hours to resolve)
+
+2. LLUUID.ToString() changed from the non dashed format to the dashed UUID
+format.   I still gawk when I think about this change.   The number of
+applications that were rendered completely useless by this change were
+many(select regionlocation from regions where
+RegionID='65e44815-6d70-4746-abaf-7a5f32272308' does not work if all of the
+data is stored '65e448156d704746abaf7a5f32272308'. (Silent and nasty) (took
+approximately 48 man hours to resolve)
+
+3. In addition, several packet identification methods that we use
+extensively were removed. (took approximately 2 man hours to resolve)
+
+Remember this is just *one* library update that all of this occurred on.
+I know MW and lbsa have stories about extreme issues with previous
+libsecondlife updates.   (Caps, asset upload, XML format changes,
+TextureEntry changes, LLColor changes..   You name it, it's been a problem).
+
+All in all, I'm 'seriously' suggesting that OpenSimulator maintain a set of
+base types that the project controls, or is in a dedicated library that is
+completely stable (Obviously not LibOMV/LibSecondLife).  Otherwise,
+somewhere down the line a LibOMV update will come that will cause
+OpenSimulator to fail and the devs will throw their arms up in frustration
+at the complete and utter arrogance that the libsecondlife project has shown
+of the effect API changes have on the users.
+
+In IRC chat, you mentioned something along the lines of 'people must be
+waiting for someone else to do it' implying that the opensimulator devs are
+lazy.
+
+This is not laziness, this is an attempt to avoid being masochistic.
+
+Best Regards
+
+Teravus
+
+
+On 8/8/08, Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i>  I can +1 these patches in principle.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> It's the 'in practice' that will need some fiddling as changing this many
+</I>&gt;<i> data types all at once is likely to cause an incredible amount of fun
+</I>&gt;<i> debugging later. (and will also mandate every grid update every region as
+</I>&gt;<i> our remoting support will break as a guarantee)
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Regards,
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Adam
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> *From:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] *On Behalf Of *Charles Krinke
+</I>&gt;<i> *Sent:* Friday, 8 August 2008 1:55 PM
+</I>&gt;<i> *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> *Subject:* Re: [Opensim-dev] Standardizing types in OpenSim
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Well, I'll merely say that I have the highest of respect for jhurliman's
+</I>&gt;<i> opinion and what he says here seems like a set of reasonable ideas.
+</I>&gt;<i>
+</I>&gt;<i> Charles
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ----- Original Message ----
+</I>&gt;<i> From: &quot;Hurliman, John&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">john.hurliman at intel.com</A>&gt;
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Sent: Friday, August 8, 2008 11:44:59 AM
+</I>&gt;<i> Subject: [Opensim-dev] Standardizing types in OpenSim
+</I>&gt;<i>
+</I>&gt;<i> Hello list,
+</I>&gt;<i>
+</I>&gt;<i> This is my first e-mail to opensim-dev so I'll start with an
+</I>&gt;<i> introduction. I'm an engineer at Intel researching scalable models for
+</I>&gt;<i> virtual worlds. A lot of the research will revolve around open,
+</I>&gt;<i> user-generated content models like Second Life and OpenSim. I'm also the
+</I>&gt;<i> primary developer of libOpenMetaverse (formerly libsecondlife, still
+</I>&gt;<i> located at <A HREF="http://www.libsecondlife.org/">http://www.libsecondlife.org/</A> for the time being).
+</I>&gt;<i>
+</I>&gt;<i> I've spent some time looking at the lower level components of OpenSim
+</I>&gt;<i> and have a patch to propose. The basic type objects (vector, quaternion,
+</I>&gt;<i> rays, etc) are spread out and duplicated over several internal classes
+</I>&gt;<i> and external libraries. There are at least five different types of
+</I>&gt;<i> Vector3, multiple quaternion and matrix classes, etc. Some of these are
+</I>&gt;<i> classes instead of structs, meaning a basic operation like subtracting
+</I>&gt;<i> two vectors and putting the result in a third creates several new
+</I>&gt;<i> objects on the heap that the garbage collector has to track. I believe
+</I>&gt;<i> this is responsible for a lot of the heavy memory and garbage collector
+</I>&gt;<i> activity I am seeing. There is also a lot of duplicated code which has
+</I>&gt;<i> led to incorrect constructors (such as new Vector3(x, y, y)) and makes
+</I>&gt;<i> things more difficult to unit test.
+</I>&gt;<i>
+</I>&gt;<i> The OpenMetaverse library has a set of types useful to virtual worlds
+</I>&gt;<i> that have been in development for two years and implement all of the
+</I>&gt;<i> functionality needed in OpenSim. I've created a very large patch that
+</I>&gt;<i> upgrades OpenSim from libsecondlife to the latest libOpenMetaverse,
+</I>&gt;<i> drops Axiom, and uses the built-in libomv types wherever possible. There
+</I>&gt;<i> are a few places that I have skipped over for now to avoid introducing
+</I>&gt;<i> too many moving parts in a single patch: BulletX still uses Mono.Xna,
+</I>&gt;<i> and Meshmerizer still uses PhysicsVector/Vertex/Triangle.
+</I>&gt;<i>
+</I>&gt;<i> I've spoken with some of the OpenSim developers about problems keeping
+</I>&gt;<i> up with libsecondlife changes. The major changes happened to prevent a
+</I>&gt;<i> trademark conflict with Linden Lab, and also establish libopenmv as a
+</I>&gt;<i> generalized platform for building virtual worlds instead of a library to
+</I>&gt;<i> connect to Linden Lab's servers. I think this patch is an important move
+</I>&gt;<i> in that direction, and to prevent any future headaches I'm volunteering
+</I>&gt;<i> to maintain the OpenSim-&gt;libOpenMetaverse dependency in the event of any
+</I>&gt;<i> API changes.
+</I>&gt;<i>
+</I>&gt;<i> I'm working on grid mode compatibility testing (sandbox mode appears to
+</I>&gt;<i> work fine) and will have the patch on Mantis early to mid next week. So
+</I>&gt;<i> far the patch itself weighs in around 1.7MB plus binaries. Twenty
+</I>&gt;<i> revisions have passed since I initially wrote it and maintaining it
+</I>&gt;<i> against the latest SVN can be time consuming, so I wanted to kick start
+</I>&gt;<i> with this e-mail before posting the patch.
+</I>&gt;<i>
+</I>&gt;<i> John Hurliman
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080808/b12745a0/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080808/b12745a0/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002569.html">[Opensim-dev] Standardizing types in OpenSim
+</A></li>
+	<LI>Next message: <A HREF="002571.html">[Opensim-dev] Standardizing types in OpenSim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2570">[ date ]</a>
+              <a href="thread.html#2570">[ thread ]</a>
+              <a href="subject.html#2570">[ subject ]</a>
+              <a href="author.html#2570">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

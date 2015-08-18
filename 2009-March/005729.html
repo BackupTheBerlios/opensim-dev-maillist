@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Accessing textures via HTTP [bayes]
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Accessing%20textures%20via%20HTTP%20%5Bbayes%5D&In-Reply-To=%3C20090317084016.06b32f96%40sumo%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005724.html">
+   <LINK REL="Next"  HREF="005736.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Accessing textures via HTTP [bayes]</H1>
+    <B>Mike Mazur</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Accessing%20textures%20via%20HTTP%20%5Bbayes%5D&In-Reply-To=%3C20090317084016.06b32f96%40sumo%3E"
+       TITLE="[Opensim-dev] Accessing textures via HTTP [bayes]">mmazur at gmail.com
+       </A><BR>
+    <I>Tue Mar 17 00:40:16 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005724.html">[Opensim-dev] Accessing textures via HTTP [bayes]
+</A></li>
+        <LI>Next message: <A HREF="005736.html">[Opensim-dev] Accessing textures via HTTP [bayes]
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5729">[ date ]</a>
+              <a href="thread.html#5729">[ thread ]</a>
+              <a href="subject.html#5729">[ subject ]</a>
+              <a href="author.html#5729">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+On Mon, 16 Mar 2009 17:24:06 +0200
+Tommi Laukkanen &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>&gt; wrote:
+
+&gt;<i> Reading the source code from OpenSimAssetFrontEndPlugin. Looks like
+</I>&gt;<i> there is no handling yet for the binary data request url in the
+</I>&gt;<i> proposal:
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://assets.virtualworld.com/c228d1cf-4b5d-4ba8-84f4-899a0796aa97/data">http://assets.virtualworld.com/c228d1cf-4b5d-4ba8-84f4-899a0796aa97/data</A>
+</I>&gt;<i> 
+</I>&gt;<i> Could we add here handing for handing out the raw binary data:
+</I>
+Sure. Please create a bug with your patch and I'll take a look.
+Unfortunately I'm busy with other things at the moment and won't be
+able to look into this myself.
+
+&gt;<i> public override byte[] Handle(string path, Stream request,
+</I>&gt;<i> OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+</I>&gt;<i>             {
+</I>&gt;<i> 
+</I>&gt;<i> --- 8&lt; ---
+</I>&gt;<i> 
+</I>&gt;<i>                     AssetBase asset = new AssetBase();
+</I>&gt;<i>                     if ((dataResponse =
+</I>&gt;<i> m_server.StorageProvider.TryFetchDataMetadata(assetID, out asset)) ==
+</I>&gt;<i> BackendResponse.Success)
+</I>&gt;<i>                     {
+</I>&gt;<i>                         XmlSerializer xs = new XmlSerializer(typeof
+</I>&gt;<i> (AssetBase));
+</I>&gt;<i>                         MemoryStream ms = new MemoryStream();
+</I>&gt;<i>                         XmlTextWriter xw = new XmlTextWriter(ms,
+</I>&gt;<i> Encoding.UTF8); xs.Serialize(xw, asset);
+</I>&gt;<i>                         xw.Flush();
+</I>&gt;<i> 
+</I>&gt;<i>                         ms.Seek(0, SeekOrigin.Begin);
+</I>&gt;<i>                         buffer = ms.GetBuffer();
+</I>&gt;<i>                         Array.Resize&lt;byte&gt;(ref buffer, (int)
+</I>&gt;<i> ms.Length); ms.Close();
+</I>&gt;<i>                         httpResponse.StatusCode = (int)
+</I>&gt;<i> HttpStatusCode.OK;
+</I>
+You do realize that this code will send the serialized AssetBase class
+(like the AssetServer currently does) and not just the binary data. For
+that, you want to send asset.Data only.
+
+You may also want to inspect the asset type to have the handler return
+the appropriate (proposed) content-type[1].
+
+HTH,
+Mike
+
+
+[1]
+<A HREF="http://opensimulator.org/wiki/AssetServerProposal/ClientDocs#Content-Types">http://opensimulator.org/wiki/AssetServerProposal/ClientDocs#Content-Types</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005724.html">[Opensim-dev] Accessing textures via HTTP [bayes]
+</A></li>
+	<LI>Next message: <A HREF="005736.html">[Opensim-dev] Accessing textures via HTTP [bayes]
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5729">[ date ]</a>
+              <a href="thread.html#5729">[ thread ]</a>
+              <a href="subject.html#5729">[ subject ]</a>
+              <a href="author.html#5729">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

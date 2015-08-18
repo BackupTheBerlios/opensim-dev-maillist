@@ -1,0 +1,251 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] oddities with asset storage
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20oddities%20with%20asset%20storage&In-Reply-To=%3C499CC377.3070009%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005178.html">
+   <LINK REL="Next"  HREF="005356.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] oddities with asset storage</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20oddities%20with%20asset%20storage&In-Reply-To=%3C499CC377.3070009%40t-data.com%3E"
+       TITLE="[Opensim-dev] oddities with asset storage">melanie at t-data.com
+       </A><BR>
+    <I>Thu Feb 19 03:27:03 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005178.html">[Opensim-dev] oddities with asset storage
+</A></li>
+        <LI>Next message: <A HREF="005356.html">[Opensim-dev] oddities with asset storage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5179">[ date ]</a>
+              <a href="thread.html#5179">[ thread ]</a>
+              <a href="subject.html#5179">[ subject ]</a>
+              <a href="author.html#5179">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+i proposed a reaping strategy that is both type and time based. 
+There was no direct response to it, but current development on new 
+de-duping cable beach plugins may go a long way to curb asset 
+proliferation and the reaper can be developed on that basis. 
+Refcounting may be feasible as a positive indication, e.g. to 
+indicate something is _definitely_ safe to delete, but a reaper will 
+still be required.
+
+Melanie
+
+Buckaroo Mu wrote:
+&gt;<i> Melanie wrote:
+</I>&gt;&gt;<i> This is something i have though about. However, it would not work in 
+</I>&gt;&gt;<i> OSGrid. Regions may go away, and they may go away permanently. 
+</I>&gt;&gt;<i> Anything in a prim inventory at that time is refcounted and would 
+</I>&gt;&gt;<i> not be released. Ever.
+</I>&gt;&gt;<i>   
+</I>&gt;<i> In what what in particular would this be worse than the current 
+</I>&gt;<i> situation? Yes, some assets would end up staying around forever. 
+</I>&gt;<i> However, unlike the current scheme, some... would not.
+</I>&gt;&gt;<i> So, you'd need a ref list, to purge invalid refs. That is where the 
+</I>&gt;&gt;<i> inpracticability begins. A redf list for each and every asset, 
+</I>&gt;&gt;<i> listing either avatar UUID or region UUID?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   
+</I>&gt;<i> Eep, no - wasn't considering suggesting this.
+</I>&gt;&gt;<i> If assets are 51 mio, how long will the reflist table be?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Buckaroo Mu wrote:
+</I>&gt;&gt;<i>   
+</I>&gt;&gt;&gt;<i> Here's my L$0.02, for what it's worth - why not maintain a 'reference 
+</I>&gt;&gt;&gt;<i> count' in the asset entry?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Resident A creates a prim, takes it into inventory. Asset is created, 
+</I>&gt;&gt;&gt;<i> inventory item pointing to asset is created, asset-&gt;useagecount++. User 
+</I>&gt;&gt;&gt;<i> gives away 15 copies of item, asset-&gt;usagecount+=15. Resident A deletes 
+</I>&gt;&gt;&gt;<i> original item, inventory item goes away, asset-&gt;usagecount--.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Resident B rezzes item on sim. If item is no-copy, asset-&gt;usagecount--. 
+</I>&gt;&gt;&gt;<i> If it's copy, and Resident B (or Resident C) takes it back into 
+</I>&gt;&gt;&gt;<i> inventory, asset-&gt;usagecount++ (they would have two copies of it). 
+</I>&gt;&gt;&gt;<i> Resident B deletes both copies from inventory, asset-&gt;usagecount -=2.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> If asset-&gt;usagecount == 0, asset gets deleted.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Tell me why this wouldn't work. I'm sure there's a simple reason, but I 
+</I>&gt;&gt;&gt;<i> can't think of it. All of this is assuming that the asset is no-mod - 
+</I>&gt;&gt;&gt;<i> any change to the asset creates a new UUID, correct? But if the asset is 
+</I>&gt;&gt;&gt;<i> rezzed, then taken back into inventory, it should have the same UUID, 
+</I>&gt;&gt;&gt;<i> thus adding one to the usage count.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> -Buckaroo
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Melanie wrote:
+</I>&gt;&gt;&gt;<i>     
+</I>&gt;&gt;&gt;&gt;<i> All you described is design behavior.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Prim items in world are not assets. They are stored exclusively in
+</I>&gt;&gt;&gt;&gt;<i> the prims tables of the region.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Once taken, they become an asset. The name is totally meaningless,
+</I>&gt;&gt;&gt;&gt;<i> it reflects whatever was the name at creation. Nothing else. It
+</I>&gt;&gt;&gt;&gt;<i> never changes from there on.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> On deleting the inventory item, assets remain. There is no easy or
+</I>&gt;&gt;&gt;&gt;<i> practicable way to conclusively say that an asset is trash, because
+</I>&gt;&gt;&gt;&gt;<i> we don't know.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> In your test case, your (human) mind could know this for a fact,
+</I>&gt;&gt;&gt;&gt;<i> however, the silicon mind of the asset server can't.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> This is because you may have given the object to another user, or
+</I>&gt;&gt;&gt;&gt;<i> put a copy into a prim.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> These copies would refer to the same asset, that is what &quot;implictily
+</I>&gt;&gt;&gt;&gt;<i> shared&quot; means.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> So, any asset may, at any time, have any number of links to it, even
+</I>&gt;&gt;&gt;&gt;<i> zero.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Like a website, you don't know who linked to it. If you remove it,
+</I>&gt;&gt;&gt;&gt;<i> you leave dead links. Assets are the same. Except, you get &quot;Asset
+</I>&gt;&gt;&gt;&gt;<i> missing from database&quot;.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> So, assetas are NOT 1-to-1 with inventory items, and they _never_
+</I>&gt;&gt;&gt;&gt;<i> get deleted.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> They have to be reaped, and there is a big discussion over how to
+</I>&gt;&gt;&gt;&gt;<i> best do that, running right now.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Melanie
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Dirk Krause wrote:
+</I>&gt;&gt;&gt;&gt;<i>   
+</I>&gt;&gt;&gt;&gt;<i>       
+</I>&gt;&gt;&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> I did a little test with a fresh OpenSim installation (yes, thanks for
+</I>&gt;&gt;&gt;&gt;&gt;<i> the installer!),
+</I>&gt;&gt;&gt;&gt;&gt;<i> to get a grip on what I learned from Melanie yesterday.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> I wrote a little python script to help me monitor these tables:
+</I>&gt;&gt;&gt;&gt;&gt;<i>   inventoryStore/inventoryItems
+</I>&gt;&gt;&gt;&gt;&gt;<i>   assetStorage/assets
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="http://pastebin.com/mc9e6574">http://pastebin.com/mc9e6574</A> , be warned: ugly code.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> I started OpenSim and logged in a 'Test User' with the SL viewer.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> (Just to mention it - first time log in in as test users creates
+</I>&gt;&gt;&gt;&gt;&gt;<i> 4 'blank' entries in assets.)
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> The inventoryItems table was initially empty.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Now I rezzed a cube and renamed it to 'p1'.
+</I>&gt;&gt;&gt;&gt;&gt;<i> inventoryStore/inventoryItems was still empty.
+</I>&gt;&gt;&gt;&gt;&gt;<i> To my surprise no new entry shows up in assetStorage/assets.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Picking up the cube ('take') created an entry named 'p1' in the
+</I>&gt;&gt;&gt;&gt;&gt;<i> inventory and in the asset table.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Now I renamed the cube in Test Users inventory to 'p2'.
+</I>&gt;&gt;&gt;&gt;&gt;<i> The name in inventoryStore/inventoryItems changes to 'p2'.
+</I>&gt;&gt;&gt;&gt;&gt;<i> The entry in assetStorage/assets stays 'p1'. As mentioned on the list
+</I>&gt;&gt;&gt;&gt;&gt;<i> before,
+</I>&gt;&gt;&gt;&gt;&gt;<i> the asset name is useless, since the user only sees the name in the
+</I>&gt;&gt;&gt;&gt;&gt;<i> inventory.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Now I deleted 'p2' in my inventory - 'p2's parentfolderID changes to
+</I>&gt;&gt;&gt;&gt;&gt;<i> 'Trash'.
+</I>&gt;&gt;&gt;&gt;&gt;<i> Now I emptied the trash - the inventory table is empty again, which is
+</I>&gt;&gt;&gt;&gt;&gt;<i> fine,
+</I>&gt;&gt;&gt;&gt;&gt;<i> but here's the big one:
+</I>&gt;&gt;&gt;&gt;&gt;<i>    the assetStorage/assets still holds the reference to 'p1'.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Just to make sure I shut down the simulator and opened it again, and it
+</I>&gt;&gt;&gt;&gt;&gt;<i> was still there.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Now, doesn't that mean, that the database increases over time with no
+</I>&gt;&gt;&gt;&gt;&gt;<i> hope to find
+</I>&gt;&gt;&gt;&gt;&gt;<i> these assets that actually should be gone? or is there some magic
+</I>&gt;&gt;&gt;&gt;&gt;<i> purging that happens,
+</I>&gt;&gt;&gt;&gt;&gt;<i> and that I missed?
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> This would mean that any grid runs into a severe problem over time.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Best,
+</I>&gt;&gt;&gt;&gt;&gt;<i>   Dirk/Bart
+</I>&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>     
+</I>&gt;&gt;&gt;&gt;&gt;<i>         
+</I>&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>   
+</I>&gt;&gt;&gt;&gt;<i>       
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>     
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005178.html">[Opensim-dev] oddities with asset storage
+</A></li>
+	<LI>Next message: <A HREF="005356.html">[Opensim-dev] oddities with asset storage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5179">[ date ]</a>
+              <a href="thread.html#5179">[ thread ]</a>
+              <a href="subject.html#5179">[ subject ]</a>
+              <a href="author.html#5179">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

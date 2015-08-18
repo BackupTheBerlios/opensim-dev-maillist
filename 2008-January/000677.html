@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] further db thoughts
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20further%20db%20thoughts&In-Reply-To=%3CBAY105-W27C035D13BE513361BCC6D5460%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000676.html">
+   <LINK REL="Next"  HREF="000678.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] further db thoughts</H1>
+    <B>Laurent B.</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20further%20db%20thoughts&In-Reply-To=%3CBAY105-W27C035D13BE513361BCC6D5460%40phx.gbl%3E"
+       TITLE="[Opensim-dev] further db thoughts">grumly57 at hotmail.com
+       </A><BR>
+    <I>Mon Jan 14 17:06:42 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000676.html">[Opensim-dev] further db thoughts
+</A></li>
+        <LI>Next message: <A HREF="000678.html">[Opensim-dev] further db thoughts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#677">[ date ]</a>
+              <a href="thread.html#677">[ thread ]</a>
+              <a href="subject.html#677">[ subject ]</a>
+              <a href="author.html#677">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi back,
+ 
+Well I managed to get something running with Asset server (partially... because I need to implement a Save operation that would update or insert depending on the asset to exist or not - The asset server is trying to insert existing assets, which leads to a key violation during insert) .
+ 
+I had to add a Set accessor to Schema in TableMapper, put an empty constructor to the DatabaseMapper (which I specialized with a SQLiteDatabaseMapper) so it can be instanciated using the current plugin pattern, then add a ConnectionString property. Does it makes sense ?
+ 
+Although I managed to get something running, I think I am not finish catching up with this pattern. I suppose it is a question of habits. I struggled to get things correctly setup and instanciated, while trying to avoid to change too much things :)
+ 
+Laurent.
+
+
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">grumly57 at hotmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deDate</A>: Mon, 14 Jan 2008 14:31:21 +0100Subject: Re: [Opensim-dev] further db thoughts
+
+
+This is just what I needed :-) a piece of code + some guidance. Elegant does not mean &quot;simple&quot;... However, this is a very interresting approach.I will to get Assets persistence working this way. Thanks a lot,Laurent.
+
+
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.seTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deDate</A>: Mon, 14 Jan 2008 11:31:50 +0100Subject: Re: [Opensim-dev] further db thoughts
+
+
+
+ 
+---
+Stefan, It would be motivating if you could provide a sample about how the TribalMedia data framework should work. Could that be done by implementing the very simple asset server as an example ? I propose we would make it work, make tests, comment and try to improve it, then it may serve as a baseline for the other db stuff ?
+--- 
+ 
+*doh*
+ 
+I'll just post the code; but beware, it doesn't work, it's just to show you how stuff would interact
+ 
+(Also, the code could probably be cleaner...)
+ 
+What to look for:
+* how the Schema is created and populated
+* how the m_keyFieldMapper (that is used to extract primary key from queries) is initialized
+* how the FromReader passes on to FillObject() - the function that will use the Schema to populate the RowMapper (and the PrimitiveBaseShape)
+* How the CRUD and CreateRowMapper functions are really just there to get a cleaner interface for the caller.
+ 
+/Stefan
+ 
+---
+ 
+using System;
+namespace TribalMedia.Framework.Data{    public class PrimitiveBaseShapeRowMapper : RowMapper&lt;PrimitiveBaseShape&gt;    {        public Guid SceneObjectPartId;
+        public PrimitiveBaseShapeRowMapper(Schema schema, PrimitiveBaseShape obj) : base(schema, obj)        {        }    }
+ 
+    public class PrimitiveBaseShapeTableMapper : TableMapper&lt;PrimitiveBaseShapeRowMapper, Guid&gt;    {        public PrimitiveBaseShapeTableMapper(DbConnectionPool connection, string tableName)            : base(connection, tableName)        {            RowMapperSchema&lt;PrimitiveBaseShapeRowMapper&gt; rowMapperSchema = new RowMapperSchema&lt;PrimitiveBaseShapeRowMapper&gt;();            m_schema = rowMapperSchema;
+            m_keyFieldMapper = rowMapperSchema.AddMapping&lt;Guid&gt;(&quot;SceneObjectPartId&quot;,                                                                delegate(PrimitiveBaseShapeRowMapper shape) { return shape.SceneObjectPartId; },                                                                delegate(PrimitiveBaseShapeRowMapper shape, Guid value) { shape.SceneObjectPartId = value; });
+            rowMapperSchema.AddMapping&lt;byte&gt;(&quot;PCode&quot;,                                             delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PCode; },                                             delegate(PrimitiveBaseShapeRowMapper shape, byte value) { shape.Object.PCode = value; });
+            rowMapperSchema.AddMapping&lt;ushort&gt;(&quot;PathBegin&quot;,                                               delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathBegin; },                                               delegate(PrimitiveBaseShapeRowMapper shape, ushort value) { shape.Object.PathBegin = value; });
+            rowMapperSchema.AddMapping&lt;ushort&gt;(&quot;PathEnd&quot;,                                               delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathEnd; },                                               delegate(PrimitiveBaseShapeRowMapper shape, ushort value) { shape.Object.PathEnd = value; });
+            rowMapperSchema.AddMapping&lt;byte&gt;(&quot;PathScaleX&quot;,                                             delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathScaleX; },                                             delegate(PrimitiveBaseShapeRowMapper shape, byte value) { shape.Object.PathScaleX = value; });
+            rowMapperSchema.AddMapping&lt;byte&gt;(&quot;PathScaleY&quot;,                                             delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathScaleY; },                                             delegate(PrimitiveBaseShapeRowMapper shape, byte value) { shape.Object.PathScaleY = value; });
+            rowMapperSchema.AddMapping&lt;byte&gt;(&quot;PathShearX&quot;,                                             delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathShearX; },                                             delegate(PrimitiveBaseShapeRowMapper shape, byte value) { shape.Object.PathShearX = value; });
+            rowMapperSchema.AddMapping&lt;byte&gt;(&quot;PathShearY&quot;,                                             delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathShearY; },                                             delegate(PrimitiveBaseShapeRowMapper shape, byte value) { shape.Object.PathShearY = value; });
+            rowMapperSchema.AddMapping&lt;ushort&gt;(&quot;ProfileBegin&quot;,                                               delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.ProfileBegin; },                                               delegate(PrimitiveBaseShapeRowMapper shape, ushort value) { shape.Object.ProfileBegin = value; });
+            rowMapperSchema.AddMapping&lt;ushort&gt;(&quot;ProfileEnd&quot;,                                               delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.ProfileEnd; },                                               delegate(PrimitiveBaseShapeRowMapper shape, ushort value) { shape.Object.ProfileEnd = value; });
+            rowMapperSchema.AddMapping&lt;BluedogVector3&gt;(&quot;Scale&quot;,                                                       delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.Scale; },                                                       delegate(PrimitiveBaseShapeRowMapper shape, BluedogVector3 value) { shape.Object.Scale = value; });
+            rowMapperSchema.AddMapping&lt;sbyte&gt;(&quot;PathTaperX&quot;,                                              delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathTaperX; },                                              delegate(PrimitiveBaseShapeRowMapper shape, sbyte value) { shape.Object.PathTaperX = value; });
+            rowMapperSchema.AddMapping&lt;sbyte&gt;(&quot;PathTaperY&quot;,                                              delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathTaperY; },                                              delegate(PrimitiveBaseShapeRowMapper shape, sbyte value) { shape.Object.PathTaperY = value; });
+            rowMapperSchema.AddMapping&lt;sbyte&gt;(&quot;PathTwist&quot;,                                              delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathTwist; },                                              delegate(PrimitiveBaseShapeRowMapper shape, sbyte value) { shape.Object.PathTwist = value; });
+            rowMapperSchema.AddMapping&lt;sbyte&gt;(&quot;PathRadiusOffset&quot;,                                              delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathRadiusOffset; },                                              delegate(PrimitiveBaseShapeRowMapper shape, sbyte value) { shape.Object.PathRadiusOffset = value; });
+            rowMapperSchema.AddMapping&lt;byte&gt;(&quot;PathRevolutions&quot;,                                             delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathRevolutions; },                                             delegate(PrimitiveBaseShapeRowMapper shape, byte value) { shape.Object.PathRevolutions = value; });
+            rowMapperSchema.AddMapping&lt;sbyte&gt;(&quot;PathTwistBegin&quot;,                                              delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathTwistBegin; },                                              delegate(PrimitiveBaseShapeRowMapper shape, sbyte value) { shape.Object.PathTwistBegin = value; });
+            rowMapperSchema.AddMapping&lt;byte&gt;(&quot;PathCurve&quot;,                                             delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.PathCurve; },                                             delegate(PrimitiveBaseShapeRowMapper shape, byte value) { shape.Object.PathCurve = value; });
+            rowMapperSchema.AddMapping&lt;byte&gt;(&quot;ProfileCurve&quot;,                                             delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.ProfileCurve; },                                             delegate(PrimitiveBaseShapeRowMapper shape, byte value) { shape.Object.ProfileCurve = value; });
+            rowMapperSchema.AddMapping&lt;ushort&gt;(&quot;ProfileHollow&quot;,                                               delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.ProfileHollow; },                                               delegate(PrimitiveBaseShapeRowMapper shape, ushort value) { shape.Object.ProfileHollow = value; });
+            rowMapperSchema.AddMapping&lt;byte[]&gt;(&quot;TextureEntry&quot;,                                               delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.TextureEntry; },                                               delegate(PrimitiveBaseShapeRowMapper shape, byte[] value) { shape.Object.TextureEntry = value; });
+            rowMapperSchema.AddMapping&lt;byte[]&gt;(&quot;ExtraParams&quot;,                                               delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.ExtraParams; },                                               delegate(PrimitiveBaseShapeRowMapper shape, byte[] value) { shape.Object.ExtraParams = value; });                    }
+        public override PrimitiveBaseShapeRowMapper FromReader(DataReader reader)        {            PrimitiveBaseShape shape = new PrimitiveBaseShape();
+            PrimitiveBaseShapeRowMapper mapper = new PrimitiveBaseShapeRowMapper(m_schema, shape);            mapper.FillObject( reader );
+            return mapper;        }
+        public bool Update(Guid sceneObjectPartId, PrimitiveBaseShape primitiveBaseShape)        {            PrimitiveBaseShapeRowMapper mapper = CreateRowMapper(sceneObjectPartId, primitiveBaseShape);            return Update(sceneObjectPartId, mapper);        }
+        public bool Add(Guid sceneObjectPartId, PrimitiveBaseShape primitiveBaseShape)        {            PrimitiveBaseShapeRowMapper mapper = CreateRowMapper(sceneObjectPartId, primitiveBaseShape);            return Add(mapper);        }
+        private PrimitiveBaseShapeRowMapper CreateRowMapper(Guid sceneObjectPartId, PrimitiveBaseShape primitiveBaseShape)        {            PrimitiveBaseShapeRowMapper mapper = new PrimitiveBaseShapeRowMapper( m_schema, primitiveBaseShape );            mapper.SceneObjectPartId = sceneObjectPartId;            return mapper;        }    }}
+
+T&#233;l&#233;chargez gratuitement Messenger 2008 
+_________________________________________________________________
+Votre contact a choisi Hotmail, l'e-mail nouvelle g&#233;n&#233;ration. Cr&#233;ez un compte. 
+<A HREF="http://www.windowslive.fr/hotmail/default.asp">http://www.windowslive.fr/hotmail/default.asp</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080114/ce09a93b/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080114/ce09a93b/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000676.html">[Opensim-dev] further db thoughts
+</A></li>
+	<LI>Next message: <A HREF="000678.html">[Opensim-dev] further db thoughts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#677">[ date ]</a>
+              <a href="thread.html#677">[ thread ]</a>
+              <a href="subject.html#677">[ subject ]</a>
+              <a href="author.html#677">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

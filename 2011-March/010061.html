@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Major issue with core code.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Major%20issue%20with%20core%20code.&In-Reply-To=%3CAANLkTimHWjLjVFBsi27xME5tdTnvyMis_ZNA069HHr82%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010060.html">
+   <LINK REL="Next"  HREF="010062.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Major issue with core code.</H1>
+    <B>Wade Schuette</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Major%20issue%20with%20core%20code.&In-Reply-To=%3CAANLkTimHWjLjVFBsi27xME5tdTnvyMis_ZNA069HHr82%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Major issue with core code.">wade.schuette at gmail.com
+       </A><BR>
+    <I>Sun Mar 27 17:02:20 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010060.html">[Opensim-dev] Major issue with core code.
+</A></li>
+        <LI>Next message: <A HREF="010062.html">[Opensim-dev] Major issue with core code.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10061">[ date ]</a>
+              <a href="thread.html#10061">[ thread ]</a>
+              <a href="subject.html#10061">[ subject ]</a>
+              <a href="author.html#10061">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Here's an easy to understand snippet of code that does the job, regardless
+how inelegant.
+====
+
+// The function is to find out what prim numbers correspond to those names
+right now (in case it has changed).
+// Author :  Wade Schuette;   Date: March 27, 2011;
+// Anyone is free to copy modify transer or whatever this code (just take
+off my name if you do!)
+
+// Note: I'm sure there are vastly more elegant ways to keep all the
+specific names out of the routines,
+//  and put them into lists at the start, but my goal was just to illustrate
+a very simple way that works
+//  and can be read by a new scripter.
+
+// global variables set as a side-effect of the getPrimNums() call;
+// My example  linked set is a body with various parts.  This code is run
+from the root;
+
+integer heart;
+integer liver;
+integer stomach;
+
+// subroutine to find which prim corresponds to known names, by brute force
+exhaustive search.
+getPrimNums()
+{
+        integer i;
+        integer numPrims = llGetNumberOfPrims();
+        llSay(0, &quot;This link set has &quot; + (string) numPrims + &quot; prims.&quot;);
+        for (i=1; i &lt;= numPrims; i++)
+        {
+            llSay(0,  &quot;Prim &quot; + (string) i + &quot; is &quot; + llGetLinkName(i) );
+            if  (llGetLinkName(i) == &quot;heart&quot;) { heart = i;}
+            else  if  (llGetLinkName(i) == &quot;liver&quot;) { liver = i;}
+            else  if  (llGetLinkName(i) == &quot;stomach&quot;) { stomach = i;}
+        }
+}
+
+
+default
+{
+    state_entry()
+    {
+
+        getPrimNums();
+
+        // OK, those are assigned and the integers can be used in your code.
+        llSay(0, &quot;Please confirm from the list above...&quot;);
+        llSay(0, &quot;Heart is prim number &quot; + (string) heart);
+        llSay(0, &quot;Stomach is prim number &quot; + (string) stomach);
+        llSay(0, &quot;Liver is prim number &quot; + (string)  liver);
+
+    }
+}
+
+====
+
+On Sun, Mar 27, 2011 at 9:16 AM, Marck &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">marck00 at nexgo.de</A>&gt; wrote:
+
+&gt;<i> The prim numbering used to change even when an object crossed a region
+</I>&gt;<i> border. This was fixed some time ago.
+</I>&gt;<i>
+</I>&gt;<i> For an example how to circumvent this issue in a script, see
+</I>&gt;<i> <A HREF="http://forums.osgrid.org/viewtopic.php?p=10732#p10732.">http://forums.osgrid.org/viewtopic.php?p=10732#p10732.</A> A more generalized
+</I>&gt;<i> solution of this can be found in thread &quot;Single Script Color/Linkset
+</I>&gt;<i> Changer&quot;; in both cases, the relevant function is named &quot;getLinkNums&quot;. The
+</I>&gt;<i> basic idea is to put a label either in the linked prim's name or description
+</I>&gt;<i> field and then retrieve the proper prim number by searching for the
+</I>&gt;<i> label(s).
+</I>&gt;<i>
+</I>&gt;<i> Michael Cerquoni wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Any chance you have an example of how you do this that you can share? I
+</I>&gt;&gt;<i> would like to see how your doing this.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Sun, Mar 27, 2011 at 1:41 AM, Wade Schuette &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">wade.schuette at gmail.com</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">wade.schuette at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    Just a note - While I agree entirely that the prim order should stay
+</I>&gt;&gt;<i>    constant for an object the user hasn't changed, as an application
+</I>&gt;&gt;<i>    developer I always start by polling  all linked prims to determine
+</I>&gt;&gt;<i>    which one is which number (today), and then work off that list.
+</I>&gt;&gt;<i>    Otherwise,  adding a single new prim to the object, or unlinking it
+</I>&gt;&gt;<i>    in order to resize or retexture a prim that refuses to change when
+</I>&gt;&gt;<i>    linked, will totally break the user script, and is maddening.
+</I>&gt;&gt;<i>    With polling, I can unlink or relink or add pieces whenever I feel
+</I>&gt;&gt;<i>    like it and the code doesn't break.   The one extra step only has to
+</I>&gt;&gt;<i>    be written and debugged once and used as a utility subroutine after
+</I>&gt;&gt;<i>    that.   What WOULD kill it is if the root prim changed, of course.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    And,  I developed that habit in Second Life, although it's totally
+</I>&gt;&gt;<i>    crucial in OpenSim since we have to keep unlinking complex objects
+</I>&gt;&gt;<i>    in order to change a stubborn linked prim that refuses to change
+</I>&gt;&gt;<i>    while it is linked.  Why is THAT, by the way?  Can THAT be fixed?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    Wade
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    On Sun, Mar 27, 2011 at 4:01 AM, Michael Cerquoni
+</I>&gt;&gt;<i>    &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">nebadon2025 at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">nebadon2025 at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>        I spoke to Melanie, she says she has a fix for this! apparently
+</I>&gt;&gt;<i>        this has been an issue for a while, I had no idea, thanks
+</I>&gt;&gt;<i>        Melanie :D
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>        On Sat, Mar 26, 2011 at 11:44 PM, Michael Cerquoni
+</I>&gt;&gt;<i>        &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">nebadon2025 at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">nebadon2025 at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            I have just stumbled across a major problem with the core
+</I>&gt;&gt;<i>            code, it seems that every time we rez an object its linkset
+</I>&gt;&gt;<i>            prim order is changing.  This makes it impossible to script
+</I>&gt;&gt;<i>            things that call upon a certain # in the link-set.  I have
+</I>&gt;&gt;<i>            filed a mantis:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            <A HREF="http://opensimulator.org/mantis/view.php?id=5421">http://opensimulator.org/mantis/view.php?id=5421</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            see screenshots of issue here:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            <A HREF="http://www.onikenkon.com/screenshots/link_order_issue_01.png">http://www.onikenkon.com/screenshots/link_order_issue_01.png</A>
+</I>&gt;&gt;<i>            <A HREF="http://www.onikenkon.com/screenshots/link_order_issue_01.png">http://www.onikenkon.com/screenshots/link_order_issue_01.png</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            This is a major issue that should be resolved before 0.7.1
+</I>&gt;&gt;<i>            is tagged i believe.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            --
+</I>&gt;&gt;<i>            Michael Emory Cerquoni - Nebadon Izumi @ <A HREF="http://osgrid.org">http://osgrid.org</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+
+-- 
+R. Wade Schuette, CDP, MBA, MPH
+6751 Scio Church Rd.
+Ann Arbor, MI 48103-9270
+cell: 1 (734) 635-0508
+fax:  1 (734) 864-0318
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">wade.schuette at gmail.com</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110327/2b32cc12/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110327/2b32cc12/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010060.html">[Opensim-dev] Major issue with core code.
+</A></li>
+	<LI>Next message: <A HREF="010062.html">[Opensim-dev] Major issue with core code.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10061">[ date ]</a>
+              <a href="thread.html#10061">[ thread ]</a>
+              <a href="subject.html#10061">[ subject ]</a>
+              <a href="author.html#10061">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,360 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] secure_inventory_server ??
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20secure_inventory_server%20%3F%3F&In-Reply-To=%3C849146.88554.qm%40web23002.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002460.html">
+   <LINK REL="Next"  HREF="002463.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] secure_inventory_server ??</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20secure_inventory_server%20%3F%3F&In-Reply-To=%3C849146.88554.qm%40web23002.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] secure_inventory_server ??">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Fri Jul 25 16:16:22 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002460.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+        <LI>Next message: <A HREF="002463.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2462">[ date ]</a>
+              <a href="thread.html#2462">[ thread ]</a>
+              <a href="subject.html#2462">[ subject ]</a>
+              <a href="author.html#2462">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yeah when I suggested the option on inventory server, I just meant so it didn't do any checks. The actually intererfaces having a few changes is nothing. Everyone has to expect those sort of changes.
+
+Anyway at first I was only suggesting a temporay option. As while everyone should expect painful breaking changes, if we can easily add temporary options that give a bit of time to change over to a new system then I think we should. Again it has to be a easy thing to add, I'm not suggesting that we should spend lots of time on adding these options. But like in this case a small flag around the security check.
+
+Anyway, if we add the option to the inventory server to turn off checks, so that it is no longer tied to a user server. Then there should be no problems with removing the region side option. Just with that system in the inventory server, we need one option or the other. 
+
+I think the sessionId could be made to work, just with a push method from the user server rather than a pull. In general I think we should avoid those pull systems that require setting a lot of urls on different servers anyway.
+
+So maybe one way would be when the user logs in, it looks up the inventory server url that user is using. Then it does a initial request to the inventory server to authenticate that grid can have acess to the users inventory on that server, which can include the session id.  So really the same system but with push rather than pull.
+
+
+Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote: Michael Wright wrote:
+&gt;<i> a quick follow on, what I mean about it being too rigid, is that by 
+</I>&gt;<i> having a set userserver set url in the inventory server. It makes it 
+</I>&gt;<i> harder to use the same inventory server on multiple grids. Either for 
+</I>&gt;<i> the same user (if their id on each grid was the same). Or just multiple 
+</I>&gt;<i> grids/user groups sharing a common inventory server.
+</I>&gt;<i> 
+</I>&gt;<i> I actually consider both of them features that we have/had and should 
+</I>&gt;<i> keep. SO while on important bug (the lack of security) has been fixed, 
+</I>&gt;<i> it has broke two other features.
+</I>
+I do agree.  In the long term I think that security for the inventory service should be managed by direct client login 
+rather than being tied to a user session id.
+
+However, I suspect that with the current client, user session id might be the best that we can do.  But I see that to 
+preserve the use cases you describe we should have an option to stop the inventory server contacting the user server to 
+perform security checks.  So I'm dropping the concerns I had with putting another option on the inv server :-)
+
+However, I think that this switch should simply mean that checks aren't performed.  It would be much nicer not to have 
+it set up a different bunch of 'legacy' handlers instead of the 'secure' ones.  I think that we should also still 
+eliminate the old InventoryService option on the region server as soon as possible to avoid the dead weight of that code 
+and needless option proliferation - if people are following trunk then they really do have to expect that there are 
+occasionally going to be painful breaking upgrades.
+
+&gt;<i> 
+</I>&gt;<i> */Michael Wright /* wrote:
+</I>&gt;<i> 
+</I>&gt;<i>     Okay had a bit deeper look at the inventory changes, and see the
+</I>&gt;<i>     changes aren't anywhere near as big as I was imagining. So guess I
+</I>&gt;<i>     take back my suggestion of a option.
+</I>&gt;<i> 
+</I>&gt;<i>     I made the suggestion, because my thinking in something like while
+</I>&gt;<i>     no interfaces are going to be anything like stable until much nearer
+</I>&gt;<i>     to 1.0, I do think if a really big change is made to a interface
+</I>&gt;<i>     (specially on the interfaces to the grid servers). If it is possible
+</I>&gt;<i>     to add a mode for backwards compatibility easily, then we should do
+</I>&gt;<i>     so (even if only temporary). But as I said, after looking more
+</I>&gt;<i>     closely at the changes, doesn't look like this is such a big change.
+</I>&gt;<i> 
+</I>&gt;<i>     I'm a little concerned about the constant lookup to the user server.
+</I>&gt;<i>     As I think really we should be trying to spearate the
+</I>&gt;<i>     inventory/asset servers so they are more standalone (don't keep
+</I>&gt;<i>     connecting to other servers). To allow for a more destributed set up
+</I>&gt;<i>     with them. But haven't really thought about how a secure system
+</I>&gt;<i>     could work there. This lookup method just feels a bit too rigid to me
+</I>&gt;<i> 
+</I>&gt;<i>     */Michael Wright /* wrote:
+</I>&gt;<i> 
+</I>&gt;<i>         Yeah I guess, one problem with changes like this is anyone who
+</I>&gt;<i>         has custom Login service (like us) has to rewrite it to use the
+</I>&gt;<i>         new methods. Which is going to take time. But I guess that is
+</I>&gt;<i>         how things go.
+</I>&gt;<i> 
+</I>&gt;<i>         To be honest, even not taking that into account I would still
+</I>&gt;<i>         like to see a way to turn things off. While you can argue that
+</I>&gt;<i>         we should avoid too many options. At the same time I think you
+</I>&gt;<i>         can argue that we should make things as customisable as possible
+</I>&gt;<i>         (which is what I prefer).
+</I>&gt;<i> 
+</I>&gt;<i>         I guess I need to look at the changes in inventory server more
+</I>&gt;<i>         closely before I can really give a proper opinion though.
+</I>&gt;<i> 
+</I>&gt;<i>         */Justin Clark-Casey /* wrote:
+</I>&gt;<i> 
+</I>&gt;<i>             Michael Wright wrote:
+</I>&gt;<i>              &gt; We might also want to add a temporary config setting to
+</I>&gt;<i>             the inventory
+</I>&gt;<i>              &gt; server to turn the security off. For people who want to
+</I>&gt;<i>             update the
+</I>&gt;<i>              &gt; server, but could have old regions on the grid.
+</I>&gt;<i> 
+</I>&gt;<i>             To be honest, I think that it would be nice to avoid option
+</I>&gt;<i>             proliferation. Already, the 'secure' option is really just
+</I>&gt;<i>             a bridge - the original mode should be removed (and secure
+</I>&gt;<i>             become the 'default') when we're happy that they aren't major
+</I>&gt;<i>             difficulties. Adding another option for inventory server
+</I>&gt;<i>             potentially exposes another point of failure and something
+</I>&gt;<i>             that will have to be deprecated/removed later on.
+</I>&gt;<i> 
+</I>&gt;<i>             I think that traditionally we've been happy to have breaking
+</I>&gt;<i>             grid changes that have required region updates. Can we do
+</I>&gt;<i>             the same thing here?
+</I>&gt;<i> 
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; */liu xiaolu /* wrote:
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; OK, I can understand that,
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; you can change the OpenSim.ini.example like,
+</I>&gt;<i>              &gt; add the following line inside [Network] section (just under
+</I>&gt;<i>              &gt; inventory_server_url):
+</I>&gt;<i>              &gt; ;secure_inventory_server = true
+</I>&gt;<i>              &gt; you should keep the line commented, because by default
+</I>&gt;<i>             its value is
+</I>&gt;<i>              &gt; &quot;true&quot;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; We(Johan, Mikem, lulurun) discussed about this,
+</I>&gt;<i>              &gt; &quot;secure_inventory_server&quot; is just a &quot;bridge&quot;
+</I>&gt;<i>              &gt; for the people who are running latest regionserver, but
+</I>&gt;<i>             using old
+</I>&gt;<i>              &gt; revisions of UGAI.
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; as the revision number grows, we want to delete this
+</I>&gt;<i>             option in the
+</I>&gt;<i>              &gt; short future.
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; \\\\
+</I>&gt;<i>              &gt; 2008/7/25 Charles Krinke &gt;:
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; Thanks, Lulurun. That helps some.
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; I believe the concern I have is the support of our users
+</I>&gt;<i>             on the
+</I>&gt;<i>              &gt; #opensim IRC channel. If there are settings to OpenSim
+</I>&gt;<i>             that are
+</I>&gt;<i>              &gt; *not* in OpenSim.ini.example and someone sets them, then
+</I>&gt;<i>             support
+</I>&gt;<i>              &gt; gets more difficult.
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; At this point, I am merely trying to suggest that any config
+</I>&gt;<i>              &gt; settings that anyone might use be entered in
+</I>&gt;<i>              &gt; OpenSim.ini.example. Additionally a couple of comments that
+</I>&gt;<i>              &gt; describe when one might want to use these settings would help
+</I>&gt;<i>              &gt; our users move forward.
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; Charles
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; ----- Original Message ----
+</I>&gt;<i>              &gt; From: liu xiaolu &gt;
+</I>&gt;<i>              &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; Sent: Thursday, July 24, 2008 8:04:24 PM
+</I>&gt;<i>              &gt; Subject: Re: [Opensim-dev] secure_inventory_server ??
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; That option is avaliable from 5592, it is just a
+</I>&gt;<i>             temporary thing.
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; To explain the situation simply:
+</I>&gt;<i>              &gt; 1. old inventory server accepts any request without check the
+</I>&gt;<i>              &gt; use identity, this causes a problem that everyone's inventory
+</I>&gt;<i>              &gt; information can be easily modified by other people who
+</I>&gt;<i>             even do
+</I>&gt;<i>              &gt; not know your password.
+</I>&gt;<i>              &gt; 2. secure_inventory_server accepts request by checking a
+</I>&gt;<i>             valid
+</I>&gt;<i>              &gt; session_id, so every inventory request needs to be attached a
+</I>&gt;<i>              &gt; session_id.
+</I>&gt;<i>              &gt; 3. then both of the regionserver and the inventoryserver
+</I>&gt;<i>             have to
+</I>&gt;<i>              &gt; be changed:
+</I>&gt;<i>              &gt; 3.1 regionserver adds user's &quot;session_id&quot; to inventory CRUD
+</I>&gt;<i>              &gt; requests
+</I>&gt;<i>              &gt; 3.2 secureinventoryserver expects the request data contains a
+</I>&gt;<i>              &gt; &quot;session_id&quot;
+</I>&gt;<i>              &gt; 4. so the latest regionserver do not work with non-secure
+</I>&gt;<i>              &gt; inventoryserver any more.
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; the option enables people who are using the latest
+</I>&gt;<i>             regionserver,
+</I>&gt;<i>              &gt; but want to connect to a non-secure inventoryserver -
+</I>&gt;<i>             they can
+</I>&gt;<i>              &gt; set &quot;use_secure_invnetory&quot; to false in OpenSim.ini
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; 2008/7/25 Charles Krinke &gt;:
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; I am hearing about a new OpenSim.ini setting called
+</I>&gt;<i>              &gt; secure_inventory_server and am told it is not in
+</I>&gt;<i>              &gt; OpenSim.ini.example. I believe all settings for OpenSim
+</I>&gt;<i>              &gt; should be in OpenSim.ini and have a default, which in this
+</I>&gt;<i>              &gt; case could be either true, or false, I would think.
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; Can someone please help us understand what this setting is,
+</I>&gt;<i>              &gt; what it does when set to false, what it does when set to
+</I>&gt;<i>              &gt; true and perhaps consider adding at least a default for this
+</I>&gt;<i>              &gt; setting in OpenSim.ini.example?
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; Charles
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; _______________________________________________
+</I>&gt;<i>              &gt; Opensim-dev mailing list
+</I>&gt;<i>              &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; --
+</I>&gt;<i>              &gt; Lulurun
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; _______________________________________________
+</I>&gt;<i>              &gt; Opensim-dev mailing list
+</I>&gt;<i>              &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>              &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; --
+</I>&gt;<i>              &gt; Lulurun
+</I>&gt;<i>              &gt; _______________________________________________
+</I>&gt;<i>              &gt; Opensim-dev mailing list
+</I>&gt;<i>              &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>              &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>             ------------------------------------------------------------------------
+</I>&gt;<i>              &gt; Not happy with your email address?
+</I>&gt;<i>              &gt; Get the one you really want -
+</I>&gt;<i>              &gt; millions of new email addresses available now at Yahoo!
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt;
+</I>&gt;<i>             ------------------------------------------------------------------------
+</I>&gt;<i>              &gt;
+</I>&gt;<i>              &gt; _______________________________________________
+</I>&gt;<i>              &gt; Opensim-dev mailing list
+</I>&gt;<i>              &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>              &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>             -- 
+</I>&gt;<i>             justincc
+</I>&gt;<i>             Justin Clark-Casey
+</I>&gt;<i>             <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i>             _______________________________________________
+</I>&gt;<i>             Opensim-dev mailing list
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>         ------------------------------------------------------------------------
+</I>&gt;<i>         Not happy with your email address?
+</I>&gt;<i>         Get the one you really want
+</I>&gt;<i>          - millions of new
+</I>&gt;<i>         email addresses available now at Yahoo!
+</I>&gt;<i>         _______________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>     ------------------------------------------------------------------------
+</I>&gt;<i>     Not happy with your email address?
+</I>&gt;<i>     Get the one you really want
+</I>&gt;<i>      - millions of new email
+</I>&gt;<i>     addresses available now at Yahoo!
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> Not happy with your email address?
+</I>&gt;<i> Get the one you really want  - 
+</I>&gt;<i> millions of new email addresses available now at Yahoo! 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+---------------------------------
+ Not happy with your email address?
+  Get the one you really want - millions of new email addresses available now at  Yahoo!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080725/d0906b16/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080725/d0906b16/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002460.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+	<LI>Next message: <A HREF="002463.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2462">[ date ]</a>
+              <a href="thread.html#2462">[ thread ]</a>
+              <a href="subject.html#2462">[ subject ]</a>
+              <a href="author.html#2462">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

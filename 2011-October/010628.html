@@ -1,0 +1,254 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Continual object update resends if acks are missed
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Continual%20object%20update%20resends%20if%20acks%20are%20missed&In-Reply-To=%3CCAJaF1_GRZiGNyUx7kBAV%3DLzJuCAQ5vA-7%3DWzYT1%2BHh1zC5A4qA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010626.html">
+   <LINK REL="Next"  HREF="010632.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Continual object update resends if acks are missed</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Continual%20object%20update%20resends%20if%20acks%20are%20missed&In-Reply-To=%3CCAJaF1_GRZiGNyUx7kBAV%3DLzJuCAQ5vA-7%3DWzYT1%2BHh1zC5A4qA%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Continual object update resends if acks are missed">cmickeyb at gmail.com
+       </A><BR>
+    <I>Wed Oct 12 17:32:01 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010626.html">[Opensim-dev] Continual object update resends if acks are missed
+</A></li>
+        <LI>Next message: <A HREF="010632.html">[Opensim-dev] Continual object update resends if acks are missed
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10628">[ date ]</a>
+              <a href="thread.html#10628">[ thread ]</a>
+              <a href="subject.html#10628">[ subject ]</a>
+              <a href="author.html#10628">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Couple things...
+
+ First... here's the link to the thread on some of the original issues...
+not sure if this went in to dan's retransmission fix but i'll get to that in
+a minute:
+<A HREF="https://lists.berlios.de/pipermail/opensim-dev/2011-March/010029.html">https://lists.berlios.de/pipermail/opensim-dev/2011-March/010029.html</A>
+
+Second... In spite of all the questions/comments below that this is the
+&quot;expected&quot; behavior... there may be a bug &amp; we need more data to find it.
+
+Question... do you have the adaptive throttling turned on? Look for
+enable_adaptive_throttles. It is turned off by default. That is the switch
+that is designed to fix the problem you are seeing... but the code has some
+other behaviors which are correct but... &quot;different&quot; than what most admins
+expect (the throttle mimics the TCP slow start to identify and avoid
+congestion though not quite as conservatively as the TCP algorithm).
+
+One explanation for what you are seeing is that the network simply cannot
+send as many packets as you are asking. This is frequently true for
+long-haul connections. When we did our analysis, we saw a &quot;cliff&quot;. Once you
+pass the point where the number of outgoing packets exceeds the physical
+networks ability to deliver them ACKs are not processed in time and very bad
+things happen. That is... enough ACKs are coming late enough so that the
+resend packet is already in the queue. The current version of the code
+handles that situation far better than the old version (the current version
+is bound by the number of dynamic objects... the old version would hold
+*every* update to that object... even ones that were superceded by later
+updates).
+
+The only real solution to this problem is to stop sending updates so fast or
+to be much more conservative about resends. The first can be addressed one
+of three ways... First, configure the simulator so that the outgoing bw per
+connection is throttled much lower. Second, turn down the BW setting on the
+viewer. Third, turn on the adaptive throttling code in the simulator.
+
+Being conservative about resends has its own share of problems... Basically
+what this means is that you wait longer to resend a packet. However... if
+you wait too long to retransmit, then a portion of your scene is not
+updating. The algorithm for determining when to retransmit is based on a
+commonly used algorithm described in one of the RFCs (the actual RFC is
+referenced in a comment in the opensim code).
+
+As to the UDP packet vs going back through the SceneEntityUpdate queue...
+well that one is a no brainer... If you use the UDP packet for retranmission
+you are almost always sending useless old data and just filling up the
+network with fluff. Outside of the initial scene load, you see streams of
+updates for objects more often than a single update. If you retransmit the
+UDP packet, you are almost always sending old data. Going through the
+sceneentityupdate queue basically says &quot;retransmit the current state of the
+object&quot;.
+
+--mic
+
+
+On Wed, Oct 12, 2011 at 5:56 AM, Justin Clark-Casey &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+
+&gt;<i> Yes, I may not have the correct cause in my original e-mail but I'm
+</I>&gt;<i> certainly seeing a lot of resends that never appear to stop.  The effect is
+</I>&gt;<i> not consistent - sometimes I can log in to the remote sim and there will be
+</I>&gt;<i> no continuous resend.  But most of the time a large proportion of updates
+</I>&gt;<i> appear to be continuously resent.
+</I>&gt;<i>
+</I>&gt;<i> I'm surprised no-one else has reported it though I did see a lot of
+</I>&gt;<i> continuous updating on Wright Plaza @ osgrid.org last night, which I don't
+</I>&gt;<i> think is related to changes made by scripts.  Perhaps it's only really
+</I>&gt;<i> noticeable if you start looking, have visual object updates
+</I>&gt;<i> development/advanced settings on in a viewer or are wondering why viewer
+</I>&gt;<i> received packets keeps spiking.
+</I>&gt;<i>
+</I>&gt;<i> As far as I can see from LLClientView/LLUDPServer, both prim and property
+</I>&gt;<i> updates resends are happening but I need to study the code more closely and
+</I>&gt;<i> possibly old e-mails.
+</I>&gt;<i>
+</I>&gt;<i> I hope to do some more analysis later on today and be around on IRC.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 12/10/11 09:20, Lake, Dan wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Thanks for the additional info on this, Melanie. You are correct that the
+</I>&gt;&gt;<i> resend should get a new sequence number and that old updates for an object
+</I>&gt;&gt;<i> will no longer get sent when there is a newer update to send. Properties and
+</I>&gt;&gt;<i> updates are handled almost the same but different code. I'll look it over
+</I>&gt;&gt;<i> with Mic in the morning so I understand what is going on.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ~Dan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.</A>**berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;[mailto:
+</I>&gt;&gt;<i> opensim-dev-bounces@**lists.berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;]
+</I>&gt;&gt;<i> On Behalf Of Melanie
+</I>&gt;&gt;<i> Sent: Tuesday, October 11, 2011 11:22 PM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Continual object update resends if acks are
+</I>&gt;&gt;<i> missed
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It appears this mechanism has already been removed for prim updates
+</I>&gt;&gt;<i> because intermediate updates are needed fro proper motion of
+</I>&gt;&gt;<i> physical prims, but was left in for property updates. However,
+</I>&gt;&gt;<i> culling of later updates as well as preservation of sequence numbers
+</I>&gt;&gt;<i> was not done.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 12/10/2011 07:43, Mic Bowman wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> We should collect more information on what is actually happening. The old
+</I>&gt;&gt;&gt;<i> behavior was to resend infinitely (and very badly). It would send old
+</I>&gt;&gt;&gt;<i> updates even when there were new updates for the same object. We changed
+</I>&gt;&gt;&gt;<i> the
+</I>&gt;&gt;&gt;<i> resend to transmit the current data rather than old data. If there are
+</I>&gt;&gt;&gt;<i> still
+</I>&gt;&gt;&gt;<i> no acks coming back after some time then we need to figure out what the
+</I>&gt;&gt;&gt;<i> viewer is expecting&amp;  when it no longer acks packets.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> There is a write up on the procedure in an old email message on this
+</I>&gt;&gt;&gt;<i> list.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --mic
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On Tue, Oct 11, 2011 at 3:55 PM, Justin Clark-Casey&lt;
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;  wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>  Hi dslake (since this is chiefly addressed to you :)
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> In commit b5ab33b5 back on Wednesday 20th April 2011, you made a change
+</I>&gt;&gt;&gt;&gt;<i> so
+</I>&gt;&gt;&gt;&gt;<i> that the resend of object updates or property updates is threaded back
+</I>&gt;&gt;&gt;&gt;<i> through Resend methods on LLClientView rather than the normal resend
+</I>&gt;&gt;&gt;&gt;<i> within
+</I>&gt;&gt;&gt;&gt;<i> UDPServer.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> The normal resend only performs the resend once, while going through the
+</I>&gt;&gt;&gt;&gt;<i> LLClientView.Resent*() methods will continually attempt the resend until
+</I>&gt;&gt;&gt;&gt;<i> acked as they put the requests back on the m_entityUpdates/m_entityProps
+</I>&gt;&gt;&gt;&gt;<i> queue.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>  From my experience, often the client will not reack such packets.  This
+</I>&gt;&gt;&gt;&gt;<i> means that they are continuously resent until the client logs out.  I
+</I>&gt;&gt;&gt;&gt;<i> can
+</I>&gt;&gt;&gt;&gt;<i> see this happening by uncommenting the log lines in LLClientView.****
+</I>&gt;&gt;&gt;&gt;<i> ResendPrimUpdates()
+</I>&gt;&gt;&gt;&gt;<i> and ResentPropertyUpdates().  This is chiefly seen on remote regions (I
+</I>&gt;&gt;&gt;&gt;<i> can't repro on a localhost).
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> What do you think?  Can we resend such packets just once?
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Thanks,
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> --
+</I>&gt;&gt;&gt;&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;&gt;&gt;&gt;<i> ______________________________****_________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/****mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/**mailman/listinfo/opensim-dev">https://lists.berlios.de/****mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/**mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;&gt;&gt;<i> &lt;h**<A HREF="ttps://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">ttps://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;&gt;&gt;<i> &gt;
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20111012/86cef6c7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20111012/86cef6c7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010626.html">[Opensim-dev] Continual object update resends if acks are missed
+</A></li>
+	<LI>Next message: <A HREF="010632.html">[Opensim-dev] Continual object update resends if acks are missed
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10628">[ date ]</a>
+              <a href="thread.html#10628">[ thread ]</a>
+              <a href="subject.html#10628">[ subject ]</a>
+              <a href="author.html#10628">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

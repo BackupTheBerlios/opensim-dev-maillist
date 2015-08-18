@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Proposal] New software architecture
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BProposal%5D%20New%20software%20architecture&In-Reply-To=%3C4A16BDF1.8050708%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006600.html">
+   <LINK REL="Next"  HREF="006603.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Proposal] New software architecture</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BProposal%5D%20New%20software%20architecture&In-Reply-To=%3C4A16BDF1.8050708%40googlemail.com%3E"
+       TITLE="[Opensim-dev] [Proposal] New software architecture">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri May 22 17:00:01 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006600.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+        <LI>Next message: <A HREF="006603.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6601">[ date ]</a>
+              <a href="thread.html#6601">[ thread ]</a>
+              <a href="subject.html#6601">[ subject ]</a>
+              <a href="author.html#6601">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+&gt;<i> I'm guessing here, but it can also be there. I'll keep an eye on the 
+</I>&gt;<i> discussion tab. Thanks. Your input will be very much appreciated.
+</I>
+Okay.  In general it all looks pretty good to me on the surface.  Here are some comments/questions, a mix of minor admin 
+and more major ones.
+
+1.  I put a link to this page in the proposals section of the main documentation page at 
+<A HREF="http://opensimulator.org/wiki/Developer_Documentation">http://opensimulator.org/wiki/Developer_Documentation</A> so that this isn't an orphan wiki page.
+
+2.  Could you put the proposer names on this proposal?  How about a closing date?  Perhaps a change history (a higher 
+level of abstraction from the wiki page history)?
+
+3.  Are the details of the protocol between client and server side really invisible to the service clients?  The awkward 
+case here is between local 'in process' and remote servers, I think.  For instance, on IAssetService there is a method
+
+Get(string id, Object sender, AssetRetrieved handler)
+
+Afaik, if the asset service is local then the asset is returned via the same thread to the AssetRetrieved handler (i.e. 
+synchronously).  If the asset service is remote, then the asset is returned asynchronously to the nominated handler 
+method on a different thread.  This is not fully invisible.
+
+This could be a problem if the caller does a lot of work using the handler thread.  If the service is synchronous, then 
+the caller thread may be used for this where the caller did not expect it.
+
+I guess the only solution to this is to tell the caller that it is possible that the handler may be called 
+synchronously.  If they plan on doing a lot of work then they should use a separate thread.  This is advisable anyway 
+even for async operations if the handler thread is coming from the thread pool.
+
+All this perhaps is a little unfair since this problem and the one below are not at all new.  I'd like to know what you 
+think about this.
+
+4.  In particular on IAssetService, there appears to be a purely synchronous get methods, e.g.
+
+AssetBase Get(string id);
+
+I know these also existed in the past, but are they a good idea in a world where the callers are not meant to know 
+whether the underlying service is local or remote?  I know practically they may be needed (at least in the old code, the 
+underlying call simply timed out and returned null if the asset wasn't retrieved in a hard coded amount of time). 
+Again, this is a difference between in-process servers (which will return immediately) and remote ones (which could 
+delay up to 10 secs).
+
+5.  At the very least, interfaces need proper documentation if the caller is not meant to have to know what is happening 
+inside.  This documentation needs to be in the proper XML style so that it shows up in generated documentation.
+
+&gt;<i> 
+</I>&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Here is the description of the new software architecture that some of us 
+</I>&gt;&gt;&gt;<i> have been working on:
+</I>&gt;&gt;&gt;<i> <A HREF="http://opensimulator.org/wiki/OpenSim_Services_and_Service_Connectors">http://opensimulator.org/wiki/OpenSim_Services_and_Service_Connectors</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Comments, feedback -- welcome and needed.
+</I>&gt;&gt;<i> Did you want discussion here on in the discussion tab of the wiki page?
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006600.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+	<LI>Next message: <A HREF="006603.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6601">[ date ]</a>
+              <a href="thread.html#6601">[ thread ]</a>
+              <a href="subject.html#6601">[ subject ]</a>
+              <a href="author.html#6601">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

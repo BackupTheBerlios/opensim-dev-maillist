@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Partial libSL.Packet fix submitted
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Partial%20libSL.Packet%20fix%20submitted&In-Reply-To=%3CBLU134-W196FE56A5A2736FFA9D660D55D0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000611.html">
+   <LINK REL="Next"  HREF="000600.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Partial libSL.Packet fix submitted</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Partial%20libSL.Packet%20fix%20submitted&In-Reply-To=%3CBLU134-W196FE56A5A2736FFA9D660D55D0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Partial libSL.Packet fix submitted">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Dec 20 15:42:44 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000611.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+        <LI>Next message: <A HREF="000600.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#613">[ date ]</a>
+              <a href="thread.html#613">[ thread ]</a>
+              <a href="subject.html#613">[ subject ]</a>
+              <a href="author.html#613">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>... once upon a time... somebody in this project (no, not me, honestly!) didn't really know how the xmlWriter works, so somebodys generated xml came out with the header claiming the document to be utf-16 when clearly, it was not, and the LL client crashed because of that.
+ 
+The solution? Looking up how you make sure the xmlWriter output the correct charset and header? Use the underlying stream as base for the xmlWriter? No... the solution was... write it all to a string, then do xmlStr.Replace (&quot;utf-16&quot;, &quot;utf-8&quot;) in all places where this error occured.
+ 
+I'm still considering that one for the daily Worse Than Failure.
+<A HREF="http://thedailywtf.com/">http://thedailywtf.com/</A>
+/Stefan
+
+
+Date: Thu, 20 Dec 2007 08:28:25 -0500From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: Re: [Opensim-dev] Partial libSL.Packet fix submitted
+Well, alternatively, you could strip out the hyphens where needed.
+ 
+ToString.Replace FTW!!!111!!1!1!!11!1!!One 
+On 12/20/07, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote: 
+Johan Berntsson wrote:&gt; This problem is not caused by my work, but of changes in later versions&gt; of LibSL. It has changed from using ToString (unhyphenated) and&gt; ToStringHyphenated(), to only using ToString() (hyphenated). This means&gt; that there is no way of getting an unhyphenated string from libSL &gt; anymore. I changed all instances of  ToStringHyphenated() in OpenSim to&gt; ToString(), but I didn't realize that there would be a problem with&gt; plain ToString() calls.&gt;&gt; The basic problem is that we are relying on a libSL behaviour that is &gt; outside our control, and has changed. If we want to keep up to date with&gt; libSL I suggest that the problem is solved.&gt;&gt; Possible solutions:&gt; 1. Identify the problematic ToString() calls and use a utility function &gt; (Util.ConvertToUnhyphentated) to fix them like before.&gt; 2. Write scripts to update the current databases to use hyphenated&gt; GUID:s&gt; 3. Change the code not to use ToString at all.&gt;&gt; I prefer option 3, and to be compatible it could output unhyphenated &gt; GUIDs. At least this means that we won't have problems every time libSL&gt; is refactored (and ToString is meant as a debug tool, not as a provider&gt; of keys to a database)&gt;Is there any chance that, if asked, the LibSL folks would add extra methods such asToGuidString()ToGuidHyphenatedString()?  We would still be relying on LibSL but with explicitly named andpurposed methods such as these rather than ToString(), I would hopeno-notice refactoring would be much less likely. If necessary, we could then migrate to our own methods at our leisure(after patching all the string calls to use these two methods).Even if they won't do this, we could patch their code in the meantime for these methods (I doubt that would be very complicated) if migratingnow would be considerable and destablizing work (in light of 0.5).Regards,--justincc_______________________________________________ Opensim-dev mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.dehttps</A>://lists.berlios.de/mailman/listinfo/opensim-dev 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071220/b1dc91e7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071220/b1dc91e7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000611.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+	<LI>Next message: <A HREF="000600.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#613">[ date ]</a>
+              <a href="thread.html#613">[ thread ]</a>
+              <a href="subject.html#613">[ subject ]</a>
+              <a href="author.html#613">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

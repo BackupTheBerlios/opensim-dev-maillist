@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] client API bindings?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20client%20API%20bindings%3F&In-Reply-To=%3Cfce3146c7ec4514b88fc994d4fb3ed09%40kyperjokki.fi%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007444.html">
+   <LINK REL="Next"  HREF="007467.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] client API bindings?</H1>
+    <B>Toni Alatalo</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20client%20API%20bindings%3F&In-Reply-To=%3Cfce3146c7ec4514b88fc994d4fb3ed09%40kyperjokki.fi%3E"
+       TITLE="[Opensim-dev] client API bindings?">antont at kyperjokki.fi
+       </A><BR>
+    <I>Thu Sep  3 19:51:19 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007444.html">[Opensim-dev] client API bindings?
+</A></li>
+        <LI>Next message: <A HREF="007467.html">[Opensim-dev] client API bindings?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7459">[ date ]</a>
+              <a href="thread.html#7459">[ thread ]</a>
+              <a href="subject.html#7459">[ subject ]</a>
+              <a href="author.html#7459">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Sep 3, 2009, at 5:55 PM, Mar&#243;y &#193;kos wrote:
+
+&gt;&gt;<i> region module loader for OpenSim once and probably you could use it to
+</I>&gt;&gt;<i> write a ClientView too if you prefer that to C#. But C# is also nice,
+</I>&gt;&gt;<i> kind of a mix of C++ and Python -- if those are what you know from
+</I>&gt;<i> actually it's not that simple. for example, X-Plane has a plugin
+</I>&gt;<i> architecture, that accepts plugins written in C++, or in Python. thust
+</I>&gt;<i> the best is if there's a client implementation in any of these
+</I>&gt;<i> languages, as one has to create a shared object a python files (without
+</I>&gt;<i> native libraries linked) to integrate to X-Plane. (oh, and the native
+</I>&gt;<i> ones in three platforms, Linux, MacOS and Windows)
+</I>
+Hm, trying to get what you are saying exactly .. are you saying this is 
+something that applies to both the server and clients?
+
+Where do you create the shared python objects? On either end, and then 
+those are sent across and deserialized? I know how pickles work and how 
+those can be used for sharing state, but am actually very surprised to 
+hear that x-plane would use them in the protocol. I don't know 
+basically anything about x-plane before.
+
+As you say 'without native libraries linked', perhaps ironpython and 
+cpython are compatible, or can be made so, on that level .. am not sure 
+exactly but we can find that out, if that indeed is the need .. i'm not 
+sure I understood this correctly. Sounds that it may be really cool 
+(pickles can be arbitary data and code .. which is also why they are 
+often not used for security reasons, you must know what you are doing 
+if you use them .. that might be a reason why linking to native libs is 
+not allowed, dunno :o)
+
+&gt;<i> also, if one wants a proliferation of clients, one has to allow for a
+</I>&gt;<i> wide range of client implementations.
+</I>
+Well I thought that if you write an x-plane protocol implementation as 
+an OpenSim plugin, a XplaneClientView or something, it would support 
+any client that talks that protocol. Like the SL, MXP and IRC 
+ClientViews do support any compatible clients.
+
+&gt;&gt;<i> One problem is that due to the Second Life compatibility origins, the
+</I>&gt;&gt;<i> OpenSim worlds are partitioned in 256x256m regions, which run as
+</I>&gt;<i> yes, this is a problem indeed. moreover, in a flight simulator, the
+</I>&gt;<i> horizon spans quite far. also, you actually need different update 
+</I>&gt;<i> levels
+</I>&gt;<i> - for objects that are close, one needs fast and accurate update, while
+</I>&gt;<i> for objects far but still visible, one doesn't need that frequent 
+</I>&gt;<i> updates.
+</I>
+For that it may not actually be much of a problem. As you can see in 
+the viewers now, the horizon can span far. In ones that talk sl 
+protocol the viewers can know about several regions at a time, so they 
+can draw the neighbouring ones too, and they draw sky and sea etc. 
+however they want of course.
+
+And there needs to be LOD (level of detail) systems for all usages, in 
+many ways (for movement update detail amount, for 3d data resolution 
+etc.).
+
+&gt;<i> moreover, movement prediction is also important - the client needs to 
+</I>&gt;<i> be
+</I>&gt;<i> able to predict the trajectory of the objects for smooth drawing, and
+</I>&gt;<i> graceful handling of network connection issues.
+</I>
+Again, I thought that this was about a server implementation, as 
+OpenSim is a server platform / SDK, and that you'd use existing Xplane 
+clients. Or do you mean that the server also communicates expected 
+trajectories, so the client can draw based on the 'future' info too? 
+Should be doable, if it's done elsewhere too..
+
+Client side movement interpolation is implemented in the current 
+viewers, even in our Realxtend Naal which in very early stages still 
+(0.0.1 dev preview was published in June after 4 months of dev work, 
+0.0.2 is targeted in october or so and something like 0.1 perhaps by 
+the end of the year). So I don't know how much of that you need on the 
+server with xplane, but certainly sounds like something that flight 
+servers could do .. and again very cool if they do.
+
+&gt;&gt;<i> A trick I've been thinking for supporting fast large movements is to
+</I>&gt;&gt;<i> change the scale: make your planes 1/100 the size, so the default 
+</I>&gt;&gt;<i> region
+</I>&gt;&gt;<i> size is then 25,6km for the lilliput pilot in the plane :) A 10x10
+</I>&gt;<i> hm, but what is the position precision then? is it precise enough?
+</I>
+May be, could be tested .. I think they are floats, at least in our 
+viewer, and floats are IIRC accurate near 1.0 .. hmhm well we can see, 
+or someone wiser can tell, am too tired to do any math right now here.
+
+&gt;&gt;<i> For example in MXP you don't have this kind of region stuff in the
+</I>&gt;&gt;<i> protocol at all - there you just have a thing called a bubble, which
+</I>&gt;&gt;<i> AFAIK is the sphere of perception for the viewer, and the server 
+</I>&gt;&gt;<i> always
+</I>&gt;&gt;<i> tells the client about the things close to it. The client nor the
+</I>&gt;<i> this sounds a better approach - but one still needs to treat 'near' and
+</I>&gt;<i> 'far' objects differently (see above)
+</I>
+Yes, both server and client need to be smart about that. Server to know 
+what to send I guess, and client for what to draw (or what to request 
+from server, when server can be dummier? Dunno, but there probably are 
+solutions to this in places).
+
+&gt;<i> Akos
+</I>
+~Toni
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007444.html">[Opensim-dev] client API bindings?
+</A></li>
+	<LI>Next message: <A HREF="007467.html">[Opensim-dev] client API bindings?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7459">[ date ]</a>
+              <a href="thread.html#7459">[ thread ]</a>
+              <a href="subject.html#7459">[ subject ]</a>
+              <a href="author.html#7459">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

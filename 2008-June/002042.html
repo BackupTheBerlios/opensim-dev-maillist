@@ -1,0 +1,298 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Module/Plugin Loading
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3Cab84ceb10806251513l66245c93lc4328019a9364cdc%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002041.html">
+   <LINK REL="Next"  HREF="002045.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Module/Plugin Loading</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3Cab84ceb10806251513l66245c93lc4328019a9364cdc%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Module/Plugin Loading">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Thu Jun 26 00:13:38 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002041.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+        <LI>Next message: <A HREF="002045.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2042">[ date ]</a>
+              <a href="thread.html#2042">[ thread ]</a>
+              <a href="subject.html#2042">[ subject ]</a>
+              <a href="author.html#2042">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>There is a server side simulation for weather, it can be accessed with
+functions such as llWind() or llCloud(). I believe the &quot;classic clouds&quot; made
+use if these data, but I dont know if the newer clouds in the windlight
+viewer use it. Another use is for flexible prims that respond to wind. A
+server based simulation would be a means where they could respond in sync
+between viewers, but I'm not aware if they currently do or if the wind they
+respond to is specified in the viewer alone. One way to have them respond in
+sync would be to have a script in the flexi prims that provided some motion
+based on llWind(). The viewer does appear to be relying on some server based
+parameters for classic clouds. There is also a wind noise generator in the
+viewer but I dont know if it uses server side wind as a control parameter
+either.
+
+Some current uses of the wind simulation are education and sailboat racing.
+
+A crude means of visualizing the Linden server based wind can be implemented
+by placing the following LSL script in a prim, stretched on it's Z axis:
+
+default
+{
+    state_entry()
+    {
+        llSetTimerEvent( 1.0 );
+    }
+
+    timer()
+    {
+        vector wind = llWind( llGetPos() );
+        llSetRot(llRotBetween( &lt;0.0, 0.0, 1.0&gt;, llVecNorm( wind ) ) );
+    }
+}
+
+Spreading around several prims containing the above script provides some
+interesting insight into the simulation.
+
+
+On Wed, Jun 25, 2008 at 2:18 PM, Cristina Videira Lopes &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lopes at ics.uci.edu</A>&gt;
+wrote:
+
+&gt;<i> Having written the DataSnapshot module as an outsider, I must say I was
+</I>&gt;<i> really pleased with the current module system. It's really simple to
+</I>&gt;<i> understand, and works as advertised. There were protected parts that I
+</I>&gt;<i> couldn't access (in theory), but I hacked around it. In any case, no other
+</I>&gt;<i> module system would have allowed access to protected parts -- that issue is
+</I>&gt;<i> always a potential problem for plugin modules.
+</I>&gt;<i>
+</I>&gt;<i> I don't know enough about the mono plugins to compare. And I'm not sure
+</I>&gt;<i> what the problem is here, I lost track.
+</I>&gt;<i>
+</I>&gt;<i> WRT that specific simulation (wind), I think a lot of that info is
+</I>&gt;<i> currently on the client, not on the server. But one can implement a wind
+</I>&gt;<i> model module, no doubt about that; you may need to get creative about
+</I>&gt;<i> visualizing it with the SL client, though, I'm not sure there's any talk
+</I>&gt;<i> between the simulator and the client about wind.
+</I>&gt;<i>
+</I>&gt;<i> Dahlia Trimble wrote:
+</I>&gt;<i>
+</I>&gt;<i>   I've been thinking about what it would take to implement a crude wind
+</I>&gt;<i> model in opensim, and this thread appears to be along the lines of some of
+</I>&gt;<i> my thoughts. I've done some CFD visualization work several years ago, but I
+</I>&gt;<i> am by no means an expert and as such I think I would rather concentrate on
+</I>&gt;<i> developing the hooks and providing a basic model that can be unplugged and
+</I>&gt;<i> replaced with other models that would be better suited for more demanding
+</I>&gt;<i> applications. Such a model may need access to simulation variables like time
+</I>&gt;<i> of day, sun position, the object meshes used by the physics engine and their
+</I>&gt;<i> layout in 3D space, weather conditions of neighboring regions, and probably
+</I>&gt;<i> others. It may need to send weather data to agents in the simulation area,
+</I>&gt;<i> and expose data to the scripting engine to support functions such as
+</I>&gt;<i> llWind(). It would also need to be informed of changes in the region such as
+</I>&gt;<i> adding prims or terrain modifications.
+</I>&gt;<i>
+</I>&gt;<i> As a relatively new contributor, I'm not really familiar with the benefits
+</I>&gt;<i> or drawbacks of the various means of plugging in code with these
+</I>&gt;<i> requirements, and it appears that many of these issues are being brought up
+</I>&gt;<i> here which is what prompted me it add it to this thread rather than start
+</I>&gt;<i> another.  Comments?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Jun 25, 2008 at 12:08 PM, Michael Wright &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt;
+</I>&gt;<i> wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Yes those are great if we can acheive them. I'm just not sure how we
+</I>&gt;&gt;<i> create a &quot;clean&quot; wrapper that is independant of Mono.addins, as it uses
+</I>&gt;&gt;<i> various attributes to define the interfaces and plugins (TypeExtensionPoint,
+</I>&gt;&gt;<i> Extension, etc) . So those classes need references to mono.addins.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Like for example our current IApplicationPlugin:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> using Mono.Addins;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [assembly : AddinRoot(&quot;OpenSim&quot;, &quot;0.5&quot;)]
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> namespace OpenSim
+</I>&gt;&gt;<i> {
+</I>&gt;&gt;<i>     [TypeExtensionPoint(&quot;/OpenSim/Startup&quot;)]
+</I>&gt;&gt;<i>     public interface IApplicationPlugin
+</I>&gt;&gt;<i>     {
+</I>&gt;&gt;<i>         void Initialise(OpenSimBase openSim);
+</I>&gt;&gt;<i>         void Close();
+</I>&gt;&gt;<i>     }
+</I>&gt;&gt;<i> }
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> and to implement a Application plugin:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> assembly : Addin]
+</I>&gt;&gt;<i> [assembly : AddinDependency(&quot;OpenSim&quot;, &quot;0.5&quot;)]
+</I>&gt;&gt;<i> [assembly : AddinDependency(&quot;RegionProxy&quot;, &quot;0.1&quot;)]
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> namespace OpenSim.ApplicationPlugins.LoadBalancer
+</I>&gt;&gt;<i> {
+</I>&gt;&gt;<i>     [Extension(&quot;/OpenSim/Startup&quot;)]
+</I>&gt;&gt;<i>     public class LoadBalancerPlugin : IApplicationPlugin
+</I>&gt;&gt;<i>     {
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So if we had more classes that used were loaded by mono.addins, we would
+</I>&gt;&gt;<i> need the interfaces to have a TypeExtensionPoint attribute and the
+</I>&gt;&gt;<i> implementations to have the Extension. Tthe only other way I saw for
+</I>&gt;&gt;<i> Mono.addings to load plugins without those attributes, is by using its xml
+</I>&gt;&gt;<i> manifest files. And one of our requirements is listed as that we don't use
+</I>&gt;&gt;<i> third party config files.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I most likely haven't dug deep enough into mono.addins and there could
+</I>&gt;&gt;<i> well be a method to do cut out the attributes and not require manifest
+</I>&gt;&gt;<i> files. But anyway my point is that I believe a implied effect of those
+</I>&gt;&gt;<i> requirements is that we don't have references to Mono.addins in the core
+</I>&gt;&gt;<i> opensim assemblys. (OpenSim.Framework.X , etc)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> *Dr Scofield &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt;* wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Stefan Andersson wrote:
+</I>&gt;&gt;<i> &gt; Just to get this straight, is what we're saying
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; 1) Yes, we will have a common loader architecture
+</I>&gt;&gt;<i> &gt; 2) Yes, it will be implemented as a set of interfaces
+</I>&gt;&gt;<i> &gt; 3) Yes, we will create one implementation as a wrapper around
+</I>&gt;&gt;<i> Mono.Addins
+</I>&gt;&gt;<i> &gt; 4) Yes, we will aim at having a common setup file structure for
+</I>&gt;&gt;<i> &gt; OpenSim, not depend on lots of different third-party components config.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; That sounds excellent to me.
+</I>&gt;&gt;<i> +1
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Best regards,
+</I>&gt;&gt;<i> &gt; Stefan Andersson
+</I>&gt;&gt;<i> &gt; Tribal Media AB
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; &gt; Date: Wed, 25 Jun 2008 10:16:34 -0400
+</I>&gt;&gt;<i> &gt; &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>
+</I>&gt;&gt;<i> &gt; &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; &gt; Subject: Re: [Opensim-dev] Module/Plugin Loading
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; On Wed, Jun 25, 2008 at 03:12:45PM +0100, Melanie wrote:
+</I>&gt;&gt;<i> &gt; &gt; &gt; I believe that we should use a plugin loader that allows us to
+</I>&gt;&gt;<i> &gt; &gt; &gt; configure plugin loading completely within our own .ini files. I
+</I>&gt;&gt;<i> &gt; &gt; &gt; think that a requirement to tweak complex XML based mono/.NET config
+</I>&gt;&gt;<i> &gt; &gt; &gt; files to get a plugin loaded will put running OpenSim out fo reach
+</I>&gt;&gt;<i> &gt; &gt; &gt; of many users.
+</I>&gt;&gt;<i> &gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; &gt; That said, I'm all for a standardized way to load a plugin. I just
+</I>&gt;&gt;<i> &gt; &gt; &gt; think it shouldn't be required to edit conifg files outside of
+</I>&gt;&gt;<i> &gt; &gt; &gt; OpenSim's own.
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; +1. I think that ryan's plugin loader approach will give us that (at
+</I>&gt;&gt;<i> &gt; &gt; least from what I've seen in his patch and description). I'm looking
+</I>&gt;&gt;<i> &gt; &gt; forward to that work.
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; -Sean
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; --
+</I>&gt;&gt;<i> &gt; &gt; __________________________________________________________________
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; Sean Dague Mid-Hudson Valley
+</I>&gt;&gt;<i> &gt; &gt; sean at dague dot net Linux Users Group
+</I>&gt;&gt;<i> &gt; &gt; <A HREF="http://dague.net">http://dague.net</A> <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;&gt;<i> &gt; &gt;
+</I>&gt;&gt;<i> &gt; &gt; There is no silver bullet. Plus, werewolves make better neighbors
+</I>&gt;&gt;<i> &gt; &gt; than zombies, and they tend to keep the vampire population down.
+</I>&gt;&gt;<i> &gt; &gt; __________________________________________________________________
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> dr dirk husemann ---- virtual worlds research ---- ibm zurich research lab
+</I>&gt;&gt;<i> SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ----
+</I>&gt;&gt;<i> <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+</I>&gt;&gt;<i> RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 -
+</I>&gt;&gt;<i> <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  ------------------------------
+</I>&gt;&gt;<i> Not happy with your email address?
+</I>&gt;&gt;<i> Get the one you really want &lt;<A HREF="http://uk.docs.yahoo.com/ymail/new.html">http://uk.docs.yahoo.com/ymail/new.html</A>&gt; -
+</I>&gt;&gt;<i> millions of new email addresses available now at Yahoo!&lt;<A HREF="http://uk.docs.yahoo.com/ymail/new.html">http://uk.docs.yahoo.com/ymail/new.html</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> ------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.dehttps</A>://lists.berlios.de/mailman/listinfo/opensim-dev
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080625/7df1c44a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080625/7df1c44a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002041.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+	<LI>Next message: <A HREF="002045.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2042">[ date ]</a>
+              <a href="thread.html#2042">[ thread ]</a>
+              <a href="subject.html#2042">[ subject ]</a>
+              <a href="author.html#2042">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

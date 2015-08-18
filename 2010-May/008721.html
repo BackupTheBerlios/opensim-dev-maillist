@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Adding an assembly reference to make available	via script
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Adding%20an%20assembly%20reference%20to%20make%20available%0A%09via%20script&In-Reply-To=%3CAANLkTil3MI-9g3JEenQpayuknzSgNimOaarUivuDlYN1%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008715.html">
+   <LINK REL="Next"  HREF="008649.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Adding an assembly reference to make available	via script</H1>
+    <B>J Lothian</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Adding%20an%20assembly%20reference%20to%20make%20available%0A%09via%20script&In-Reply-To=%3CAANLkTil3MI-9g3JEenQpayuknzSgNimOaarUivuDlYN1%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Adding an assembly reference to make available	via script">rhalin at gmail.com
+       </A><BR>
+    <I>Sat May 29 22:20:29 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008715.html">[Opensim-dev] Adding an assembly reference to make available via script
+</A></li>
+        <LI>Next message: <A HREF="008649.html">[Opensim-dev] OpenSim 0.6.9 released
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8721">[ date ]</a>
+              <a href="thread.html#8721">[ thread ]</a>
+              <a href="subject.html#8721">[ subject ]</a>
+              <a href="author.html#8721">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Fri, May 28, 2010 at 11:44 AM, Justin Clark-Casey &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+
+&gt;<i> J Lothian wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> I'm not so sure that the current setup includes the System namespace.  The
+</I>&gt;&gt;<i> only assembly, other than the OpenSim specific ones, that is loaded is
+</I>&gt;&gt;<i> System.Collections.Generic.  I had to add System before I could even use
+</I>&gt;&gt;<i> Exceptions, which seems to indicate that only parts of System that are
+</I>&gt;&gt;<i> pulled in are the parts used by the other assemblies that are loaded.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Actually, one can still use other classes just fine if they are referenced
+</I>&gt;<i> by their full names.  For example, my script
+</I>&gt;<i>
+</I>&gt;<i> //c#
+</I>&gt;<i> // justincc's short test script
+</I>&gt;<i>
+</I>&gt;<i> string message = &quot;Hello avatar!&quot;;
+</I>&gt;<i> string xml = &quot;&lt;tag&gt;ribbit&lt;/tag&gt;&quot;;
+</I>&gt;<i>
+</I>&gt;<i> public void default_event_state_entry()
+</I>&gt;<i> {
+</I>&gt;<i>   llSay(0, message);
+</I>&gt;<i> }
+</I>&gt;<i>
+</I>&gt;<i> public void default_event_touch_start(
+</I>&gt;<i>   LSL_Types.LSLInteger total_number)
+</I>&gt;<i> {
+</I>&gt;<i>   System.IO.StringReader sr
+</I>&gt;<i>       = new System.IO.StringReader(xml);
+</I>&gt;<i>   System.Xml.XmlTextReader reader
+</I>&gt;<i>       = new System.Xml.XmlTextReader(sr);
+</I>&gt;<i>
+</I>&gt;<i>   llSay(0, reader.ReadElementString(&quot;tag&quot;));
+</I>&gt;<i> }
+</I>&gt;<i>
+</I>&gt;<i> works just fine on OpenSim Git master with no alterations other than
+</I>&gt;<i> allowing cs scripts.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+Ah, forgot that you could type out the entire assembly heirarchy to get
+there.  Kind of scary that users can get to System.IO that easily, but at
+least with a proper linux user running mono and a few other precautions,
+potential damage could be minimized.
+
+
+&gt;<i>
+</I>&gt;<i>  Melanie's response (which I mostly agree with) is why I didn't post it on
+</I>&gt;&gt;<i> the Wiki.  This isn't something the average user (specifically OpenGrid
+</I>&gt;&gt;<i> users) should probably be doing.  But rather than saying &quot;absolutely not&quot;, I
+</I>&gt;&gt;<i> have to wonder if there's some reasonable middle ground that can do the job
+</I>&gt;&gt;<i> of both 1) protecting the average installation from arbitrary library code
+</I>&gt;&gt;<i> inclusion/execution, and 2) allowing an easier way to include that facility,
+</I>&gt;&gt;<i> for users that -do- need it, as a way for others to make OpenSim more
+</I>&gt;&gt;<i> flexible.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> To be honest, I don't think the average user looks on the development
+</I>&gt;<i> section of the wiki anyway :).  Also, none of this stuff is available unless
+</I>&gt;<i> the region operator specifically allows c# scripts.  I would really like to
+</I>&gt;<i> see this documentation over there along with security warnings about using
+</I>&gt;<i> c# scripts at all.
+</I>&gt;<i>
+</I>&gt;<i> But the real solution could be to properly sandbox scripts.  I know that
+</I>&gt;<i> there was some discussion about this a long time ago and there's some good
+</I>&gt;<i> technical reason why it's not possible yet, but I can't remember what that
+</I>&gt;<i> is.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+No problem then, I can get this up and documented over the next couple days
+when I get a free moment, complete with some nice warnings.
+
+I may have an idea why sandboxing isn't very easy, at least using the
+standard tools.  In .Net, there is the Code Access Security feature, which
+admittedly, I'm fairly unfamiliar with, but I -think- it allows you to wrap
+blocks of code to require certain permission levels to execute, and possibly
+limit library access.  Under windows and .Net, these might work, but they
+are officially &quot;unsupported&quot; in mono, and it looks like the mono project has
+abandoned efforts to implement them.  And even under windows, I would guess
+that it takes the &quot;user&quot; as being the authenticated windows user that
+executed the server, not the remote OpenSim user compiling/executing the
+script.
+
+More complex sandboxing would probably a huge project in itself involving
+parsing or catching calls to specific functions, which is probably much
+beyond the scope of OpenSim.
+
+
+
+&gt;<i>
+</I>&gt;<i>  Compile-time isn't a show-stopper, but something that makes the process
+</I>&gt;&gt;<i> easier, like a module, or something in the build system/environment like an
+</I>&gt;&gt;<i> &quot;scriptengine_additional_libraries&quot; variable might be handy.  Basically,
+</I>&gt;&gt;<i> narrowing down a potential point of failure to one place, instead of three.
+</I>&gt;&gt;<i>  Thanks again though, my team here really appreciates all the hard work
+</I>&gt;&gt;<i> you all put into this.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Many thanks Jeremy, I'm sure from all of us.
+</I>&gt;<i> Be very interested to know what your team are using OpenSim for, though I
+</I>&gt;<i> appreciate that might not be possible if the work isn't in the open.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>I'm a graduate student working with a research team at Penn State University
+(details here: <A HREF="http://isee.ist.psu.edu/">http://isee.ist.psu.edu/</A>).  Basically, we're developing
+learning modules within Second Life to teach topics in computer and network
+security.  Working in SecondLife has brought up many limitations along the
+way that has slowed development quite a bit, not to mention the costs
+involved.
+
+So, we've been working on re-implementing some of our modules in OpenSim,
+and considering it for ongoing/future development.  Getting this item
+working has already sped up development a bit, the next hurdle is getting
+the XmlRpcGroups module working without disabling our ability to login, but
+thats a topic for another thread when I have more time to look into it...
+
+Thanks again,
+
+--Jeremy Lothian
+
+
+&gt;<i> Best,
+</I>&gt;<i>
+</I>&gt;<i> Justin.
+</I>&gt;<i>
+</I>&gt;<i>  --Jeremy Lothian
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Thu, May 27, 2010 at 8:11 PM, Justin Clark-Casey &lt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    Melanie wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>        A generic means to add extra libs would be highly DANGEROUS. It
+</I>&gt;&gt;<i>        definitely needs to be compile-time. Probably has to be, anyway,
+</I>&gt;&gt;<i>        from the way the scripts work.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    C# scripts are insecure anyway since anybody who can create them has
+</I>&gt;&gt;<i>    access to the System namespaces.  They are still useful in contexts
+</I>&gt;&gt;<i>    where script creation and editing are restricted or all parties are
+</I>&gt;&gt;<i>    highly trusted.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>        Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>        Justin Clark-Casey wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            J Lothian wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                Justin,
+</I>&gt;&gt;<i>                 Thanks for pointing me in a direction, this was -very-
+</I>&gt;&gt;<i>                helpful.  It wasn't nearly as straightforward as I was
+</I>&gt;&gt;<i>                expecting, but it did give me the opportunity/excuse to
+</I>&gt;&gt;<i>                get my hands dirty and dig into the projects and code a
+</I>&gt;&gt;<i>                bit.  I'm going to document the process a bit here, so
+</I>&gt;&gt;<i>                it gets archived for future reference.  I'm pretty sure
+</I>&gt;&gt;<i>                I've narrowed down the steps needed.
+</I>&gt;&gt;<i>                The actual project that needs the assembly reference
+</I>&gt;&gt;<i>                added to it is
+</I>&gt;&gt;<i>                OpenSim.Region.ScriptEngine.Shared.CodeTools, but this
+</I>&gt;&gt;<i>                is just the start.  This gets the assembly detectable by
+</I>&gt;&gt;<i>                the compiler.  The next step is adding the reference to
+</I>&gt;&gt;<i>                the script being compiled.  In
+</I>&gt;&gt;<i>                OpenSim.Region.ScriptEngine.Shared.CodeTools.Compiler
+</I>&gt;&gt;<i>                (Compiler.cs), in the function CompileFromDotNetText,
+</I>&gt;&gt;<i>                there is a section where ReferencedAssemblies are added
+</I>&gt;&gt;<i>                to the compiler as parameters, and the assembly needs to
+</I>&gt;&gt;<i>                be added here as well.  For example, to add a standard
+</I>&gt;&gt;<i>                library, the following line would be used:
+</I>&gt;&gt;<i>                 parameters.ReferencedAssemblies.Add(&quot;System.dll&quot;);
+</I>&gt;&gt;<i>                 Which, it turns out, I needed to do, as System.dll
+</I>&gt;&gt;<i>                isn't added by default, and our test script included a
+</I>&gt;&gt;<i>                try/catch where Exception was not detected as a type.
+</I>&gt;&gt;<i>                 To add something like the MySql dll that comes with
+</I>&gt;&gt;<i>                OpenSim, it would look like this:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                parameters.ReferencedAssemblies.Add(
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>                Path.Combine(rootPath,&quot;MySql.Data.dll&quot;));The script
+</I>&gt;&gt;<i>                engine automatically wraps scripts in boilerplate code
+</I>&gt;&gt;<i>                to put them inside a class and make them compilable.
+</I>&gt;&gt;<i>                 This has the side-effect of making &quot;using&quot; or &quot;import&quot;
+</I>&gt;&gt;<i>                statements inside scripts impossible, so these also need
+</I>&gt;&gt;<i>                to be added to the code. For example, if your script is
+</I>&gt;&gt;<i>                C#, then the function to alter is CreateCSCompilerScript
+</I>&gt;&gt;<i>                (in the same Compile.cs), adding the using statement to
+</I>&gt;&gt;<i>                the list inside this function.
+</I>&gt;&gt;<i>                 If I get the chance later this summer, I may try to
+</I>&gt;&gt;<i>                develop a more robust system that attempts to (at the
+</I>&gt;&gt;<i>                very least) detect the default mono/.net libraries and
+</I>&gt;&gt;<i>                automatically adjust this boilerplate to include them...
+</I>&gt;&gt;<i>                 Again, thanks for the help!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            Glad that was of some use!  Would very much look forward to
+</I>&gt;&gt;<i>            a boilerplate adjuster - being able to include extra
+</I>&gt;&gt;<i>            libraries from OpenSim C# 'scripts' would be really useful.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>            Also, it would be great if you could copy the above into a
+</I>&gt;&gt;<i>            new wiki page off
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> <A HREF="http://opensimulator.org/wiki/Developer_Documentation#Scripting.">http://opensimulator.org/wiki/Developer_Documentation#Scripting.</A>
+</I>&gt;&gt;<i>             Things tend to stay a little bit more visible there.  Thanks!
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>        _______________________________________________
+</I>&gt;&gt;<i>        Opensim-dev mailing list
+</I>&gt;&gt;<i>        <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>        <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    --     Justin Clark-Casey (justincc)
+</I>&gt;&gt;<i>    <A HREF="http://justincc.org">http://justincc.org</A> &lt;<A HREF="http://justincc.org/">http://justincc.org/</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;&gt;<i>    _______________________________________________
+</I>&gt;&gt;<i>    Opensim-dev mailing list
+</I>&gt;&gt;<i>    <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>    <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20100529/3b08820e/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20100529/3b08820e/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008715.html">[Opensim-dev] Adding an assembly reference to make available via script
+</A></li>
+	<LI>Next message: <A HREF="008649.html">[Opensim-dev] OpenSim 0.6.9 released
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8721">[ date ]</a>
+              <a href="thread.html#8721">[ thread ]</a>
+              <a href="subject.html#8721">[ subject ]</a>
+              <a href="author.html#8721">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

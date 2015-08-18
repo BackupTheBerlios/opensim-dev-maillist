@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20So%20I%20decided%20to%20give%20this%20one%20more%20shot%20before%0A%20I%09start%20chopping%20it%20up%20with%20a%20chainsaw.......&In-Reply-To=%3C4762530E.4080003%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000547.html">
+   <LINK REL="Next"  HREF="000552.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20So%20I%20decided%20to%20give%20this%20one%20more%20shot%20before%0A%20I%09start%20chopping%20it%20up%20with%20a%20chainsaw.......&In-Reply-To=%3C4762530E.4080003%40googlemail.com%3E"
+       TITLE="[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Dec 14 10:55:26 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000547.html">[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......
+</A></li>
+        <LI>Next message: <A HREF="000552.html">[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#549">[ date ]</a>
+              <a href="thread.html#549">[ thread ]</a>
+              <a href="subject.html#549">[ subject ]</a>
+              <a href="author.html#549">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Michael Wright wrote:
+&gt;<i> hmm,  has there been a 100% certain case of LLUUID in the grid 
+</I>&gt;<i> communitcations causing a problem ? As we don't actually use the 
+</I>&gt;<i> ISerializable interfeace, for the REST postings (which inventory 
+</I>&gt;<i> uses). We use XML serialising  and from all the tests I have done 
+</I>&gt;<i> (just did another one to be sure before I wrote this email), LLUUID is 
+</I>&gt;<i> serializable into XML. If it wasn't then we would no longer be able to 
+</I>&gt;<i> take items in and out of inventory as that serialises/deserialises the 
+</I>&gt;<i> SceneObjectGroup to and from xml.  Same with load-xml/save-xml.
+</I>&gt;<i>
+</I>Yes, I thought it was odd that I wasn't seeing the same failures Teravus 
+was seeing on my Windows system.  Nonetheless, I've attached another 
+patch (a very nasty hack job) to #145 to temporarily store Guids in the 
+inventory data structures rather than LLUIDs.  See if this helps.
+&gt;<i>
+</I>&gt;<i> If possible, I would rather us leave the changing to guids for now as 
+</I>&gt;<i> I think we need to think of a longer term plan. As I said, the 
+</I>&gt;<i> Sceneobjects are full of LLUUID and using xml serialising and if we 
+</I>&gt;<i> want to avoid future problems with changes to LLUUID etc (like old 
+</I>&gt;<i> saved xml files or iventory items not working), we need to come up 
+</I>&gt;<i> with something to replace those classes in there and not sure Guid is 
+</I>&gt;<i> ideal there.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Anyway on a slightly different subject, could anyone who is working on 
+</I>&gt;<i> inventory, either try to catch me on irc or reply to this and let me 
+</I>&gt;<i> know which bits they are working on and which bits would be safe for 
+</I>&gt;<i> me to do some changes to. Just I want to do some refactoring to the 
+</I>&gt;<i> Inventory Code in scene and most likely the cache code, but don't want 
+</I>&gt;<i> to mess up anyone current work.
+</I>Since I'm already writing an e-mail, I'm just going to confirm that I'm 
+not actively looking at anything in this area (apart from this).  I 
+probably won't do so until you've finished the refactoring unless it's 
+very minor.
+&gt;<i> */Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt;/* wrote:
+</I>&gt;<i>
+</I>&gt;<i>     Hey Guys'n Gals.. 
+</I>&gt;<i>      
+</I>&gt;<i>     Digging into Bug number 145 on Mantis..    I discovered profuse
+</I>&gt;<i>     and prolific use of the unserializable LLUUID in inventory..   
+</I>&gt;<i>     It's used *everywhere*.    
+</I>&gt;<i>      
+</I>&gt;<i>     It's no wonder inventory is spotty and error prone!
+</I>&gt;<i>      
+</I>&gt;<i>     It's used in InventoryFolderBase
+</I>&gt;<i>     It's used in InventoryItemBase
+</I>&gt;<i>     It's used in the REST calls
+</I>&gt;<i>     All of this data is being transferred over Grid Communications :/
+</I>&gt;<i>      
+</I>&gt;<i>     Once again, I restate that the LLUUID is no longer serializable. 
+</I>&gt;<i>     It now implements the IComparable interface which is *not*
+</I>&gt;<i>     serializable..   Therefore, it can 'never' be used in any grid
+</I>&gt;<i>     communications, period.
+</I>&gt;<i>      
+</I>&gt;<i>     We all need to take a good look at the grid inventory service and
+</I>&gt;<i>     'fix' all uses of LLUUID.
+</I>&gt;<i>      
+</I>&gt;<i>     It's *really* easy to use a Guid instead.     
+</I>&gt;<i>      
+</I>&gt;<i>     To go from a System.Guid to a LLUUID, you instantiate a new LLUUID
+</I>&gt;<i>     and pass the Guid to it's constructor.  
+</I>&gt;<i>     ex:
+</I>&gt;<i>      
+</I>&gt;<i>     Guid gAgentID = 'xxxxxxx-xx-x--x-x--xx';
+</I>&gt;<i>      
+</I>&gt;<i>     LLUUID AgentID = new LLUUID(gAgentID);
+</I>&gt;<i>      
+</I>&gt;<i>      
+</I>&gt;<i>     To go from a LLUUID to a guid, you use the UUID property of the
+</I>&gt;<i>     LLUUID.
+</I>&gt;<i>     ex:
+</I>&gt;<i>      
+</I>&gt;<i>     Guid gAgentID = AgentID.UUID;
+</I>&gt;<i>      
+</I>&gt;<i>     So, given that you've got a userID LLUUID..      to get it over
+</I>&gt;<i>     grid communications reliably..  you have to turn it into a Guid.
+</I>&gt;<i>      
+</I>&gt;<i>     requester.BeginPostObject&lt;*Guid*&gt;(_inventoryServerUrl +
+</I>&gt;<i>     &quot;/GetInventory/&quot;, *userID.UUID*);
+</I>&gt;<i>      
+</I>&gt;<i>     Then on the receiving side,
+</I>&gt;<i>      
+</I>&gt;<i>      httpServer.AddStreamHandler(
+</I>&gt;<i>                     new RestDeserialisehandler&lt;*Guid*,
+</I>&gt;<i>     InventoryCollection&gt;(&quot;POST&quot;, &quot;/GetInventory/&quot;,
+</I>&gt;<i>                                                                                      
+</I>&gt;<i>     m_inventoryService.GetUserInventory));
+</I>&gt;<i>      
+</I>&gt;<i>     public InventoryCollection GetUserInventory(*Guid userID*)
+</I>&gt;<i>             {
+</I>&gt;<i>                 InventoryCollection invCollection = new
+</I>&gt;<i>     InventoryCollection();
+</I>&gt;<i>                 List&lt;InventoryFolderBase&gt; folders;
+</I>&gt;<i>                 List&lt;InventoryItemBase&gt; allItems;
+</I>&gt;<i>                 if (TryGetUsersInventory(*new LLUUID(userID),* out
+</I>&gt;<i>     folders, out allItems))
+</I>&gt;<i>                 {
+</I>&gt;<i>                     invCollection.AllItems = allItems;
+</I>&gt;<i>                     invCollection.Folders = folders;
+</I>&gt;<i>                     invCollection.UserID = *new LLUUID(userID);*
+</I>&gt;<i>                 }
+</I>&gt;<i>                 return invCollection;
+</I>&gt;<i>             }
+</I>&gt;<i>      
+</I>&gt;<i>     Additionally,
+</I>&gt;<i>     Any object that encapsulates a LLUUID directly, is NOT
+</I>&gt;<i>     serializable...   that means..   the objects;
+</I>&gt;<i>      
+</I>&gt;<i>     InventoyFolderBase
+</I>&gt;<i>     and
+</I>&gt;<i>     InventoryItemBase
+</I>&gt;<i>      
+</I>&gt;<i>     Are not serializable because they encapsulate LLUUIDs.  This is
+</I>&gt;<i>     *bad* :D.  They cannot go over Grid Communications reliably.
+</I>&gt;<i>      
+</I>&gt;<i>     They all need to be changed to Guids, or we'll continue to have
+</I>&gt;<i>     spotty inventory.
+</I>&gt;<i>      
+</I>&gt;<i>      :D
+</I>&gt;<i>      
+</I>&gt;<i>     I'm mentioning this because it's a big problem..  
+</I>&gt;<i>      
+</I>&gt;<i>     I don't really know this portion of the code well..   so if I edit
+</I>&gt;<i>     it, it's likely to break..  hence the subject.
+</I>&gt;<i>      
+</I>&gt;<i>     Someone take this on please..   so I don't have to chop it up with
+</I>&gt;<i>     a chainsaw..    grind it down with a tree stump grinder, run it
+</I>&gt;<i>     over with a steam roller and jack-hammer it to itty bitty bite
+</I>&gt;<i>     sized serializable components that can reliably be transferred
+</I>&gt;<i>     over grid communications. :D
+</I>&gt;<i>      
+</I>&gt;<i>     Best Regards
+</I>&gt;<i>      
+</I>&gt;<i>     Tera
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> Sent from Yahoo! 
+</I>&gt;<i> &lt;<A HREF="http://us.rd.yahoo.com/mailuk/taglines/isp/control/*http://us.rd.yahoo.com/evt=51949/*http://uk.docs.yahoo.com/mail/winter07.html">http://us.rd.yahoo.com/mailuk/taglines/isp/control/*http://us.rd.yahoo.com/evt=51949/*http://uk.docs.yahoo.com/mail/winter07.html</A>&gt; 
+</I>&gt;<i> - a smarter inbox.
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000547.html">[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......
+</A></li>
+	<LI>Next message: <A HREF="000552.html">[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#549">[ date ]</a>
+              <a href="thread.html#549">[ thread ]</a>
+              <a href="subject.html#549">[ subject ]</a>
+              <a href="author.html#549">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

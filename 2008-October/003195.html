@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Sim Startup Optimisations
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Sim%20Startup%20Optimisations&In-Reply-To=%3C48E61BF9.4060001%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003191.html">
+   <LINK REL="Next"  HREF="003193.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Sim Startup Optimisations</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Sim%20Startup%20Optimisations&In-Reply-To=%3C48E61BF9.4060001%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Sim Startup Optimisations">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Oct  3 15:19:53 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003191.html">[Opensim-dev] Sim Startup Optimisations
+</A></li>
+        <LI>Next message: <A HREF="003193.html">[Opensim-dev] Strange behavious with OpenSim.exe in grid mode :((
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3195">[ date ]</a>
+              <a href="thread.html#3195">[ thread ]</a>
+              <a href="subject.html#3195">[ subject ]</a>
+              <a href="author.html#3195">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Lc wrote:
+&gt;<i> Hello all,
+</I>&gt;<i> 
+</I>&gt;<i> After some discution about the last WP's sim restarts problems due to 
+</I>&gt;<i> massive login while WP was still booting, I found we register the sim 
+</I>&gt;<i> BEFORE starting the scripts. -&gt; Opensim.opensimbase 
+</I>&gt;<i> 
+</I>&gt;<i> I made a patch to move the registration's process at the end of the sim 
+</I>&gt;<i> booting (Patch and mantis will be written later today). This move should 
+</I>&gt;<i> ease the &quot;sim booting&quot; process a little but it's definitivly not the 
+</I>&gt;<i> solution.
+</I>&gt;<i> 
+</I>&gt;<i> I think a better approach will be registering all the sims at the end of 
+</I>&gt;<i> the boot sequence, just before the console creation : Opensim.opensim 
+</I>&gt;<i> base.startup area.
+</I>
+The registration process should come early so that someone doesn't have to sit through the whole sim startup before it's 
+aborted because there's some problem registering the region.
+
+However, registration does not actually allow login anyway.  Logins are enabled separately in the login service at the 
+very end of startup (after any script starting has been kicked off in separate threads).  See lines 429-430 in 
+OpenSimBase.Startup()
+
+             // Only enable logins to the regions once we have completely finished starting up (apart from scripts)
+             m_commsManager.GridService.RegionLoginsEnabled = true;
+
+One could argue that it would be nice to only enable logins once all initial scripts had actually started up.  However, 
+I suspect this might be quite a hard thing to do since one then has to know that scripts are starting up because the 
+region server has been started, and not because they've just been loaded/created, etc.
+
+&gt;<i> 
+</I>&gt;<i> That move will let the system to cope with all the sim booting business 
+</I>&gt;<i> before taking care of the users login.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Another improvement will be an implementation of massive 
+</I>&gt;<i> login defense system based on the userlevel. One of the approach would 
+</I>&gt;<i> be allowing a defined userlevel for xx seconds, then another level and 
+</I>&gt;<i> so forth...
+</I>
+This is starting to sound rather complicated.  What exactly are you trying to defend against?
+
+If we do have any such strategies it would be really good to have them implemented as plugins of some description.
+
+&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Toughts ?
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Sm
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003191.html">[Opensim-dev] Sim Startup Optimisations
+</A></li>
+	<LI>Next message: <A HREF="003193.html">[Opensim-dev] Strange behavious with OpenSim.exe in grid mode :((
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3195">[ date ]</a>
+              <a href="thread.html#3195">[ thread ]</a>
+              <a href="subject.html#3195">[ subject ]</a>
+              <a href="author.html#3195">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

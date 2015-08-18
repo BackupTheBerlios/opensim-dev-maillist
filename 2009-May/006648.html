@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Memory cache
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Memory%20cache&In-Reply-To=%3C4A1DCE9B.9020105%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006646.html">
+   <LINK REL="Next"  HREF="006650.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Memory cache</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Memory%20cache&In-Reply-To=%3C4A1DCE9B.9020105%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Memory cache">diva at metaverseink.com
+       </A><BR>
+    <I>Thu May 28 01:36:59 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006646.html">[Opensim-dev] Memory cache
+</A></li>
+        <LI>Next message: <A HREF="006650.html">[Opensim-dev] Memory cache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6648">[ date ]</a>
+              <a href="thread.html#6648">[ thread ]</a>
+              <a href="subject.html#6648">[ subject ]</a>
+              <a href="author.html#6648">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Imaze, this is awesome! Thank you so much for such extensive testing and 
+for doing the extra cache module implementation. This is really valuable.
+
+If there are no objections from fellow committers, I will be more than 
+happy to take an improved version of your code and add it to OpenSim as 
+a 3rd alternative cache module that people can test out there in the wild.
+
+Technically, your code needs thread-safety, that's all. Procedurally, it 
+also needs a license on top. If you want to give your code to the 
+OpenSim project, it needs the OpenSim license text. Otherwise, the cache 
+itself (CnmHashGenerationCache) needs to be added as a 3rd party dll, 
+and only the module would be 100% OpenSim. In any case, if you want to 
+do this, whichever way you want to do it, please do it via a patch 
+submitted in mantis, so we can have a record. 
+<A HREF="http://opensimulator.org/mantis">http://opensimulator.org/mantis</A>
+
+As for the more substantial contribution of the Cenome DB, I'll leave 
+that to the people here who know more about DBs than I do.
+
+
+Imaze Rhiano wrote:
+&gt;<i> Hi!
+</I>&gt;<i> 
+</I>&gt;<i> I have done some research about asset server. I used lates trunk from 
+</I>&gt;<i> this morning.
+</I>&gt;<i> 
+</I>&gt;<i> Here are my findings:
+</I>&gt;<i> 1. CoreAssetCache's CacheBuckets configuration is not working properly. 
+</I>&gt;<i> Cache's size is limited to 1024 buckets, because of bug or by design. So 
+</I>&gt;<i> &quot;default&quot; configuration value 32768 - didn't never happen.
+</I>&gt;<i>     See:  private void SetSize(int newSize) in Cache.cs
+</I>&gt;<i>              lock (m_Index)
+</I>&gt;<i>             {
+</I>&gt;<i>                 if (Count &lt;= Size)
+</I>&gt;<i>                     return;
+</I>&gt;<i>                 .....
+</I>&gt;<i>              }
+</I>&gt;<i>     During initialization phase, Count is 0 - so initial size value 1024 
+</I>&gt;<i> is used. (And Count never can't grow up bigger than Size)
+</I>&gt;<i> 
+</I>&gt;<i> 2. GlynnTucker cache is basically Hashtable that contains all assets  
+</I>&gt;<i> they are never removed from cache unless assets is exlusively removed by 
+</I>&gt;<i> calling Expire method. It definately can provide huge performance impact 
+</I>&gt;<i> for short time - but eventually your server is going to run out of  memory.
+</I>&gt;<i> 
+</I>&gt;<i> 3. To evaluate different cache's performance I first tried to do some 
+</I>&gt;<i> testing in stand alone SIM. Unfortunately single client, just didn't 
+</I>&gt;<i> provide enough caching to really to measure performance, so I adopted 
+</I>&gt;<i> different strategy. I did write simple Window$ console application with 
+</I>&gt;<i> 4 different test cases.
+</I>&gt;<i> 
+</I>&gt;<i> Test Case 1 &quot;EnumerateAllTest&quot;: Just add assets to cache by predefined 
+</I>&gt;<i> order and then try to get them from cache in same order. (Basically 
+</I>&gt;<i> caches were pretty much guranteed to forgot first few thousands assets.)
+</I>&gt;<i> Test Case 2 &quot;GetRandom&quot;:  Try to get random asset from cache, and if 
+</I>&gt;<i> asset is not found, add it to there.
+</I>&gt;<i> Test Case 3 &quot;GetRandomMoreFrequentTest&quot;: Try to get random asset from 
+</I>&gt;<i> cache, and if asset is not found, add it to there. However, this time 
+</I>&gt;<i> there 1000 assets that are more likely asked than other assets (80% chance).
+</I>&gt;<i> Test Case 4 &quot;GetRandomMoreFrequentWithExpireTest&quot;: Same as Test Case 3 - 
+</I>&gt;<i> except that there is 25% chance to remove (expire) random assets from 
+</I>&gt;<i> cache for each item retrieve iteration. Remove assets didn't actually 
+</I>&gt;<i> need to be in cache.
+</I>&gt;<i> 
+</I>&gt;<i>  From these test cases, case 4 is maybe most realistic. Assets are 
+</I>&gt;<i> requested randomly, but some of assets are requested more often. And 
+</I>&gt;<i> sometimes assets are also expired explicitely.
+</I>&gt;<i> 
+</I>&gt;<i> Test program did measure used time for each test case and cache hit rate 
+</I>&gt;<i> (how frequently cache actually did return requested assets). I also did 
+</I>&gt;<i> write two additional caches - Cenome Assets Cache (this is very basic 
+</I>&gt;<i> memory cache coming from commercial database project that I am currently 
+</I>&gt;<i> working on) and simple Dictionary based cache (to see difference between 
+</I>&gt;<i> real caches and maximal possible performance). There was 100 000 
+</I>&gt;<i> randomly generated &quot;assets&quot; with data length between 393 170 and 10 
+</I>&gt;<i> bytes - total asset size 7 361 310 300 bytes.
+</I>&gt;<i> 
+</I>&gt;<i> Here are performance results:
+</I>&gt;<i> 
+</I>&gt;<i> TIME
+</I>&gt;<i>                                       Test Case
+</I>&gt;<i>                                                 1                
+</I>&gt;<i> 2               3                        4
+</I>&gt;<i> CoreAssetCache                      6.552s       33.446s     1m 
+</I>&gt;<i> 10.668s        1m 16.222s
+</I>&gt;<i> GlynnTuckerAssetCache          0.359s       0.811s       
+</I>&gt;<i> 3.292s                7.691s
+</I>&gt;<i> CenomeAssetsCache               0.156s       0.764s       
+</I>&gt;<i> 2.309s                4.165s
+</I>&gt;<i> DictionaryAssets                      0.203s       0.468s       
+</I>&gt;<i> 2.231s                3.900s
+</I>&gt;<i> 
+</I>&gt;<i> HIT COUNT
+</I>&gt;<i>                                       Test Case
+</I>&gt;<i>                                                 1                
+</I>&gt;<i> 2               3                        4
+</I>&gt;<i> CoreAssetCache                      1.0%          1.0%         
+</I>&gt;<i> 55.1%               55.0%
+</I>&gt;<i> GlynnTuckerAssetCache          100%         75.4%       95.1% 
+</I>&gt;<i>                83.3%
+</I>&gt;<i> CenomeAssetsCache               4.0%          5.9%         
+</I>&gt;<i> 81.0%                80.8%
+</I>&gt;<i> DictionaryAssets                      100%         75.4%       
+</I>&gt;<i> 95.1%                83.3%
+</I>&gt;<i> 
+</I>&gt;<i> As you can see, CoreAssetCache is 15-20 times slower than more optimal 
+</I>&gt;<i> solutions. And GlynnTucker assets cache hit rate is optimal - because it 
+</I>&gt;<i> is storing all assets - and never forget them.
+</I>&gt;<i> 
+</I>&gt;<i> 4. To find out why, CoreAssetsCache's performance is so poor compared to 
+</I>&gt;<i> other caches, I did use JetBrain's dotTrace profiler. For profiling, I 
+</I>&gt;<i> did lower assets count to 10000 and reduced iterations to lower 
+</I>&gt;<i> (profiling is taking lot's of time) - so profiling measurements are not 
+</I>&gt;<i> directly comparable with performance measurements.
+</I>&gt;<i> 
+</I>&gt;<i> Major cause for CoreAssetsCache bad performance was 
+</I>&gt;<i> &quot;OpenSim.Framework.Cache.Store(String, Object, Type, Object [])&quot; methods 
+</I>&gt;<i> line &quot;if (m_Index.Contains(new CacheItemBase(index)))&quot;. About 75% of 
+</I>&gt;<i> time in Test Case 4 was used in this line. m_index is 
+</I>&gt;<i> List&lt;CacheItemBase&gt; object. Contains call is basically linear search 
+</I>&gt;<i> algorithm - instead of Contains method, BinarySearch should have been used.
+</I>&gt;<i> 
+</I>&gt;<i> I thing that CoreAssetsCache class might be salvageable, but it really 
+</I>&gt;<i> need some serious refactoring - like why there is two collection of keys 
+</I>&gt;<i> m_Index and m_Loopup? It might be easier to either implement new cache 
+</I>&gt;<i> class or maybe use CenomeCache as base of new implementation.
+</I>&gt;<i> 
+</I>&gt;<i> 5. There is &quot;some&quot; weirdness in other parts of code:
+</I>&gt;<i> - Cache class is also used directly in FriendsModule and 
+</I>&gt;<i> LandManagementModule
+</I>&gt;<i> - There is interface called: IAssetCache that is used in several places 
+</I>&gt;<i> and modules, however just one Test class is implementing interface 
+</I>&gt;<i> (TestAssetCache) (CoreAssetsCache, GlynnTuckerAssetCache and 
+</I>&gt;<i> CenomeAssetsCache are implementing IImprovedAssetCache interface)
+</I>&gt;<i> 
+</I>&gt;<i> You can (hopefully) download test program from 
+</I>&gt;<i> <A HREF="http://imazer.x10hosting.com/CacheTesting.zip">http://imazer.x10hosting.com/CacheTesting.zip</A>
+</I>&gt;<i> Please note CenomeAssetCache is not ready for production - it is missing 
+</I>&gt;<i> thread safety. (And I don't have update rights to Open SIM's version 
+</I>&gt;<i> control system.)
+</I>&gt;<i> This was first day when I took serious look to Open SIMs code - so I 
+</I>&gt;<i> might be wrong several things here...
+</I>&gt;<i> 
+</I>&gt;<i> - Imaze Rhiano
+</I>&gt;<i> 
+</I>&gt;<i> PS: It is possible that I could contribute licence to Cenome database 
+</I>&gt;<i> for Open SIM project. Database is designed to store BLOB like objects 
+</I>&gt;<i> with full transaction and threading support to single file. However - 
+</I>&gt;<i> database is closed source and still under development. If closed source 
+</I>&gt;<i> implementation is not acceptable - then alternative is B-tree variant 
+</I>&gt;<i> implemation that I might be able to release to open source.
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006646.html">[Opensim-dev] Memory cache
+</A></li>
+	<LI>Next message: <A HREF="006650.html">[Opensim-dev] Memory cache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6648">[ date ]</a>
+              <a href="thread.html#6648">[ thread ]</a>
+              <a href="subject.html#6648">[ subject ]</a>
+              <a href="author.html#6648">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

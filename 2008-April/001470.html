@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; message
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20removing%20%22ERROR%3A%20There%20was%20an%20error%0A%20while%20scanning%20assembly%3A%22%20message&In-Reply-To=%3CBLU134-W285384187E7EF7A765A9E8D5E70%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001469.html">
+   <LINK REL="Next"  HREF="001473.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; message</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20removing%20%22ERROR%3A%20There%20was%20an%20error%0A%20while%20scanning%20assembly%3A%22%20message&In-Reply-To=%3CBLU134-W285384187E7EF7A765A9E8D5E70%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; message">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sat Apr 19 09:15:06 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001469.html">[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; messages
+</A></li>
+        <LI>Next message: <A HREF="001473.html">[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; message
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1470">[ date ]</a>
+              <a href="thread.html#1470">[ thread ]</a>
+              <a href="subject.html#1470">[ subject ]</a>
+              <a href="author.html#1470">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin,
+ 
+what was the problem with moving plug-in dll's to a separate directory?
+ 
+Or, doesn't mono plugins support loading named plugins from an xml file, for example?
+ 
+Wouldn't either of these solve the problem?
+ 
+Best,
+Stefan
+
+
+
+&gt;<i> Date: Fri, 18 Apr 2008 20:00:38 +0100&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-users at lists.berlios.de</A>&gt; Subject: [Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; messages&gt; &gt; Hello,&gt; &gt; This is a technical post but I'm copying it to users for information. &gt; You may (or may not) want to stop reading quickly :-)&gt; &gt; So, some of you may have noticed that the latest OpenSim revisions now &gt; have many more of the subject error messages on the console. The cause &gt; is the Mono Addins manager we're using, which writes these errors to the &gt; console if the dll doesn't contain the configuration data it's expecting.&gt; &gt; So today I looked at removing these errors. I had to follow several &gt; lines of investigation.&gt; &gt; 1. My initial thought was to move all the external libraries which are &gt; causing the problem to a separate $OPENSIM_ROOT/lib/ext directory. &gt; However, this means changes to make sure that the dlls can be found in &gt; the new directory. For a cross platform application, it's hard. On &gt; Microsoft's CLR we can simply use &lt;Probing&gt; in config files. However, &gt; Mono does appear to support this, at least according to&gt; &gt; <A HREF="http://www.mono-project.com/Assemblies_and_the_GAC">http://www.mono-project.com/Assemblies_and_the_GAC</A>&gt; &gt; I tried it anyway, without success. Instead, the only option on Mono is &gt; to either set the MONO_PATH or put the assemblies in the Global Assembly &gt; Cache.&gt; &gt; 2. This makes things awkward, so instead I looked at moving the plugin &gt; dlls. Same problem.&gt; &gt; 3. So instead I looked at simply suppressing the messages. &gt; Unfortunately, the Mono addins code writes these messages out to the &gt; console. Although in theory you could give it an IProgressMonitor and &gt; stop this, all the classes for this (and the interface) are internal and &gt; hence not accessible. Later versions of mono-addins than the one we are &gt; using would appear to have the same problem.&gt; &gt; So although we could hack the code in 3. to remove the message (or even &gt; replace or code our own plugin solution), the fact is that we really &gt; need to have dlls in different directories eventually anyway - bin/ is &gt; already overloaded. This means I'm forced to come back to suggestion &gt; 1. Putting things in the GAC is unrealistic at this stage I think, so &gt; I'm proposing that we move all the external libraries to &gt; $OPENSIM_ROOT/lib/ext and set the MONO_PATH environmental variable to &gt; point to this directory. Under Windows, we would instead put &lt;Probing&gt; &gt; entries in the executable's config files.&gt; &gt; I tried setting MONO_PATH programatically in OpenSimMain.cs, but the set &gt; doesn't look like it is exported so the load fails. The same path works &gt; fine when exported from the command line.&gt; &gt; If we go the MONO_PATH route, then I think we could provide shell &gt; scripts for all the executables to set the path and then launch the &gt; program, even though this is a little messy. The executable itself &gt; would complain loudly if it is not on Windows and MONO_PATH is unset &gt; (which would be inconvenient for Windows mono users, though there may &gt; not be that many of them).&gt; &gt; I'm open to constructive suggestions on this, particularly from core &gt; developers.&gt; &gt; -- &gt; justincc&gt; Justin Clark-Casey&gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>&gt; &gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080419/7de0799a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080419/7de0799a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001469.html">[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; messages
+</A></li>
+	<LI>Next message: <A HREF="001473.html">[Opensim-dev] Proposal for removing &quot;ERROR: There was an error while scanning assembly:&quot; message
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1470">[ date ]</a>
+              <a href="thread.html#1470">[ thread ]</a>
+              <a href="subject.html#1470">[ subject ]</a>
+              <a href="author.html#1470">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

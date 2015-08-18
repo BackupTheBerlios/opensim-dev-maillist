@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] vehicle script
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20vehicle%20script&In-Reply-To=%3C602452.16775.qm%40web82604.mail.mud.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006460.html">
+   <LINK REL="Next"  HREF="006462.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] vehicle script</H1>
+    <B>Charles Krinke</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20vehicle%20script&In-Reply-To=%3C602452.16775.qm%40web82604.mail.mud.yahoo.com%3E"
+       TITLE="[Opensim-dev] vehicle script">cfk at pacbell.net
+       </A><BR>
+    <I>Thu May 14 03:33:04 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006460.html">[Opensim-dev] Can't set color of prims in Region Module.
+</A></li>
+        <LI>Next message: <A HREF="006462.html">[Opensim-dev] Standard Test region
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6461">[ date ]</a>
+              <a href="thread.html#6461">[ thread ]</a>
+              <a href="subject.html#6461">[ subject ]</a>
+              <a href="author.html#6461">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Jeff Heaton, in his book, &quot;Introduction to Linden Scripting Language for Second Life&quot; has a vehicle script for a basic car on page 171. At the risk of irritating Jeff, I am pasting it here and hoping we can use it for a test script to wring out vehicle script functionality.
+
+It uses the LSL functions llSetVehicleType(), llSetVehicleFloatParam() &amp; llSetVehicleVectorParam() which are three of the key vehicle functions we need to support.
+
+I am hoping a few folks might take this script, test it, Mantis the results and help us get momentum to patch the missing pieces.
+
+Charles
+
+// Encog's Magic Wagon
+// Very simple vehicle script
+
+float forward_power = 15; //Power used to go forward (1 to 30)
+float reverse_power = -15; //Power ued to go reverse (-1 to -30)
+float turning_ratio = 2.0; //How sharply the vehicle turns. Less is more sharply. (.1 to 10)
+string sit_message = &quot;Ride&quot;; //Sit message
+string not_owner_message = &quot;You are not the owner of this vehicle ...&quot;; //Not owner message
+
+setVehicle()
+{
+    //car
+        
+        llSetVehicleType(VEHICLE_TYPE_CAR);
+        llSetVehicleFloatParam(VEHICLE_ANGULAR_DEFLECTION_EFFICIENCY, 0.2);
+        llSetVehicleFloatParam(VEHICLE_LINEAR_DEFLECTION_EFFICIENCY, 0.80);
+        llSetVehicleFloatParam(VEHICLE_ANGULAR_DEFLECTION_TIMESCALE, 0.10);
+        llSetVehicleFloatParam(VEHICLE_LINEAR_DEFLECTION_TIMESCALE, 0.10);
+        llSetVehicleFloatParam(VEHICLE_LINEAR_MOTOR_TIMESCALE, 1.0);
+        llSetVehicleFloatParam(VEHICLE_LINEAR_MOTOR_DECAY_TIMESCALE, 0.1);
+        llSetVehicleFloatParam(VEHICLE_ANGULAR_MOTOR_TIMESCALE, 0.1);
+        llSetVehicleFloatParam(VEHICLE_ANGULAR_MOTOR_DECAY_TIMESCALE, 0.1);
+        llSetVehicleVectorParam(VEHICLE_LINEAR_FRICTION_TIMESCALE, &lt;10.0, 2.0, 1000.0&gt;);
+        llSetVehicleVectorParam(VEHICLE_ANGULAR_FRICTION_TIMESCALE, &lt;0.1, 0.1, 0.1&gt;);
+        llSetVehicleFloatParam(VEHICLE_VERTICAL_ATTRACTION_EFFICIENCY, 0.50);
+        llSetVehicleFloatParam(VEHICLE_VERTICAL_ATTRACTION_TIMESCALE, 0.50);
+    
+}
+
+default
+{
+    state_entry()
+    {
+        llSetSitText(sit_message);
+        // forward-back,left-right,updown
+        llSitTarget(&lt;0.2,0,0.45&gt;, ZERO_ROTATION );
+        
+        llSetCameraEyeOffset(&lt;-8, 0.0, 5.0&gt;);
+        llSetCameraAtOffset(&lt;1.0, 0.0, 2.0&gt;);
+        
+        //llPreloadSound(&quot;car_start&quot;);
+        //llPreloadSound(&quot;car_run&quot;);
+        setVehicle();
+    }
+    
+    changed(integer change)
+    {
+        
+        
+        if (change &amp; CHANGED_LINK)
+        {
+            
+            key agent = llAvatarOnSitTarget();
+            if (agent)
+            {                
+                if (agent != llGetOwner())
+                {
+                    llSay(0, not_owner_message);
+                    llUnSit(agent);
+                    llPushObject(agent, &lt;0,0,50&gt;, ZERO_VECTOR, FALSE);
+                }
+                else
+                {
+                    //llTriggerSound(&quot;car_start&quot;,1);
+                    
+                    
+                    llMessageLinked(LINK_ALL_CHILDREN , 0, &quot;WHEEL_DRIVING&quot;, NULL_KEY);
+                    llSleep(.4);
+                    llSetStatus(STATUS_PHYSICS, TRUE);
+                    setVehicle();
+                    llSleep(.1);
+                    llRequestPermissions(agent, PERMISSION_TRIGGER_ANIMATION | PERMISSION_TAKE_CONTROLS);
+
+                    //llLoopSound(&quot;car_run&quot;,1);
+                }
+            }
+            else
+            {
+                //llStopSound();
+                
+                llSetStatus(STATUS_PHYSICS, FALSE);
+                llSleep(.4);
+                llReleaseControls();
+                llTargetOmega(&lt;0,0,0&gt;,PI,0);
+                
+                llResetScript();
+            }
+        }
+        
+    }
+    
+    run_time_permissions(integer perm)
+    {
+        if (perm)
+        {
+            llTakeControls(CONTROL_FWD | CONTROL_BACK | CONTROL_DOWN | CONTROL_UP | CONTROL_RIGHT | 
+                            CONTROL_LEFT | CONTROL_ROT_RIGHT | CONTROL_ROT_LEFT, TRUE, FALSE);
+        }
+    }
+    
+    control(key id, integer level, integer edge)
+    {
+        integer reverse=1;
+        vector angular_motor;
+        
+        //get current speed
+        vector vel = llGetVel();
+        float speed = llVecMag(vel);
+
+        //car controls
+        if(level &amp; CONTROL_FWD)
+        {
+            llSetVehicleVectorParam(VEHICLE_LINEAR_MOTOR_DIRECTION, &lt;forward_power,0,0&gt;);
+            reverse=1;
+        }
+        if(level &amp; CONTROL_BACK)
+        {
+            llSetVehicleVectorParam(VEHICLE_LINEAR_MOTOR_DIRECTION, &lt;reverse_power,0,0&gt;);
+            reverse = -1;
+        }
+
+        if(level &amp; (CONTROL_RIGHT|CONTROL_ROT_RIGHT))
+        {
+            angular_motor.z -= speed / turning_ratio * reverse;
+        }
+        
+        if(level &amp; (CONTROL_LEFT|CONTROL_ROT_LEFT))
+        {
+            angular_motor.z += speed / turning_ratio * reverse;
+        }
+
+        llSetVehicleVectorParam(VEHICLE_ANGULAR_MOTOR_DIRECTION, angular_motor);
+
+    } //end control   
+    
+    
+} //end default
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090513/afd99d5a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090513/afd99d5a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006460.html">[Opensim-dev] Can't set color of prims in Region Module.
+</A></li>
+	<LI>Next message: <A HREF="006462.html">[Opensim-dev] Standard Test region
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6461">[ date ]</a>
+              <a href="thread.html#6461">[ thread ]</a>
+              <a href="subject.html#6461">[ subject ]</a>
+              <a href="author.html#6461">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] fyi: Some ExternalChecks method changes and a question about public interface policy
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20fyi%3A%20Some%20ExternalChecks%20method%20changes%20and%20a%0A%20question%20about%20public%20interface%20policy&In-Reply-To=%3C491CD03D.8060208%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003604.html">
+   <LINK REL="Next"  HREF="003607.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] fyi: Some ExternalChecks method changes and a question about public interface policy</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20fyi%3A%20Some%20ExternalChecks%20method%20changes%20and%20a%0A%20question%20about%20public%20interface%20policy&In-Reply-To=%3C491CD03D.8060208%40t-data.com%3E"
+       TITLE="[Opensim-dev] fyi: Some ExternalChecks method changes and a question about public interface policy">melanie at t-data.com
+       </A><BR>
+    <I>Fri Nov 14 02:11:25 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003604.html">[Opensim-dev] fyi: Some ExternalChecks method changes and a question about public interface policy
+</A></li>
+        <LI>Next message: <A HREF="003607.html">[Opensim-dev] API documentation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3631">[ date ]</a>
+              <a href="thread.html#3631">[ thread ]</a>
+              <a href="subject.html#3631">[ subject ]</a>
+              <a href="author.html#3631">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Some change there does seem in order. The current implementation is 
+overclumsy, it requires lots of code to be added for every perms 
+check handler.
+However, this is an extremely ticklish area, we need to be careful 
+that anything that changes behaviors is changed so it would be 
+denied rather than allowed, so no privilege escalations sneak in.
+
+I have done lots of work there and would be happy to discuss 
+possible interface structures.
+
+
+Melanie
+
+
+Frisby, Adam wrote:
+&gt;<i> Should we follow suit to PermissionsModule interfaces as we are doing with IClientAPI and make it a collection of possible interfaces?
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;&gt;<i> Sent: Thursday, 13 November 2008 1:37 PM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: [Opensim-dev] fyi: Some ExternalChecks method changes and a
+</I>&gt;&gt;<i> question about public interface policy
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> For everybody's information, in the last few commits I renamed the
+</I>&gt;&gt;<i> existing ExternalChecks.CanCreateInventory,
+</I>&gt;&gt;<i> CanDeleteInventory, etc. to CanCreateObjectInvnetory,
+</I>&gt;&gt;<i> CanDeleteObjectInventory etc.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> My justification was that they were accepting an object id argument, so
+</I>&gt;&gt;<i> I assumed that they were intended for objects
+</I>&gt;&gt;<i> only rather than user inventories.  They also didn't appear to actually
+</I>&gt;&gt;<i> be being used anywhere in the code (though I
+</I>&gt;&gt;<i> have just added a call to the create one).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I then added the following set of external hooks specifically for user
+</I>&gt;&gt;<i> inventory
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> bool ExternalChecksCanCreateAvatarInventory(int invType, UUID userID)
+</I>&gt;&gt;<i> bool ExternalChecksCanCopyAvatarInventory(UUID itemID, UUID userID)
+</I>&gt;&gt;<i> bool ExternalChecksCanCopyAvatarInventory(UUID itemID, UUID userID)
+</I>&gt;&gt;<i> bool ExternalChecksCanDeleteAvatarInventory(UUID itemID, UUID userID)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> However, I appreciate that there are some external modules that
+</I>&gt;&gt;<i> implement the previous CanCreateInventory, etc.
+</I>&gt;&gt;<i> permission checks, even though they aren't yet used in the OpenSim
+</I>&gt;&gt;<i> code.  In particular, there appear to have been some
+</I>&gt;&gt;<i> interpretations of CanCreateInventory, etc. as applying to both objects
+</I>&gt;&gt;<i> and users.  In the user case, the objectID
+</I>&gt;&gt;<i> argument passed in would have been null (it would have been helpful to
+</I>&gt;&gt;<i> have some code documentation on this assumption,
+</I>&gt;&gt;<i> but I digress :)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> But there is a larger issue here.  Namely, to what extent should our
+</I>&gt;&gt;<i> public interfaces be fixed at this stage?  There is
+</I>&gt;&gt;<i> an argument that we should avoid changing these as much as possible.
+</I>&gt;&gt;<i> If they do have to be changed, then we should at
+</I>&gt;&gt;<i> least make an announcement before any changes.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The permissions module is particularly sensitive, since a change in
+</I>&gt;&gt;<i> semantics may impact people's content.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> My personal view is that at this stage in our code evolution (until we
+</I>&gt;&gt;<i> reach 1.0 or very near to it), all interfaces are
+</I>&gt;&gt;<i> fair game for changes that aren't completely gratuitous.  Third party
+</I>&gt;&gt;<i> modules simply have to adapt.  I feel that even
+</I>&gt;&gt;<i> having to pre-announce changes is a significant brake on development.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In addition, it's always going to be the responsibility of OpenSim
+</I>&gt;&gt;<i> users to make sure they are happy with the code
+</I>&gt;&gt;<i> before they put it into production.  At the top of every file we
+</I>&gt;&gt;<i> disclaim any liability for its actions.  A good set of
+</I>&gt;&gt;<i> unit tests would help build assurance as to the stability of the
+</I>&gt;&gt;<i> permission module's functionality.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I'd like to know what views there are on this matter of public
+</I>&gt;&gt;<i> interfaces, particularly from other core developers.  If
+</I>&gt;&gt;<i> we do want to restrict public changes then I thank that we should have
+</I>&gt;&gt;<i> a well-understood written process.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Apologies for the long post.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Regards,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> justincc
+</I>&gt;&gt;<i> Justin Clark-Casey
+</I>&gt;&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003604.html">[Opensim-dev] fyi: Some ExternalChecks method changes and a question about public interface policy
+</A></li>
+	<LI>Next message: <A HREF="003607.html">[Opensim-dev] API documentation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3631">[ date ]</a>
+              <a href="thread.html#3631">[ thread ]</a>
+              <a href="subject.html#3631">[ subject ]</a>
+              <a href="author.html#3631">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

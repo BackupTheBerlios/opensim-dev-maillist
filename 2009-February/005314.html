@@ -1,0 +1,193 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Grid vs UGAIM (WAS: Re: [Opensim-commits] r8554 -	trunk/OpenSim/Grid/GridServer)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Grid%20vs%20UGAIM%20%28WAS%3A%20Re%3A%20%5BOpensim-commits%5D%20r8554%0A%20-%09trunk/OpenSim/Grid/GridServer%29&In-Reply-To=%3C49A2DFDD.5060609%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005309.html">
+   <LINK REL="Next"  HREF="005318.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Grid vs UGAIM (WAS: Re: [Opensim-commits] r8554 -	trunk/OpenSim/Grid/GridServer)</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Grid%20vs%20UGAIM%20%28WAS%3A%20Re%3A%20%5BOpensim-commits%5D%20r8554%0A%20-%09trunk/OpenSim/Grid/GridServer%29&In-Reply-To=%3C49A2DFDD.5060609%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Grid vs UGAIM (WAS: Re: [Opensim-commits] r8554 -	trunk/OpenSim/Grid/GridServer)">diva at metaverseink.com
+       </A><BR>
+    <I>Mon Feb 23 18:41:49 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005309.html">[Opensim-dev] Grid vs UGAIM (WAS: Re: [Opensim-commits] r8554 -	trunk/OpenSim/Grid/GridServer)
+</A></li>
+        <LI>Next message: <A HREF="005318.html">[Opensim-dev] Grid vs UGAIM (WAS: Re: [Opensim-commits] r8554 -	trunk/OpenSim/Grid/GridServer)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5314">[ date ]</a>
+              <a href="thread.html#5314">[ thread ]</a>
+              <a href="subject.html#5314">[ subject ]</a>
+              <a href="author.html#5314">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I guess your pulling out that code made the situation more explicit than 
+it was before :)
+
+If that's the case, could we then think of separating the basic &quot;Map 
+service&quot; from any administrative grid services that people may want to 
+come up with for grids.
+
+Running a grid a-la Linden Lab involves a lot of admin work that can 
+indeed, be automated by having config and admin information in a 
+centralized place -- URLs of servers, ban lists, etc etc etc., to be 
+shared among a group of regions.
+
+But this is completely different from the Map service, which I see as a 
+fundamental &quot;space&quot; service in VWs, and that exists also for 
+standalones, Hypergrid, etc. and that can be made mix-and-match.
+
+Something like this:
+
+OpenSim.Servers.AssetInventoryServer
+OpenSim.Servers.AssetServer
+OpenSim.Servers.GridAdminServer
+OpenSim.Servers.InventoryServer
+OpenSim.Servers.MapServer
+OpenSim.Servers.MessagingServer
+OpenSim.Servers.RegionServer (What's now known as OpenSim.exe)
+OpenSim.Servers.UserServer
+
+Better yet would be to be able to configure blank-slate *servers* 
+running a payload of any combination of *services*. Would that be possible?
+So then we would have
+
+OpenSim.GenericServicesServer
+OpenSim.RegionServer
+
+Where the generic server would be configured via dll specification, or 
+any other module system. This would, hopefully, improve the current 
+situation of having both  two separate inv and asset servers, and a 
+third server which is a combination of those two. And it would give 
+people more options for configuring their worlds according to their own 
+expected usage.
+
+And, going all the way, we might end up with just one single 
+GenericServer, which, when configured with running all services, would 
+be the equivalent of the standalone mode.
+
+Probably not something that can be done overnight, but just a thought...
+
+
+MW wrote:
+&gt;<i> Well the name changed came from because at first I was doing a 
+</I>&gt;<i> different ICore interface for each server. So had IGridCore, 
+</I>&gt;<i> IUserCore, IMessagingCore (not all committed to SVN). But then wanted 
+</I>&gt;<i> a common core interface. And as IGridCore gave the impression that it 
+</I>&gt;<i> was for the Grid server, I went with IUGAIMCore, but it was only meant 
+</I>&gt;<i> to be temporary. I don't care what we call that. And agree IUGAIMCore 
+</I>&gt;<i> isn't the right long term name.
+</I>&gt;<i>
+</I>&gt;<i> As for messaging in the grid server, thats where messaging servers 
+</I>&gt;<i> register with the grid server, so that when regions login to the grid 
+</I>&gt;<i> server, it can provide them with the details of the messaging servers. 
+</I>&gt;<i> That isn't anything new, all I did was split those functions into 
+</I>&gt;<i> their own &quot;module&quot;. 
+</I>&gt;<i>
+</I>&gt;<i> Maybe a name change on that module is needed as well, so its clear its 
+</I>&gt;<i> about Messaging servers registering with it and provides a inteface so 
+</I>&gt;<i> other modules can register the data about those registered messaging 
+</I>&gt;<i> servers.
+</I>&gt;<i>
+</I>&gt;<i> --- On *Mon, 23/2/09, Diva Canto /&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;/* wrote:
+</I>&gt;<i>
+</I>&gt;<i>     From: Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+</I>&gt;<i>     Subject: Re: [Opensim-dev] Grid vs UGAIM (WAS: Re:
+</I>&gt;<i>     [Opensim-commits] r8554 - trunk/OpenSim/Grid/GridServer)
+</I>&gt;<i>     To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>     Date: Monday, 23 February, 2009, 1:44 AM
+</I>&gt;<i>
+</I>&gt;<i>     I think I understand where the name change comes from, but this
+</I>&gt;<i>     leads to a deeper question: why is there anything Messaging in the
+</I>&gt;<i>     Grid service? And is there any intention of adding more service
+</I>&gt;<i>     registrations there?
+</I>&gt;<i>
+</I>&gt;<i>     Crista
+</I>&gt;<i>
+</I>&gt;<i>     Mike Mazur wrote:
+</I>&gt;&gt;<i>     Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     On Sat, Feb 21 2009 10:41:28 -0800
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mw at opensimulator.org</A> wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>       
+</I>&gt;&gt;&gt;<i>     Author: mw
+</I>&gt;&gt;&gt;<i>     Date: 2009-02-21 10:41:28 -0800 (Sat, 21 Feb 2009)
+</I>&gt;&gt;&gt;<i>     New Revision: 8554
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>     Added:
+</I>&gt;&gt;&gt;<i>        trunk/OpenSim/Grid/GridServer/IUGAIMCore.cs
+</I>&gt;&gt;&gt;<i>     Removed:
+</I>&gt;&gt;&gt;<i>        trunk/OpenSim/Grid/GridServer/IGridCore.cs
+</I>&gt;&gt;&gt;<i>         
+</I>&gt;&gt;<i>     To me the general term &quot;Grid&quot; makes more sense, as it doesn't hardcode
+</I>&gt;&gt;<i>     the current set of servers that constitute a grid in the source code.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     What happens when we add a new server to the grid setup (ie: script
+</I>&gt;&gt;<i>     server)? When the acronym changes, will the filename/interface
+</I>&gt;&gt;<i>     name/class name be updated?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Thanks,
+</I>&gt;&gt;<i>     Mike
+</I>&gt;&gt;<i>     _______________________________________________
+</I>&gt;&gt;<i>     Opensim-dev mailing list
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>       
+</I>&gt;<i>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>               
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090223/05aa9ee4/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090223/05aa9ee4/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005309.html">[Opensim-dev] Grid vs UGAIM (WAS: Re: [Opensim-commits] r8554 -	trunk/OpenSim/Grid/GridServer)
+</A></li>
+	<LI>Next message: <A HREF="005318.html">[Opensim-dev] Grid vs UGAIM (WAS: Re: [Opensim-commits] r8554 -	trunk/OpenSim/Grid/GridServer)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5314">[ date ]</a>
+              <a href="thread.html#5314">[ thread ]</a>
+              <a href="subject.html#5314">[ subject ]</a>
+              <a href="author.html#5314">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

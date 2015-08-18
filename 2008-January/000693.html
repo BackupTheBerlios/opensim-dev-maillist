@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving assets from sqlite to mysql
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20assets%20from%20sqlite%20to%20mysql&In-Reply-To=%3C478F7F9F.90400%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000692.html">
+   <LINK REL="Next"  HREF="000694.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving assets from sqlite to mysql</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20assets%20from%20sqlite%20to%20mysql&In-Reply-To=%3C478F7F9F.90400%40t-data.com%3E"
+       TITLE="[Opensim-dev] moving assets from sqlite to mysql">melanie at t-data.com
+       </A><BR>
+    <I>Thu Jan 17 17:17:35 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000692.html">[Opensim-dev] moving assets from sqlite to mysql
+</A></li>
+        <LI>Next message: <A HREF="000694.html">[Opensim-dev] moving assets from sqlite to mysql
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#693">[ date ]</a>
+              <a href="thread.html#693">[ thread ]</a>
+              <a href="subject.html#693">[ subject ]</a>
+              <a href="author.html#693">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+no. There is no cut-and-dry solution.
+
+Especially with the binary format key, there is no easy conversion, 
+also, the blabs are a problem.
+I have successfully migrated prim storage from MySQL to SQLite once, 
+but it was a complex process.
+
+The binary dump formats of MySQL and SQLite are sufficiently 
+different to cause headaches.
+
+MySQL uses an unquoted string preceded by 0x, e.f. 
+0xFABE0345BAADFOOD for a binary value. SQLite uses 
+X'FABE0345BAADFOOD to do the same thing.
+
+So, since a UUID is a hexadecimal string representing a binary 
+value, it can be done like this:
+
+&quot;0x`sed -e \&quot;s/'/0x/\&quot; -e \&quot;s/-//g\&quot; -e \&quot;s/'//\&quot;`&quot;
+
+This will convert one UUID to it's MySQL binary representation.
+
+Without the second term, it could be used for a blob field as well. 
+It is your responsibility to cut apart and put back together the SQL 
+inserts.
+
+This is for Linux/Cygwin, I don't know a pure Windows way, short of 
+writing a C(++/#) program.
+
+Melanie
+
+
+Charles Krinke wrote:
+&gt;<i> Please bear with me as I need to understand this completely to ensure I get it right.
+</I>&gt;<i> 
+</I>&gt;<i> The issue is how to move one or more assets from a regions AssetStorage.db in sqlite to import into a grids mysql database. Let me take the tables first. Here is the sqlite table for assets.
+</I>&gt;<i> 
+</I>&gt;<i> $ sqlite3 AssetStorage.db
+</I>&gt;<i> sqlite&gt; .tables
+</I>&gt;<i> assets
+</I>&gt;<i> sqlite&gt; describe assets;
+</I>&gt;<i> SQL error: near &quot;describe&quot;: syntax error
+</I>&gt;<i> sqlite&gt; .schema assets
+</I>&gt;<i> CREATE TABLE assets(UUID varchar(255) primary key,
+</I>&gt;<i> Name varchar(255),
+</I>&gt;<i> Description varchar(255),
+</I>&gt;<i> Type integer,
+</I>&gt;<i> InvType integer,
+</I>&gt;<i> Local integer,
+</I>&gt;<i> Temporary integer,
+</I>&gt;<i> Data blob);
+</I>&gt;<i> sqlite&gt;    
+</I>&gt;<i> 
+</I>&gt;<i> mysql&gt; describe assets;
+</I>&gt;<i> +-------------+-------------+------+-----+---------+-------+
+</I>&gt;<i> | Field       | Type        | Null | Key | Default | Extra |
+</I>&gt;<i> +-------------+-------------+------+-----+---------+-------+
+</I>&gt;<i> | id          | binary(16)  | NO   | PRI |         |       |
+</I>&gt;<i> | name        | varchar(64) | NO   |     |         |       |
+</I>&gt;<i> | description| varchar(64) | NO   |     |         |       |
+</I>&gt;<i> | assetType  | tinyint(4)  | NO   |     |         |       |
+</I>&gt;<i> | invType    | tinyint(4)  | NO   |     |         |       |
+</I>&gt;<i> | local      | tinyint(1)  | NO   |     |         |       |
+</I>&gt;<i> | temporary  | tinyint(1)  | NO   |     |         |       |
+</I>&gt;<i> | data        | longblob    | NO   |     |         |       |
+</I>&gt;<i> +-------------+-------------+------+-----+---------+-------+
+</I>&gt;<i> 8 rows in set (0.00 sec)
+</I>&gt;<i> mysql&gt;   
+</I>&gt;<i> 
+</I>&gt;<i> So, we have names that are slightly different (capitalization mainly) and types that are somewhat different.
+</I>&gt;<i> 
+</I>&gt;<i> Can one expect to do something like
+</I>&gt;<i> 
+</I>&gt;<i> 1. $ sqlite3 AssetStorage &gt; assetFile
+</I>&gt;<i> 2. $ scp assetFile computerRunningGrid
+</I>&gt;<i> 3. $ ssh computerRunningGrid
+</I>&gt;<i> 4. $ mysql 
+</I>&gt;<i> 5. $ import from assetFile to assets;
+</I>&gt;<i> 
+</I>&gt;<i> And expect all the details to be worked out?
+</I>&gt;<i> 
+</I>&gt;<i> Pardon my naivety a bit as I work through something I have not done before, but I would like to understand it completely first before fubarring anything. Also, I suspect a recipe describing this would be helpful on wiki. If I can get a recipe to work, then I will be delighted to add it to the wiki.
+</I>&gt;<i> 
+</I>&gt;<i> Charles
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000692.html">[Opensim-dev] moving assets from sqlite to mysql
+</A></li>
+	<LI>Next message: <A HREF="000694.html">[Opensim-dev] moving assets from sqlite to mysql
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#693">[ date ]</a>
+              <a href="thread.html#693">[ thread ]</a>
+              <a href="subject.html#693">[ subject ]</a>
+              <a href="author.html#693">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

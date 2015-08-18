@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] further db thoughts
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20further%20db%20thoughts&In-Reply-To=%3CBLU134-W21D71619DE3020AEE4470CD54B0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000665.html">
+   <LINK REL="Next"  HREF="000668.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] further db thoughts</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20further%20db%20thoughts&In-Reply-To=%3CBLU134-W21D71619DE3020AEE4470CD54B0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] further db thoughts">stefan at tribalmedia.se
+       </A><BR>
+    <I>Fri Jan 11 21:46:21 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000665.html">[Opensim-dev] further db thoughts
+</A></li>
+        <LI>Next message: <A HREF="000668.html">[Opensim-dev] further db thoughts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#667">[ date ]</a>
+              <a href="thread.html#667">[ thread ]</a>
+              <a href="subject.html#667">[ subject ]</a>
+              <a href="author.html#667">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sean,
+ 
+I know you're going to hate me for this, but before I post code, I just wanted to explain whats here 'on my own hard-disk' to see if it's anything like what you want to do:
+ 
+* I have a DbConnectionPool that acts as a programmatic manager of connections (Subclassed into MySqlDbConnectionPool)
+* this is passed to a TableMapper which exposes it as a protected method WithConnection(delegate) for subclasses to access; they never access the connectionpool directly; the delegate approach lets the TableMapper lock, allocate, pre- and postprocess the connection securely and encapsulated. (kind of like a using clause)
+* The TableMapper is subclassed into a TableMapper&lt;TRowMapper&gt; that implements a CRUD interface by creating dynamic sql queries (the param prefix is pulled from the ConnectionPool) and populating them from a 'Schema'
+* A 'Schema' is a collection of FieldMapper&lt;T&gt;
+* FieldMapper&lt;TField&gt; is initialized with a field/param name (same for laziness sake), TField is the RowMapper field value type, a get delegate and a set delegate for the TField type object. It also does all the db/field type casting as well as expands things like Vector and Quaternion into several db fields.
+* The delegate approach keeps everything field related together, as opposed to a FromReader/ToReader method approach, which helps dodge inconsistencies.* The TRowMapper is mostly of type RowMapper&lt;TRowObject&gt; which just creates a class that has a member of TRowObject; this lets you subclass TRowMapper&lt;TRowObject&gt; and add db-specific extra-fields to it in order to manage hierarchies.
+* Upon operations, you create your rowmapper object (or just a plain object if there is no aux data) and either do FillObject( Schema, rowObject) or extract stuff by overrifing the FromReader(rowObject, DbReader) - the latter I use to populate a group from a part table (the select on the key field returns multiple rows, so i just PartMapper.FromReader() on each one to build the group.
+ 
+- it does NOT auto-create tables, as I'm not interested in that approach as you know, but you already have the code for it and the data in the 'Schema' so it should be a piece of pie.
+ 
+All in all, everything is explicit and compile-time; no cacheing, synchronization or double-buffering, no reflected and emitted code, but it works, and is quite efficient. It takes a while to get into the flow of how the various components work together, but after that I feel it's very conveniens and trustworthy.
+ 
+Of course, it needs more work to get it going on all different database interfaces, but it's created from the start to be subclassed into differing databases.
+ 
+If this sounds like something we'd want, I'd be happy to make it available as a third-party BSD Licence lib within the project, my only demand is that it is called TribalMedia.Framework.Data and that the BSD header remains intact.
+ 
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+
+
+&gt;<i> Date: Fri, 11 Jan 2008 08:58:15 -0500&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] further db thoughts&gt; &gt; I spent another day wasted on nhibernate, until someone can sort out an&gt; example using Mono + Linux + Mono.Data.SqliteClient, I think we're dead&gt; there. I do encourage someone to sort that out, as nhibernate would&gt; definitely be better than any other approach, but I haven't figured out&gt; how to get it to work all the places we need it to.&gt; &gt; That being said, there is real work that can be done today to make what&gt; we have a lot better (both performance wise, and maintainability wise).&gt; I started hacking on the SQLite adapter in this direction yesterday, and&gt; will be spending the next week+ working out these new ideas there.&gt; &gt; Step 1) remove most of the ADO.NET plumbing, get us back to straight db&gt; access. For things like Users and Assets this actually will reduce the&gt; lines of code in the plugin (I dropped the LOC for the friends list&gt; functions yesterday by about 1/2). I think this will remove some of the&gt; nasty prim move lag for linked sets, as well as the asset store startup&gt; time.&gt; &gt; Step 1b) move the SQL definition out of the code and into seperate&gt; Resource files. I'm taking a page of inspiration here from the Ruby on&gt; Rails approach to things, which I'm hoping will work out well. Each&gt; datastore will have a set of DataStoreName_XXX.sql files. XXX will be a&gt; sequence number. We'll have a dataversions table in each store, which&gt; will store which version the DataStore is at. On startup, we'll check&gt; to see if there are any newer XXX files for the store, and if so, apply&gt; them in order. This mirrors the &quot;migrations&quot; concept in RoR, and works&gt; *really well* for being able to version databases forward. I expect to&gt; have the first working bits of this approach the middle of next week.&gt; &gt; Step 2) Adapt the upward facing interfaces. Right now the earliest data&gt; interfaces are: GetAll &amp; Store, which can be seen with prims. Some of&gt; the later interfaces are more along the lines of Add, Update, Get,&gt; Remove. I think there is some value getting towards that even if we&gt; still need GetAll for the base prim load for sims.&gt; &gt; Anyway, back to hacking. Again, comments here are welcomed for sure.&gt; &gt; -Sean&gt; &gt; -- &gt; __________________________________________________________________&gt; &gt; Sean Dague Mid-Hudson Valley&gt; sean at dague dot net Linux Users Group&gt; <A HREF="http://dague.net">http://dague.net</A> <A HREF="http://mhvlug.org">http://mhvlug.org</A>&gt; &gt; There is no silver bullet. Plus, werewolves make better neighbors&gt; than zombies, and they tend to keep the vampire population down.&gt; __________________________________________________________________
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080111/e0288a25/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080111/e0288a25/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000665.html">[Opensim-dev] further db thoughts
+</A></li>
+	<LI>Next message: <A HREF="000668.html">[Opensim-dev] further db thoughts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#667">[ date ]</a>
+              <a href="thread.html#667">[ thread ]</a>
+              <a href="subject.html#667">[ subject ]</a>
+              <a href="author.html#667">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

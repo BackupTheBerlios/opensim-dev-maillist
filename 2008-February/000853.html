@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] region status tracking in GridServer
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20region%20status%20tracking%20in%20GridServer&In-Reply-To=%3CBLU134-W2700739B3E29035877AD5BD5290%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000852.html">
+   <LINK REL="Next"  HREF="000854.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] region status tracking in GridServer</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20region%20status%20tracking%20in%20GridServer&In-Reply-To=%3CBLU134-W2700739B3E29035877AD5BD5290%40phx.gbl%3E"
+       TITLE="[Opensim-dev] region status tracking in GridServer">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sun Feb 10 09:10:32 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000852.html">[Opensim-dev] region status tracking in GridServer
+</A></li>
+        <LI>Next message: <A HREF="000854.html">[Opensim-dev] region status tracking in GridServer
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#853">[ date ]</a>
+              <a href="thread.html#853">[ thread ]</a>
+              <a href="subject.html#853">[ subject ]</a>
+              <a href="author.html#853">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I would not say this is 'fatally flawed' just because it can be the result of one clients connectivity problems; it's still an indication that somebody somewhere had troubles reching the target. That's why it should only be seen as a ping trigger, not as status authoritative.
+ 
+Also, it's not the client that reports on the trouble, it's the source region - which means, that if the client can re-connect to the source region but not to the target, chances are that there's something wrong with the target.
+If a grid server is the authority for say 6000 servers, frequent grid wide pings becomes quite the task, not to mention the fact that the grid server itself can (and in an heterogenous grid setting, will) experience connectivity problems, just as the client can.
+ 
+Best,
+/Stefan
+ 
+
+
+
+&gt;<i> Subject: RE: [Opensim-dev] region status tracking in GridServer&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; CC: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Date: Sat, 9 Feb 2008 18:22:45 -0600&gt; &gt; Unfortunately this is fatally flawed since teleports can fail due to&gt; internet routing issues taht affect only one person, amongst other&gt; movement failures that would cause the client to think a region is&gt; offline vs the server knowing it's offline or online.&gt; &gt; I'm posting a patch to mantis that lays the foundation for regions beign&gt; online or offline and when they were last heard from by the grid server.&gt; &gt; &gt; &gt; On Sat, 2008-02-09 at 21:25 +0100, Stefan Andersson wrote:&gt; &gt; Ok, I was to do some research before I replied on this thread, but off&gt; &gt; the top of my head;&gt; &gt; &gt; &gt; first of all, we should define what we want the region status data&gt; &gt; for; the data should guide choice of implementation.&gt; &gt; &gt; &gt; That said, there is quite a distinct possibility that we can use the&gt; &gt; _clients_ as our agents for detecting offline region servers.&gt; &gt; &gt; &gt; Whenever someone tries to teleport off a region, the source region is&gt; &gt; informed of this, to be able to downgrade avatar presence to child.&gt; &gt; &gt; &gt; If the teleport fails (the target region is unresponsive) the&gt; &gt; connection comes back to the region so it should upgrade the avatar&gt; &gt; presence to root again.&gt; &gt; &gt; &gt; (Incidentally, I've filed a mantis on this, since we actually don't&gt; &gt; handle that, and failed teleports results in you coming back to a&gt; &gt; region, but as a 'child' ie being stuck there and possibly causing all&gt; &gt; kind of havoc with the ClientView)&gt; &gt; &gt; &gt; Now, if we handled the failed teleport correctly, this could also&gt; &gt; notify the grid service that a failed teleport has occurred.&gt; &gt; &gt; &gt; The grid service could then ping the target region, to check on its&gt; &gt; state.&gt; &gt; &gt; &gt; This is an alternative or complement to grid-wide ping sweeps; you&gt; &gt; probably want both, but could do the sweeps much less frequently.&gt; &gt; &gt; &gt; Combine this with proper region signon/signoff and I say you got&gt; &gt; options.&gt; &gt; &gt; &gt; Best,&gt; &gt; /Stefan&gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; ______________________________________________________________________&gt; &gt; &gt; &gt; &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&gt; &gt; &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; &gt; &gt; Date: Sat, 9 Feb 2008 12:56:10 -0600&gt; &gt; &gt; Subject: [Opensim-dev] region status tracking in GridServer&gt; &gt; &gt; &gt; &gt; &gt; After much IRC discussion I would like to make a couple changes to&gt; &gt; the&gt; &gt; &gt; regions table.&gt; &gt; &gt; &gt; &gt; &gt; online bool NOT NULL deafult false&gt; &gt; &gt; last_seen int(11) NULL&gt; &gt; &gt; &gt; &gt; &gt; The online column would be updated as a region logs in and out of&gt; &gt; &gt; GridServers. This way an external management/status application&gt; &gt; doesn't&gt; &gt; &gt; have to pester the grid server for the full list of regions and&gt; &gt; their&gt; &gt; &gt; status. This would also provide data to regions requesting map&gt; &gt; blocks as&gt; &gt; &gt; to the status of a region (a.ka. LL's Red Regions in the map view).&gt; &gt; &gt; &gt; &gt; &gt; The last_seen column would be of asistance to these same management&gt; &gt; apps&gt; &gt; &gt; in helping the administrator to determine which regions were long&gt; &gt; term&gt; &gt; &gt; MIA or just plain not wanted anymore by walk away grid members.&gt; &gt; &gt; &gt; &gt; &gt; My main concern is load placed on the grid server and having to ping&gt; &gt; &gt; regions by external applications having to probe every region&gt; &gt; currently&gt; &gt; &gt; to tell if it's still around or not.&gt; &gt; &gt; &gt; &gt; &gt; To acomplish this i'm workign on a patch to implement region_logout&gt; &gt; &gt; XMLRPC that would be called via&gt; &gt; Region.Communications.DeregisterRegion&gt; &gt; &gt; (which is currently empty).&gt; &gt; &gt; &gt; &gt; &gt; I woudl also add an update of RegionProfileData as each RPC call si&gt; &gt; made&gt; &gt; &gt; by a region to GridManager. Database updates would only happen&gt; &gt; &gt; periodicly as regions login and logout.&gt; &gt; &gt; &gt; &gt; &gt; Are there any objections or reasons not to implement this?&gt; &gt; &gt; &gt; &gt; &gt; _______________________________________________&gt; &gt; &gt; Opensim-dev mailing list&gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; &gt; 
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080210/808931ec/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080210/808931ec/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000852.html">[Opensim-dev] region status tracking in GridServer
+</A></li>
+	<LI>Next message: <A HREF="000854.html">[Opensim-dev] region status tracking in GridServer
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#853">[ date ]</a>
+              <a href="thread.html#853">[ thread ]</a>
+              <a href="subject.html#853">[ subject ]</a>
+              <a href="author.html#853">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

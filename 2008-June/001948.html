@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal to eliminate the name, description and invType fields from the assets db
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20to%20eliminate%20the%20name%2C%0A%20description%20and%20invType%20fields%20from%20the%20assets%20db&In-Reply-To=%3CBLU134-W68C9DF26F4E649F4A027ED5A70%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001939.html">
+   <LINK REL="Next"  HREF="001961.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal to eliminate the name, description and invType fields from the assets db</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20to%20eliminate%20the%20name%2C%0A%20description%20and%20invType%20fields%20from%20the%20assets%20db&In-Reply-To=%3CBLU134-W68C9DF26F4E649F4A027ED5A70%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Proposal to eliminate the name, description and invType fields from the assets db">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sun Jun 22 20:07:21 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001939.html">[Opensim-dev] Proposal to eliminate the name,	description and invType fields from the assets db table
+</A></li>
+        <LI>Next message: <A HREF="001961.html">[Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1948">[ date ]</a>
+              <a href="thread.html#1948">[ thread ]</a>
+              <a href="subject.html#1948">[ subject ]</a>
+              <a href="author.html#1948">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ohh. Very good and valid point. Hadn't thought about that.
+ 
+Then again, on the whole, the OpenSim structure as it stands right now is just a big fat vulnerability. It's a bit weird that we're using guids as just that, guids. All ids should be region-and-client contextual, and hence not guids at all.
+Of course, any entity can retain (gu)ids internally, within its own trust sphere, and entities can share references based on exposed id's, but the moment you start overwriting resource  id's, you're in deep water.
+ 
+We have already seen a couple of bugs illustrating this (mostly concerning load/save xml and Guid.Empty) - just hink what could be done maliciously...
+ 
+Ok, being criminally short and vague here, but feel free to start debate. ;-)
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+&gt;<i> Date: Sat, 21 Jun 2008 21:41:33 -0400&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] Proposal to eliminate the name, description and invType fields from the assets db table&gt; &gt; Snip:&gt; ---&gt; ...Moreover, if we adopt generation of UUIDs using a hashing algorithm&gt; (e.g. SHA1) at some stage, we wouldn't even need to embed the UUID in&gt; the name...&gt; ---&gt; Unsnip:&gt; &gt; A warning here if I may.&gt; &gt; *DO NOT DO THIS*. Hashing to produce a UUID for the asset, while&gt; tempting in a space-saving kind of way, actually is not secure. Allow me&gt; to explain further:&gt; &gt; There are many known attacks on MD5 (and SHA1) which allow a duplicate&gt; hash to be produced by tacking on additional data at the end of your&gt; intended data, so - say someone wants to replace the default avatar with&gt; a flying phallus, it would be possible to do, by creating a specifically&gt; targeted asset with some dummy data on the very end to produce a&gt; duplicate hash. When uploaded, it would override the original UUID of&gt; that asset and hence could be bad.&gt; &gt; If you *really* want to produce hashes in this way, use additional&gt; length hashes which have yet to be easily collided with. If using SHA, I&gt; recommend using at least 256 bit, ideally 512. This however does&gt; increase the size of the key and hence slow down searches. It is also&gt; recommended that it be easily possible to substitute the hashing&gt; algorithm with a improved one later on - since these kinds of attacks&gt; are ever evolving.&gt; &gt; Regards,&gt; &gt; Adam&gt; &gt; &gt; &gt; -----Original Message-----&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt; [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin&gt; Clark-Casey&gt; Sent: Saturday, 21 June 2008 6:35 PM&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] Proposal to eliminate the name, description and&gt; invType fields from the assets db table&gt; &gt; This is mainly a question for core developers, though other viewpoints &gt; are welcomed.&gt; &gt; In the OpenSim assets database table currently there are eight fields&gt; &gt; +-------------+-------------+------+-----+---------+-------+&gt; | Field | Type | Null | Key | Default | Extra |&gt; +-------------+-------------+------+-----+---------+-------+&gt; | name | varchar(64) | NO | | | |&gt; | description | varchar(64) | NO | | | |&gt; | assetType | tinyint(4) | NO | | | |&gt; | invType | tinyint(4) | NO | | | |&gt; | local | tinyint(1) | NO | | | |&gt; | temporary | tinyint(1) | NO | | | |&gt; | data | longblob | NO | | | |&gt; | id | varchar(36) | NO | PRI | | |&gt; +-------------+-------------+------+-----+---------+-------+&gt; &gt; Of these, name, description and invType are not really used by OpenSim &gt; (there are a couple of places in the code that use invType, but these &gt; could easily use other data sources). Name and description are a little&gt; &gt; pointless for assets - the real names and descriptions are actually &gt; always kept in the inventory items which reference these assets. &gt; InvType is also information which is always duplicated in items.&gt; &gt; Eliminating these fields would have the following advantages&gt; &gt; 1. Make it easier to save and load and integrate assets with locations &gt; outside OpenSim. If you don't need to maintain name, description or &gt; invType, it should be possible to save assets with the uuid embedded in &gt; the filename and an extension which shows the asset type (e.g. .jp2 for &gt; JPEG2000 textures). The assets wouldn't require persistence of the &gt; local and temporary attributes.&gt; &gt; Two immediate use cases are that elimination of these asset fields would&gt; &gt; make the creation and manipulation of archives and inventory libraries&gt; &gt; much simpler. There may also be integration benefits. For instance, &gt; asset data files could be served directly by a stock webserver without &gt; having to wrap them in XML to provide the extra metadata). Moreover, if&gt; &gt; we adopt generation of UUIDs using a hashing algorithm (e.g. SHA1) at &gt; some stage, we wouldn't even need to embed the UUID in the name.&gt; &gt; 2. Eliminate the code which maintains these fields, simplifying the &gt; codebase and making it easier to read. This is a minor point, since the&gt; &gt; amount of code isn't large.&gt; &gt; 3. Reduce data storage requirements. This is also a minor point, since&gt; &gt; these fields will always be dwarfed by the blobs (although this might &gt; come into play much further down the line if blobs are moved out of the&gt; db).&gt; &gt; The one disadvantage I can think of is&gt; &gt; 1. It becomes a little hard to get a sense of what's in your asset &gt; database by just browsing the assets table. For instance, you get a &gt; rough sense of how many objects are in prim or avatar inventories by &gt; counting the number of times that 'Primitive' appears as a name... &gt; However, statistical information could still be derived (if desired) by &gt; analysing the type field.&gt; &gt; In summary, I would like to see if the name, description and invType &gt; asset table fields can be removed at some point in the near future. &gt; Does anybody have a good or necessary reason to retain them?&gt; &gt; -- &gt; justincc&gt; Justin Clark-Casey&gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080622/b01cf8fb/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080622/b01cf8fb/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001939.html">[Opensim-dev] Proposal to eliminate the name,	description and invType fields from the assets db table
+</A></li>
+	<LI>Next message: <A HREF="001961.html">[Opensim-dev] Proposal to eliminate the name, description and invType fields	from the assets db table
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1948">[ date ]</a>
+              <a href="thread.html#1948">[ thread ]</a>
+              <a href="subject.html#1948">[ subject ]</a>
+              <a href="author.html#1948">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

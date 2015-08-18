@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Questions about Vehicle scripting calls
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20Vehicle%20scripting%20calls&In-Reply-To=%3C4FD053C2.5090001%40kayaker.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011188.html">
+   <LINK REL="Next"  HREF="011212.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Questions about Vehicle scripting calls</H1>
+    <B>Mike Higgins</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20Vehicle%20scripting%20calls&In-Reply-To=%3C4FD053C2.5090001%40kayaker.net%3E"
+       TITLE="[Opensim-dev] Questions about Vehicle scripting calls">mike at kayaker.net
+       </A><BR>
+    <I>Thu Jun  7 09:09:54 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011188.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+        <LI>Next message: <A HREF="011212.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11200">[ date ]</a>
+              <a href="thread.html#11200">[ thread ]</a>
+              <a href="subject.html#11200">[ subject ]</a>
+              <a href="author.html#11200">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 6/6/12 12:48 AM, Bengt Falke wrote:
+&gt;<i> I am also interested in physics for vehicles mainly for creating 
+</I>&gt;<i> working yacht and for making my free moving scripted animals to work 
+</I>&gt;<i> in a smooth way.
+</I>&gt;<i> If there is a way I can contribute I will try to do so.
+</I>&gt;<i>
+</I>     Also at the recent OpenSim developers meeting, Andrew Hellershanks 
+said (about llSetTImerEvent minimum time limits) &quot;Not sure why you would 
+want to use something other [less] than 1.0&quot;. I think the developers 
+need to know that there are 1000's of scripters in SL DESPERATELY trying 
+to find ANY WAY to make simple things like a fish move smoothly through 
+the water at a constant velocity. In SL you can usually get timer() 
+events as often as once every 0.2 seconds, which is not quite often 
+enough for smooth looking motion. timer events more often would be one 
+way to get smoother looking motion. I've seen people write scripts that 
+had abominations like: while (1) { moveit(); llSleep(0.05); }  The 
+OpenSim developers need to throw these guys a bone so they will NOT DO 
+THAT HERE!
+
+     Of course, LL only recently threw them the llSetKeyframedMotion() 
+bone. Before that, people tried to use physics and llMoveToTarget() 
+which was NEVER DESIGNED TO GENERATE LINEAR MOTION (it is always 
+damped). Although you can play games with it and find reasonably linear 
+portions of the curve. But that requires accurate llSetTimerEvent 
+durations to stop the llMoveToTarget part way through a damped move. And 
+in OpenSim, llMoveToTarget is damped 9 times faster than SL (mantis 
+issue 5968) which requires pushing it nine times harder to try to 
+capture a linear section and even more accurate llSetTimerEvent times to 
+prevent the object from running away from you...
+
+      The only other way in SL (before llSetKeframedMotion) to get 
+something to move smoothly at a constant velocity is to make it a 
+vehicle. Which is sort of like using a 4 ton hydrolic press to insert 
+thumbtacks in a cork board.  And even in SL, the vehicle functions are 
+really squirrely.
+
+     So the major reason I am testing the OpenSim vehicle routines is to 
+see if I can find a reliable subset of them, or a set of workarounds, 
+that will allow me to move a fish smoothly through the water at a 
+constant velocity.
+
+     So far I have found a few problems and some workarounds:
+1) Vehicles crash and burn at the sim boundary, the workaround is to add 
+code to detect the sim boundary before the vehicle gets there and 
+prevent it from even getting close. But if llSetTimerEvent is not 
+accurate, if your timer() event is not called regularly to do this 
+check, the vehicle runs into the sim boundary and goes crazy.
+2)  The angular motor rotates around the wrong axes, but you can 
+workaround that by multiplying your vectors by llGetRot (mantis issue 
+6039). I'm guessing that nobody noticed this before because cars and 
+boats and helicopters are usually horizontal and their local Z axis is 
+aligned with the region Z axis.
+3) The linear motor vector is clamped or projected onto the region XY 
+plane. (mantis issue 6040) A car or a boat or a helicopter might never 
+notice this, but with no Z values allowed in linear motors, how can 
+airplanes glide up or down? Someone please tell me how to get this to work!
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20120607/e81ac87d/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20120607/e81ac87d/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011188.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+	<LI>Next message: <A HREF="011212.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11200">[ date ]</a>
+              <a href="thread.html#11200">[ thread ]</a>
+              <a href="subject.html#11200">[ subject ]</a>
+              <a href="author.html#11200">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

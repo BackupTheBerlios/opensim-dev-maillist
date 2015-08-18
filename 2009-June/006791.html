@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Rethinking inventory
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Rethinking%20inventory&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE66473520550A29%40winxbeus19.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006790.html">
+   <LINK REL="Next"  HREF="006793.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Rethinking inventory</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Rethinking%20inventory&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE66473520550A29%40winxbeus19.exchange.xchg%3E"
+       TITLE="[Opensim-dev] Rethinking inventory">adam at deepthink.com.au
+       </A><BR>
+    <I>Mon Jun  8 09:08:48 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006790.html">[Opensim-dev] Rethinking inventory
+</A></li>
+        <LI>Next message: <A HREF="006793.html">[Opensim-dev] Rethinking inventory
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6791">[ date ]</a>
+              <a href="thread.html#6791">[ thread ]</a>
+              <a href="subject.html#6791">[ subject ]</a>
+              <a href="author.html#6791">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Infact, GetAllInventory could be detrimental to the server on a large inventory.
+
+Personally, I would be in favour of some kind of 'automatic subdivision' of folders. Eg, when you take an object to inventory, it gets default saved into a folder for the week. (eg, 'Objects' -&gt; 'From 2009/15' -&gt; 'Object Name' [if the folder doesn't exist, create it.])
+
+This would reduce the size of the 'selects' and allow larger keys (which reduce overall lookup times -- albeit clientside search does diminish a lot of the gains here.)
+
+Adam
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;<i> Sent: Sunday, 7 June 2009 11:23 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Rethinking inventory
+</I>&gt;<i> 
+</I>&gt;<i> Hello Diva,
+</I>&gt;<i> 
+</I>&gt;<i> to answer your questions:
+</I>&gt;<i> 
+</I>&gt;<i> The inventory skeleton is fetched on login and sent to the client.
+</I>&gt;<i> It contains (or SHOULD contain) the actual folder serial numbers. I
+</I>&gt;<i> believe they may not currently be correct, though. The client
+</I>&gt;<i> decides, on opening a folder, which are out of date (by the serial
+</I>&gt;<i> number) and requests them.
+</I>&gt;<i> 
+</I>&gt;<i> I implemented the serial number thing not too long ago, before then,
+</I>&gt;<i> inventory was always completely reloaded, the client cache was in
+</I>&gt;<i> fact defeated. In part, that is still so (see above).
+</I>&gt;<i> 
+</I>&gt;<i> Inventory was implemented in a rather simplistic manner, sending the
+</I>&gt;<i> entire inventory in a single transaction from the inventory server
+</I>&gt;<i> to the client. This was never really necessary, and often not even
+</I>&gt;<i> useful, since all inventory transactions depend on the root folder,
+</I>&gt;<i> and it can't be loaded without loading all folders.
+</I>&gt;<i> 
+</I>&gt;<i> A better inventory service would load inventory to regions only when
+</I>&gt;<i> it needs to be loaded, and the cases where that is necessary are
+</I>&gt;<i> surprisingly few, and most could get away with just the folder
+</I>&gt;<i> skeleton and individual items.
+</I>&gt;<i> 
+</I>&gt;<i> I believe that I could get away with a function that will fetch only
+</I>&gt;<i> the user's root and system folders' UUIDs, since they are what is
+</I>&gt;<i> needed for inventory gives.
+</I>&gt;<i> 
+</I>&gt;<i> For take and rez, the client already knows the folder IDs. So
+</I>&gt;<i> dropping inventory on a user and scripted gives are the two things a
+</I>&gt;<i> region does with client inventory.
+</I>&gt;<i> 
+</I>&gt;<i> About letting the client talk to the inventory server: It needs to
+</I>&gt;<i> remain possible to do it through a region, as some grids are not
+</I>&gt;<i> willing to expose their inventory (asset, grid, etc) server ports to
+</I>&gt;<i> the internet. The region could, however, just verify the session and
+</I>&gt;<i> pass the request on.
+</I>&gt;<i> 
+</I>&gt;<i> Session_lookup doesn't work. It was an attempt to secure the
+</I>&gt;<i> inventory server that failed because of session caches. If the
+</I>&gt;<i> inventory server needed to be restarted, it all currently logged in
+</I>&gt;<i> users would lose inventory access until relog. It was found
+</I>&gt;<i> architecturally flawed and not salvageable, so was turned off by
+</I>&gt;<i> default and recommended to be kept off. New implementations don't
+</I>&gt;<i> need to support the mechanism.
+</I>&gt;<i> 
+</I>&gt;<i> So, a possible interface could be:
+</I>&gt;<i> 
+</I>&gt;<i> class UserInventory
+</I>&gt;<i> {
+</I>&gt;<i> 	UUID RootFolder;
+</I>&gt;<i> 	Dictionary&lt;int, IventoryFolderBase&gt; SystemFolders; // System
+</I>&gt;<i> folders by content type
+</I>&gt;<i> 	List &lt;InventoryItemBase&gt; Items; // Cache for those items a region
+</I>&gt;<i> actually uses
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> interface IInventoryService
+</I>&gt;<i> {
+</I>&gt;<i> 	UserInventory GetInventoryBase();
+</I>&gt;<i> 	List&lt;InventoryFolderBase&gt; GetInventorySkel(); // Used by
+</I>&gt;<i> userserver
+</I>&gt;<i> for logins
+</I>&gt;<i> 	InventoryItemBase GetItem(UUID item);
+</I>&gt;<i> 	List&lt;InventoryItemBase&gt; GetFolderItems(UUID folderID);
+</I>&gt;<i> 	bool StoreItem(InventoryItemBase item); // Will overwrite by UUID
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> GetItem() is needed to push newly acquired items to the client as
+</I>&gt;<i> well as to verify that asset IDs given by the client on rez are
+</I>&gt;<i> correct. We currently don't trust the IDs the client produces, and
+</I>&gt;<i> we shouldn't.
+</I>&gt;<i> 
+</I>&gt;<i> GetInventoryBase is what the &quot;give&quot; class of functions would call on
+</I>&gt;<i> users who are not logged into a region. We may want to call that
+</I>&gt;<i> when a user enters the region, but possibly we can actually get away
+</I>&gt;<i> with not obtaining any inventory information at all unless an object
+</I>&gt;<i> gives something to the user, or another user does.
+</I>&gt;<i> 
+</I>&gt;<i> Note the distinct lack of a &quot;GetAllIventory&quot; type method... it's not
+</I>&gt;<i> needed.
+</I>&gt;<i> 
+</I>&gt;<i> It may need a few more specialized methods, but this should be about
+</I>&gt;<i> the size of it.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;<i> &gt; Also, are there any grid operators out there who run their inventory
+</I>&gt;<i> &gt; servers with the configuration session_lookup = true ? (this is a
+</I>&gt;<i> flag
+</I>&gt;<i> &gt; in InventoryServer_Config.xml)
+</I>&gt;<i> &gt; Just curious to know if this is being used.
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006790.html">[Opensim-dev] Rethinking inventory
+</A></li>
+	<LI>Next message: <A HREF="006793.html">[Opensim-dev] Rethinking inventory
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6791">[ date ]</a>
+              <a href="thread.html#6791">[ thread ]</a>
+              <a href="subject.html#6791">[ subject ]</a>
+              <a href="author.html#6791">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

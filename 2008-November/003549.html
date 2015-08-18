@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Should%20SOG%20and%20SOP%20be%20combined%20into%20a%20single%0A%20object%09in%20a%20linked%20hierarchy%3F&In-Reply-To=%3CBLU134-W166B00891FC7AEDF9DEAC5D51A0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003548.html">
+   <LINK REL="Next"  HREF="003554.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Should%20SOG%20and%20SOP%20be%20combined%20into%20a%20single%0A%20object%09in%20a%20linked%20hierarchy%3F&In-Reply-To=%3CBLU134-W166B00891FC7AEDF9DEAC5D51A0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?">stefan at tribalmedia.se
+       </A><BR>
+    <I>Mon Nov 10 18:21:40 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003548.html">[Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?
+</A></li>
+        <LI>Next message: <A HREF="003554.html">[Opensim-dev] Should SOG and SOP be combined into a single object in a linked hierarchy?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3549">[ date ]</a>
+              <a href="thread.html#3549">[ thread ]</a>
+              <a href="subject.html#3549">[ subject ]</a>
+              <a href="author.html#3549">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+I guess what we need is something like the composite pattern, perhaps? (not that this I'm toying with here is the kosher GoF 'composite')
+ 
+One thing we stated a long time ago was that we wanted all scene nodes to register all objects, so that stuff like &quot;delete(id)&quot; could be done efficiently and directly. But at the time, we thought it better to iterate over the node tree as that was considered the &quot;safe&quot; way.
+ 
+Basically, what I'm thinking is that maybe the leafs (prims) and the composites (linksets) could co-exist as peers; the linksets being more of 'helpers' - something that is used to orchestrate linkset-wide operations like linking and delinking. The composites should subscribe to leaf operations via events, so as be able to function independently. (for example, if something deletes an object from the 'flat' scene )
+ 
+I guess the same would go for 'avatars' - the avatar would be a helper to manage attachment operations, but do so by delegating and triggering leaf operations. (composite is also a leaf, remember)
+ 
+interface IWorldLeaf
+{
+   AbsolutePosition (In world coordinates, could be recursively calculated from RelativePosition + Parent AbsolutePosition)
+   RelativePosition (Relative to Parent, which would be the region for a root, or the attachment point for an attachment)
+ 
+   Ungroup()
+   Group( IWorldComposite )
+}
+ 
+interface IWorldComposite : IWorldLeaf
+{
+   Add( IWorldLeaf )
+   Remove( IWorldLeaf )
+ 
+   Children;
+}
+ 
+class LLPrim : IWorldLeaf
+{
+   IWorldComposite m_parent;
+ 
+   event OnDeletion;
+ 
+   public LLPrim( )
+   {
+ 
+   }
+ 
+   public Create()
+   {
+       
+   }
+}
+ 
+class LLLinkSet : IWorldComposite
+{
+  LLPrim m_rootObject;
+ 
+  Add(IWorldLeaf leaf)
+ {
+    leaf.OnDeletion += LeafDeleted;
+ }
+ 
+  Remove(IWorldLeaf leaf)
+  {
+    leaf.OnDeletion -= LeafDeleted;
+   }
+ 
+   private LeafDeleted( IWorldLeaf );
+}
+ 
+class LLAvatar : IWorldComposite
+{
+    LLAttachmentCollection m_attachments;
+ 
+   bool TryAddAttachment( int position, IWorldLeaf )
+   {
+   }
+}
+I'm starting to think maybe a small proof-of-concept application just implementing a couple of simple operations on a model level would be a good thing, so we can toy around with code.
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> &gt; Date: Mon, 10 Nov 2008 16:08:15 +0000&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] Should SOG and SOP be combined into a single object in a linked hierarchy?&gt; &gt; Somewhat separately from Adam's other post, I'd like to raise this issue on the mailing list since it keeps popping up. &gt; I'll confess that I'm not 100% convinced yet that SOG and SOP should simply be combined, though I do accept that the &gt; code does need some architectural changes. Unfortunately, I'm not quite up to drawing diagrams yet.&gt; &gt; This discussion may also have come up on the mailing list in some way before so references are welcome, as are &gt; clarifications to the statements below.&gt; &gt; Melanie's proposal, as I understand it, is to combine the current SOG and SOP into a single object (let's call it &gt; LLEntity). LLEntity's would be linked into a tree, so there can be something like&gt; &gt; &gt; LLEntity&gt; / | \&gt; / | \&gt; / | \&gt; / | \&gt; LLEntity LLEntity LLEntity&gt; |&gt; |&gt; LLEntity&gt; &gt; &gt; &gt; Here are some of the pros and cons as I see them. Adam has already talked about some of these in his blog post.&gt; &gt; Pros&gt; &gt; 1. At the moment we can only have one level of prim linking (as effectively dictated by the LL Second Life client). &gt; Linking into a tree would allow multiple levels of linking (though with the assumption of single parents).&gt; &gt; 2. It makes manipulation of prims much easier. Instead of having to reference SOPs in and out of SOG, everything is &gt; done on a single class. Some properties can be set on a SOP reference without having to worry about whether they are a &gt; root SOP or not (see below).&gt; &gt; 3. The Second Life client protocol wants to manipulate SOPs directly in many situations (e.g. individual prim selection &gt; of a group, the fact that local ids are passed around that reference prims rather than linksets).&gt; &gt; 4. Get rid of the root part checks on object deletion. However, a lot of these come from the fact that we null out &gt; m_rootPart after object deletion when there may be no need to - I'm anticipating that extraneous info sent to a viewer &gt; about a deleted object will be simply ignored. This is a change we should try soon now that we're at the start of a &gt; release process.&gt; &gt; &gt; Cons&gt; &gt; 1. LLEntity becomes very large and potentially complex. SOG and SOP are already large and complex. It may be possible &gt; to improve this by further refactoring.&gt; &gt; 2. Every setting and getting of a property in LLEntity has to delegate up to its root LLEntity unless it is the root. &gt; Therefore, code such as&gt; &gt; public virtual Vector3 Velocity&gt; {&gt; get { return m_velocity; }&gt; set { m_velocity = value; }&gt; }&gt; &gt; becomes something like&gt; &gt; public virtual Vector3 Velocity&gt; {&gt; get&gt; {&gt; if (ParentEntity != null)&gt; return ParentEntity.Velocity;&gt; else&gt; return m_velocity;&gt; }&gt; &gt; set&gt; {&gt; if (ParentEntity != null)&gt; ParentEntity.Velocity = value;&gt; else&gt; m_velocity = value;&gt; }&gt; }&gt; &gt; One also needs to be careful to set the publicly available property so that delegation happens if required, rather than &gt; the private field to avoid state such as 'attached' becoming inconsistent (this is a potential source of bugs).&gt; &gt; 3. It leads to an increase in property duplication at the database and serialization levels. Every LLEntity will have &gt; a set of fields, even though some of those conceptually only apply to a linkset/SceneObjectGroup. This probably isn't &gt; serious but I think that it will make things harder to work with at those levels.&gt; &gt; &gt; This isn't a full set of pros and cons, just the ones that occur to me right now. I'm sorry this is a long post but I &gt; feel that we need to a get a long form view of this as change here will stay with us for a considerable time into the &gt; future. If there isn't any major discussion then this may go ahead anyway (since Melanie, for one, is quite keen and I &gt; may be the only person really bothered about this).&gt; &gt; At the moment I'm actually leaning towards the single LLEntity suggestion, though I'm a little concerned about the &gt; duplication that ends up at the database/serialization level. But I'd really like to hear what other people think.&gt; &gt; -- &gt; justincc&gt; Justin Clark-Casey&gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081110/4360e828/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081110/4360e828/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003548.html">[Opensim-dev] Should SOG and SOP be combined into a single object	in a linked hierarchy?
+</A></li>
+	<LI>Next message: <A HREF="003554.html">[Opensim-dev] Should SOG and SOP be combined into a single object in a linked hierarchy?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3549">[ date ]</a>
+              <a href="thread.html#3549">[ thread ]</a>
+              <a href="subject.html#3549">[ subject ]</a>
+              <a href="author.html#3549">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

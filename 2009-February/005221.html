@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region:	CoreModules/Avatar/InstantMessage Framework/Interfaces
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r8496%20-%20in%0A%20trunk/OpenSim/Region%3A%09CoreModules/Avatar/InstantMessage%0A%20Framework/Interfaces&In-Reply-To=%3C499D6E21.7090305%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005226.html">
+   <LINK REL="Next"  HREF="005222.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region:	CoreModules/Avatar/InstantMessage Framework/Interfaces</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r8496%20-%20in%0A%20trunk/OpenSim/Region%3A%09CoreModules/Avatar/InstantMessage%0A%20Framework/Interfaces&In-Reply-To=%3C499D6E21.7090305%40googlemail.com%3E"
+       TITLE="[Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region:	CoreModules/Avatar/InstantMessage Framework/Interfaces">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Feb 19 15:35:13 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005226.html">[Opensim-dev] Heads Up: Updating Prebuild to Upstream
+</A></li>
+        <LI>Next message: <A HREF="005222.html">[Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region: CoreModules/Avatar/InstantMessage Framework/Interfaces
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5221">[ date ]</a>
+              <a href="thread.html#5221">[ thread ]</a>
+              <a href="subject.html#5221">[ subject ]</a>
+              <a href="author.html#5221">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mw at opensimulator.org</A> wrote:
+&gt;<i> Author: mw
+</I>&gt;<i> Date: 2009-02-19 04:38:17 -0800 (Thu, 19 Feb 2009)
+</I>&gt;<i> New Revision: 8496
+</I>&gt;<i> 
+</I>&gt;<i> Modified:
+</I>&gt;<i>    trunk/OpenSim/Region/CoreModules/Avatar/InstantMessage/MessageTransferModule.cs
+</I>&gt;<i>    trunk/OpenSim/Region/Framework/Interfaces/IMessageTransferModule.cs
+</I>&gt;<i> Log:
+</I>&gt;<i> reverted last revision, until we decide how to handle capturing IM's
+</I>
+mw, was this in support of the jabber/xmpp bridge that you've coded?
+
+If so, I encountered a similar problem while doing the parallel selves message bridge.  My 'solution' was to entirely 
+replace the MessageTransfer (and chat) modules, which is just nasty.
+
+My thoughts for a long term solution were to
+
+a) Make some event calls such as those on EventManager.OnIncomingInstantMessage require a boolean to be returned by each 
+call (which I believe is possible in c#).  This boolean would signal that the message has already been completely 
+handled, and that it shouldn't be passed on to other modules.
+
+b) Define an 'order' in which modules are loaded in some config file.
+
+With these two things, an xmpp bridge module could be loaded before the 'ordinary' im module.  If it gets an incoming im 
+which it can handle, then it handles it and returns true (to signal that it shouldn't be passed on to any other module). 
+  If it can't handle it then it simply returns false and the message goes through to the next module on the list (in 
+this case, the 'ordinary' module).
+
+I like this solution because I think that it allows composibility - you can load lots of different 
+OnIncomingInstantMessage handling modules without any of them having to be aware of any other.
+
+What do you (or others) think?  Are there better approaches?
+
+&gt;<i> 
+</I>&gt;<i> Modified: trunk/OpenSim/Region/CoreModules/Avatar/InstantMessage/MessageTransferModule.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/CoreModules/Avatar/InstantMessage/MessageTransferModule.cs	2009-02-19 11:54:53 UTC (rev 8495)
+</I>&gt;<i> +++ trunk/OpenSim/Region/CoreModules/Avatar/InstantMessage/MessageTransferModule.cs	2009-02-19 12:38:17 UTC (rev 8496)
+</I>&gt;<i> @@ -48,10 +48,6 @@
+</I>&gt;<i>          private List&lt;Scene&gt; m_Scenes = new List&lt;Scene&gt;();
+</I>&gt;<i>          private Dictionary&lt;UUID, ulong&gt; m_UserRegionMap = new Dictionary&lt;UUID, ulong&gt;();
+</I>&gt;<i>  
+</I>&gt;<i> -        public event ExternalHandleIM OnExternalIMCapture;
+</I>&gt;<i> -
+</I>&gt;<i> -        private ExternalHandleIM handlerExternalIMCapture;
+</I>&gt;<i> -
+</I>&gt;<i>          public void Initialise(Scene scene, IConfigSource config)
+</I>&gt;<i>          {
+</I>&gt;<i>              IConfig cnf = config.Configs[&quot;Messaging&quot;];
+</I>&gt;<i> @@ -99,16 +95,6 @@
+</I>&gt;<i>  
+</I>&gt;<i>          public void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
+</I>&gt;<i>          {
+</I>&gt;<i> -            handlerExternalIMCapture = OnExternalIMCapture;
+</I>&gt;<i> -            if (handlerExternalIMCapture != null)
+</I>&gt;<i> -            {
+</I>&gt;<i> -                if (handlerExternalIMCapture(im))
+</I>&gt;<i> -                {
+</I>&gt;<i> -                    result(true);
+</I>&gt;<i> -                    return;
+</I>&gt;<i> -                }
+</I>&gt;<i> -            }
+</I>&gt;<i> -
+</I>&gt;<i>              UUID toAgentID = new UUID(im.toAgentID);
+</I>&gt;<i>  
+</I>&gt;<i>              m_log.DebugFormat(&quot;[INSTANT MESSAGE]: Attempting delivery of IM from {0} to {1}&quot;, im.fromAgentName, toAgentID.ToString());
+</I>&gt;<i> 
+</I>&gt;<i> Modified: trunk/OpenSim/Region/Framework/Interfaces/IMessageTransferModule.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/Framework/Interfaces/IMessageTransferModule.cs	2009-02-19 11:54:53 UTC (rev 8495)
+</I>&gt;<i> +++ trunk/OpenSim/Region/Framework/Interfaces/IMessageTransferModule.cs	2009-02-19 12:38:17 UTC (rev 8496)
+</I>&gt;<i> @@ -30,12 +30,9 @@
+</I>&gt;<i>  namespace OpenSim.Region.Framework.Interfaces
+</I>&gt;<i>  {
+</I>&gt;<i>      public delegate void MessageResultNotification(bool success);
+</I>&gt;<i> -    public delegate bool ExternalHandleIM(GridInstantMessage im);
+</I>&gt;<i> -
+</I>&gt;<i> +   
+</I>&gt;<i>      public interface IMessageTransferModule
+</I>&gt;<i>      {
+</I>&gt;<i> -        event ExternalHandleIM OnExternalIMCapture;
+</I>&gt;<i> -
+</I>&gt;<i>          void SendInstantMessage(GridInstantMessage im, MessageResultNotification result);
+</I>&gt;<i>      }
+</I>&gt;<i>  }
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-commits mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-commits at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-commits">https://lists.berlios.de/mailman/listinfo/opensim-commits</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005226.html">[Opensim-dev] Heads Up: Updating Prebuild to Upstream
+</A></li>
+	<LI>Next message: <A HREF="005222.html">[Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region: CoreModules/Avatar/InstantMessage Framework/Interfaces
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5221">[ date ]</a>
+              <a href="thread.html#5221">[ thread ]</a>
+              <a href="subject.html#5221">[ subject ]</a>
+              <a href="author.html#5221">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

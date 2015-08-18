@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] oddities with asset storage
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20oddities%20with%20asset%20storage&In-Reply-To=%3C20090220104603.GR12028%40leitl.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005240.html">
+   <LINK REL="Next"  HREF="005245.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] oddities with asset storage</H1>
+    <B>Eugen Leitl</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20oddities%20with%20asset%20storage&In-Reply-To=%3C20090220104603.GR12028%40leitl.org%3E"
+       TITLE="[Opensim-dev] oddities with asset storage">eugen at leitl.org
+       </A><BR>
+    <I>Fri Feb 20 11:46:03 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005240.html">[Opensim-dev] oddities with asset storage
+</A></li>
+        <LI>Next message: <A HREF="005245.html">[Opensim-dev] oddities with asset storage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5243">[ date ]</a>
+              <a href="thread.html#5243">[ thread ]</a>
+              <a href="subject.html#5243">[ subject ]</a>
+              <a href="author.html#5243">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Fri, Feb 20, 2009 at 05:30:57AM -0500, Frisby, Adam wrote: 
+
+&gt;<i> Client libraries and things are usually needed.
+</I>
+As far as I know GPL viral clause doesn't apply if you just use the API, or
+don't link the code statically.
+
+Notice that I'm not wedded to Tahoe. It's just this is the only system with
+the required capabilities I'm aware of.
+
+<A HREF="http://lwn.net/Articles/280483/">http://lwn.net/Articles/280483/</A>
+
+The Tahoe secure filesystem
+
+By Jake Edge
+
+April 30, 2008
+
+The Tahoe filesystem is designed as a secure, distributed filesystem that is
+available as free software. Tahoe is also designed for fault tolerance so
+that data remains available even in the presence of missing or malicious
+peers. In March, the project released a 1.0 version which makes this a good
+time to take a peek.
+
+The basics of Tahoe are somewhat similar to GNUnet or Freenet in that the
+data is encrypted and spread around to multiple nodes in the network. Unlike
+those, though, Tahoe does not seek to provide anonymity. The nodes making up
+a Tahoe filesystem are called a &quot;grid&quot;. Grids consist of some number of peers
+acting as storage server nodes along with an &quot;introducer&quot; that knows all of
+the other nodes and is the central point of contact for the grid.
+
+Files are stored in Tahoe by first being encrypted on the local machine using
+AES. They are then broken into &quot;shares&quot;, ten by default, that are distributed
+to different servers in the grid. Before that happens, though, the encrypted
+file is encoded in such a way that the whole file can be recovered even if
+only a subset of the shares can be retrieved.
+
+This encoding, known as &quot;erasure coding&quot;, is the key to the fault-tolerance
+of the Tahoe system. By default, Tahoe encodes the shares such that
+retrieving three of the ten is sufficient to recover the entire file. It also
+increases the size of the file by the expected 10/3 ratio.
+
+The suggested use case for Tahoe is a &quot;friendnet&quot; where some group of friends
+share their storage with each other in a way that reduces or eliminates the
+need for backups. Tahoe also has ways to share data in either read-only or
+read-write (immutable or mutable in Tahoe-speak) modes. Tahoe is used as a
+commercial backup system by Allmydata, sponsor of the Tahoe project.
+
+Tahoe is designed to be secure, which means that it protects the integrity
+and confidentiality of the data stored in it. SHA-256 is used extensively to
+ensure consistency of the plaintext, ciphertext, and shares. Files stored in
+the system are identified by long identifiers called capabilities, that look
+something like:
+
+URI:CHK:yeyur23dw7cg3mxmsl2kiqvtt4:sdtrgczwtntzyfg2uapbfytxvyqsn45j4jpgrhcey7ebzpaoznya:3:10:107833344
+
+For mutable files, there are two versions of the capability, one that allows
+only reading, while the other allows writing as well. Anyone who does not
+have a capability string for a particular file cannot access it at all.
+
+Multiple user interfaces are available for Tahoe, including a web interface,
+a command-line interface, a FUSE extension and a web API. Tahoe is written in
+Python, using some C extensions for efficiency. It uses the Twisted framework
+for event handling, pycryptopp (a Python interface to the Crypto++ library)
+for its encryption needs, and zfec for the erasure coding. All of the Tahoe
+code is available under the GPL.
+
+Installing Tahoe was fairly straightforward&#8212;there were a few hiccups which
+have since been resolved&#8212;using the installation guide. Joining the test grid
+was as easy as putting an introducer identifier into a file and starting
+Tahoe from the command line. In some basic testing, it seems to work quite
+well, overall, though it did not seem to use available bandwidth as
+efficiently as it might.
+
+This brief overview only scratches the surface of the information available
+about Tahoe; there is much more on the documentation page. For anyone
+interested in distributed, secure, and/or fault-tolerant filesystems, Tahoe
+is definitely worth a look. 
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005240.html">[Opensim-dev] oddities with asset storage
+</A></li>
+	<LI>Next message: <A HREF="005245.html">[Opensim-dev] oddities with asset storage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5243">[ date ]</a>
+              <a href="thread.html#5243">[ thread ]</a>
+              <a href="subject.html#5243">[ subject ]</a>
+              <a href="author.html#5243">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SOG/SOP
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SOG/SOP&In-Reply-To=%3C369696.92279.qm%40web23008.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002787.html">
+   <LINK REL="Next"  HREF="002780.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SOG/SOP</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SOG/SOP&In-Reply-To=%3C369696.92279.qm%40web23008.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] SOG/SOP">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Fri Aug 29 16:06:23 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002787.html">[Opensim-dev] SOG/SOP
+</A></li>
+        <LI>Next message: <A HREF="002780.html">[Opensim-dev] SOG/SOP
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2791">[ date ]</a>
+              <a href="thread.html#2791">[ thread ]</a>
+              <a href="subject.html#2791">[ subject ]</a>
+              <a href="author.html#2791">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yeah I'm not completely against the single object idea. I think each method has its own problems. 
+
+I actually think this is most likely one place where we should use branches so different ideas can be tried out/prototyped without effecting trunk. I know there will be the problems with merging the changes back into trunk. But I think here that is most likely the lesser of the evils. As its a very complex and large task to do such changes in trunk. Also I think we would need a least some prototypes of ideas before we got everyones agreement on any approach.
+
+Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote: I'm against the SOG, personally. I think a clean SceneObject can 
+have group methods and object methods. SOG is one reason the 
+link/unlink code is such a hack!
+
+SOG is also a showstopper for a clean hierarchical linking 
+implementation. The need to handle root objects differently from 
+child objects is a real bother and causes lots of issues with 
+referential integrity.
+
+An architecture using only one class would be much cleaner, and 
+present a cleaner interface.
+
+SOG is also at the root of such issues as incorrect object updating 
+to the viewer, loss of child prim inventory, and, actually, every 
+issue related to child prims vs. root prims.
+
+Considering that a group can be deleted, translated, rotated and 
+scaled,and not much else, those methods would not create too much 
+overhaed on a SceneObject, as it would delegate them to it's parent.
+
+That is only a small handful of if/then, since, for most operations, 
+all prims are created equal.
+
+We could still limit the Entities list to root objects, to keep it 
+tolerably small.
+
+Melanie
+
+
+Michael Wright wrote:
+&gt;<i> Yeah, at the time we wrote the SOG/SOP, I was quite unsure about having the SOG rather than just linked SOP. But even though the current system has big problems and does need changes. I'm now of the mind that something like the SOG is most likely a good idea. As stefan said the problem with a set of linked SOP's is that there would be so many if/else in there, 
+</I>&gt;<i> 
+</I>&gt;<i> The idea of the SOG, is that if you want to deal with the whole link set (or root) then you could use the SOG, but if you want to deal with one of the separate prims in that group, then you can get its SOP.  Now we all know that things haven't worked out that well. But I'm not sure that is a problem with the actual idea. Just a issue with the implementation and new bits being added over time.
+</I>&gt;<i> 
+</I>&gt;<i> Stefan Andersson  wrote:    .hmmessage P { margin:0px; padding:0px } body.hmmessage { FONT-SIZE: 10pt; FONT-FAMILY:Tahoma }  I believe it's time to take that old discussion up again.
+</I>&gt;<i>   
+</I>&gt;<i>  The mess called SOG/SOP that we have get to know and love came out of a simple question:
+</I>&gt;<i>   
+</I>&gt;<i>  * How would we, as application providers, like our object model?
+</I>&gt;<i>   
+</I>&gt;<i>  Now, 'we' at that time was mostly me and Darren, so empirical data and peer input was rather scarce.
+</I>&gt;<i> 
+</I>&gt;<i>  Anyway, at that time, I was still an LSL coder, and one of the things I really hated with LSL was the object model - the notion that an object could change 'role' and thus, you always had to if-then around cases like, 'is this a single object', 'is it a linkset?', 'is it the root object', 'is it attached?' in your code - adn where stuff like 'position' always changed meaning depending on the context. That's what I call 'if-then' coding. And it's bad.
+</I>&gt;<i>   
+</I>&gt;<i>  So, when reviewing how scene content was organized, we thought 
+</I>&gt;<i>   
+</I>&gt;<i>  &quot;we really should have a hierarchihcal model internally, where objects do NOT change behaviour and property meaning. And that model should be rendered into protocol-specific representations at the endpoint, ie, in the clientview.&quot;
+</I>&gt;<i>   
+</I>&gt;<i>  I still think that having an object that represents the object in scene, as opposed to having ten scene objects magically linked on 'root' id is a good idea - especially when considering stuff like mesh-enabled objects, where 'child prims' simply does not apply.
+</I>&gt;<i>   
+</I>&gt;<i>  But this time, maybe we should get more discussion. I bid you all ventilate your ideas. And references to other 3D models, and suggestions incorporating how grid, region, scene, avatars, attachments, mesh objects and linksets can work togehter in a single, simple API paradigm are extra welcome.
+</I>&gt;<i>  
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Stefan Andersson
+</I>&gt;<i> Tribal Media AB
+</I>&gt;<i>  
+</I>&gt;<i> Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>  Send instant messages to your online friends <A HREF="http://uk.messenger.yahoo.com">http://uk.messenger.yahoo.com</A> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+ Send instant messages to your online friends <A HREF="http://uk.messenger.yahoo.com">http://uk.messenger.yahoo.com</A> 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080829/968974b4/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080829/968974b4/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002787.html">[Opensim-dev] SOG/SOP
+</A></li>
+	<LI>Next message: <A HREF="002780.html">[Opensim-dev] SOG/SOP
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2791">[ date ]</a>
+              <a href="thread.html#2791">[ thread ]</a>
+              <a href="subject.html#2791">[ subject ]</a>
+              <a href="author.html#2791">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

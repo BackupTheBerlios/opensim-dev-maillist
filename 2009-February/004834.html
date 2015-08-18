@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20a%20cleanup/correction%20of%0A%20the%09region-module%20system&In-Reply-To=%3C49862306.3080104%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004826.html">
+   <LINK REL="Next"  HREF="004837.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal for a cleanup/correction of the	region-module system</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20a%20cleanup/correction%20of%0A%20the%09region-module%20system&In-Reply-To=%3C49862306.3080104%40t-data.com%3E"
+       TITLE="[Opensim-dev] Proposal for a cleanup/correction of the	region-module system">melanie at t-data.com
+       </A><BR>
+    <I>Sun Feb  1 23:32:38 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004826.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+        <LI>Next message: <A HREF="004837.html">[Opensim-dev] Proposal for a cleanup/correction of the region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4834">[ date ]</a>
+              <a href="thread.html#4834">[ thread ]</a>
+              <a href="subject.html#4834">[ subject ]</a>
+              <a href="author.html#4834">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+PostInitialise is extremely important, because it is called at a 
+time when all modules' Initialise has been run. That means, all 
+modules have registered their interfaces and 
+RequestModuleInterface&lt;&gt;() is safe to use in PostInitialise _only_ 
+in a module context. Several existing implementations would be 
+rendered inoperative and actually impossible if there were no 
+PostInitialise.
+
+Melanie
+
+
+Justin Clark-Casey wrote:
+&gt;<i> Homer Horwitz wrote:
+</I>&gt;&gt;<i> Ok, I'll try to summarize a bit:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Sean had the great idea to use a dialect-independent way of naming our
+</I>&gt;&gt;<i> methods: I'll use Init and PostInit :-)
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Justin wondered whether we need an Init* method at all or if we just
+</I>&gt;&gt;<i> could init on first region-add. The benefit of a separate Init +
+</I>&gt;&gt;<i> PostInit method is, that you can do things before any region has been
+</I>&gt;&gt;<i> added, but after all the (shared) modules have been initialized. I
+</I>&gt;&gt;<i> don't know whether that's necessary, but on the other hand, it doesn't
+</I>&gt;&gt;<i> hurt to have that possibility. It doesn't cost anything, after all. I
+</I>&gt;&gt;<i> could add some abstract base classes with default implementations, so
+</I>&gt;&gt;<i> you don't have to add an empty Init-method if you don't need it, but
+</I>&gt;&gt;<i> that's more or less syntactic sugar...
+</I>&gt;<i> 
+</I>&gt;<i> Fair enough - though I think I was messing about more with the need for Init() and Close() at all.  But this was 
+</I>&gt;<i> something of a mental experiment - it does make things more readable and reduce the need for conditions if there are 
+</I>&gt;<i> such explicit methods.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> About the configuration: I don't like the idea of getting the config
+</I>&gt;&gt;<i> from the scene much, because (at least currently), configuration is
+</I>&gt;&gt;<i> owned by the server, not by one of its regions/scenes. While I
+</I>&gt;&gt;<i> understand that some modules won't need a configuration, having to add
+</I>&gt;&gt;<i> the Nini reference for a fresh region-module doesn't seem too
+</I>&gt;&gt;<i> difficult to me (the currently available ones already have that
+</I>&gt;&gt;<i> reference, so no change there). Even if we change that and will have
+</I>&gt;&gt;<i> region-specific parts of the configuration, the config as a whole will
+</I>&gt;&gt;<i> still be in the responsibility of the server, not the region, in my
+</I>&gt;&gt;<i> opinion.
+</I>&gt;<i> 
+</I>&gt;<i> Also fair enough from my perspective.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> We need a possibility to disable modules  (preferably without first
+</I>&gt;&gt;<i> loading them) without removing the *.dll; and there were some wishes
+</I>&gt;&gt;<i> about the loader, pro and contra Mono.Addins. I think I'll have a look
+</I>&gt;&gt;<i> at Mono.Addins (including the IPlugin interface and the
+</I>&gt;&gt;<i> disable-by-config); it's the one we use already, and I agree that we
+</I>&gt;&gt;<i> should use only one loader, if possible without having to use too many
+</I>&gt;&gt;<i> workarounds. If not, ExtensionLoader might win ;-)
+</I>&gt;<i> 
+</I>&gt;<i> I feel that using ExtensionLoader here is effectively the same decision as using it everywhere, since in the long term I 
+</I>&gt;<i> really don't think that we want multiple module systems.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> &quot;what happens to avatars that are in a region that you want to restart
+</I>&gt;&gt;<i> then? are they kicked out first? should they stay?&quot;
+</I>&gt;&gt;<i> As the region goes down, they can't stay. So, either they will be
+</I>&gt;&gt;<i> moved away (TP home, maybe?) or they will be kicked out. Kicking them
+</I>&gt;&gt;<i> out might be the easier thing (and consistent with the SL behavior,
+</I>&gt;&gt;<i> too); TP home might be difficult if it is the home-region that is
+</I>&gt;&gt;<i> restarted.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I plan to do the move in an as compatible way as possible; if
+</I>&gt;&gt;<i> everything works as intended, the &quot;old&quot; modules will continue to work
+</I>&gt;&gt;<i> for a time. The move will happen in several steps
+</I>&gt;&gt;<i> - Implementation of the new module system (while keeping the old one functional)
+</I>&gt;&gt;<i> - Marking the old one as deprecated
+</I>&gt;&gt;<i> - Moving over all the available core region modules to the new system
+</I>&gt;&gt;<i> - Removing the old region module system
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Especially the third part will take some time (not because it is hard,
+</I>&gt;&gt;<i> I don't think it is, but because we have quite a few modules)...
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thanks for all the contributions :-)
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Any last comments?
+</I>&gt;<i> 
+</I>&gt;<i> Go Homer!
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Cheers,
+</I>&gt;&gt;<i>   Homer
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004826.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+	<LI>Next message: <A HREF="004837.html">[Opensim-dev] Proposal for a cleanup/correction of the region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4834">[ date ]</a>
+              <a href="thread.html#4834">[ thread ]</a>
+              <a href="subject.html#4834">[ subject ]</a>
+              <a href="author.html#4834">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

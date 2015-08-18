@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-users] grid operation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-users%5D%20grid%20operation&In-Reply-To=%3C494BA721.103%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004191.html">
+   <LINK REL="Next"  HREF="004195.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-users] grid operation</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-users%5D%20grid%20operation&In-Reply-To=%3C494BA721.103%40t-data.com%3E"
+       TITLE="[Opensim-dev] [Opensim-users] grid operation">melanie at t-data.com
+       </A><BR>
+    <I>Fri Dec 19 14:52:33 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004191.html">[Opensim-dev] [Opensim-users] grid operation
+</A></li>
+        <LI>Next message: <A HREF="004195.html">[Opensim-dev] [Opensim-users] grid operation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4192">[ date ]</a>
+              <a href="thread.html#4192">[ thread ]</a>
+              <a href="subject.html#4192">[ subject ]</a>
+              <a href="author.html#4192">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sadly, the existing GridComms is full of such, and worse, constructs.
+That needs to be cleaned up in a major way. Currently, to plumb a 
+single new sim-to-server call, up to 18 files need to be edited. 
+That can't be right.
+
+Melanie
+
+
+Stefan Andersson wrote:
+&gt;&gt;<i> if (gridmode)&gt; {&gt; if(local assets)&gt; {&gt; call_local_service();&gt; }&gt; else&gt; {&gt; call_server_service();&gt; }&gt; }&gt; else&gt; {&gt; call_local_service();&gt; }&gt; &gt; That is ugly and wasteful and complicates things.
+</I>&gt;<i>  
+</I>&gt;<i> which was exactly why I didn't do that. The snippet represented a one-time selective instantiation of concrete implementations of identical interfaces. The OpenSim way would probably be even easier, to make if factored thru an opensim.ini setting.
+</I>&gt;<i>  
+</I>&gt;<i> which means, what you do, is simply
+</I>&gt;<i>  
+</I>&gt;<i> IAssetService.call_service()
+</I>&gt;<i>  
+</I>&gt;<i> and things will happen the same regardless of whether the instance behind it is a local service, a proxy to a local ip-based service, or a proxy to a remote service.
+</I>&gt;<i>  
+</I>&gt;<i> /Stefan
+</I>&gt;<i>  
+</I>&gt;&gt;<i> Stefan Andersson wrote:&gt; &gt;&gt; I believe the simplification of internal code paths is worth the &gt; multiple processes. Of course, you may have a different opinion.&gt; &gt; Restructuring into proxies, http wrappers and concrete services will have the same effect;&gt; &gt; &gt; &gt; IAssetServer myassetServer;&gt; &gt; &gt; &gt; if(in-process private asset server)&gt; &gt; {&gt; &gt; myassetServer = ConcreteLocalAssetServer();&gt; &gt; myassetserver.Start();&gt; &gt; }&gt; &gt; else&gt; &gt; {&gt; &gt; if( in-process public asset server )&gt; &gt; { &gt; &gt; ConcreteAssetServer localassetServer = ConcreteAssetServer( port );&gt; &gt; localassetServer.Start();&gt; &gt; &gt; &gt; assetServerUrl = localassetServer.Url;&gt; &gt; }&gt; &gt; else&gt; &gt; {&gt; &gt; // out-of-process remote asset server&gt; &gt; assetServerUrl = GetConfig( &quot;remote_asset_server_url&quot; );&gt; &gt; }&gt; &gt; &gt; &gt; myassetServer = ConcreteAssetProxy( assetServerUrl );&gt; &gt; }&gt; &gt; &gt; &gt; Of course, ConcreteAssetServer should be implemented as an communications wrapper around a ConcreteLocalAssetServer.&gt; &gt; &gt; Standalone is a relic from the early days that s
+</I>hould have it's &gt; finest hour just about now. It's about as useless as a HTTP 1.0 &gt; webserver in view of the things to come.&gt; &gt; That is just not true. The case where you want to run a 3D world as an integrated desktop application will always be with us. Just because the hyper hype is on, and we're looking at how to restructure the backends, doesn't mean we should throw what we already built up.&gt; &gt; &gt; &gt; You are thinking progression where it's really about variation.&gt; &gt; &gt; &gt; /Stefan&gt; &gt; &gt; &gt;&gt; Teravus Ovares wrote:&gt; &gt; Melanie felt the need to resurrect this discussion in another&gt; &gt; 'subject' (remember, Gmail threads these, so the subjects do matter).&gt; &gt; &gt; &gt; She asked me, &quot;what does standalone give me that a local grid doesn't'.&gt; &gt; 1. A single process&gt; &gt; 2. A less overhead 'networking' the parts together&gt; &gt; 3. A quick way to test new things. Add them to the grid server later.&gt; &gt; (visual studio debugger is easier this way)&gt; &gt; 4. Structured centralized grid mode wasn't really the desig
+n&gt; &gt; intention. It just sort of morphed into that. Originally the concept&gt; &gt; for this was a distributed system of individual regions that you could&gt; &gt; visit via a region browser.&gt; &gt; 5. SLCLONE--;&gt; &gt; &gt; &gt; There are more.. but 5 will do for now.&gt; &gt; &gt; &gt; Best Regards&gt; &gt; &gt; &gt; Teravus&gt; &gt; &gt; &gt; On 12/11/08, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>&gt; wrote:&gt; &gt;&gt; Kyle &quot;G&quot; wrote:&gt; &gt;&gt; &gt; We have not tried it either (grid mode SQLite) I also ASSumed it would work.&gt; &gt;&gt; &gt; Doh! And FYI Happy Holidays All!&gt; &gt;&gt;&gt; &gt;&gt; I do&gt; n't think we have a grid adapter for sqlite, but all the rest of the&gt; &gt;&gt; services can be run under it (and writing the griddatastore should be&gt; &gt;&gt; only a couple hours of work if someone wanted to do that). You just&gt; &gt;&gt; don't want to do that in an environment that gets much load.&gt; &gt;&gt;&gt; &gt;&gt; -Sean&gt; &gt;&gt;&gt; &gt;&gt; --&gt; &gt;&gt; Sean Dague / Neas Bade&gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>&gt; &gt;&gt; <A HREF="http://dague.net">http://dague.net</A>&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt; _______________________________________________&gt; &gt;&gt; Opensim-dev mailing list&gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; &gt; &gt; &gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; &gt; &gt; &gt; &gt; ------------------------------------------------------------------------&gt; &gt; &gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004191.html">[Opensim-dev] [Opensim-users] grid operation
+</A></li>
+	<LI>Next message: <A HREF="004195.html">[Opensim-dev] [Opensim-users] grid operation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4192">[ date ]</a>
+              <a href="thread.html#4192">[ thread ]</a>
+              <a href="subject.html#4192">[ subject ]</a>
+              <a href="author.html#4192">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

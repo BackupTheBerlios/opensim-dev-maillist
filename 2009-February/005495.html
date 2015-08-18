@@ -1,0 +1,234 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Authentication, take 2: Capabilities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%2C%20take%202%3A%20Capabilities&In-Reply-To=%3C49A772FF.1080502%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005494.html">
+   <LINK REL="Next"  HREF="005496.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Authentication, take 2: Capabilities</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Authentication%2C%20take%202%3A%20Capabilities&In-Reply-To=%3C49A772FF.1080502%40t-data.com%3E"
+       TITLE="[Opensim-dev] Authentication, take 2: Capabilities">melanie at t-data.com
+       </A><BR>
+    <I>Fri Feb 27 05:58:39 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005494.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+        <LI>Next message: <A HREF="005496.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5495">[ date ]</a>
+              <a href="thread.html#5495">[ thread ]</a>
+              <a href="subject.html#5495">[ subject ]</a>
+              <a href="author.html#5495">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Well, if FetchInventoryDescendents works better over CAPS, then we 
+can try using that. Now, that would serve another purpose beyond 
+your intended trust issue:
+
+Currently, inventory is fetched by the region en-bloc, rather than 
+being fetched only on demand. There isn't even a function to fetch a 
+single item by UUID.
+
+Now, here is what I found:
+
+- If an item is given to a user while that user is offline, the user 
+needs to clear cache to see it
+- If an item is given to a user while that user is in another 
+region, the item will not show until a relog &amp; cache clear
+
+You just supplied a very important bit of information, namely that 
+the viewer sends SendInventoryDescendents over UDP only after a 
+cache clear, but over CAPS it's sent all the time.
+
+So, CAPS would seem to be the solution to this issue.
+
+Now, here it goes, again:
+
+There are grids that are set up to have an inventory server that is 
+inaccessible to the viewer. So, while I'm, of course, not opposed to 
+your approach of lettign the viewer talk to the inventory server, 
+that needs to be optional. The inventory server is not secure enough 
+to be open to the internet! Not for the fledgling commercial 
+offerings like LCO.
+
+Also, this highlights a new, additional reason to have a function 
+like &quot;get item by uuid&quot; on the inventory server interface. On 
+cross-region gives, the region of the receiving agent receives a 
+message (via IM) containing the item ID. In order to send the bulk 
+update message that is needed to make the viewer actually see the 
+item, it needs to first fetch it. This is not an issue if giver and 
+receiver are in one region, because the item is already in the 
+region's inventory cache, but if it;s a different region, it doesn't 
+have that item and currently has no way to request it, short of 
+reloading that user's complete inventory!
+
+So, maybe, as a side effect, this problem can be solved, since such 
+a &quot;fetch item to region by UUID&quot; function will be needed for that 
+scenario, too.
+
+For open grid offerings, I see some added security against regions 
+corrupting user inventories, for all grids, I see some advantage in 
+memory consumption, because the full inventory fetch on region entry 
+is removed by it, and also maybe a chance to make cross-region item 
+giving work.
+
+The only thing I'm asking is, please make the ex-region CAPS giving 
+for this optional, e.g. provide a region implementation to proxy it 
+and allow selection of either a region caps (for trusted regions and 
+closed grids) and inventory server CAPS (for open grids that have 
+accessible inventory servers).
+
+Melanie
+
+
+Diva Canto wrote:
+&gt;<i> After more poking at the viewer, here's what I found.
+</I>&gt;<i> 
+</I>&gt;<i> FetchInventoryDescendents seems to be working consistently over CAPs, in 
+</I>&gt;<i> fact better than over UDP. When the agent logs in, the client always 
+</I>&gt;<i> invokes that CAP, unlike the message over UDP which only seems to come 
+</I>&gt;<i> after a clear cache. That first FetchInventoryDescendents request is for 
+</I>&gt;<i> getting the 1st-level items just below the Root folder. Whenever you 
+</I>&gt;<i> unfold folders, this CAP is invoked too, and that happens all the time. 
+</I>&gt;<i> In other words, the inventory skeleton is passed in a lazy mode to the 
+</I>&gt;<i> client, and directly from wherever this Capability is being served. Why 
+</I>&gt;<i> is this commented in the code?
+</I>&gt;<i> 
+</I>&gt;<i> Observation #1: we could make the provider of this CAP be the inventory 
+</I>&gt;<i> service, instead of the region. That way, the user can *browse* the 
+</I>&gt;<i> contents of her inventory *safely everywhere* -- even if the region 
+</I>&gt;<i> where she is doesn't have her inventory.
+</I>&gt;<i> 
+</I>&gt;<i> Unfortunately, the goodies sort of stop here. I tried coercing the 
+</I>&gt;<i> viewer to use FetchInventory, CreateInventoryItem, 
+</I>&gt;<i> CreateInventoryFolder, and other inventory manipulation operations, over 
+</I>&gt;<i> CAPs, but the viewer doesn't seem to want to do that. The only ones that 
+</I>&gt;<i> are over CAPs are the ones we already have related to notecards and 
+</I>&gt;<i> scripts. Those can also be split eventually, some of them should go to 
+</I>&gt;<i> the inv server directly, namely: NewFileAgentInventory, 
+</I>&gt;<i> UpdateNotecardAgentInventory, UpdateScriptAgentInventory. There's really 
+</I>&gt;<i> no need to let the regions serve these.
+</I>&gt;<i> 
+</I>&gt;<i> However, even though inventory access doesn't seem to be entirely over 
+</I>&gt;<i> CAPs, not all is lost. What this means is that we can stop regions (the 
+</I>&gt;<i> untrusted ones, at least) from getting the user's inventory in its 
+</I>&gt;<i> entirety while the user still *sees* it. The next problem is *access*. 
+</I>&gt;<i> That is, I can see I have a shape in there, but as soon as I try to wear 
+</I>&gt;<i> it, that fails, because the region where I am doesn't known anything 
+</I>&gt;<i> about it (it doesn't have the assetID, because it doesn't have the 
+</I>&gt;<i> inventory).
+</I>&gt;<i> 
+</I>&gt;<i> We have three options here.
+</I>&gt;<i> 
+</I>&gt;<i> (1) We have the region fetch that inventory item from the user's 
+</I>&gt;<i> inventory, and then send it to the viewer; so the region gets a copy of 
+</I>&gt;<i> the item.
+</I>&gt;<i> (2) We have the region serve merely as front-end of the request, passing 
+</I>&gt;<i> it to the user's inventory server or home region, and have them send the 
+</I>&gt;<i> actual item to the viewer. (my favorite; in this case, Identity and 
+</I>&gt;<i> Authentication would be established by the viewer's EndPoint, again)
+</I>&gt;<i> (3) We simply don't serve the item.
+</I>&gt;<i> 
+</I>&gt;<i> In any case, the great thing here is that the region doesn't have the 
+</I>&gt;<i> complete listing of the users' inventory items, but the viewer does. 
+</I>&gt;<i> That is, we avoid that dreadful &quot;Loading...&quot;. The region may get 
+</I>&gt;<i> requests for fetching items, and those IDs come from the client. So when 
+</I>&gt;<i> the inv server gets a request to fetch an item, we know that with all 
+</I>&gt;<i> likelihood this request came from the legitimate viewer; the odds of the 
+</I>&gt;<i> region guessing a valid itemID are pretty low.
+</I>&gt;<i> 
+</I>&gt;<i> ---
+</I>&gt;<i> 
+</I>&gt;<i> I can already hear Melanie saying that any of this is going to break 57 
+</I>&gt;<i> things related to attachments and scripting :-) That's ok. I'm talking 
+</I>&gt;<i> about crossing boundaries of trust for now, so Hypergrid, OSGrid and 
+</I>&gt;<i> others like that. And there's ways of not breaking attachments and 
+</I>&gt;<i> scripts across region boundaries.
+</I>&gt;<i> 
+</I>&gt;<i> My main objective is to defeat what I've put DNCH doing at the moment -- 
+</I>&gt;<i> wiping out people's inventories.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie wrote:
+</I>&gt;&gt;<i> That is what was said. Linden reverted the inventory protocol to UDP 
+</I>&gt;&gt;<i>   on their servers because of an issue in the viewer that was so 
+</I>&gt;&gt;<i> fundamental that it was decided to not be worth fixing.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Whether this is true, I don't know. but it was said.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Diva Canto wrote:
+</I>&gt;&gt;<i>   
+</I>&gt;&gt;&gt;<i> Melanie wrote:
+</I>&gt;&gt;&gt;<i>     
+</I>&gt;&gt;&gt;&gt;<i> Linden turned it off because it's broken in the client. So, we can 
+</I>&gt;&gt;&gt;&gt;<i> try to use it but will hit the same wall, since the client was never 
+</I>&gt;&gt;&gt;&gt;<i> fixed.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>   
+</I>&gt;&gt;&gt;&gt;<i>       
+</I>&gt;&gt;&gt;<i> Melanie: are you 100% sure about this? This, of course, is critical. The 
+</I>&gt;&gt;&gt;<i> whole point of my thinking was to access inventory over the consistent 
+</I>&gt;&gt;&gt;<i> model of CAPs; if that's not working, then everything else is minor.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>     
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005494.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+	<LI>Next message: <A HREF="005496.html">[Opensim-dev] Authentication, take 2: Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5495">[ date ]</a>
+              <a href="thread.html#5495">[ thread ]</a>
+              <a href="subject.html#5495">[ subject ]</a>
+              <a href="author.html#5495">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

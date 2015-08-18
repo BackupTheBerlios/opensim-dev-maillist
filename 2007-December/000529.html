@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] 20,256 prim test
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%2020%2C256%20prim%20test&In-Reply-To=%3C20071213123126.GK3469%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000530.html">
+   <LINK REL="Next"  HREF="000528.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] 20,256 prim test</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%2020%2C256%20prim%20test&In-Reply-To=%3C20071213123126.GK3469%40dague.net%3E"
+       TITLE="[Opensim-dev] 20,256 prim test">sean at dague.net
+       </A><BR>
+    <I>Thu Dec 13 13:31:26 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000530.html">[Opensim-dev] 20,256 prim test
+</A></li>
+        <LI>Next message: <A HREF="000528.html">[Opensim-dev] Information request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#529">[ date ]</a>
+              <a href="thread.html#529">[ thread ]</a>
+              <a href="subject.html#529">[ subject ]</a>
+              <a href="author.html#529">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>First, nice work!  A few more comments spread throughout.
+
+On Wed, Dec 12, 2007 at 09:52:01PM -0500, Teravus Ovares wrote:
+&gt;<i> Greetings everyone
+</I>&gt;<i> 
+</I>&gt;<i> I was having fun tiling the ground and above with .25 meter cubes and ended
+</I>&gt;<i> up with this;
+</I>&gt;<i> <A HREF="http://opensimulator.org/images/d/d0/My20000Test_001.jpg">http://opensimulator.org/images/d/d0/My20000Test_001.jpg</A>
+</I>&gt;<i> 
+</I>&gt;<i> This test was conducted on a 100MB ethernet network.
+</I>&gt;<i> 
+</I>&gt;<i> The instance is running 3 regions, two with no prim in it.
+</I>&gt;<i> The sim is running ODE with a single agent.
+</I>&gt;<i> 
+</I>&gt;<i>  The client is running on a different machine then the sim.
+</I>&gt;<i> This was using the mySQL DB interface in Grid Mode
+</I>&gt;<i> 
+</I>&gt;<i> at 16,750 prim, the instance of OpenSim was using up 45% of a dual core 3Ghz
+</I>&gt;<i> processor(one core)
+</I>&gt;<i> at 20,256 prim, the instance of OpenSim was using up 22% of a dual core 3Ghz
+</I>&gt;<i> processor(both cores)
+</I>&gt;<i> In both cases the memory usage was around 145MB of RAM
+</I>&gt;<i> using 58 Threads
+</I>&gt;<i> 758 handles
+</I>&gt;<i> avg 1600 context switches
+</I>&gt;<i> 
+</I>&gt;<i> .NET Perf Info
+</I>&gt;<i> 11,750,740 = # Marshaling with unmanaged code(ODE)
+</I>&gt;<i> 2,839 = # GC handles
+</I>&gt;<i> 0.10 - 0.36  = % Time in GC
+</I>&gt;<i> 4,840 = Classes loaded
+</I>&gt;<i> 69 = Total Assemblies
+</I>&gt;<i> 
+</I>&gt;<i> .NET Locking and Threads
+</I>&gt;<i> 2 = locking contentions /sec
+</I>&gt;<i> 75,505+ and increasing = Queue Length peak
+</I>&gt;<i> 58 = Logical threads
+</I>&gt;<i> 4,294,967,033 = physical Threads
+</I>&gt;<i> 322 = current recognized threads
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> A couple of notes.
+</I>&gt;<i> 
+</I>&gt;<i> It's really difficult to get to 20,000 prim.    The reason is DataStore
+</I>&gt;<i> Database backup takes an hour (based on prim duplications).
+</I>&gt;<i> At least with mySQL, this can be done asynchronously, I suggest we do that,
+</I>&gt;<i> otherwise you can DOS a sim simply by copying prim.
+</I>&gt;<i> IMHO, this is the *WORST* performance bog that we've got.  Even worse then
+</I>&gt;<i> the packet object create and discard.
+</I>
+For anything that large, a real database is definitely a requirement.
+There are some changes that can be made to the way sqlite is used to
+make it opperate a lot better at lower levels, but it was never intended
+for anything on that scale.
+
+&gt;<i> When logging into the sim, it takes about 3 minutes on a 100MB network to
+</I>&gt;<i> get all 20,256 prim at 600Kb/sec.  During that time, you can't really move
+</I>&gt;<i> because everything is being pushed through the Task throttle (this is by
+</I>&gt;<i> design).   Before this becomes general practice, we'll need to make sure we
+</I>&gt;<i> limit the amount of prim that go out at a time to a client.
+</I>&gt;<i> 
+</I>&gt;<i> One 3Ghz core could handle approx 18,000 prim before stalling in between
+</I>&gt;<i> frames.
+</I>&gt;<i> 
+</I>&gt;<i> Once again,
+</I>&gt;<i> Have a look at the picture.  It has the sim stats visible
+</I>&gt;<i> 
+</I>&gt;<i> Best Regards
+</I>&gt;<i> 
+</I>&gt;<i> Teravus Ousley
+</I>
+It would be really interesting to see how these changed with 2, 4, 8, 16
+avatars.  I think we're seeing people pushing OpenSim on two different
+vectors (lots of prims vs. lots of AVs) and there are very different
+scaling issues on each of those vectors.
+
+	-Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071213/fbed025a/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071213/fbed025a/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000530.html">[Opensim-dev] 20,256 prim test
+</A></li>
+	<LI>Next message: <A HREF="000528.html">[Opensim-dev] Information request
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#529">[ date ]</a>
+              <a href="thread.html#529">[ thread ]</a>
+              <a href="subject.html#529">[ subject ]</a>
+              <a href="author.html#529">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Update libode, or work towards better physics handling in this libode revision?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20libode%2C%0A%20or%20work%20towards%20better%20physics%20handling%20in%20this%20libode%20revision%3F&In-Reply-To=%3CBLU134-W9F0B0185F91C1C0F7F5A9D53B0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003256.html">
+   <LINK REL="Next"  HREF="003259.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Update libode, or work towards better physics handling in this libode revision?</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20libode%2C%0A%20or%20work%20towards%20better%20physics%20handling%20in%20this%20libode%20revision%3F&In-Reply-To=%3CBLU134-W9F0B0185F91C1C0F7F5A9D53B0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Update libode, or work towards better physics handling in this libode revision?">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Oct  8 08:12:13 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003256.html">[Opensim-dev] Update libode, or work towards better physics handling in this libode revision?
+</A></li>
+        <LI>Next message: <A HREF="003259.html">[Opensim-dev] Update libode,	or work towards better physics handling in this libode revision?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3257">[ date ]</a>
+              <a href="thread.html#3257">[ thread ]</a>
+              <a href="subject.html#3257">[ subject ]</a>
+              <a href="author.html#3257">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Teravus,
+ 
+would it be possible to re-structure (no, this is not refactoring) the internals of the physics engines so you could change or re-load those parameters in real time? Or at least a sub-set of the parameters?
+ 
+Not knowing what efforts would have to go into that, it might have a short ROI from what I understand, especially since you state that the same ardous work has to be duplicated over various environments.
+ 
+It would also have the added bonus of us slowly inching towards a situation where we don't have to re-start the region for every environment change, something that has become more and more of a problem for us lately when testing and debugging applications.
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+&gt;<i> Date: Tue, 7 Oct 2008 10:11:00 -0400&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] Update libode, or work towards better physics handling in this libode revision?&gt; &gt; No worries on the burden&gt; &gt; To answer the question on tests/calibration.. I guess the purpose is&gt; to set the variety of settings (and there are a plurality of them) to&gt; produce reasonable physics results while using the least resources&gt; possible in doing so. It might be easy to configure in double&gt; floating point mode, but we'd use twice to three times the CPU to&gt; accomplish that. Usually what I do is get it in a usable state with&gt; high resource usage and scale the resource usage back until a balance&gt; is acchieved. This usually requires a lot of trial and error,&gt; additionally, in the past, it has required the same process for each&gt; platform (win/*nix/mac).&gt; &gt; The first thing that I do is get collisions stable. Avatar shouldn't&gt; fall through the ground or shoot millions of meters into the air when&gt; they log-in.&gt; &gt; Next, I tune the avatar PID controller so it moves the avatar's&gt; physics proxy effectively. (un-tuned, you might see a result where&gt; pressing a button causes you to go in the direction you want but with&gt; a slow, curving direction change from from what seems like some random&gt; direction)&gt; &gt; After that, I find the best balance of frame frequency, collision&gt; testing, contacts and contact friction.. and CPU usage while&gt; testing against a very thin object in multiple directions. (tests to&gt; ensure that I don't pass through a thin object at reasonable&gt; velocities).&gt; &gt; After that, I usually patch the libode library with some fixes that&gt; apply to our use case. In the past, superfluous asserts in the&gt; library have caused random crashes. (Yes, I've tried to beat it over&gt; the head of the ode developers and they insist on having them). Also,&gt; in the past, the heightfield collider needed a few patches to work&gt; properly. Without the patches, the ode library is very unstable.&gt; &gt; After that, I usually work on more fine grained details, like llMove2Target.&gt; &gt; This process needs to be done for windows platforms and usually also&gt; has to be done for *nix platforms. Furthermore, Mac platforms often&gt; need a few small tweaks after that, but most of the *nix platform&gt; settings apply.&gt; &gt; This is a relatively long process of starting the simulator, fixing&gt; something, stopping it.. starting it over again.. tweaking&gt; something, stopping it.. over and over until it's right. There's&gt; some math involved in finding what fps/collision detection settings&gt; /could possibly/ be good, but a lot of it is just, trial and error.&gt; &gt; Best Regards&gt; &gt; Teravus&gt; &gt; &gt; On 10/7/08, Dr Scofield &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt; wrote:&gt; &gt; Teravus Ovares wrote:&gt; &gt; &gt; ok, so far, 2 for update, 0 for current lib.&gt; &gt;&gt; &gt; +1 for update --- but i'm kind of feeling bad saying that because that places a&gt; &gt; tremendous burden on you...&gt; &gt;&gt; &gt; --&gt; &gt; dr dirk husemann ---- virtual worlds research ---- ibm zurich research lab&gt; &gt; SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>&gt; &gt; RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>&gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081008/901e3fc4/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081008/901e3fc4/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003256.html">[Opensim-dev] Update libode, or work towards better physics handling in this libode revision?
+</A></li>
+	<LI>Next message: <A HREF="003259.html">[Opensim-dev] Update libode,	or work towards better physics handling in this libode revision?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3257">[ date ]</a>
+              <a href="thread.html#3257">[ thread ]</a>
+              <a href="subject.html#3257">[ subject ]</a>
+              <a href="author.html#3257">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

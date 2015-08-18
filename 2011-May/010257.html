@@ -1,0 +1,234 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SSL Certificate Checking Disabling Causing Crash, here's the solution, WAS: [Opensim-users] OpenSim crash
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SSL%20Certificate%20Checking%20Disabling%20Causing%20Crash%2C%0A%20here%27s%20the%20solution%2C%20WAS%3A%20%5BOpensim-users%5D%20OpenSim%20crash&In-Reply-To=%3CBANLkTiniSgvi7r9czahy_mgxdzCnOqQ0cg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010256.html">
+   <LINK REL="Next"  HREF="010258.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SSL Certificate Checking Disabling Causing Crash, here's the solution, WAS: [Opensim-users] OpenSim crash</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SSL%20Certificate%20Checking%20Disabling%20Causing%20Crash%2C%0A%20here%27s%20the%20solution%2C%20WAS%3A%20%5BOpensim-users%5D%20OpenSim%20crash&In-Reply-To=%3CBANLkTiniSgvi7r9czahy_mgxdzCnOqQ0cg%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] SSL Certificate Checking Disabling Causing Crash, here's the solution, WAS: [Opensim-users] OpenSim crash">teravus at gmail.com
+       </A><BR>
+    <I>Sun May 29 19:44:01 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010256.html">[Opensim-dev] RegionReady
+</A></li>
+        <LI>Next message: <A HREF="010258.html">[Opensim-dev] SSL Certificate Checking Disabling Causing Crash, here's the solution, WAS: [Opensim-users] OpenSim crash
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10257">[ date ]</a>
+              <a href="thread.html#10257">[ thread ]</a>
+              <a href="subject.html#10257">[ subject ]</a>
+              <a href="author.html#10257">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hey all
+
+Just noticed that we're trying to use
+ServicePointManager.ServerCertificateValidationCallback in the
+httpserver
+
+Just a FYI, Not all versions of Mono will support this.    I ran into
+that with the OGP module.   There's a workaround.
+
+Create a class that Implements ICertificatePolicy and return true for
+the CheckValidationResult method.
+
+Example:
+public class MonoCert : ICertificatePolicy
+    {
+        #region ICertificatePolicy Members
+
+        public bool CheckValidationResult(ServicePoint srvPoint,
+X509Certificate certificate, WebRequest request, int
+certificateProblem)
+        {
+            return true;
+        }
+
+        #endregion
+    }
+
+Then, put a 'Not Implemented Exception' handler around the Callback
+Assignment and call
+
+ServicePointManager.CertificatePolicy = New MonoCert();   &lt;----  Class
+in example above.
+
+
+This will generate depreciated warnings that you'll need to disable
+about having code that mentions ServicePointManager.CertificatePolicy,
+however, all new versions of Mono and .NET should use the newer
+assignment.
+
+-- Disable Warnings...
+#pragma warning disable 0612, 0618
+       // Mono does not implement the
+ServicePointManager.ServerCertificateValidationCallback yet!  Don't
+remove this!
+            ServicePointManager.CertificatePolicy = new MonoCert();
+#pragma warning restore 0612, 0618
+
+
+Full Code Example:
+<A HREF="http://pastebin.ca/2071657">http://pastebin.ca/2071657</A>
+
+
+-Teravus
+
+
+---------- Forwarded message ----------
+From: Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt;
+Date: Sun, May 29, 2011 at 1:28 PM
+Subject: Re: [Opensim-users] OpenSim crash
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cliveg at gmail.com</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-users at lists.berlios.de</A>
+
+
+I'm not sure if this is implemented in Mono. &#160; &#160;It didn't use to be.
+Maybe they implemented it recently. &#160; In either case, check your
+version of Mono and make sure it supports
+ServicePointManager.ServerCertificateValidationCallback
+
+Regards
+
+Teravus
+
+Exception: System.Reflection.TargetInvocationException: Exception has
+been thrown by the target of an invocation. ---&gt;
+System.NotImplementedException: The requested feature is not
+implemented.
+&#160;at System.Net.ServicePointManager.get_ServerCertificateValidationCallback
+() [0x00000]
+&#160;at OpenSim.Region.CoreModules.Scripting.HttpRequest.HttpRequestModule..ctor
+() [0x00000]
+&#160;at (wrapper managed-to-native)
+System.Reflection.MonoCMethod:InternalInvoke
+(object,object[],System.Exception&amp;)
+
+On Sun, May 29, 2011 at 9:11 AM, Clive Gould &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cliveg at gmail.com</A>&gt; wrote:
+&gt;<i> Hi
+</I>&gt;<i>
+</I>&gt;<i> I've just upgraded MySQL on our server:
+</I>&gt;<i>
+</I>&gt;<i> [<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">root at standbyvle</A> ~]# rpm -q mysql
+</I>&gt;<i> mysql-5.5.12-1.el5.remi
+</I>&gt;<i>
+</I>&gt;<i> When I try to startt OpenSim I get the console message below.
+</I>&gt;<i>
+</I>&gt;<i> Is it the version of MySQL and if so is there any way to get OpenSim 0.7.1
+</I>&gt;<i> to work with mysql-5.5.12-1?
+</I>&gt;<i>
+</I>&gt;<i> Thanks very much
+</I>&gt;<i>
+</I>&gt;<i> Clive
+</I>&gt;<i>
+</I>&gt;<i> 14:04:51 - [MODULES]: Loading Region's modules (old style)
+</I>&gt;<i> 14:04:52 - [MODULES]: Could not load types for plugin DLL
+</I>&gt;<i> OpenSim.Region.CoreModules, Version=0.0.0.0, Culture=neutral,
+</I>&gt;<i> PublicKeyToken=null.&#160; Exception Exception has been thrown by the target of
+</I>&gt;<i> an invocation.&#160;&#160; at System.Reflection.MonoCMethod.Invoke (System.Object obj,
+</I>&gt;<i> BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[]
+</I>&gt;<i> parameters, System.Globalization.CultureInfo culture) [0x00000]
+</I>&gt;<i> &#160; at System.Reflection.MonoCMethod.Invoke (BindingFlags invokeAttr,
+</I>&gt;<i> System.Reflection.Binder binder, System.Object[] parameters,
+</I>&gt;<i> System.Globalization.CultureInfo culture) [0x00000]
+</I>&gt;<i> &#160; at System.Reflection.ConstructorInfo.Invoke (System.Object[] parameters)
+</I>&gt;<i> [0x00000]
+</I>&gt;<i> &#160; at System.Activator.CreateInstance (System.Type type, Boolean nonPublic)
+</I>&gt;<i> [0x00000]
+</I>&gt;<i> &#160; at System.Activator.CreateInstance (System.Type type) [0x00000]
+</I>&gt;<i> &#160; at OpenSim.Region.Framework.ModuleLoader.LoadModules (System.String
+</I>&gt;<i> dllName) [0x00000]
+</I>&gt;<i> 14:04:52 - [APPLICATION]:
+</I>&gt;<i> APPLICATION EXCEPTION DETECTED: System.UnhandledExceptionEventArgs
+</I>&gt;<i>
+</I>&gt;<i> Exception: System.Reflection.TargetInvocationException: Exception has been
+</I>&gt;<i> thrown by the target of an invocation. ---&gt; System.NotImplementedException:
+</I>&gt;<i> The requested feature is not implemented.
+</I>&gt;<i> &#160; at System.Net.ServicePointManager.get_ServerCertificateValidationCallback
+</I>&gt;<i> () [0x00000]
+</I>&gt;<i> &#160; at
+</I>&gt;<i> OpenSim.Region.CoreModules.Scripting.HttpRequest.HttpRequestModule..ctor ()
+</I>&gt;<i> [0x00000]
+</I>&gt;<i> &#160; at (wrapper managed-to-native)
+</I>&gt;<i> System.Reflection.MonoCMethod:InternalInvoke
+</I>&gt;<i> (object,object[],System.Exception&amp;)
+</I>&gt;<i> &#160; at System.Reflection.MonoCMethod.Invoke (System.Object obj, BindingFlags
+</I>&gt;<i> invokeAttr, System.Reflection.Binder binder, System.Object[] parameters,
+</I>&gt;<i> System.Globalization.CultureInfo culture) [0x00000]
+</I>&gt;<i> &#160; --- End of inner exception stack trace ---
+</I>&gt;<i> &#160; at System.Reflection.MonoCMethod.Invoke (System.Object obj, BindingFlags
+</I>&gt;<i> invokeAttr, System.Reflection.Binder binder, System.Object[] parameters,
+</I>&gt;<i> System.Globalization.CultureInfo culture) [0x00000]
+</I>&gt;<i> &#160; at System.Reflection.MonoCMethod.Invoke (BindingFlags invokeAttr,
+</I>&gt;<i> System.Reflection.Binder binder, System.Object[] parameters,
+</I>&gt;<i> System.Globalization.CultureInfo culture) [0x00000]
+</I>&gt;<i> &#160; at System.Reflection.ConstructorInfo.Invoke (System.Object[] parameters)
+</I>&gt;<i> [0x00000]
+</I>&gt;<i> &#160; at System.Activator.CreateInstance (System.Type type, Boolean nonPublic)
+</I>&gt;<i> [0x00000]
+</I>&gt;<i> &#160; at System.Activator.CreateInstance (System.Type type) [0x00000]
+</I>&gt;<i> &#160; at OpenSim.Region.Framework.ModuleLoader.LoadModules (System.String
+</I>&gt;<i> dllName) [0x00000]
+</I>&gt;<i> InnerException: System.NotImplementedException: The requested feature is not
+</I>&gt;<i> implemented.
+</I>&gt;<i> &#160; at System.Net.ServicePointManager.get_ServerCertificateValidationCallback
+</I>&gt;<i> () [0x00000]
+</I>&gt;<i> &#160; at
+</I>&gt;<i> OpenSim.Region.CoreModules.Scripting.HttpRequest.HttpRequestModule..ctor ()
+</I>&gt;<i> [0x00000]
+</I>&gt;<i> &#160; at (wrapper managed-to-native)
+</I>&gt;<i> System.Reflection.MonoCMethod:InternalInvoke
+</I>&gt;<i> (object,object[],System.Exception&amp;)
+</I>&gt;<i> &#160; at System.Reflection.MonoCMethod.Invoke (System.Object obj, BindingFlags
+</I>&gt;<i> invokeAttr, System.Reflection.Binder binder, System.Object[] parameters,
+</I>&gt;<i> System.Globalization.CultureInfo culture) [0x00000]
+</I>&gt;<i>
+</I>&gt;<i> Application is terminating: True
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-users mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-users at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-users">https://lists.berlios.de/mailman/listinfo/opensim-users</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010256.html">[Opensim-dev] RegionReady
+</A></li>
+	<LI>Next message: <A HREF="010258.html">[Opensim-dev] SSL Certificate Checking Disabling Causing Crash, here's the solution, WAS: [Opensim-users] OpenSim crash
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10257">[ date ]</a>
+              <a href="thread.html#10257">[ thread ]</a>
+              <a href="subject.html#10257">[ subject ]</a>
+              <a href="author.html#10257">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

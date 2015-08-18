@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Packet text field overflows
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Packet%20text%20field%20overflows&In-Reply-To=%3Cacd357460803190931o6c149fe0x6311e422be517b0a%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001185.html">
+   <LINK REL="Next"  HREF="001195.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Packet text field overflows</H1>
+    <B>Jeff Ames</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Packet%20text%20field%20overflows&In-Reply-To=%3Cacd357460803190931o6c149fe0x6311e422be517b0a%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Packet text field overflows">jeffames at gmail.com
+       </A><BR>
+    <I>Wed Mar 19 17:31:30 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001185.html">[Opensim-dev] Violating the GPL by looking (Re: Voice Module)
+</A></li>
+        <LI>Next message: <A HREF="001195.html">[Opensim-dev] Packet text field overflows
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1169">[ date ]</a>
+              <a href="thread.html#1169">[ thread ]</a>
+              <a href="subject.html#1169">[ subject ]</a>
+              <a href="author.html#1169">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+In libSL, there are a number of packets with string fields, with a
+maximum length of either 255 or 1500 characters.  If OpenSim sends a
+string longer than this, then libSL will throw an exception.
+
+One fix to this is to replace the existing bits of ClientView.cs,
+generally something like this:
+
+    myPacket.text = Helpers.StringToField(text)
+
+with something like this:
+
+    myPacket.text = Helpers.StringToField(text.Substring(0,
+Math.Min(1499, text.Length)))
+
+(The 1499 is because StringToField will add a null terminator.)
+
+This approach, however, requires OpenSim to hard-code some of the
+internal details of these packets.  Another solution, which would
+require libSL changes, would be to define something like a
+libSL.BoundedString class with a MaxLength member OpenSim could query
+and use to apply Substring() appropriately.
+
+However, these methods only solve the problem of outgoing data.
+Currently it seems we're trusting the client not to send overly long
+strings for fields that should be bounded.  This issue came up this
+time because OpenSim was incorrectly converting a non-ASCII string
+into a string of hex values, which quickly expanded past the max field
+length.  If a rogue client sent overly long strings, we could
+conceivably have two crashes -- a MalformedDataException when libSL
+tries to construct the incoming packet, and an OverflowException when
+OpenSim sends that information back out.
+
+One possible solution would be to call Substring in the property set()
+methods in libSL instead of throwing exceptions, and maybe output some
+warning message.  Or we could wrap all the libSL interactions with
+try/catch blocks and log failed packet creation.
+
+Thoughts?
+
+Jeff
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001185.html">[Opensim-dev] Violating the GPL by looking (Re: Voice Module)
+</A></li>
+	<LI>Next message: <A HREF="001195.html">[Opensim-dev] Packet text field overflows
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1169">[ date ]</a>
+              <a href="thread.html#1169">[ thread ]</a>
+              <a href="subject.html#1169">[ subject ]</a>
+              <a href="author.html#1169">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

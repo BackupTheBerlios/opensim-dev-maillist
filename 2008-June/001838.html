@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Trying to understand llDetected* functions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Trying%20to%20understand%20llDetected%2A%20functions&In-Reply-To=%3Cab84ceb10806170023p4c330256gd75470ed95f2c2be%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001836.html">
+   <LINK REL="Next"  HREF="001839.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Trying to understand llDetected* functions</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Trying%20to%20understand%20llDetected%2A%20functions&In-Reply-To=%3Cab84ceb10806170023p4c330256gd75470ed95f2c2be%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Trying to understand llDetected* functions">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Tue Jun 17 09:23:57 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001836.html">[Opensim-dev] Trying to understand llDetected* functions
+</A></li>
+        <LI>Next message: <A HREF="001839.html">[Opensim-dev] Trying to understand llDetected* functions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1838">[ date ]</a>
+              <a href="thread.html#1838">[ thread ]</a>
+              <a href="subject.html#1838">[ subject ]</a>
+              <a href="author.html#1838">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'll take a shot at these from a perspective of having used most of them in
+sl scripts
+
+On Mon, Jun 16, 2008 at 11:54 PM, Mike Mazur &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> I'm trying to wrap my head around how llDetected* functions work in
+</I>&gt;<i> OpenSim.
+</I>&gt;<i>
+</I>&gt;<i> Here's what I know so far:
+</I>&gt;<i> - these functions tell you something about either a prim/object or
+</I>&gt;<i> avatar
+</I>&gt;<i> - they only apply in certain events (collision{,_start,_end},
+</I>&gt;<i> touch{,_start,_end} and sensor)
+</I>&gt;<i> - they take a number as an argument which is an index of the object
+</I>&gt;<i>
+</I>&gt;<i> I may have some of that mixed up a bit...
+</I>
+
+seems ok so far...
+
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> I traced through the code for touch_start to try to figure this out.
+</I>&gt;<i> First, in
+</I>&gt;<i> OpenSim/Region/ScriptEngine/Common/ScriptEngineBase/EventManager.cs
+</I>&gt;<i> line 119 the touch_start function is executed and an llDetectParams
+</I>&gt;<i> struct is filled in. The arrays in the struct are all 1 in size, and
+</I>&gt;<i> are filled with some values.
+</I>&gt;<i>
+</I>&gt;<i> What exactly do these values represent? According to
+</I>&gt;<i> OpenSim/Region/ScriptEngine/Common/ScriptEngineBase/EventManager.cs
+</I>&gt;<i> line 152, _key is &quot;detected key&quot; and _key2 is &quot;owner key&quot;. What are
+</I>&gt;<i> these exactly? The position, velocity, rotation and _string (name)
+</I>&gt;<i> properties make sense, but the _bool and _int ones don't.
+</I>
+
+llDetectedKey() returns the UUID of the agent (avatar) or object that was
+detected
+llDetectedOwner() returns the UUID of the owner of the object that was
+detected.
+I dont know of any llDetected() functions that return booleans.
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> This llDetectParams struct is then assigned to the script, and accessed
+</I>&gt;<i> in OpenSim/Region/ScriptEngine/Common/LSL_BuiltIn_Commands.cs in
+</I>&gt;<i> functions llDetectedName() (line 554), uuidDetectedKey() (line 595) and
+</I>&gt;<i> entityDetectedKey() (line 632).
+</I>&gt;<i>
+</I>&gt;<i> The number argument to each of those functions is used to index the
+</I>&gt;<i> arrays in the llDetectParams struct (_key, _key2, etc). This array is
+</I>&gt;<i> always initialized to size 1. Is the number argument ever not 0? Do
+</I>&gt;<i> those arrays inside the llDetectParams struct ever grow or shrink.
+</I>&gt;<i>
+</I>&gt;<i> Also, how does the event that is triggered affect the number passed in?
+</I>&gt;<i> Is it different for collosion_start and touch_start for instance?
+</I>
+
+The number may be larger for sensor scans or collisions, but is usually 1
+for touches. The sensor(), touch_start(), and other events have a
+num_detected parameter which should indicate the number of agents/objects
+that are available for the llDetected() functions to index.
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Finally, which object is usually referred to in those llDetected*
+</I>&gt;<i> functions? For example, if I have a box with a script that calls
+</I>&gt;<i> llDetectedVel() in its touch_start event, will llDetectedVel return the
+</I>&gt;<i> velocity of the box at the instant it is touched by an avatar? Or maybe
+</I>&gt;<i> it's the velocity of the avatar?
+</I>
+
+in that case it would be the velocity of the agent which touched the box. If
+you want the velocity of the box itself, use llGetVel().
+
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> A lot of questions, but here's hoping someone can clear this up a bit
+</I>&gt;<i> further.
+</I>&gt;<i>
+</I>
+Take a look at lslwiki.net or wiki.secondlife.com for documentation on these
+functions.  Good luck!
+
+
+&gt;<i>
+</I>&gt;<i> Thanks,
+</I>&gt;<i> Mike
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080617/86648dfe/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080617/86648dfe/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001836.html">[Opensim-dev] Trying to understand llDetected* functions
+</A></li>
+	<LI>Next message: <A HREF="001839.html">[Opensim-dev] Trying to understand llDetected* functions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1838">[ date ]</a>
+              <a href="thread.html#1838">[ thread ]</a>
+              <a href="subject.html#1838">[ subject ]</a>
+              <a href="author.html#1838">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

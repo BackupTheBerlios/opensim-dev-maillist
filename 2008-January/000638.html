@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] another little can of worms: attachments :-)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20another%20little%20can%20of%20worms%3A%20attachments%20%3A-%29&In-Reply-To=%3C477CFB88.40108%40gwala.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000637.html">
+   <LINK REL="Next"  HREF="000641.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] another little can of worms: attachments :-)</H1>
+    <B>Adam Frisby</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20another%20little%20can%20of%20worms%3A%20attachments%20%3A-%29&In-Reply-To=%3C477CFB88.40108%40gwala.net%3E"
+       TITLE="[Opensim-dev] another little can of worms: attachments :-)">adam at gwala.net
+       </A><BR>
+    <I>Thu Jan  3 16:13:12 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000637.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+        <LI>Next message: <A HREF="000641.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#638">[ date ]</a>
+              <a href="thread.html#638">[ thread ]</a>
+              <a href="subject.html#638">[ subject ]</a>
+              <a href="author.html#638">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Animation physics is something I may be assigning a developer to soon - 
+it's something we would be really keen to see. Unfortunately to do it 
+properly we need that ragdoll avatar packet support into the client.
+
+It may be worthwhile trying to contract Jeff Ventrella who was working 
+on that to see if he still has the patches or the ability to get them 
+(albeit in a limited beta form) into the client somehow.
+
+Regards,
+
+Adam
+
+Melanie wrote:
+
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> Dalien Talbot wrote:
+</I>&gt;<i> 
+</I>&gt;&gt;<i>1) from Dan's: &quot;how are the 'huge dino' avatars are made - whose height is
+</I>&gt;&gt;<i>above the max height of the avatar&quot;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Simple...
+</I>&gt;<i> 
+</I>&gt;<i> You can make an animation that offsets the visible avatar from the 
+</I>&gt;<i> true position. Now, the physics aspect is very interesting:
+</I>&gt;<i> 
+</I>&gt;<i> For the purpose of physics, an animation doesn't cause the avatar to 
+</I>&gt;<i> move at all!
+</I>&gt;<i> The avatar is always represented in physics at the point where the 
+</I>&gt;<i> server sees it, as it's bounding box, at it's position.
+</I>&gt;<i> 
+</I>&gt;<i> Now, your wyrm avatar:
+</I>&gt;<i> 
+</I>&gt;<i> For physics, the avie is located at ground level. Typically about 
+</I>&gt;<i> where the legs are. So, you can bump into the legs. You actually 
+</I>&gt;<i> bump into the avatar!
+</I>&gt;<i> The animation lifts the _visible_ avie 5 m into the air, sets it at 
+</I>&gt;<i> an angle and folds in the arms and legs, so that the avie is 100% 
+</I>&gt;<i> within the dragon body.
+</I>&gt;<i> Finally, the attachments are put on. They are attached to the limbs, 
+</I>&gt;<i>   which makes for some unusual joint translations. That is why these 
+</I>&gt;<i> avies have their own set of animations, AO style. They are phantom.
+</I>&gt;<i> 
+</I>&gt;<i> If you want to do battle with this dragon, you have to attack it's 
+</I>&gt;<i> legs, since, for collision purposes, that's where the avatar is. The 
+</I>&gt;<i> translation which is effected by the animation is simply not a 
+</I>&gt;<i> factor here.
+</I>&gt;<i> 
+</I>&gt;<i> Try to collide with such a beastie while flying - you'll fly 
+</I>&gt;<i> straight through it!
+</I>&gt;<i> Airspace above a Tiny? No, you'd bump into an avatar. Tinies cannot 
+</I>&gt;<i> go through tiny doors! The door must be at least the height of the 
+</I>&gt;<i> bounding box of the shortest possible &quot;normal&quot; avatar.
+</I>&gt;<i> 
+</I>&gt;<i> So:
+</I>&gt;<i> Physics: serverside, bounding box @ position. That simple.
+</I>&gt;<i> Animation: clientside. It has no bearing on physics interaction, 
+</I>&gt;<i> even if it visually translates the avatar somewhere else.
+</I>&gt;<i> Attachment: in world, phantom, and always rooted at the avatar's 
+</I>&gt;<i> center of mass. The true offset of an attachment from the avatar's 
+</I>&gt;<i> physics center is always 0,0,0. The asset contains a separate set of 
+</I>&gt;<i> offsets, which are a display offset. This is added to the offset for 
+</I>&gt;<i> the attachment point, clientside.
+</I>&gt;<i> 
+</I>&gt;<i> In an attachment: (from memory)
+</I>&gt;<i> llGetPos() = world position (avatar center)
+</I>&gt;<i> llGetLocalPos() = offset from attachment point
+</I>&gt;<i> llGetRot() = world rotation of the AVATAR. The looking direction is 
+</I>&gt;<i> always parallel to the ground plane, unless in mouselook.
+</I>&gt;<i> llGetLocalRot() = rotation at the attachment point.
+</I>&gt;<i> llGetRootRotation() = llGetRot()
+</I>&gt;<i> 
+</I>&gt;<i> llSetPos() = sets attachemnt point offset
+</I>&gt;<i> llSetRot() = does nothing
+</I>&gt;<i> llSetLocalRot() = rotates attachemnt.
+</I>&gt;<i> 
+</I>&gt;<i> ALL the above is clientside!
+</I>&gt;<i> 
+</I>&gt;<i> Attachments are phantom, but collisions of the AVATAR trigger 
+</I>&gt;<i> collision() events in attachments.
+</I>&gt;<i> 
+</I>&gt;<i> Attachments can enable physics. That makes them no less phantom, but 
+</I>&gt;<i> allows them to use damping motion to move the AVATAR. This is how 
+</I>&gt;<i> the windwalker/wallwalker work. The object, going physical, actually 
+</I>&gt;<i> just links their physics functions the the avatar's physics.
+</I>&gt;<i> 
+</I>&gt;<i> Here is a little bug that LL has in there: If a script makes an 
+</I>&gt;<i> attachment physical, and the script is then restarted/resaved/reset, 
+</I>&gt;<i> the attachment will not behave as a physical attachment anymore, but 
+</I>&gt;<i> will claim it is one. So, physics can not be re-enabled, since the 
+</I>&gt;<i> LSL interpreter thinks it already is.
+</I>&gt;<i> In order to edit/test a script that does physical movement, you need 
+</I>&gt;<i> to unwear and re-wear the attachemnt, which resets that flag.
+</I>&gt;<i> 
+</I>&gt;<i> Weird, but I make weapons, I know. I wish there were swords that 
+</I>&gt;<i> actually collide with the avie they visually hit!
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000637.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+	<LI>Next message: <A HREF="000641.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#638">[ date ]</a>
+              <a href="thread.html#638">[ thread ]</a>
+              <a href="subject.html#638">[ subject ]</a>
+              <a href="author.html#638">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

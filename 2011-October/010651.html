@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Fancy a smoothie (ish)?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fancy%20a%20smoothie%20%28ish%29%3F&In-Reply-To=%3C4E977652.5070605%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010648.html">
+   <LINK REL="Next"  HREF="010652.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Fancy a smoothie (ish)?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fancy%20a%20smoothie%20%28ish%29%3F&In-Reply-To=%3C4E977652.5070605%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Fancy a smoothie (ish)?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Oct 14 01:37:54 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010648.html">[Opensim-dev] Whisper Server Module 0.2.0 for OpenSim 0.7.1.1
+</A></li>
+        <LI>Next message: <A HREF="010652.html">[Opensim-dev] Fancy a smoothie (ish)?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10651">[ date ]</a>
+              <a href="thread.html#10651">[ thread ]</a>
+              <a href="subject.html#10651">[ subject ]</a>
+              <a href="author.html#10651">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi folks.  I've had reason recently to investigate why flying across a region can feel quite jerky.
+
+It seems that one solution is to increase the number of ImprovedTerseObjectUpdate packets that OpenSim sends out when 
+the avatar is moved.  I'm assuming that more packets means smaller and more frequent corrections of avatar position 
+extrapolation by the viewer.
+
+At the moment, we only send out 11 ish packets per second.  Increasing this to 22 makes avatar flying much smoother 
+subjectively.
+
+You can do this via a new set of config parameters added to the bottom of the [Startup] config section of 
+OpenSimDefaults.ini on commit 4e7d433.
+
+In OpenSimDefaults.ini you can see the lines (minus comments)
+
+     MinFrameTime = 0.089
+     UpdateObjectsEveryNFrames = 1;
+     UpdateAgentsEveryNFrames = 1;
+     UpdateEntityMovementEveryNFrames = 1;
+     UpdateCoarseLocationsEveryNFrames = 50;
+     UpdatePhysicsEveryNFrames = 1;
+     UpdateTempCleaningEveryNFrames = 1000;
+     UpdateEventsEveryNFrames = 1;
+     UpdateTerrainEveryNFrames = 50;
+     UpdateStorageEveryNFrames = 200;
+
+At the moment we need to halve MinFrameTime and double all the Update* params except UpdateAgentsEveryNFrames.  You can 
+do this by overriding the defaults with the following parameters at the bottom of the [Startup] section of OpenSim.ini.
+
+     MinFrameTime = 0.0445
+     UpdateObjectsEveryNFrames = 2;
+     UpdateAgentsEveryNFrames = 1;
+     UpdateEntityMovementEveryNFrames = 2;
+     UpdateCoarseLocationsEveryNFrames = 100;
+     UpdatePhysicsEveryNFrames = 2;
+     UpdateTempCleaningEveryNFrames = 2000;
+     UpdateEventsEveryNFrames = 2;
+     UpdateTerrainEveryNFrames = 100;
+     UpdateStorageEveryNFrames = 400;
+
+My subjective experience is that horizontal avatar flying feels much smoother on my local standalone and on a remote 
+system.  However, this is only the case once everything has finished loading and if you aren't being spammed by spurious 
+ObjectUpdates from prims, as discussed very recently in this list.  You can prevent spamming by making sure your client 
+bandwidth is suitable for your connection quality or by setting enable_adaptive_throttles = true in [ClientStack.LindenUDP].
+
+I've no idea how this will perform on a more heavily loaded sim, particularly as we're currently achieving this change 
+by halving the time that physics has to update and avatar location is updating twice for every physics update.  But if 
+you try this I'd be interested in any feedback.
+
+Also, please feel free to tweak the settings in other ways but we cannot provide any support.
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010648.html">[Opensim-dev] Whisper Server Module 0.2.0 for OpenSim 0.7.1.1
+</A></li>
+	<LI>Next message: <A HREF="010652.html">[Opensim-dev] Fancy a smoothie (ish)?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10651">[ date ]</a>
+              <a href="thread.html#10651">[ thread ]</a>
+              <a href="subject.html#10651">[ subject ]</a>
+              <a href="author.html#10651">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

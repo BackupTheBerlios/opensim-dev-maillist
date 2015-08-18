@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Questions about Vehicle scripting calls
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20Vehicle%20scripting%20calls&In-Reply-To=%3C4FD2797C.2080304%40kayaker.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011207.html">
+   <LINK REL="Next"  HREF="011201.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Questions about Vehicle scripting calls</H1>
+    <B>Mike Higgins</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20Vehicle%20scripting%20calls&In-Reply-To=%3C4FD2797C.2080304%40kayaker.net%3E"
+       TITLE="[Opensim-dev] Questions about Vehicle scripting calls">mike at kayaker.net
+       </A><BR>
+    <I>Sat Jun  9 00:15:24 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011207.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+        <LI>Next message: <A HREF="011201.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11222">[ date ]</a>
+              <a href="thread.html#11222">[ thread ]</a>
+              <a href="subject.html#11222">[ subject ]</a>
+              <a href="author.html#11222">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>     Thanks for the link to the source page James! In my spare time I'd 
+like to join the developers on this project. I think I see some spare 
+time in my schedule for 2015. Unless I'm lucky and I get laid off before 
+then...
+
+     When I look at the OLEDynamics.cs code, I see a test on line 806: 
+if  VehicleFlg.NO_Z is set, then the m_dir.Z is set to zero. If NO_Z is 
+set, then it could explain the problem I am having.  So I tried 
+resetting that flag but it did not allow the linear motor to move up. 
+Still no luck. I tried setting the VEHICLE_FLAG_NO_X, and that worked! I 
+can prevent the vehicle from moving in the X direction. But still 
+nothing can get the vehicle to move in the Z direction. I tried moving 
+the llResetVehicleFlags(VEHICLE_FLAG_NO_Z) to just before the call to 
+start the vehicle moving in the script, under the hypothesis that NO_Z 
+was being set by some other call, but still no luck.
+
+     Then I looked in the ODEDynamics.cs code where, starting at line 
+663, the comments from KF say &quot;So far I have found no good method to 
+combine a script-requested .Z velocity and gravity&quot;. Then he proceeds to 
+replace the requested linear motor Z value with the current Z velocity 
+of the body. Since a balloon is buoyant, the Z of the current velocity 
+is always 0 and this looks like it is probably the problem. It always 
+resets the linear motor Z value to 0 here. I'll have to think about what 
+should be done here...
+
+
+On 6/7/12 5:51 AM, James Hughes wrote:
+&gt;<i> Mike,
+</I>&gt;<i>
+</I>&gt;<i> I guess that no one that deals with vehicles has taken a look at that 
+</I>&gt;<i> code in a good while now. Since you have a handle on this from the LSL 
+</I>&gt;<i> side, why don't you have a look at the OpenSim ODE code for that? I 
+</I>&gt;<i> did look at it and it looks pretty straightforward. Maybe you can see 
+</I>&gt;<i> something from that side.
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://github.com/BlueWall/opensim/blob/master/OpenSim/Region/Physics/OdePlugin/ODEDynamics.cs#L824">https://github.com/BlueWall/opensim/blob/master/OpenSim/Region/Physics/OdePlugin/ODEDynamics.cs#L824</A> 
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> d is Ode.NET which contains functions found here: 
+</I>&gt;<i> <A HREF="http://ode-wiki.org/wiki/index.php?title=Manual:_Rigid_Body_Functions">http://ode-wiki.org/wiki/index.php?title=Manual:_Rigid_Body_Functions</A>
+</I>&gt;<i>
+</I>&gt;<i> If you see something there, you can submit patches (or hit us with a 
+</I>&gt;<i> clue stick) and we can get it fixed. It may be as simple as calling 
+</I>&gt;<i> d.BodyGetRotation and plugging the result into the equation: 
+</I>&gt;<i> <A HREF="https://github.com/BlueWall/opensim/blob/master/OpenSim/Region/Physics/OdePlugin/ODEDynamics.cs#L845">https://github.com/BlueWall/opensim/blob/master/OpenSim/Region/Physics/OdePlugin/ODEDynamics.cs#L845</A>
+</I>&gt;<i>
+</I>&gt;<i> Thanks!
+</I>&gt;<i> -BlueWall
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011207.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+	<LI>Next message: <A HREF="011201.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11222">[ date ]</a>
+              <a href="thread.html#11222">[ thread ]</a>
+              <a href="subject.html#11222">[ subject ]</a>
+              <a href="author.html#11222">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

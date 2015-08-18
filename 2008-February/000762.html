@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Search server DB schema
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Search%20server%20DB%20schema&In-Reply-To=%3C970c50810802041744m3c1c59d6u588b6bb2a3601445%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000760.html">
+   <LINK REL="Next"  HREF="000780.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Search server DB schema</H1>
+    <B>Dalien Talbot</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Search%20server%20DB%20schema&In-Reply-To=%3C970c50810802041744m3c1c59d6u588b6bb2a3601445%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Search server DB schema">dalienta at gmail.com
+       </A><BR>
+    <I>Tue Feb  5 02:44:38 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000760.html">[Opensim-dev] Search server DB schema
+</A></li>
+        <LI>Next message: <A HREF="000780.html">[Opensim-dev] Search server DB schema
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#762">[ date ]</a>
+              <a href="thread.html#762">[ thread ]</a>
+              <a href="subject.html#762">[ subject ]</a>
+              <a href="author.html#762">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Feb 5, 2008 12:42 AM, Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+
+&gt;<i> I would hate that OpenSim follows Linden Lab's steps with search without
+</I>&gt;<i> taking advantage of the lessons that even they already learned -- that
+</I>&gt;<i> relational schemas are not appropriate for modern information retrieval.
+</I>
+
+I soooo much want to print this sentence and hang it on the wall :-D
+
+I did have an ambicious idea at one time to experiment with the SL search -
+and had pulled the info from userpicks of around 1 mln of the SL users, and
+pumped that into a mysql table... the queries from that table were not
+terribly fast (and yes, I did have an index  :-)
+
+
+
+&gt;<i>
+</I>&gt;<i> I'll be happy to help setting up this basic search service with Lucene,
+</I>&gt;<i> rather than with a relational DB. Lucene is, essentially, a highly
+</I>&gt;<i> optimized database for text search. For example, issues like this
+</I>&gt;<i> &quot; I'm going to assume name == varchar(63) and description ==
+</I>&gt;<i> varchar(127), but it might be easier to just set everything to
+</I>&gt;<i> varchar(255) for flexibility.&quot;
+</I>&gt;<i> are a non-problem in Lucene -- you can use as little or as much text as
+</I>&gt;<i> you want in a field, you don't need to hard-code that.
+</I>
+
++1
+
+There's an interesting paper:
+
+<A HREF="http://wrg.upf.edu/WRG/dctos/Middleton-Baeza.pdf">http://wrg.upf.edu/WRG/dctos/Middleton-Baeza.pdf</A>
+
+which outlines the performance/data volumes we should keep in mind -
+although something which seemed to be a winner on this analysis, zettair,
+have got me into a bigtime disappointment - the code is sprinkled by
+asserts, and there is at least one severe bug (database corruption when
+loading the cache) in there. the good news it is BSD licensed, so might be
+an interesting candidate :)
+
+
+&gt;<i>
+</I>&gt;<i> Can I help with plugging a Lucene-based search for OpenSim, please? (the
+</I>&gt;<i> thought of having a relational DB serving text search makes me shiver :-)
+</I>
+
+yes, please please :-)
+
+Although as David absolutely correctly points out, Lucene is GPL - so
+injecting it into the main BSD-licensed codebase is problematic.
+
+So, we'd need to apply the license workaround and perform the linkage over
+TCP :-) (probably HTTP would be the least cumbersome choice)
+
+given that all the items are always centered around some *place*, i think it
+might be logical to have the search completely grid-agnostic (although this
+does not prevent us in the future to push the &quot;search server data&quot; from UGA
+onto the sim, to avoid too much manual configuration)
+
+Also, since potentially one might want to have their sim talk to more than
+one search engine, would be useful to keep this in mind
+
+Bot-based crawl is useful - but assumes the flatness of the universe, which
+is true for SL - but is no longer true for opensim - at the moment there are
+a few parallel universes out there (deepgrid, osgrid, just to name a couple)
+- and there appears to be a demand on bringing those together.
+
+So the things become bit more complicated :-) And i think it warrants the
+&quot;push&quot; mechanism for the regions to supply the contents to the search
+engines, rather than the &quot;pull&quot; mechanism that currently exists.
+
+Another thing to keep in mind for the future - it would be nice to be able
+to talk to more than one search engine, while being on the sim (assuming we
+have the &quot;multigrid&quot; regions in the future.
+
+ISo, to me it looks like there is a set of functions which would be
+characteristic to any search engine being used:
+
+1) region registers the associated objects on it upon coming online
+
+2) region notifies the search engine about it going offline. This can easily
+be a no-op for the beginning, but again useful to keep in mind.
+
+3) region talks to the search engine to do the actual search and interprets
+its results depending on the type of search (assuming we do implement the
+&quot;old-style&quot; searches.)
+
+4) region sends the add-update and delete requests to the search engine
+while running, as needed (this is similar to (1) and (2)), and could involve
+the stuff like updating the search rankings based onthe userpicks, or just
+objects being set for sale, etc.
+
+In the tradition of modularization, it might make sense to abstract these
+functions into the region module &quot;search&quot;, rather than snapping it directly
+atop the DB abstraction layer - since the freetext search engines and the
+DBs would have quite different interfaces, IMHO.
+
+Then we might have additional region modules, which would know how to
+translate the above, into the engine-specific API (e.g.: database-search,
+lucene-search, etc.)
+
+Those would register to the &quot;search&quot; module and take care of talking
+potentially to more than one search engine at once. The &quot;search&quot; module
+would dispatch the communication to the underlying backend-specific engines,
+and aggregate the search results (and return &quot;nothing&quot; in the case there are
+no backend-specific plugins loaded).
+
+This approach in my opinion would avoid the lock-in into some specific
+search backend, and allow the relatively easy integration with enterprise
+search engines for those who have a desire to do so.
+
+David - indeed, the os* functions would be a very good idea, and would
+interface to the same API as the (1,2,4) above.
+
+(on a side note, an os* function to actually programmatically perform the
+search seems also like a good thing to have)
+
+
+&gt;<i> I've never participated in an Open Source project as such, so I'm not
+</I>&gt;<i> sure how the process is.
+</I>
+
+&quot;respectful anarchy&quot;, as Charles has noted the other day :-)
+
+also, indeed, the IETF principle of &quot;working implementations win&quot; also holds
+true :-)
+
+My suggestion to go with the regionmodule approach, is that it might be one
+of the most weakly coupled ways to do it - which is almost always a good
+thing :-)
+
+Also - this would allow to accomodate the &quot;low-dependency&quot; approach of
+database search for local objects and for the case of standalone sim, as
+well as allow to have a lucene and what-not-else-based search for larger
+scale deployments.
+
+One other reason why it is nice to start with both - they are so different,
+that making an abstraction that works for both, would allow to add the
+future search backends quite easily, IMHO.
+
+What do you think of such an approach ?
+
+Might be interesting to get together on IRC and discuss it further - what
+are your timezones ?
+
+/d
+
+
+
+
+&gt;<i> I did contribute to OS projects before --
+</I>&gt;<i> aspectj.org, co-founder, and more recently contributed plugins to XWiki
+</I>&gt;<i> with one of my students.
+</I>&gt;<i>
+</I>&gt;<i> Let me know.
+</I>&gt;<i>
+</I>&gt;<i> Crista Lopes / Diva Canto
+</I>&gt;<i> School of Information and Computer Sciences
+</I>&gt;<i> University of California, Irvine
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080205/60dd79bb/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080205/60dd79bb/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000760.html">[Opensim-dev] Search server DB schema
+</A></li>
+	<LI>Next message: <A HREF="000780.html">[Opensim-dev] Search server DB schema
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#762">[ date ]</a>
+              <a href="thread.html#762">[ thread ]</a>
+              <a href="subject.html#762">[ subject ]</a>
+              <a href="author.html#762">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

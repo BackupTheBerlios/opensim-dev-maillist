@@ -1,0 +1,248 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> No subject
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.34.1331736338.7835.opensim-dev%40lists.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003991.html">
+   <LINK REL="Next"  HREF="003996.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>No subject</H1>
+    <B></B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.34.1331736338.7835.opensim-dev%40lists.berlios.de%3E"
+       TITLE="No subject">
+       </A><BR>
+    <I>Wed Mar 14 15:44:31 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003991.html">No subject
+</A></li>
+        <LI>Next message: <A HREF="003996.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3995">[ date ]</a>
+              <a href="thread.html#3995">[ thread ]</a>
+              <a href="subject.html#3995">[ subject ]</a>
+              <a href="author.html#3995">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>packets (and possibly some others=2C like IM?) where the viewer can only ac=
+cept IP. That is why it is implicitly resolved in some places. (Or rather=
+=2C that's the rationale for why those places need it) The remoting issue=
+=2C I don't know what that actually means=2C but remoting should be resolve=
+d thru hostname as well. It pains me to admit that I'm probably the source =
+of all this confusion=2C as I=2C way back then=2C did the DNS resolve as a =
+quick fix to fix some networking issues - but at that time I was not aware =
+of the DnsEndPoint class. So=2C really=2C the endpoint info should be store=
+d in _DnsEndPoint_ not _IPEndpoint_ all thru core. and Unless anybody knows=
+ of a reason not to=2C I suggest moving any IP resolving into the LL client=
+ stack=2C as close to the actual needed conversion as possible=2C and let c=
+ore use hostnames=2C via DnsEndPoint=2C all over.Best regards=2CStefan Ande=
+rssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/=20">http://tribalnet.se/=20</A>
+
+
+
+Date: Thu=2C 11 Dec 2008 17:38:04 -0800From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lopes at ics.uci.eduTo</A>: opensim-d=
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ev at lists.berlios.deSubject</A>: Re: [Opensim-dev] external host nameThe thing i=
+s that this can potentially create a RegionInfo data structure with        =
+    nRegionInfo.ExternalHostName =3D regionData.IPADDR=3BThis is inconsiste=
+nt with certain queries on the Grid server=2C like &quot;give me all my neighbor=
+s&quot; which may send host names.So=2C back to the point: someone needs to deci=
+de what is it that RegionInfo.ExternalHostName  is supposed to hold.Teravus=
+ Ovares wrote:=20
+RegionUpData is my fault=2C and spawned from compatibility issues with
+.NET remoting and Mono remoting with complex types.  It is only used
+to notify a neighbor region that 'this region is up'
+
+Best Regards
+
+Teravus
+
+On 12/11/08=2C Cristina Videira Lopes &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lopes at ics.uci.edu</A>&gt; wrote:
+ =20
+Things are very messy right now. You can search for &quot;sim_ip&quot;=2C for example=
+=2C
+which is used in chatting with the grid server=2C and where it is being
+converted to an IP address in about half of the cases.
+
+To compensate=2C and before I noticed this inconsistency=2C Homer introduce=
+d
+another field called &quot;sim_host&quot;=2C so not to mess with what was already the=
+re=2C
+that is supposed to carry the external host name=2C but this only works up =
+to
+the point in which RegionInfo data structures are created. At that point=2C=
+ we
+need to decide what to place in m_externalHostName=2C sim_ip or sim_host.
+Which means changes in OGS1.
+
+I also noticed that there is yet another data structure called RegionUpData
+that uses IP addresses.
+
+So=2C messy. Someone should decide what this field is supposed to be=2C and=
+ make
+it a rule.
+
+Charles Krinke wrote:
+
+Dear Diva:
+
+You have a very good point and I would support harmonizing to one notion
+even at the expense of breaking some things for a while.
+
+In fact=2C if someone can identify what some of those things are=2C or come=
+ up
+with a couple of search strings or grep expressions=2C I would like to look=
+ at
+the anomalies myself.
+
++1 on external_host_name
+
+Charles
+
+________________________________
+
+
+From: Cristina Videira Lopes &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lopes at ics.uci.edu</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Sent: Thursday=2C December 11=2C 2008 2:42:05 PM
+Subject: [Opensim-dev] external host name
+
+It turns out that a lot of problems with CAPs have to do with
+inconsistencies surrounding the URL of the seed cap. Specifically=2C in
+some cases we're producing URLs with hostnames=2C other times we're
+producing URLs with IP addresses=2C for example:
+
+<A HREF="http://ucigrid03.nacs.uci.edu:9000/CAPS/4cfc94fa-09be-409b-b136-cda2cdde000=">http://ucigrid03.nacs.uci.edu:9000/CAPS/4cfc94fa-09be-409b-b136-cda2cdde000=</A>
+0/
+vs.
+MailScanner has detected a possible fraud attempt from &quot;128.200.71.43:9000&quot;
+claiming to be MailScanner warning: numerical links are often malicious:
+MailScanner warning: numerical links are often malicious: <A HREF="http://128.200.71=">http://128.200.71=</A>
+.43:9000/CAPS/4cfc94fa-09be-409b-b136-cda2cdde0000/
+
+The client is not smart enough to test if this is the same host=2C it
+assumes it isn't=2C so it decides someone's trying to game it.
+
+The inconsistencies are all over the code in OpenSim=2C and they pertain
+to the use of ExternalHostName in several data s! tructures. In some
+cases=2C an explicit conversion to IP addresses is made.
+
+We should converge to one single thing. And I believe that thing should
+be whatever it is given in external_host_name config. Is this right?
+However=2C I am a bit afraid this is going to break 17 different things...
+
+Crista
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+________________________________
+
+    _______________________________________________
+Opensim-dev
+ =20
+mailing
+list
+    <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+ =20
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+    _______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+  =
+
+--_93cdcf36-e58e-41c7-9d0c-28c44b8d43ea_
+Content-Type: text/html; charset=&quot;iso-8859-1&quot;
+Content-Transfer-Encoding: quoted-printable
+
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Verdana
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=3D'hmmessage'&gt;
+Augh. That's what you get for&amp;nbsp=3Bassuming stuff. It seems the DnsEndpoi=
+nt class is only available in .Net for Silverlight... that explains why I d=
+idn't know about it then. :D&lt;BR&gt;
+&amp;nbsp=3B&lt;BR&gt;
+So=2C read that as 'should be stored in _something_like_ DnsEndpoint'.&lt;BR&gt;&lt;=
+BR&gt;
+*sigh*&lt;BR&gt;&lt;BR&gt;
+At any rate=2C moving the resolving into the very cases where IP adress is =
+mandatory is a good thing. The resolving is&amp;nbsp=3Bmulti-level cached anywa=
+y.&lt;BR&gt;
+&lt;BR&gt;Best regards=2C&lt;BR&gt;Stefan Andersson&lt;BR&gt;Tribal Media AB&lt;BR&gt;&amp;nbsp=3B&lt;BR&gt;&lt;=
+BR&gt;
+
+&lt;HR id=3DstopSpelling&gt;
+&lt;BR&gt;
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&lt;BR&gt;To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&lt;BR&gt;Date: Fr=
+i=2C 12 Dec 2008 11:04:27 +0100&lt;BR&gt;Subject: Re: [Opensim-dev] external host=
+ name&lt;BR&gt;&lt;BR&gt;
+&lt;STYLE&gt;
+.ExternalClass .EC_hmmessage P
+{padding:0px=3B}
+.ExternalClass body.EC_hmmessage
+{font-size:10pt=3Bfont-family:Verdana=3B}
+&lt;/STYLE&gt;
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003991.html">No subject
+</A></li>
+	<LI>Next message: <A HREF="003996.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3995">[ date ]</a>
+              <a href="thread.html#3995">[ thread ]</a>
+              <a href="subject.html#3995">[ subject ]</a>
+              <a href="author.html#3995">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

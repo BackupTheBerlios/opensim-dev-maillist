@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Restructuring IClientAPI - thoughts wanted
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Restructuring%20IClientAPI%20-%20thoughts%20wanted&In-Reply-To=%3C48CC8096.1030102%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003053.html">
+   <LINK REL="Next"  HREF="003055.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Restructuring IClientAPI - thoughts wanted</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Restructuring%20IClientAPI%20-%20thoughts%20wanted&In-Reply-To=%3C48CC8096.1030102%40t-data.com%3E"
+       TITLE="[Opensim-dev] Restructuring IClientAPI - thoughts wanted">melanie at t-data.com
+       </A><BR>
+    <I>Sun Sep 14 05:10:14 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003053.html">[Opensim-dev] Restructuring IClientAPI - thoughts wanted
+</A></li>
+        <LI>Next message: <A HREF="003055.html">[Opensim-dev] Restructuring IClientAPI - thoughts wanted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3054">[ date ]</a>
+              <a href="thread.html#3054">[ thread ]</a>
+              <a href="subject.html#3054">[ subject ]</a>
+              <a href="author.html#3054">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Is there even a need to enumerate?
+
+Basically, each class is either an event consumer or a message 
+sender. IN either case, they would know the interface they're 
+looking for. So, enumeration seems unnecessary.
+If we do need to do it, it would be infrequent, so the performance 
+hit of reflection seems very much acceptable.
+
+if (client is IInstantMessageService)
+	((IInstantMessageService)client).OnInstantMessage += OnInstantMessage;
+
+Looks like a winner!
+
++1
+
+Melanie
+
+Frisby, Adam wrote:
+&gt;<i> Slight correction suggestion, IClientAPI actually is redundant in that situation - there's no reason why we need to keep HasInterface as long as we can do &quot;Client is &lt;type/interface&gt;&quot;. GetInterfaces() could be replaced with a quick search via reflection (GetTypes)
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Frisby, Adam
+</I>&gt;<i> Sent: Saturday, 13 September 2008 7:41 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: [Opensim-dev] Restructuring IClientAPI - thoughts wanted
+</I>&gt;<i> 
+</I>&gt;<i> I'm in the process of adding support for some alternate clients to OpenSim, and one of the things I'm noticing is that there is one one chunk of OpenSim in particular that is highly &quot;LL-Specific&quot; in how it treats things - it's also comparatively a very small chunk of OpenSim that might actually be fixable quite easily.
+</I>&gt;<i> 
+</I>&gt;<i> That is to say, IClientAPI - I'm thinking of replacing IClientAPI with a very small interface:
+</I>&gt;<i> 
+</I>&gt;<i> bool                       IClientAPI.HasInterface&lt;T&gt;();
+</I>&gt;<i> type[]                   IClientAPI.GetInterfaces();
+</I>&gt;<i> 
+</I>&gt;<i> Then replacing the current web of .Xyz with smaller more discrete interfaces such as:
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> IClientInstantMessage {
+</I>&gt;<i> 
+</I>&gt;<i> SendMessage(...);
+</I>&gt;<i> 
+</I>&gt;<i> event OnNewMessage;
+</I>&gt;<i> 
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> We can do checks on them in our modules, where once we did:
+</I>&gt;<i> 
+</I>&gt;<i> OnNewClient(IClientAPI client) {
+</I>&gt;<i>      client.OnNewMessage += messageHandler;
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> We replace with
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> OnNewClient(IClientAPI client) {
+</I>&gt;<i> 
+</I>&gt;<i>      If(client.HasInterface&lt;IClientInstantMessage&gt;()) {
+</I>&gt;<i> 
+</I>&gt;<i>           ((IClientInstantMessage)client).OnNewMessage += messageHandler;
+</I>&gt;<i> 
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> The resulting code is then more friendly for third party clients, and clients don't need to support the full set of functionality to register as valid Clients inside of OpenSim.
+</I>&gt;<i> 
+</I>&gt;<i> What's everyone's thoughts here?
+</I>&gt;<i> 
+</I>&gt;<i> Good idea / bad / anyone got any better?
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003053.html">[Opensim-dev] Restructuring IClientAPI - thoughts wanted
+</A></li>
+	<LI>Next message: <A HREF="003055.html">[Opensim-dev] Restructuring IClientAPI - thoughts wanted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3054">[ date ]</a>
+              <a href="thread.html#3054">[ thread ]</a>
+              <a href="subject.html#3054">[ subject ]</a>
+              <a href="author.html#3054">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

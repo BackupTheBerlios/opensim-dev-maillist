@@ -1,0 +1,221 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Where should we put GetUserAppearance ?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Where%20should%20we%20put%20GetUserAppearance%20%3F&In-Reply-To=%3Cb046ff2a0805142337i730dbcffy65477b8b2465e331%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001549.html">
+   <LINK REL="Next"  HREF="001558.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Where should we put GetUserAppearance ?</H1>
+    <B>liu xiaolu</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Where%20should%20we%20put%20GetUserAppearance%20%3F&In-Reply-To=%3Cb046ff2a0805142337i730dbcffy65477b8b2465e331%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Where should we put GetUserAppearance ?">lulurun at gmail.com
+       </A><BR>
+    <I>Thu May 15 08:37:24 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001549.html">[Opensim-dev] Where should we put GetUserAppearance ?
+</A></li>
+        <LI>Next message: <A HREF="001558.html">[Opensim-dev] Opensim-dev Digest, Vol 9, Issue 13
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1562">[ date ]</a>
+              <a href="thread.html#1562">[ thread ]</a>
+              <a href="subject.html#1562">[ subject ]</a>
+              <a href="author.html#1562">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>To Sean,
+This is a little complecated to explain (, for me :$). and sorry for I did
+not mention it.
+About the current flow:
+&gt;<i>With the user server storing asset and
+</I>&gt;<i>inventory ids, the client is sent a wearables packet, which is just a
+</I>&gt;<i>bunch of UUIDs.  The client then goes and fetches the assets from the
+</I>&gt;<i>asset servers.
+</I>what you said is right, but this causes 2 problems:
+1. the same as what you said the &quot;ruth time&quot;. During the login process,
+there is a short time that an avatar will be displayed with default
+appearance.
+this is not serious, but -&gt;
+2. After going into another region, the avatar will be seen in default
+appearance(visualparams are all 100) from other clients' screen.
+The detailed information can also be found at
+<A HREF="http://opensimulator.org/mantis/view.php?id=1019">http://opensimulator.org/mantis/view.php?id=1019</A>
+1019's attachment gives a working but not good solution. (at least fetching
+asset data should be Asynchronous)
+
+That problem is because RegionServer itself has no ability to get the
+visualparams, (currently it only gets 13x2 UUIDs
+and waits for client to request the visualparams back)
+So I am thinking in &quot;Scene.GetAvatarAppearance&quot;(r4690 Scene.cs Line:1798).
+We can
+1. get wearables UUIDs(13x2), and then
+2. foreach (UUIDs) { get actual assetdata(for visualparams) }.
+Of cause, &quot;2&quot; is the task that &quot;AssetCache&quot; should do.
+For &quot;1&quot;, I think to consider in grid mode, &quot;wearables UUIDs&quot; should have an
+optional chance to be fetched from an &quot;External Service&quot;,
+instead of a LocalModule(AvatarFactoryModule.checkdatabase).
+So what would be the best of this &quot;External Service&quot; ? I think
+InventoryServer is better than UserServer.
+The reasons are:
+1. UserServer should be concertrated on Authentication.
+2. InventoryServer is good at serving (User tied up) UUIDs.
+That is why I think &quot;GetUserAppearance&quot; should be put in InventoryServer.
+
+regards,
+lulurun
+
+2008/5/14 Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt;:
+
+&gt;<i> On Wed, May 14, 2008 at 03:48:08PM +0900, liu xiaolu wrote:
+</I>&gt;<i> &gt; Hi, everyone,
+</I>&gt;<i> &gt; I am planing to implement &quot;AssetPortability&quot; in OpenSim,
+</I>&gt;<i> &gt; The basic idea is to let RegionServer get assets from a
+</I>&gt;<i> &gt; dynamic(user specified) AssetServerURL.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Very thankful for someone added &quot;asseturl&quot; and &quot;inventoryurl&quot;
+</I>&gt;<i> &gt; to the userprofile structure and the &quot;Users&quot; table.
+</I>&gt;<i> &gt; (though I do not know exactly what it was he did)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Recently, I found there is a stub &quot;GetUserAppearance&quot; in &quot;IUserService&quot;.
+</I>&gt;<i> &gt; This is a little different from what I am thinking, so here I would like
+</I>&gt;<i> to
+</I>&gt;<i> &gt; share my plan for the &quot;appearance portability&quot; and have a discussion
+</I>&gt;<i> &gt; with you.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; # Preparation
+</I>&gt;<i> &gt; 1. User stores &quot;wearables&quot; in &quot;inventoryserver&quot;
+</I>&gt;<i> &gt; 2. User stores actual &quot;assetdata&quot; in &quot;assetserver&quot;
+</I>&gt;<i> &gt; 3. User tells its &quot;asset/inventory url&quot; to &quot;userserver&quot;
+</I>&gt;<i> &gt; (by user registration or someway like openid)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; # Login
+</I>&gt;<i> &gt; At <A HREF="http://openugai.sourceforge.net/?page=openasset_proposal">http://openugai.sourceforge.net/?page=openasset_proposal</A>
+</I>&gt;<i> &gt; there are 2 possible patterns,
+</I>&gt;<i> &gt; &quot;Implemetation 1&quot; is following current opensim - &quot;GetUserAppearance&quot; in
+</I>&gt;<i> &gt; &quot;UserServive&quot;.
+</I>&gt;<i> &gt; &quot;Implemetation 2&quot; is my proposal.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; * Implemetation 1
+</I>&gt;<i> &gt; 1. &quot;UserServer&quot; acts as a agent, when &quot;GetUserAppearance&quot; called,
+</I>&gt;<i> &gt; 2. &quot;UserServer&quot; gets &quot;wearables&quot; from &quot;inventoryserver&quot;
+</I>&gt;<i> &gt; 3. &quot;UserServer&quot; gets &quot;assetdata&quot; foreach &quot;wearables&quot; UUID.
+</I>&gt;<i> &gt; 4. &quot;UserServer&quot; returns appearance to RegionServer(OGS1UserServices)
+</I>&gt;<i>
+</I>&gt;<i> Actually, you have this flow wrong.
+</I>&gt;<i>
+</I>&gt;<i>  1. Client -&gt; Sim -&gt; User Server (Get My Appearance)
+</I>&gt;<i>  2. User Server -&gt; Sim -&gt; Client (Appearance Packet - lots of UUIDs)
+</I>&gt;<i>  3. Client -&gt; Sim -&gt; Asset Server (foreach wearable get asset)
+</I>&gt;<i>  4. Client -&gt; Sim -&gt; Inventory Server (foreach wearable get inventory)
+</I>&gt;<i>
+</I>&gt;<i> If you look a little deeper on the GetUserAppearance data structures
+</I>&gt;<i> you'll see that only UUIDs are flying around.  There will probably be a
+</I>&gt;<i> caching of visual params as well, as it will make your ruth time when
+</I>&gt;<i> you first log in smaller.
+</I>&gt;<i>
+</I>&gt;<i> &gt; * Implemetation 2
+</I>&gt;<i> &gt; &quot;GetUserAppearance&quot; is not in &quot;UserServer&quot;, it should be a module or
+</I>&gt;<i> &gt; something
+</I>&gt;<i> &gt; independent. There is
+</I>&gt;<i> &gt; * &quot;OGS1InventoryServices&quot; incharge of communicating with
+</I>&gt;<i> &quot;InventoryServer&quot;.
+</I>&gt;<i> &gt; * &quot;AssetCache&quot; gets &quot;assetdata&quot; from &quot;AssetServer&quot;.
+</I>&gt;<i> &gt; I think we can use the 2 existing components to &quot;GetUserAppearance&quot;.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Why I prefer &quot;Implementation 2&quot; ?
+</I>&gt;<i> &gt; 1. Just as UserServer does not provide &quot;Inventory&quot; information,
+</I>&gt;<i> UesrServer
+</I>&gt;<i> &gt; also should NOT
+</I>&gt;<i> &gt; provide appearance information.
+</I>&gt;<i> &gt; (UserServer should be concentrated on providing basic user information
+</I>&gt;<i> and
+</I>&gt;<i> &gt; the authentication.)
+</I>&gt;<i> &gt; 2. If UserServer have to fetch Complete &quot;Appearance&quot;, UserServer must
+</I>&gt;<i> know
+</I>&gt;<i> &gt; about AssetServerUrl,
+</I>&gt;<i> &gt; and something like &quot;AssetCache&quot; must be implemented inside UserServer.
+</I>&gt;<i> This
+</I>&gt;<i> &gt; makes UserServer
+</I>&gt;<i> &gt; become less indenpendent.
+</I>&gt;<i>
+</I>&gt;<i> That's actually not true.  With the user server storing asset and
+</I>&gt;<i> inventory ids, the client is sent a wearables packet, which is just a
+</I>&gt;<i> bunch of UUIDs.  The client then goes and fetches the assets from the
+</I>&gt;<i> asset servers.
+</I>&gt;<i>
+</I>&gt;<i> &gt; 3. &quot;Appearance&quot; can be thought as &quot;a special inventory folder called
+</I>&gt;<i> &gt; 'wearables' &quot;.
+</I>&gt;<i> &gt; (InventoryServer is born to do such things)
+</I>&gt;<i>
+</I>&gt;<i> I think that mapping &quot;special cases&quot; onto existing services is trouble
+</I>&gt;<i> waiting to happen.
+</I>&gt;<i>
+</I>&gt;<i>    -Sean
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> Sean Dague                                       Mid-Hudson Valley
+</I>&gt;<i> sean at dague dot net                            Linux Users Group
+</I>&gt;<i> <A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;<i>
+</I>&gt;<i> There is no silver bullet.  Plus, werewolves make better neighbors
+</I>&gt;<i> than zombies, and they tend to keep the vampire population down.
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> -----BEGIN PGP SIGNATURE-----
+</I>&gt;<i> Version: GnuPG v1.4.6 (GNU/Linux)
+</I>&gt;<i>
+</I>&gt;<i> iD8DBQFIKuARSamXem9TdyYRAr/pAJ9l1mnEnv7UE7Ne0vADuWdQcCn3ugCdGtbb
+</I>&gt;<i> ONUSNbCLV3fl+ITqL/ogqR8=
+</I>&gt;<i> =hhze
+</I>&gt;<i> -----END PGP SIGNATURE-----
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+Liu Xiaolu
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080515/a8bbbbad/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080515/a8bbbbad/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001549.html">[Opensim-dev] Where should we put GetUserAppearance ?
+</A></li>
+	<LI>Next message: <A HREF="001558.html">[Opensim-dev] Opensim-dev Digest, Vol 9, Issue 13
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1562">[ date ]</a>
+              <a href="thread.html#1562">[ thread ]</a>
+              <a href="subject.html#1562">[ subject ]</a>
+              <a href="author.html#1562">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

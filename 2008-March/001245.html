@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] BlockingQueue
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20BlockingQueue&In-Reply-To=%3CBLU134-W18AA1C2C59C54A1FF732D0D5FF0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001243.html">
+   <LINK REL="Next"  HREF="001246.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] BlockingQueue</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20BlockingQueue&In-Reply-To=%3CBLU134-W18AA1C2C59C54A1FF732D0D5FF0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] BlockingQueue">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Mar 26 15:37:32 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001243.html">[Opensim-dev] BlockingQueue
+</A></li>
+        <LI>Next message: <A HREF="001246.html">[Opensim-dev] BlockingQueue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1245">[ date ]</a>
+              <a href="thread.html#1245">[ thread ]</a>
+              <a href="subject.html#1245">[ subject ]</a>
+              <a href="author.html#1245">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After talking things thru with God (aka MW) I guess I could settle for a solution like this:
+
+Each 'BlockingQueue' has an INTERNAL worker thread that is blocked and woken up as items are put into its queue.
+
+This way, the TextureSenderModule could have an configurable number of those non-blocking queues.
+
+Now, how do we feel about the outgoing Packet queue?
+
+/Stefan
+
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Wed, 26 Mar 2008 14:49:52 +0100
+Subject: Re: [Opensim-dev] BlockingQueue
+
+
+
+
+
+
+
+
+&gt;<i> &gt; Preparing for the bug-a-thon friday, I want us to come together on how 
+</I>&gt;<i> &gt; we will write this out of the core; I think it will give us much 
+</I>&gt;<i> &gt; better control over threading and deadlocking.
+</I>&gt;<i> For people relatively new to the project, could you give any examples of 
+</I>&gt;<i> particular problems here?
+</I>
+Well, the thing with the BlockingQueue is that it functions this way:
+
+if something _Reads_ the queue, and it happens to be empty, the thread is BLOCKED until something else _Adds_ to the queue. Of course, if another thread comes along and reads from it, it is blocked as well, and all of them are released in one merry explosion when an item is Added. Which probably leads to all kinds of weird race conditions.
+
+In theory, this means that you can safely assume that there is something on the queue on every read.
+
+In practice this leads to thread lock mayhem, since how the threads interact with methods can be a bit tangly, to say the least, and that the person that uses the blocking queue has to know EXACTLY what he's doing. (And everybody that uses the code that uses the queue and so on.)
+
+All this just so that you could write
+
+while(true)
+{
+ Handle( m_blockingQueue.Read() ); // Or whatever the method name is
+}
+
+which in itself is just horrible, horrible, horrible.
+ 
+&gt;<i> &gt;
+</I>&gt;<i> &gt; (The PROBLEM with the BlockingQueue is that threads might LOCK 
+</I>&gt;<i> &gt; unknowingly because a sub-call felt like taking a peek at some 
+</I>&gt;<i> &gt; blocking queue. Really really bad form.)
+</I>&gt;<i> Could you be more specific?  Looking at OpenSim.Framework.BlockingQueue, 
+</I>&gt;<i> I can't see where deadlock could occur - none of the methods hold on to 
+</I>&gt;<i> the m_queueSync lock for long.  However, I'm relatively new to 
+</I>&gt;<i> synchronization in dot net, though I have done some in Java - I could be 
+</I>&gt;<i> missing something.
+</I>
+I don't mean deadlock as in ordinary lock{ } constructs, I mean the use of mutexes can cause a 'wrong' thread to lock by (coder) mistake. It's just a dumb effing construct to begin with.
+
+&gt;<i> &gt;
+</I>&gt;<i> &gt; The BlockingQueue is used in the following contexts:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; * Serving AssetRequests
+</I>&gt;<i> &gt;   - This should be solved with a specialized ThreadStart queue that 
+</I>&gt;<i> &gt; news up threads whenever something tries to add to it or if there's 
+</I>&gt;<i> &gt; something in the queue, up to a specified max of concurrent requests.
+</I>&gt;<i> Isn't starting up threads an expensive process?  Perhaps a ThreadPool 
+</I>&gt;<i> instead if we wanted to go down that route?
+</I>
+Yes and No. Starting up threads is indeed 'expensive', but only in relation to how big the work item is. For example, when transferring an Asset, the cost of creating the thread is a fraction of the cost of actually transferring it.
+
+It's exactly the over-excessive use of thread pools for long running work items that's exhausting the thread pool as it is right now.
+
+Thread pools should be used only when you KNOW the work item is a (relatively) small one.
+
+If we WANT thread re-use for this special case depicted above, we can simply track and reuse the threads as they are finished.
+
+/Stefan
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080326/8dd43635/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080326/8dd43635/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001243.html">[Opensim-dev] BlockingQueue
+</A></li>
+	<LI>Next message: <A HREF="001246.html">[Opensim-dev] BlockingQueue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1245">[ date ]</a>
+              <a href="thread.html#1245">[ thread ]</a>
+              <a href="subject.html#1245">[ subject ]</a>
+              <a href="author.html#1245">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

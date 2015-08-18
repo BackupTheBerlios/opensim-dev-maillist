@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] EstateID from uint to UUID
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20EstateID%20from%20uint%20to%20UUID&In-Reply-To=%3CBLU134-W365AF1FA6D0220DC21C3A6D5B70%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005064.html">
+   <LINK REL="Next"  HREF="005067.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] EstateID from uint to UUID</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20EstateID%20from%20uint%20to%20UUID&In-Reply-To=%3CBLU134-W365AF1FA6D0220DC21C3A6D5B70%40phx.gbl%3E"
+       TITLE="[Opensim-dev] EstateID from uint to UUID">stefan at tribalmedia.se
+       </A><BR>
+    <I>Mon Feb 16 09:47:22 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005064.html">[Opensim-dev] EstateID from uint to UUID
+</A></li>
+        <LI>Next message: <A HREF="005067.html">[Opensim-dev] Sharing Opensim Archives
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5083">[ date ]</a>
+              <a href="thread.html#5083">[ thread ]</a>
+              <a href="subject.html#5083">[ subject ]</a>
+              <a href="author.html#5083">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Tommi, Melanie,
+
+ 
+
+I do agree that guid is the preferred identifier type. It reduces unintentional collisions between two separate schemas, whereas the 'autoincrement int' schema is known to be prone to messy collisions on merging and moving data.
+
+ 
+
+I can definitively see scenarios where you would want to merge two estates into the same database and them colliding on estate id.
+
+ 
+
+There is nothing stopping us from having two columns, one guid 'installation-wide estate id' and one 'grid-local estate id' int - but it would be messy, and I'm having problems seeing the benefit of it.
+
+ 
+
+So, I agree with Melanies calling for a clear use case - a present situation that calls for this change before it's done.
+
+
+Also - as Melanie also states, the estate id should be thought of as an identifier local to the grid - and furthermore, even if it was a 'guid', it would _still_ have to be thought of as a identifier local to the installation; No system should ever accept its internal lookup keys from a system outside of its trust boundaries. We do it today (because we really don't use 'trust boundaries' as a concept at all - and it will bite us in the ass eventually) - so a good start would be not to introduce more dependency on foreign key data.
+
+ 
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+
+
+ 
+&gt;<i> Date: Sat, 14 Feb 2009 12:27:05 +0000
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] EstateID from uint to UUID
+</I>&gt;<i> 
+</I>&gt;<i> Estate IDs are not shared between installations. They don't need to 
+</I>&gt;<i> be Guid/UUID. That would just break pretty much everyone's web 
+</I>&gt;<i> frontends and also mess wirth the client.
+</I>&gt;<i> 
+</I>&gt;<i> -1
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Tommi Laukkanen wrote:
+</I>&gt;<i> &gt; I think this is a valuable discussion to have. My view is that all object
+</I>&gt;<i> &gt; identifiers ought to be UUIDs as UUID type is developed specifically for
+</I>&gt;<i> &gt; that with bullet broof unique id generation algorithm where as all other id
+</I>&gt;<i> &gt; generation algorithms are either database specific or fail if you have
+</I>&gt;<i> &gt; distributed service or both. If we want to prepare for distributing all our
+</I>&gt;<i> &gt; systems then aiming for purely UUID based identification is a good step
+</I>&gt;<i> &gt; forward. In understand that in practice it might be a very long time before
+</I>&gt;<i> &gt; we can reach a point where all identifiers are of UUID type but if we
+</I>&gt;<i> &gt; consider this to be a design principle then the resolution is immediately
+</I>&gt;<i> &gt; valid for any new implementations we do.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; On Sat, Feb 14, 2009 at 1:23 PM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt;&gt; Estate ID is a purely local concept that is likely to vanish in
+</I>&gt;<i> &gt;&gt; newer viewers and the Hypergrid. There is no point in creating a
+</I>&gt;<i> &gt;&gt; double-lookup scenario.
+</I>&gt;<i> &gt;&gt; There is nothing that says that all objects must be GUID and no
+</I>&gt;<i> &gt;&gt; point in refactoring for refactoring's sake.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Melanie
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Tommi Laukkanen wrote:
+</I>&gt;<i> &gt;&gt; &gt; Hello
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; LL viewer quirks we must conform to but as with many other objects the
+</I>&gt;<i> &gt;&gt; &gt; primary key could be uuid and uint based id is kept around for ll viewer
+</I>&gt;<i> &gt;&gt; &gt; compatibility? Maybe it gets too messy in the end to be worth the
+</I>&gt;<i> &gt;&gt; trouble.
+</I>&gt;<i> &gt;&gt; &gt; One can consider it once we get to have custom viewers which are not
+</I>&gt;<i> &gt;&gt; leashed
+</I>&gt;<i> &gt;&gt; &gt; by SL protocol limitations.
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; regards,
+</I>&gt;<i> &gt;&gt; &gt; Tommi
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; On Sat, Feb 14, 2009 at 1:14 PM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Hi,
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; the estate id _is_ a uint. It is not a UUID and was never meant to
+</I>&gt;<i> &gt;&gt; &gt;&gt; be a UUID. The client sends and expects a UINT.
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Melanie
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; Tommi Laukkanen wrote:
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; Hello
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; I am working on Estate NHibernate storage and noticed that EstateID is
+</I>&gt;<i> &gt;&gt; &gt;&gt; still
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; of uint type where as most of other objects have been converted to
+</I>&gt;<i> &gt;&gt; UUID
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; identifiers. Is anyone interested in tackling this refactoring from
+</I>&gt;<i> &gt;&gt; uint
+</I>&gt;<i> &gt;&gt; &gt;&gt; to
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; UUID. Its not a small job but it would make the database much cleaner.
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; regards,
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; Tommi
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt; &gt;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt; &gt;&gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; &gt;&gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt; &gt;&gt;
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt;&gt; &gt;
+</I>&gt;<i> &gt;&gt; &gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090216/7e585dfc/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090216/7e585dfc/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005064.html">[Opensim-dev] EstateID from uint to UUID
+</A></li>
+	<LI>Next message: <A HREF="005067.html">[Opensim-dev] Sharing Opensim Archives
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5083">[ date ]</a>
+              <a href="thread.html#5083">[ thread ]</a>
+              <a href="subject.html#5083">[ subject ]</a>
+              <a href="author.html#5083">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

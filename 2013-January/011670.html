@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Add a JsonTestStore() for the JSON store module?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Add%20a%20JsonTestStore%28%29%20for%20the%20JSON%20store%20module%3F&In-Reply-To=%3C5109FBB8.4020900%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011669.html">
+   <LINK REL="Next"  HREF="011672.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Add a JsonTestStore() for the JSON store module?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Add%20a%20JsonTestStore%28%29%20for%20the%20JSON%20store%20module%3F&In-Reply-To=%3C5109FBB8.4020900%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Add a JsonTestStore() for the JSON store module?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Jan 31 06:06:00 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011669.html">[Opensim-dev] Add a JsonTestStore() for the JSON store module?
+</A></li>
+        <LI>Next message: <A HREF="011672.html">[Opensim-dev] Add a JsonTestStore() for the JSON store module?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11670">[ date ]</a>
+              <a href="thread.html#11670">[ thread ]</a>
+              <a href="subject.html#11670">[ subject ]</a>
+              <a href="author.html#11670">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks Mic.  Sorry I wasn't around earlier - schedule has gone massively late again (and I'm probably offline thurs).
+
+I'm not an LSL expert, but I think the classic 'LSL' way to do this would be to return a strided list [1].
+
+Maybe something like
+
+JsonGetValues(key storeID, string path):list
+JsonGetValuesJson(key storeID, string path):list
+
+So
+
+list stridedVals = JsonGetValues(storeID, &quot;foo[*].bar&quot;);
+
+to get something like
+
+[&quot;foo[0].bar&quot;, &quot;hello&quot;, &quot;foo[1].bar&quot;, &quot;world&quot;, ... ]
+
+Then one can use functions like llList2ListStrided to get just the values as desired, e.g.
+
+list result_a = llList2ListStrided(stridedVals, 0, -1, 2);
+// result_a == [ &quot;hello&quot;, &quot;world&quot; ]
+
+In this way, maybe one could even return the deeper structure by listing the full key for each value rather than the 
+return serialized approach of the *Json() functions.  Maybe this could be signalled as via an optional constant int 
+flags field (in the same LSL way that things like osNpcCreate() take options).
+
+Strided lists are pretty horrible but at least people are familiar with them and there are various functions to help 
+with handling them.  I guess it's the only way to get any semblance of nested data structures in LSL.
+
+Also, a couple of other questions, which might just be due to my ignorance of not having looked at the code deeply 
+enough yet.
+
+* I see there are many parallel *Json methods such as JsonGetValueJson().  I presume the natural way to parse serialized 
+json returned from those (if one wanted) would be to temporarily create a store and then remove it?
+
+* Is the 'JPath' implementation the one at [2] or perhaps the one at [3] or something else entirely?  How much of these 
+'specifications' is currently implemented?
+
+[1] <A HREF="http://wiki.secondlife.com/wiki/Category:LSL_List#Strided_lists">http://wiki.secondlife.com/wiki/Category:LSL_List#Strided_lists</A>
+[2] <A HREF="http://goessner.net/articles/JsonPath/">http://goessner.net/articles/JsonPath/</A>
+[3] <A HREF="http://projects.plural.cc/projects/jsonij/wiki/JPath">http://projects.plural.cc/projects/jsonij/wiki/JPath</A>
+
+
+On 30/01/13 22:48, Mic Bowman wrote:
+&gt;<i> Done.
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Jan 30, 2013 at 8:57 AM, Mic Bowman &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     I think that would be very useful. I can add it this afternoon, if you don't beat me to it.
+</I>&gt;<i>
+</I>&gt;<i>     When I wrote the interface to the Json store, I modeled the path expansion after JQuery interface. However, I'm
+</I>&gt;<i>     finding that really challenging to use for iterating through an array of values. Right now, I use osFormatString to
+</I>&gt;<i>     create the path dynamically. For example:
+</I>&gt;<i>
+</I>&gt;<i>     integer i = 0;
+</I>&gt;<i>     while (i &lt; 10)
+</I>&gt;<i>     {
+</I>&gt;<i>          string p = osFormatString(&quot;foo[{0}].bar&quot;,[i]); // create path &quot;foo[0].bar&quot;
+</I>&gt;<i>          string v = JsonGetValue(storeID,p);
+</I>&gt;<i>     }
+</I>&gt;<i>
+</I>&gt;<i>     If you have any suggestions for a construct that would make the iteration cleaner, I would be very interested. I've
+</I>&gt;<i>     bounced around (and written some test code) for taking a list (the components of the path) as an argument, but
+</I>&gt;<i>     constructing the list is no easier than constructing the string. I've also poked around with creating store handles
+</I>&gt;<i>     that point into an existing store (so you resolve the path &quot;foo&quot; into a store handle then iterate at the top level).
+</I>&gt;<i>     Again, the code to walk through the structure is still excessively complex.
+</I>&gt;<i>
+</I>&gt;<i>     --mic
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     On Tue, Jan 29, 2013 at 10:03 PM, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>         Hi Mic.  Whilst looking through these functions tonight, it struck me that there doesn't appear to be a way to
+</I>&gt;<i>         tell if a certain JSON store still exists, as identified by its key.
+</I>&gt;<i>
+</I>&gt;<i>         Do you think it would be appropriate to add a function for that?  Perhaps JsonTestStore(), which is in keeping
+</I>&gt;<i>         with JsonTestPath()?
+</I>&gt;<i>
+</I>&gt;<i>         --
+</I>&gt;<i>         Justin Clark-Casey (justincc)
+</I>&gt;<i>         OSVW Consulting
+</I>&gt;<i>         <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i>         <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>         _________________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011669.html">[Opensim-dev] Add a JsonTestStore() for the JSON store module?
+</A></li>
+	<LI>Next message: <A HREF="011672.html">[Opensim-dev] Add a JsonTestStore() for the JSON store module?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11670">[ date ]</a>
+              <a href="thread.html#11670">[ thread ]</a>
+              <a href="subject.html#11670">[ subject ]</a>
+              <a href="author.html#11670">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

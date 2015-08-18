@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Identity Management, Inventory Management and Asset Management from 	MXP Perspective
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Identity%20Management%2C%0A%20Inventory%20Management%20and%20Asset%20Management%20from%20%09MXP%20Perspective&In-Reply-To=%3C49B5E40B.4090702%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005617.html">
+   <LINK REL="Next"  HREF="005622.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Identity Management, Inventory Management and Asset Management from 	MXP Perspective</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Identity%20Management%2C%0A%20Inventory%20Management%20and%20Asset%20Management%20from%20%09MXP%20Perspective&In-Reply-To=%3C49B5E40B.4090702%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Identity Management, Inventory Management and Asset Management from 	MXP Perspective">diva at metaverseink.com
+       </A><BR>
+    <I>Tue Mar 10 04:52:43 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005617.html">[Opensim-dev] Identity Management,	Inventory Management and Asset Management from 	MXP Perspective
+</A></li>
+        <LI>Next message: <A HREF="005622.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5625">[ date ]</a>
+              <a href="thread.html#5625">[ thread ]</a>
+              <a href="subject.html#5625">[ subject ]</a>
+              <a href="author.html#5625">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>First of all, congratulations and thanks for the MXP client and its 
+connection to OpenSim. I confess that addition to trunk a few weeks back 
+got me a bit by surprise, given that it got very little discussion, and 
+I haven't looked at it until today. But I finally did it. So here's a 
+belated technical assessment -- every substantial addition  to OpenSim 
+deserves that!
+
+I think the MXP client is doing many good things for OpenSim, namely: 
+(1) it's showing how OpenSim is so much more than Second Life, being a 
+simulation server that can accommodate a variety of clients; (2) it's 
+showing how easy it is to write 3D rendering clients for OpenSim, and 
+how easy it is to extend OpenSim for those clients; (3) it's going to 
+force us to think hard about commonalities and differences among  those 
+clients, and how we need to refactor the server side to best capture all 
+that commonality and diversity.
+
+The MXP client right now seems to be very simple, not a lot of features. 
+As I was looking at the code that is currently in MXPClientView, I was 
+forced to think about how the heck some of those methods are going to 
+work in MXP, and, more important, why they are being called from Scene 
+in the first place. Where those methods map well to the MXP client, we 
+have important commonalities -- those should be the only ones in 
+IClientAPI; where they don't map, we have a 'leak' from the Linden 
+client into our OpenSim framework -- those should be in some other place 
+pertaining to the Linden client only and used by modules in 
+OpenSim.Client.Linden.
+
+For example, Chat maps well. SendWearables and SendAppearance may not 
+map well, since we have it tied down to one very specific representation 
+of wearables and appearance; other clients may have different 
+representations, and I would hope the MXP client does it differently. 
+But the concept of  wearables and appearance may also exist in your 
+client, so this means that we need to make a lot more things Interfaces, 
+rather than concrete classes. Things like SendDetailedEstateData will, 
+hopefully, not map at all -- meaning that the EstateManagementModule 
+should probably not be included in CoreModules, but placed somewhere in 
+OpenSim.Client.Linden.
+
+As for the other parts that you mention specifically in your email, 
+Identity and Inventory are client-side decisions -- you can decide to do 
+them anyway you want, and that's refreshing. It looks like you're not 
+going to make the same decisions that Linden Lab did. Good :-) Most of 
+what I sent to this list pertaining to those topics really is about how 
+to hack around the built-in decisions in the Linden viewer regarding 
+Authentication, Inventory, and other security-sensitive features, in 
+order to make it safe for use in a decentralized open system. This is 
+because OpenSim has been using the LL viewer as a fixed point in the 
+design.
+
+This problem of beating the LL viewer into a responsible behavior is 
+related to, but differs from, the discussion of what clients *should* do 
+in order for the overall system to behave responsibly with the user's 
+private data -- first of all, that depends on what kind of system you 
+want to produce. If you want to play only in the walled-garden arena, 
+you have a set of security constraints on the data; if you want to play 
+in the special partners arena, you have slightly more constraints; and 
+if you want to play in a completely decentralized and open world, you 
+have a much larger set of constraints on that data.
+
+These decisions only affect the server to the extent that you rely on 
+the regions to perform security-critical operations, which is the case 
+with the current Linden viewer. That doesn't work for open systems. If 
+you simply don't do that on your client, you immediately avoid 95% of 
+the security holes that the Linden viewer has (they're 'holes' only to 
+the extent that we are trying to use the LL Viewer in a decentralized 
+open system such as the Hypergrid).
+
+
+Tommi Laukkanen wrote:
+&gt;<i> Hello
+</I>&gt;<i>
+</I>&gt;<i> I have tried to collect a viewepoint from MXP perspective to the
+</I>&gt;<i> OpenSimulator UGAIM architecture discussion. This text is based on the
+</I>&gt;<i> discussion on this list and on formulation of an overall picture using
+</I>&gt;<i> MXP terminology. I would like to hear your comments. Have I understood
+</I>&gt;<i> things correctly and written it in understandable form? Is there
+</I>&gt;<i> problems or mistakes on how I wrote the things down?
+</I>&gt;<i>
+</I>&gt;<i> When we had the previous MXP version ready our conclusion was that we
+</I>&gt;<i> needed some serious contribution from OpenSimulator to help fill in
+</I>&gt;<i> the blank spots. I am happy to say that both technical details and
+</I>&gt;<i> missing architecture areas have come to focus as a result of working
+</I>&gt;<i> with OpenSimulator and reading this list.
+</I>&gt;<i>
+</I>&gt;<i> Identity Management
+</I>&gt;<i>
+</I>&gt;<i> Identity management, authenticaton and authorization are well
+</I>&gt;<i> established areas. Identities are managed by open identity providers.
+</I>&gt;<i> Participant identity consists of identity provider URI and participant
+</I>&gt;<i> UUID. Participant may authenticate to identity provider by any means
+</I>&gt;<i> available. Identity provider hands out one time tokens to participant.
+</I>&gt;<i> These tokens are then used to to authenticate to bubbles and other
+</I>&gt;<i> services. Bubbles and other services verify the tokens by invoking
+</I>&gt;<i> verification requests to the identity provider. See OpenId and OAuth
+</I>&gt;<i> for detailed description.
+</I>&gt;<i>
+</I>&gt;<i> Inventory Management
+</I>&gt;<i>
+</I>&gt;<i> Inventories are analogous to remote file systems with metadata
+</I>&gt;<i> support. User has own directory where data can be stored. The
+</I>&gt;<i> inventory service is not bound to identity provider or home bubble but
+</I>&gt;<i> can be freely acquired from any compliant provider. Each user and user
+</I>&gt;<i> group can have zero to many inventories. If no inventory is available
+</I>&gt;<i> for user it is not possible to store data to inventory.
+</I>&gt;<i>
+</I>&gt;<i> Asset Management
+</I>&gt;<i>
+</I>&gt;<i> Asset management, storage and delivery are challenging from
+</I>&gt;<i> ideological, theoretical and engineering view points. MXP is not an
+</I>&gt;<i> asset delivery protocol. In ideological level it is enough to state
+</I>&gt;<i> that any asset can easily be extracted with a specialized client.
+</I>&gt;<i> Because of this there is no feasible technological way to absolutely
+</I>&gt;<i> protect assets in an open system. MXP currently relies on the same
+</I>&gt;<i> model as world wide web does. If a better model is introduced it will
+</I>&gt;<i> be adopted. In practice this means that assets are delivered to all
+</I>&gt;<i> connected participants by the asset cache of a bubble over HTTP.
+</I>&gt;<i> Original assets are stored in an inventory of user or organization.
+</I>&gt;<i> When user creates an object he assigns his own inventory or an
+</I>&gt;<i> organization inventory to the object. The assigned inventory contains
+</I>&gt;<i> assets of the object. This inventory is then used by bubble to load
+</I>&gt;<i> the assets to local cache for further delivery to clients. In this
+</I>&gt;<i> scheme the asset distribution is load balanced through bubbles and
+</I>&gt;<i> inventory owners can control spread of their objects by limiting the
+</I>&gt;<i> bubbles which may access the inventory in question. Asset ids are all
+</I>&gt;<i> always assigned by inventories according to the proper UUID generation
+</I>&gt;<i> algorithm which will effectively remove threat of id collisions
+</I>&gt;<i> between assets from different inventories. See OpenSimulator
+</I>&gt;<i> AssetServer Proposal for detailed description of protocol proposal.
+</I>&gt;<i>
+</I>&gt;<i> - Tommi
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005617.html">[Opensim-dev] Identity Management,	Inventory Management and Asset Management from 	MXP Perspective
+</A></li>
+	<LI>Next message: <A HREF="005622.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5625">[ date ]</a>
+              <a href="thread.html#5625">[ thread ]</a>
+              <a href="subject.html#5625">[ subject ]</a>
+              <a href="author.html#5625">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

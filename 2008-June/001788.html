@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] On Mantis #1370 (avatar persistence)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3C484EAF8E.6040806%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001779.html">
+   <LINK REL="Next"  HREF="001790.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] On Mantis #1370 (avatar persistence)</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3C484EAF8E.6040806%40googlemail.com%3E"
+       TITLE="[Opensim-dev] On Mantis #1370 (avatar persistence)">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Jun 10 18:45:02 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001779.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+        <LI>Next message: <A HREF="001790.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1788">[ date ]</a>
+              <a href="thread.html#1788">[ thread ]</a>
+              <a href="subject.html#1788">[ subject ]</a>
+              <a href="author.html#1788">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>liu xiaolu wrote:
+&gt;<i> Quick information:
+</I>&gt;<i> 
+</I>&gt;<i> OSGrid seems to be down, so just patial information.
+</I>&gt;<i> 
+</I>&gt;<i> I registered a region at OSGrid (called WolfDrawer 10001,10000)
+</I>&gt;<i> Network condition:
+</I>&gt;<i> my region server is in japan, my home
+</I>&gt;<i> Server:
+</I>&gt;<i> OpenSUSE-10.3-xen/mono 1.2.6/512M/2core
+</I>&gt;<i> OpenSim:
+</I>&gt;<i> latest revision
+</I>&gt;<i> 
+</I>&gt;<i> the full login log(with line No.) is attanched at the end, here just 
+</I>&gt;<i> points a few lines:
+</I>&gt;<i> Line14,15: &quot;GetAppearance&quot; is called. these &quot;not found&quot; mesages appear 
+</I>&gt;<i> everytime when an user login, because at this time, &quot;inventory&quot; has not 
+</I>&gt;<i> been fetched.
+</I>&gt;<i> Line19: &quot;inventory&quot; is (begin to) fetched at this time.
+</I>&gt;<i> Line24,25: &quot;GetAppearance&quot; is called once more. at this time, 
+</I>&gt;<i> &quot;inventory&quot; is under fetching, my server is far from OSGrid's 
+</I>&gt;<i> inventoryserver, so no result yet,
+</I>&gt;<i> &quot;GetAppearance&quot; returns &quot;not found&quot; once more
+</I>&gt;<i> Line26: Region server recieved inventory information from inventory 
+</I>&gt;<i> server, but it is late.
+</I>
+Yeah, there is a mechanism in the inventory code that other functions 
+use to complete execution only when the inventory is received (such as 
+opening a folder, at least under UDP rather than CAPS).  The appearance 
+mechanism should probably use that.   Probably everything should be 
+using that mechanism (rather than just checking if RootFolder != null 
+which I suspect is what is currently being done).
+
+&gt;<i> 
+</I>&gt;<i> *NOTE*: as I tested, in windows there is no timing problem, Line19: 
+</I>&gt;<i> &quot;getinventory&quot; in windows is SYNC.  :@
+</I>&gt;<i> 
+</I>&gt;<i> ---------------------------------------
+</I>&gt;<i>  1| 20:20:13 - [CONNECTION DEBUGGING]: Expect User called, starting 
+</I>&gt;<i> agent setup ...
+</I>&gt;<i>  2| 20:20:13 - [CONNECTION DEBUGGING]: Main agent detected
+</I>&gt;<i>  3| 20:20:13 - [CONNECTION DEBUGGING]: Triggering welcome for 
+</I>&gt;<i> e8738a41-d260-4030-9b54-31688164b260 into 10996215791947776
+</I>&gt;<i>  4| 20:20:13 - [CAPS]: Setting up CAPS handler for root agent 
+</I>&gt;<i> e8738a41-d260-4030-9b54-31688164b260 in WolfDrawer
+</I>&gt;<i>  5| 20:20:13 - [CONNECTION DEBUGGING]: Creating new circuit code 
+</I>&gt;<i> (1590320709) for avatar e8738a41-d260-4030-9b54-31688164b260 at WolfDrawer
+</I>&gt;<i>  6| 20:20:13 - [OGS1 GRID SERVICES]: Welcoming new user...
+</I>&gt;<i>  7| 20:20:15 - [CAPS]: Seed Caps Request in region: WolfDrawer
+</I>&gt;<i>  8| 20:20:15 - [UDPSERVER]: Adding New Client
+</I>&gt;<i>  9| 20:20:15 - [CLIENT]: Started up new client thread to handle incoming 
+</I>&gt;<i> request
+</I>&gt;<i> 10| 20:20:15 - [CLIENT]: Got authenticated connection from 
+</I>&gt;<i> 219.106.248.145:62864 &lt;<A HREF="http://219.106.248.145:62864">http://219.106.248.145:62864</A>&gt;
+</I>&gt;<i> 11| 20:20:15 - [CLIENT]: Adding viewer agent to scene
+</I>&gt;<i> 12| 20:20:15 - [CONNECTION DEBUGGING]: Creating new client for 
+</I>&gt;<i> e8738a41-d260-4030-9b54-31688164b260 at WolfDrawer
+</I>&gt;<i> 13| 20:20:15 - [REGION]: Add New Scene Presence
+</I>&gt;<i> 14| 20:20:15 - [APPEARANCE]: appearance not found for 
+</I>&gt;<i> e8738a41-d260-4030-9b54-31688164b260, creating default
+</I>&gt;<i> 15| 20:20:15 - [APPEARANCE]: Appearance not found, creating default
+</I>&gt;<i> 16| 20:20:15 - [SCENE]:WolfDrawer: Creating new child agent.
+</I>&gt;<i> 17| 20:20:16 - [GROUP]: Adding lulu run to OpenSimulator Testing
+</I>&gt;<i> 18| 20:20:17 - [CLIENT]: Entered loop
+</I>&gt;<i> 19| 20:20:17 - [OGS1 INVENTORY SERVICE]: Requesting inventory from 
+</I>&gt;<i> <A HREF="http://osgrid.org:8004/GetInventory/">http://osgrid.org:8004/GetInventory/</A> for user 
+</I>&gt;<i> e8738a41-d260-4030-9b54-31688164b260
+</I>&gt;<i> 20| 20:20:17 - [SUN]: Initial update for new client
+</I>&gt;<i> 21| 20:20:17 - [FRIEND]: Claiming lulu run in region:10996215791947776.
+</I>&gt;<i> 22| 20:20:17 - [CAPS]: Setting up CAPS handler for root agent 
+</I>&gt;<i> e8738a41-d260-4030-9b54-31688164b260 in WolfDrawer
+</I>&gt;<i> 23| 20:20:18 - [OSG1 USER SERVICES]: Successfully updated user record
+</I>&gt;<i> 24| 20:20:18 - [APPEARANCE]: appearance not found for 
+</I>&gt;<i> e8738a41-d260-4030-9b54-31688164b260, creating default
+</I>&gt;<i> 25| 20:20:18 - [APPEARANCE]: Appearance not found, creating default
+</I>&gt;<i> 26| 20:20:19 - [OGS1 INVENTORY SERVICE]: Received inventory response for 
+</I>&gt;<i> user e8738a41-d260-4030-9b54-31688164b260 containing 15 folders and 4 items
+</I>&gt;<i> 27| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> 28| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> 29| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> 30| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> 31| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> 32| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> 33| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> 34| 20:20:21 - [INTERGRID]: Starting to inform client about neighbours
+</I>&gt;<i> 35| 20:20:21 - [APPEARANCE]: Sending Appearance to All Other Agents
+</I>&gt;<i> 36| 20:20:21 - [CLIENT]: unhandled AgentHeightWidth packet
+</I>&gt;<i> 37| 20:20:21 - [CLIENT]: unhandled MuteListRequest packet
+</I>&gt;<i> 38| 20:20:22 - [CLIENT]: unhandled AgentHeightWidth packet
+</I>&gt;<i> 39| 20:20:22 - [APPEARANCE]: Sending Own Appearance
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> -- 
+</I>&gt;<i> Liu Xiaolu
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001779.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+	<LI>Next message: <A HREF="001790.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1788">[ date ]</a>
+              <a href="thread.html#1788">[ thread ]</a>
+              <a href="subject.html#1788">[ subject ]</a>
+              <a href="author.html#1788">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

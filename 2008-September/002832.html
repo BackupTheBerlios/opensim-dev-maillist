@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SOG and scripting
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SOG%20and%20scripting&In-Reply-To=%3CBLU134-W26DD2C71A2958335E8E0E3D55E0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002829.html">
+   <LINK REL="Next"  HREF="002833.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SOG and scripting</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SOG%20and%20scripting&In-Reply-To=%3CBLU134-W26DD2C71A2958335E8E0E3D55E0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] SOG and scripting">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Sep  3 08:41:04 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002829.html">[Opensim-dev] SOG and scripting
+</A></li>
+        <LI>Next message: <A HREF="002833.html">[Opensim-dev] MetaEntities (was Re:  SOG and scripting)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2832">[ date ]</a>
+              <a href="thread.html#2832">[ thread ]</a>
+              <a href="subject.html#2832">[ subject ]</a>
+              <a href="author.html#2832">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>It warms my heart to hear somebody actually sharing and building on our initial vision. :D
+ 
+As I think I've stated on several occasions; the initial idea was that the base scenario would be a scene-less application (a self-assembled region, if you will) where each connected client had their own 3D application GUI, using the viewer protocol merely as a terminal protocol to interact with that application, and that sharing a common coordinated 'desktop' in the form of a Scene would be one domain of specialized applications, of which an SL-like region with objects behaving in a certain way was yet another layer of specialization.
+Hence the name 'IClientViewAPI' - the interface that is an API for the application to easily interact with a Client _View_ (see the MVC pattern) - it's actually supposed to work the other way around than from what most people would think.
+ 
+The first two example projects 'SimpleApp' and 'SimpleApp2' demonstrated this; SimpleApp did not have a scene, it consisted of an application (a peer to OpenSim.exe) you could interact with (a simple application that interfaced with connected IClientViewAPI's directly); SimpeApp2 demonstrated how you would subclass application, scenes, objects and IClientAPI's to create a totally custom world.
+ 
+These two apps have since then been taken out of the tree as they didn't keep up with core development.
+This said, we at Tribal Media still use this approach; we subclass scenes and objects when we want them to behave in some fundamentally different way, instead of reconfiguring generic objects. The Tribal One [1] concept was built from the ground up for us to be able to realize things like the Third-Party Web API and http ViewPorts.
+ 
+There's still so much to explore. :D
+ 
+[1] <A HREF="http://lbsa71.net/category/tribal-media/tribal-one/">http://lbsa71.net/category/tribal-media/tribal-one/</A>
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+Date: Tue, 2 Sep 2008 08:56:16 -0700From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: [Opensim-dev] SOG and scripting
+Hi,You're probably all busy at the Virtual Worlds conference :-) I left a couple of comments in the obscure talk page of the XML Serialization, I bet no one saw that; so I'm repeating the most important one here:
+
+Sub-classing SceneObjectGroup: 
+I'm working on simulations that involve subclassing SceneObjectGroup. The current serialization implementation doesn't work for them, because it always instantiates objects of type SceneObjectGroup. We should account for the sub-type of the object in the XML, and instantiate the right sub-type. Includes having to override the xml-related methods of SceneObject, so make those virtual.
+-----
+My recent experience with writing subclasses of SOG (and IClientAPI, but that's another topic) opened my mind to the fantastic architecture that you guys have put in place here. I suspect that not many people realize the power of this architecture yet. 
+So, this other thought popped in my mind: why not implement scripted objects as instances of sub-classes of SOG, and bypass script interpreters and their use of reflection altogether? Something like this: whenever you attach scripts to an object, the OS runtime would generate (assemble, really) CIL bytecodes representing a subclass of SOG implementing those scripts. An instance of that class would then replace the original object, preserving all the important properties and IDs. Rez would be nothing but new-ing those subclasses.That way there would be only one uniform representation of active scene objects, independent of whether they were written directly in modules or written by scripting them inworld, and it would use this great API that you have put in place. I bet it would make a lot things a lot faster.
+I know it's not as easy as I make it sound, and there are many tricky details, but... is there any fundamental obstacle to this?Diva / Crista
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080903/035969bb/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080903/035969bb/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002829.html">[Opensim-dev] SOG and scripting
+</A></li>
+	<LI>Next message: <A HREF="002833.html">[Opensim-dev] MetaEntities (was Re:  SOG and scripting)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2832">[ date ]</a>
+              <a href="thread.html#2832">[ thread ]</a>
+              <a href="subject.html#2832">[ subject ]</a>
+              <a href="author.html#2832">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

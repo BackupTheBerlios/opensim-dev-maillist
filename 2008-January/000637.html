@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] another little can of worms: attachments :-)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20another%20little%20can%20of%20worms%3A%20attachments%20%3A-%29&In-Reply-To=%3C477CF8CF.7090604%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000636.html">
+   <LINK REL="Next"  HREF="000638.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] another little can of worms: attachments :-)</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20another%20little%20can%20of%20worms%3A%20attachments%20%3A-%29&In-Reply-To=%3C477CF8CF.7090604%40t-data.com%3E"
+       TITLE="[Opensim-dev] another little can of worms: attachments :-)">melanie at t-data.com
+       </A><BR>
+    <I>Thu Jan  3 16:01:35 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000636.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+        <LI>Next message: <A HREF="000638.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#637">[ date ]</a>
+              <a href="thread.html#637">[ thread ]</a>
+              <a href="subject.html#637">[ subject ]</a>
+              <a href="author.html#637">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+Dalien Talbot wrote:
+&gt;<i> 1) from Dan's: &quot;how are the 'huge dino' avatars are made - whose height is
+</I>&gt;<i> above the max height of the avatar&quot;
+</I>
+Simple...
+
+You can make an animation that offsets the visible avatar from the 
+true position. Now, the physics aspect is very interesting:
+
+For the purpose of physics, an animation doesn't cause the avatar to 
+move at all!
+The avatar is always represented in physics at the point where the 
+server sees it, as it's bounding box, at it's position.
+
+Now, your wyrm avatar:
+
+For physics, the avie is located at ground level. Typically about 
+where the legs are. So, you can bump into the legs. You actually 
+bump into the avatar!
+The animation lifts the _visible_ avie 5 m into the air, sets it at 
+an angle and folds in the arms and legs, so that the avie is 100% 
+within the dragon body.
+Finally, the attachments are put on. They are attached to the limbs, 
+  which makes for some unusual joint translations. That is why these 
+avies have their own set of animations, AO style. They are phantom.
+
+If you want to do battle with this dragon, you have to attack it's 
+legs, since, for collision purposes, that's where the avatar is. The 
+translation which is effected by the animation is simply not a 
+factor here.
+
+Try to collide with such a beastie while flying - you'll fly 
+straight through it!
+Airspace above a Tiny? No, you'd bump into an avatar. Tinies cannot 
+go through tiny doors! The door must be at least the height of the 
+bounding box of the shortest possible &quot;normal&quot; avatar.
+
+So:
+Physics: serverside, bounding box @ position. That simple.
+Animation: clientside. It has no bearing on physics interaction, 
+even if it visually translates the avatar somewhere else.
+Attachment: in world, phantom, and always rooted at the avatar's 
+center of mass. The true offset of an attachment from the avatar's 
+physics center is always 0,0,0. The asset contains a separate set of 
+offsets, which are a display offset. This is added to the offset for 
+the attachment point, clientside.
+
+In an attachment: (from memory)
+llGetPos() = world position (avatar center)
+llGetLocalPos() = offset from attachment point
+llGetRot() = world rotation of the AVATAR. The looking direction is 
+always parallel to the ground plane, unless in mouselook.
+llGetLocalRot() = rotation at the attachment point.
+llGetRootRotation() = llGetRot()
+
+llSetPos() = sets attachemnt point offset
+llSetRot() = does nothing
+llSetLocalRot() = rotates attachemnt.
+
+ALL the above is clientside!
+
+Attachments are phantom, but collisions of the AVATAR trigger 
+collision() events in attachments.
+
+Attachments can enable physics. That makes them no less phantom, but 
+allows them to use damping motion to move the AVATAR. This is how 
+the windwalker/wallwalker work. The object, going physical, actually 
+just links their physics functions the the avatar's physics.
+
+Here is a little bug that LL has in there: If a script makes an 
+attachment physical, and the script is then restarted/resaved/reset, 
+the attachment will not behave as a physical attachment anymore, but 
+will claim it is one. So, physics can not be re-enabled, since the 
+LSL interpreter thinks it already is.
+In order to edit/test a script that does physical movement, you need 
+to unwear and re-wear the attachemnt, which resets that flag.
+
+Weird, but I make weapons, I know. I wish there were swords that 
+actually collide with the avie they visually hit!
+
+Melanie
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000636.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+	<LI>Next message: <A HREF="000638.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#637">[ date ]</a>
+              <a href="thread.html#637">[ thread ]</a>
+              <a href="subject.html#637">[ subject ]</a>
+              <a href="author.html#637">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

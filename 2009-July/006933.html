@@ -1,0 +1,662 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-commits] r9924 - in trunk:	OpenSim/Region/ClientStack/LindenUDP bin
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r9924%20-%20in%0A%20trunk%3A%09OpenSim/Region/ClientStack/LindenUDP%20bin&In-Reply-To=%3C4A4AF401.2090706%40pseudospace.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006932.html">
+   <LINK REL="Next"  HREF="006934.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-commits] r9924 - in trunk:	OpenSim/Region/ClientStack/LindenUDP bin</H1>
+    <B>John Sheridan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r9924%20-%20in%0A%20trunk%3A%09OpenSim/Region/ClientStack/LindenUDP%20bin&In-Reply-To=%3C4A4AF401.2090706%40pseudospace.net%3E"
+       TITLE="[Opensim-dev] [Opensim-commits] r9924 - in trunk:	OpenSim/Region/ClientStack/LindenUDP bin">john at pseudospace.net
+       </A><BR>
+    <I>Wed Jul  1 07:28:33 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006932.html">[Opensim-dev] Kudos MW
+</A></li>
+        <LI>Next message: <A HREF="006934.html">[Opensim-dev] Remove Region from Grid Server
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6933">[ date ]</a>
+              <a href="thread.html#6933">[ thread ]</a>
+              <a href="subject.html#6933">[ subject ]</a>
+              <a href="author.html#6933">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm sitting here clearing up a few scrap prims to make one of my builds 
+a bit more efficient (changing from 15 prim factory windows to 5 for 
+example) when it occurred to me.  I've noticed that while opensim is 
+chugging along, updating the sim database and sending stuff back to my 
+inventory, movement in-world starts to lag and studder a bit.  Once its 
+done things understandably go back to normal.  I wonder a change similar 
+to Dr. Scofield's texture handler only for the database / prim storage 
+routines could make even further of a difference?  I'd imagine if so, 
+the initial rez-in for example when an avi is wearing 300 some-odd prims 
+in attachments would have less of an impact.  Just a thought...  :)
+
+Thanks,
+
+ - John / Orion Pseudo
+
+
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at opensimulator.org</A> wrote:
+&gt;<i> Author: drscofield
+</I>&gt;<i> Date: 2009-06-25 00:42:06 -0700 (Thu, 25 Jun 2009)
+</I>&gt;<i> New Revision: 9924
+</I>&gt;<i>
+</I>&gt;<i> Modified:
+</I>&gt;<i>    trunk/OpenSim/Region/ClientStack/LindenUDP/J2KImage.cs
+</I>&gt;<i>    trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs
+</I>&gt;<i>    trunk/OpenSim/Region/ClientStack/LindenUDP/LLImageManager.cs
+</I>&gt;<i>    trunk/bin/OpenSim.ini.example
+</I>&gt;<i> Log:
+</I>&gt;<i> From: Alan Webb &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>   This change moves texture send processing out of the main
+</I>&gt;<i>   packet processing loop and moves it to a timer based
+</I>&gt;<i>   processing cycle.
+</I>&gt;<i>
+</I>&gt;<i>   Texture packets are sent to the client consistently over
+</I>&gt;<i>   time. The timer is discontinued whenever there are no
+</I>&gt;<i>   textures to transmit.
+</I>&gt;<i>
+</I>&gt;<i>   The behavior of the texture sending mechanism is controlled
+</I>&gt;<i>   by three variables in the LLCLient section of the config
+</I>&gt;<i>   file:
+</I>&gt;<i>
+</I>&gt;<i>    [1] TextureRequestRate (mS) determines how many times per second
+</I>&gt;<i>        texture send processing will occur. The default is 100mS.
+</I>&gt;<i>    [2] TextureSendLimit determines how many different textures
+</I>&gt;<i>        will be considered on each cycle. Textures are selected
+</I>&gt;<i>        by priority. The old mechanism specified a value of 10 for
+</I>&gt;<i>        this parameter and this is the default
+</I>&gt;<i>    [3] TextureDataLimit determines how many packets will be sent for
+</I>&gt;<i>        each of the selected textures. The old mechanism specified a
+</I>&gt;<i>        value of 5, so this is the default.
+</I>&gt;<i>
+</I>&gt;<i>   So the net effect is that TextureSendLimit*TextureDataLimit
+</I>&gt;<i>   packets will be sent every TextureRequestRate mS.
+</I>&gt;<i>
+</I>&gt;<i>   Once we have gotten a reasonable feeling for how these parameters
+</I>&gt;<i>   affect overall processing, it would be nice to autonmically manage
+</I>&gt;<i>   these values using information about the current status of the
+</I>&gt;<i>   region and network.
+</I>&gt;<i>
+</I>&gt;<i>   Note that this also resolves the pathologcal problem that
+</I>&gt;<i>   previously existed which was that a seated avatar generated very
+</I>&gt;<i>   few in-bound packets (theoretically) and would therefore be the
+</I>&gt;<i>   least able to retrieve the images being displayed by a
+</I>&gt;<i>   projector script.
+</I>&gt;<i>
+</I>&gt;<i> Modified: trunk/OpenSim/Region/ClientStack/LindenUDP/J2KImage.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/ClientStack/LindenUDP/J2KImage.cs	2009-06-25 07:39:48 UTC (rev 9923)
+</I>&gt;<i> +++ trunk/OpenSim/Region/ClientStack/LindenUDP/J2KImage.cs	2009-06-25 07:42:06 UTC (rev 9924)
+</I>&gt;<i> @@ -260,7 +260,7 @@
+</I>&gt;<i>                  return false;
+</I>&gt;<i>              }
+</I>&gt;<i>          }
+</I>&gt;<i> -        public bool SendPackets(LLClientView client)
+</I>&gt;<i> +        public bool SendPackets(LLClientView client, int maxpack)
+</I>&gt;<i>          {
+</I>&gt;<i>  
+</I>&gt;<i>              if (!m_completedSendAtCurrentDiscardLevel)
+</I>&gt;<i> @@ -284,7 +284,7 @@
+</I>&gt;<i>                      }
+</I>&gt;<i>  
+</I>&gt;<i>                      int count = 0;
+</I>&gt;<i> -                    while (SendMore &amp;&amp; count &lt; 5 &amp;&amp; m_packetNumber &lt;= m_stopPacket)
+</I>&gt;<i> +                    while (SendMore &amp;&amp; count &lt; maxpack &amp;&amp; m_packetNumber &lt;= m_stopPacket)
+</I>&gt;<i>                      {
+</I>&gt;<i>                          count++;
+</I>&gt;<i>                          SendMore = SendPacket(client);
+</I>&gt;<i> @@ -391,6 +391,10 @@
+</I>&gt;<i>                              }
+</I>&gt;<i>                          }
+</I>&gt;<i>                      }
+</I>&gt;<i> +                    else
+</I>&gt;<i> +                    {
+</I>&gt;<i> +                        m_packetNumber = m_stopPacket;
+</I>&gt;<i> +                    }
+</I>&gt;<i>                  }
+</I>&gt;<i>              }
+</I>&gt;<i>          }
+</I>&gt;<i>
+</I>&gt;<i> Modified: trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs	2009-06-25 07:39:48 UTC (rev 9923)
+</I>&gt;<i> +++ trunk/OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs	2009-06-25 07:42:06 UTC (rev 9924)
+</I>&gt;<i> @@ -80,6 +80,8 @@
+</I>&gt;<i>          private List&lt;ObjectUpdatePacket.ObjectDataBlock&gt; m_primFullUpdates =
+</I>&gt;<i>                  new List&lt;ObjectUpdatePacket.ObjectDataBlock&gt;();
+</I>&gt;<i>  
+</I>&gt;<i> +        private Timer m_textureRequestTimer;
+</I>&gt;<i> +
+</I>&gt;<i>          private bool m_clientBlocked;
+</I>&gt;<i>  
+</I>&gt;<i>          private int m_probesWithNoIngressPackets;
+</I>&gt;<i> @@ -140,6 +142,10 @@
+</I>&gt;<i>          protected int m_primTerseUpdateRate = 10;
+</I>&gt;<i>          protected int m_primFullUpdateRate = 14;
+</I>&gt;<i>  
+</I>&gt;<i> +        protected int m_textureRequestRate  = 100;
+</I>&gt;<i> +        protected int m_textureSendLimit   = 10;
+</I>&gt;<i> +        protected int m_textureDataLimit   = 5;
+</I>&gt;<i> +
+</I>&gt;<i>          protected int m_packetMTU = 1400;
+</I>&gt;<i>  
+</I>&gt;<i>          protected IAssetService m_assetService;
+</I>&gt;<i> @@ -344,6 +350,8 @@
+</I>&gt;<i>  
+</I>&gt;<i>          private readonly IGroupsModule m_GroupsModule;
+</I>&gt;<i>  
+</I>&gt;<i> +        private AgentUpdateArgs lastarg = null;
+</I>&gt;<i> +
+</I>&gt;<i>          //private TerrainUnacked handlerUnackedTerrain = null;
+</I>&gt;<i>  
+</I>&gt;<i>          //**
+</I>&gt;<i> @@ -544,6 +552,15 @@
+</I>&gt;<i>                      m_primFullUpdateRate = clientConfig.GetInt(&quot;FullUpdateRate&quot;,
+</I>&gt;<i>                                                                 m_primFullUpdateRate);
+</I>&gt;<i>  
+</I>&gt;<i> +                    m_textureRequestRate = clientConfig.GetInt(&quot;TextureRequestRate&quot;,
+</I>&gt;<i> +                                                               m_textureRequestRate);
+</I>&gt;<i> +
+</I>&gt;<i> +                    m_textureSendLimit = clientConfig.GetInt(&quot;TextureSendLimit&quot;,
+</I>&gt;<i> +                                                               m_textureSendLimit);
+</I>&gt;<i> +
+</I>&gt;<i> +                    m_textureDataLimit = clientConfig.GetInt(&quot;TextureDataLimit&quot;,
+</I>&gt;<i> +                                                               m_textureDataLimit);
+</I>&gt;<i> +
+</I>&gt;<i>                      m_packetMTU = clientConfig.GetInt(&quot;PacketMTU&quot;, 1400);
+</I>&gt;<i>                  }
+</I>&gt;<i>              }
+</I>&gt;<i> @@ -577,6 +594,7 @@
+</I>&gt;<i>              m_avatarTerseUpdateTimer.Stop();
+</I>&gt;<i>              m_primTerseUpdateTimer.Stop();
+</I>&gt;<i>              m_primFullUpdateTimer.Stop();
+</I>&gt;<i> +            m_textureRequestTimer.Stop();
+</I>&gt;<i>  
+</I>&gt;<i>              // This is just to give the client a reasonable chance of
+</I>&gt;<i>              // flushing out all it's packets.  There should probably
+</I>&gt;<i> @@ -660,6 +678,7 @@
+</I>&gt;<i>              m_avatarTerseUpdateTimer.Stop();
+</I>&gt;<i>              m_primTerseUpdateTimer.Stop();
+</I>&gt;<i>              m_primFullUpdateTimer.Stop();
+</I>&gt;<i> +            m_textureRequestTimer.Stop();
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i>          public void Restart()
+</I>&gt;<i> @@ -682,6 +701,11 @@
+</I>&gt;<i>              m_primFullUpdateTimer = new Timer(m_primFullUpdateRate);
+</I>&gt;<i>              m_primFullUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessPrimFullUpdates);
+</I>&gt;<i>              m_primFullUpdateTimer.AutoReset = false;
+</I>&gt;<i> +
+</I>&gt;<i> +            m_textureRequestTimer = new Timer(m_textureRequestRate);
+</I>&gt;<i> +            m_textureRequestTimer.Elapsed += new ElapsedEventHandler(ProcessTextureRequests);
+</I>&gt;<i> +            m_textureRequestTimer.AutoReset = false;
+</I>&gt;<i> +
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i>          public void Terminate()
+</I>&gt;<i> @@ -914,6 +938,11 @@
+</I>&gt;<i>              m_primFullUpdateTimer = new Timer(m_primFullUpdateRate);
+</I>&gt;<i>              m_primFullUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessPrimFullUpdates);
+</I>&gt;<i>              m_primFullUpdateTimer.AutoReset = false;
+</I>&gt;<i> +
+</I>&gt;<i> +            m_textureRequestTimer = new Timer(m_textureRequestRate);
+</I>&gt;<i> +            m_textureRequestTimer.Elapsed += new ElapsedEventHandler(ProcessTextureRequests);
+</I>&gt;<i> +            m_textureRequestTimer.AutoReset = false;
+</I>&gt;<i> +
+</I>&gt;<i>              m_scene.AddNewClient(this);
+</I>&gt;<i>  
+</I>&gt;<i>              RefreshGroupMembership();
+</I>&gt;<i> @@ -985,6 +1014,26 @@
+</I>&gt;<i>              }
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i> +        protected virtual void TextureRequestHandler()
+</I>&gt;<i> +        {
+</I>&gt;<i> +            m_log.DebugFormat(&quot;[TRH] Thread started&quot;);
+</I>&gt;<i> +           while (m_imageManager != null)
+</I>&gt;<i> +            {
+</I>&gt;<i> +                try
+</I>&gt;<i> +                {
+</I>&gt;<i> +                   while (m_imageManager != null)
+</I>&gt;<i> +                    {
+</I>&gt;<i> +                    }
+</I>&gt;<i> +                }
+</I>&gt;<i> +               catch (Exception e)
+</I>&gt;<i> +                {
+</I>&gt;<i> +                    m_log.WarnFormat(&quot;[TRH] Exception in handler loop: {0}&quot;, e.Message);
+</I>&gt;<i> +                    m_log.Debug(e);
+</I>&gt;<i> +                }
+</I>&gt;<i> +            }
+</I>&gt;<i> +            m_log.DebugFormat(&quot;[TRH] Thread terminated&quot;);
+</I>&gt;<i> +        }
+</I>&gt;<i> +
+</I>&gt;<i>          # endregion
+</I>&gt;<i>  
+</I>&gt;<i>          // Previously ClientView.API partial class
+</I>&gt;<i> @@ -3032,6 +3081,21 @@
+</I>&gt;<i>              }
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i> +        // Unlike the other timers, this one is only started after
+</I>&gt;<i> +        // the first request is seen.
+</I>&gt;<i> +
+</I>&gt;<i> +        void ProcessTextureRequests(object sender, ElapsedEventArgs e)
+</I>&gt;<i> +        {
+</I>&gt;<i> +            if (m_imageManager != null)
+</I>&gt;<i> +            {
+</I>&gt;<i> +                if (m_imageManager.ProcessImageQueue(m_textureSendLimit, 
+</I>&gt;<i> +                                                     m_textureDataLimit))
+</I>&gt;<i> +                {
+</I>&gt;<i> +                    m_textureRequestTimer.Start();
+</I>&gt;<i> +                }
+</I>&gt;<i> +            }
+</I>&gt;<i> +        }
+</I>&gt;<i> +
+</I>&gt;<i>          void ProcessPrimFullUpdates(object sender, ElapsedEventArgs e)
+</I>&gt;<i>          {
+</I>&gt;<i>              lock (m_primFullUpdates)
+</I>&gt;<i> @@ -3237,7 +3301,7 @@
+</I>&gt;<i>              ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
+</I>&gt;<i>          {
+</I>&gt;<i>              ImageDataPacket im = new ImageDataPacket();
+</I>&gt;<i> -            im.Header.Reliable = true;
+</I>&gt;<i> +            im.Header.Reliable = false;
+</I>&gt;<i>              im.ImageID.Packets = numParts;
+</I>&gt;<i>              im.ImageID.ID = ImageUUID;
+</I>&gt;<i>  
+</I>&gt;<i> @@ -3253,7 +3317,7 @@
+</I>&gt;<i>          public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
+</I>&gt;<i>          {
+</I>&gt;<i>              ImagePacketPacket im = new ImagePacketPacket();
+</I>&gt;<i> -            im.Header.Reliable = true;
+</I>&gt;<i> +            im.Header.Reliable = false;
+</I>&gt;<i>              im.ImageID.Packet = partNumber;
+</I>&gt;<i>              im.ImageID.ID = imageUuid;
+</I>&gt;<i>              im.ImageData.Data = imageData;
+</I>&gt;<i> @@ -4727,14 +4791,9 @@
+</I>&gt;<i>          /// &lt;param name=&quot;Pack&quot;&gt;OpenMetaverse.packet&lt;/param&gt;
+</I>&gt;<i>          public void ProcessInPacket(Packet Pack)
+</I>&gt;<i>          {
+</I>&gt;<i> -            // check if we've got a local packet handler for this packet.type.   See RegisterLocalPacketHandlers()
+</I>&gt;<i> +
+</I>&gt;<i>              if (ProcessPacketMethod(Pack))
+</I>&gt;<i>              {
+</I>&gt;<i> -                //there is a handler registered that handled this packet type
+</I>&gt;<i> -
+</I>&gt;<i> -                // in the end, we dereference this, so we have to check if it's null
+</I>&gt;<i> -                if (m_imageManager != null)
+</I>&gt;<i> -                    m_imageManager.ProcessImageQueue(5);
+</I>&gt;<i>                  return;
+</I>&gt;<i>              }
+</I>&gt;<i>  
+</I>&gt;<i> @@ -5303,6 +5362,7 @@
+</I>&gt;<i>                  case PacketType.AgentUpdate:
+</I>&gt;<i>                      if (OnAgentUpdate != null)
+</I>&gt;<i>                      {
+</I>&gt;<i> +                        bool update = false;
+</I>&gt;<i>                          AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
+</I>&gt;<i>  
+</I>&gt;<i>                          #region Packet Session and User Check
+</I>&gt;<i> @@ -5315,26 +5375,58 @@
+</I>&gt;<i>                          #endregion
+</I>&gt;<i>  
+</I>&gt;<i>                          AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
+</I>&gt;<i> -                        AgentUpdateArgs arg = new AgentUpdateArgs();
+</I>&gt;<i> -                        arg.AgentID = x.AgentID;
+</I>&gt;<i> -                        arg.BodyRotation = x.BodyRotation;
+</I>&gt;<i> -                        arg.CameraAtAxis = x.CameraAtAxis;
+</I>&gt;<i> -                        arg.CameraCenter = x.CameraCenter;
+</I>&gt;<i> -                        arg.CameraLeftAxis = x.CameraLeftAxis;
+</I>&gt;<i> -                        arg.CameraUpAxis = x.CameraUpAxis;
+</I>&gt;<i> -                        arg.ControlFlags = x.ControlFlags;
+</I>&gt;<i> -                        arg.Far = x.Far;
+</I>&gt;<i> -                        arg.Flags = x.Flags;
+</I>&gt;<i> -                        arg.HeadRotation = x.HeadRotation;
+</I>&gt;<i> -                        arg.SessionID = x.SessionID;
+</I>&gt;<i> -                        arg.State = x.State;
+</I>&gt;<i>  
+</I>&gt;<i> -                        handlerAgentUpdate = OnAgentUpdate;
+</I>&gt;<i> -                        if (handlerAgentUpdate != null)
+</I>&gt;<i> -                            OnAgentUpdate(this, arg);
+</I>&gt;<i> +                        // We can only check when we have something to check
+</I>&gt;<i> +                        // against.
+</I>&gt;<i>  
+</I>&gt;<i> -                        handlerAgentUpdate = null;
+</I>&gt;<i> -                        //agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotationa);
+</I>&gt;<i> +                        if (lastarg != null)
+</I>&gt;<i> +                        {
+</I>&gt;<i> +                            update = 
+</I>&gt;<i> +                               (
+</I>&gt;<i> +                                (x.BodyRotation != lastarg.BodyRotation) ||
+</I>&gt;<i> +                                (x.CameraAtAxis != lastarg.CameraAtAxis) ||
+</I>&gt;<i> +                                (x.CameraCenter != lastarg.CameraCenter) ||
+</I>&gt;<i> +                                (x.CameraLeftAxis != lastarg.CameraLeftAxis) ||
+</I>&gt;<i> +                                (x.CameraUpAxis != lastarg.CameraUpAxis) ||
+</I>&gt;<i> +                                (x.ControlFlags != lastarg.ControlFlags) ||
+</I>&gt;<i> +                                (x.Far != lastarg.Far) ||
+</I>&gt;<i> +                                (x.Flags != lastarg.Flags) ||
+</I>&gt;<i> +                                (x.State != lastarg.State) ||
+</I>&gt;<i> +                                (x.HeadRotation != lastarg.HeadRotation) ||
+</I>&gt;<i> +                                (x.SessionID != lastarg.SessionID) ||
+</I>&gt;<i> +                                (x.AgentID != lastarg.AgentID)
+</I>&gt;<i> +                               );
+</I>&gt;<i> +                        }
+</I>&gt;<i> +                        else
+</I>&gt;<i> +                            update = true;
+</I>&gt;<i> +
+</I>&gt;<i> +                        // These should be ordered from most-likely to
+</I>&gt;<i> +                        // least likely to change. I've made an initial
+</I>&gt;<i> +                        // guess at that.
+</I>&gt;<i> +
+</I>&gt;<i> +                        if (update)
+</I>&gt;<i> +                        {
+</I>&gt;<i> +                            AgentUpdateArgs arg = new AgentUpdateArgs();
+</I>&gt;<i> +                            arg.AgentID = x.AgentID;
+</I>&gt;<i> +                            arg.BodyRotation = x.BodyRotation;
+</I>&gt;<i> +                            arg.CameraAtAxis = x.CameraAtAxis;
+</I>&gt;<i> +                            arg.CameraCenter = x.CameraCenter;
+</I>&gt;<i> +                            arg.CameraLeftAxis = x.CameraLeftAxis;
+</I>&gt;<i> +                            arg.CameraUpAxis = x.CameraUpAxis;
+</I>&gt;<i> +                            arg.ControlFlags = x.ControlFlags;
+</I>&gt;<i> +                            arg.Far = x.Far;
+</I>&gt;<i> +                            arg.Flags = x.Flags;
+</I>&gt;<i> +                            arg.HeadRotation = x.HeadRotation;
+</I>&gt;<i> +                            arg.SessionID = x.SessionID;
+</I>&gt;<i> +                            arg.State = x.State;
+</I>&gt;<i> +                            handlerAgentUpdate = OnAgentUpdate;
+</I>&gt;<i> +                            lastarg = arg; // save this set of arguments for nexttime
+</I>&gt;<i> +                            if (handlerAgentUpdate != null)
+</I>&gt;<i> +                                OnAgentUpdate(this, arg);
+</I>&gt;<i> +
+</I>&gt;<i> +                            handlerAgentUpdate = null;
+</I>&gt;<i> +                        }
+</I>&gt;<i> +
+</I>&gt;<i>                      }
+</I>&gt;<i>                      break;
+</I>&gt;<i>  
+</I>&gt;<i> @@ -6392,10 +6484,14 @@
+</I>&gt;<i>  
+</I>&gt;<i>                              // in the end, we null this, so we have to check if it's null
+</I>&gt;<i>                              if (m_imageManager != null)
+</I>&gt;<i> +                            {
+</I>&gt;<i>                                  m_imageManager.EnqueueReq(args);
+</I>&gt;<i> +                                m_textureRequestTimer.Start();
+</I>&gt;<i> +                            }
+</I>&gt;<i>                          }
+</I>&gt;<i>                      }
+</I>&gt;<i>                      break;
+</I>&gt;<i> +
+</I>&gt;<i>                  case PacketType.TransferRequest:
+</I>&gt;<i>                      //m_log.Debug(&quot;ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request&quot;);
+</I>&gt;<i>  
+</I>&gt;<i> @@ -9502,10 +9598,8 @@
+</I>&gt;<i>                      #endregion
+</I>&gt;<i>              }
+</I>&gt;<i>  
+</I>&gt;<i> -            // in the end, we dereference this, so we have to check if it's null
+</I>&gt;<i> -            if (m_imageManager != null)
+</I>&gt;<i> -                m_imageManager.ProcessImageQueue(10);
+</I>&gt;<i>              PacketPool.Instance.ReturnPacket(Pack);
+</I>&gt;<i> +
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i>          private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)
+</I>&gt;<i>
+</I>&gt;<i> Modified: trunk/OpenSim/Region/ClientStack/LindenUDP/LLImageManager.cs
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/OpenSim/Region/ClientStack/LindenUDP/LLImageManager.cs	2009-06-25 07:39:48 UTC (rev 9923)
+</I>&gt;<i> +++ trunk/OpenSim/Region/ClientStack/LindenUDP/LLImageManager.cs	2009-06-25 07:42:06 UTC (rev 9924)
+</I>&gt;<i> @@ -26,6 +26,7 @@
+</I>&gt;<i>   */
+</I>&gt;<i>  
+</I>&gt;<i>  using System;
+</I>&gt;<i> +using System.Threading;
+</I>&gt;<i>  using System.Collections.Generic;
+</I>&gt;<i>  using OpenMetaverse;
+</I>&gt;<i>  using OpenMetaverse.Imaging;
+</I>&gt;<i> @@ -96,46 +97,42 @@
+</I>&gt;<i>  
+</I>&gt;<i>                      J2KImage imgrequest = m_imagestore[newRequest.RequestedAssetID];
+</I>&gt;<i>  
+</I>&gt;<i> +                    // This is the inbound request sequence number. We can ignore
+</I>&gt;<i> +                    // &quot;old&quot; ones.
+</I>&gt;<i> +
+</I>&gt;<i>                      if (newRequest.requestSequence &gt; imgrequest.m_lastSequence)
+</I>&gt;<i>                      {
+</I>&gt;<i> +
+</I>&gt;<i>                          imgrequest.m_lastSequence = newRequest.requestSequence;
+</I>&gt;<i>  
+</I>&gt;<i> -                        //First of all, is this being killed?
+</I>&gt;<i> -                        //if (newRequest.Priority == 0.0f &amp;&amp; newRequest.DiscardLevel == -1)
+</I>&gt;<i> -                        //{
+</I>&gt;<i> -                            //Do nothing (leaving the if for future use)
+</I>&gt;<i> -                        //}
+</I>&gt;<i> -                        //else
+</I>&gt;<i> -                        //{
+</I>&gt;<i> +                        //Check the priority
+</I>&gt;<i>  
+</I>&gt;<i> +                        double priority = imgrequest.m_requestedPriority;
+</I>&gt;<i> +                        if (priority != newRequest.Priority)
+</I>&gt;<i> +                        {
+</I>&gt;<i> +                            //Remove the old priority
+</I>&gt;<i> +                            m_priorities.Remove(imgrequest.m_designatedPriorityKey);
+</I>&gt;<i> +                            //Assign a new unique priority
+</I>&gt;<i> +                            imgrequest.m_requestedPriority = newRequest.Priority;
+</I>&gt;<i> +                            imgrequest.m_designatedPriorityKey = AssignPriority(newRequest.RequestedAssetID, newRequest.Priority);
+</I>&gt;<i> +                        }
+</I>&gt;<i>  
+</I>&gt;<i> -                            //Check the priority
+</I>&gt;<i> -                            double priority = imgrequest.m_requestedPriority;
+</I>&gt;<i> -                            if (priority != newRequest.Priority)
+</I>&gt;<i> -                            {
+</I>&gt;<i> -                                //Remove the old priority
+</I>&gt;<i> -                                m_priorities.Remove(imgrequest.m_designatedPriorityKey);
+</I>&gt;<i> -                                //Assign a new unique priority
+</I>&gt;<i> -                                imgrequest.m_requestedPriority = newRequest.Priority;
+</I>&gt;<i> -                                imgrequest.m_designatedPriorityKey = AssignPriority(newRequest.RequestedAssetID, newRequest.Priority);
+</I>&gt;<i> -                            }
+</I>&gt;<i> +                        //Update the requested discard level
+</I>&gt;<i> +                        imgrequest.m_requestedDiscardLevel = newRequest.DiscardLevel;
+</I>&gt;<i>  
+</I>&gt;<i> -                            //Update the requested discard level
+</I>&gt;<i> -                            imgrequest.m_requestedDiscardLevel = newRequest.DiscardLevel;
+</I>&gt;<i> +                        //Update the requested packet number
+</I>&gt;<i> +                        imgrequest.m_requestedPacketNumber = newRequest.PacketNumber;
+</I>&gt;<i>  
+</I>&gt;<i> -                            //Update the requested packet number
+</I>&gt;<i> -                            imgrequest.m_requestedPacketNumber = newRequest.PacketNumber;
+</I>&gt;<i> +                        //Check if this will create an outstanding texture request
+</I>&gt;<i> +                        bool activated = imgrequest.m_completedSendAtCurrentDiscardLevel;
+</I>&gt;<i> +                        //Run an update
+</I>&gt;<i>  
+</I>&gt;<i> -                             //Check if this will create an outstanding texture request
+</I>&gt;<i> -                             bool activated = imgrequest.m_completedSendAtCurrentDiscardLevel;
+</I>&gt;<i> -                             //Run an update
+</I>&gt;<i> -                             imgrequest.RunUpdate();
+</I>&gt;<i> -                             if (activated &amp;&amp; !imgrequest.m_completedSendAtCurrentDiscardLevel &amp;&amp; imgrequest.m_decoded)
+</I>&gt;<i> -                             {
+</I>&gt;<i> -                                 m_outstandingtextures++;
+</I>&gt;<i> -                             }
+</I>&gt;<i> +                        imgrequest.RunUpdate();
+</I>&gt;<i>  
+</I>&gt;<i> -                        //}
+</I>&gt;<i> +                        if (activated &amp;&amp; !imgrequest.m_completedSendAtCurrentDiscardLevel &amp;&amp; imgrequest.m_decoded)
+</I>&gt;<i> +                        {
+</I>&gt;<i> +                            Interlocked.Increment(ref m_outstandingtextures);
+</I>&gt;<i> +                        }
+</I>&gt;<i>                      }
+</I>&gt;<i>                  }
+</I>&gt;<i>                  else
+</I>&gt;<i> @@ -198,10 +195,12 @@
+</I>&gt;<i>  
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i> -        public void ProcessImageQueue(int count)
+</I>&gt;<i> +        public bool ProcessImageQueue(int count, int maxpack)
+</I>&gt;<i>          {
+</I>&gt;<i> +
+</I>&gt;<i>              // this can happen during Close()
+</I>&gt;<i> -            if (m_client == null) return;
+</I>&gt;<i> +            if (m_client == null)
+</I>&gt;<i> +                return false;
+</I>&gt;<i>              
+</I>&gt;<i>              //Count is the number of textures we want to process in one go.
+</I>&gt;<i>              //As part of this class re-write, that number will probably rise
+</I>&gt;<i> @@ -214,7 +213,7 @@
+</I>&gt;<i>               if (m_lastloopprocessed == 0)
+</I>&gt;<i>               {
+</I>&gt;<i>                    if (m_client.PacketHandler == null || m_client.PacketHandler.PacketQueue == null || m_client.PacketHandler.PacketQueue.TextureThrottle == null)
+</I>&gt;<i> -                      return;
+</I>&gt;<i> +                      return false;
+</I>&gt;<i>                   //This is decent for a semi fast machine, but we'll calculate it more accurately based on time below
+</I>&gt;<i>                    threshold = m_client.PacketHandler.PacketQueue.TextureThrottle.Current / 6300;
+</I>&gt;<i>                    m_lastloopprocessed = DateTime.Now.Ticks;
+</I>&gt;<i> @@ -239,10 +238,10 @@
+</I>&gt;<i>               }
+</I>&gt;<i>  
+</I>&gt;<i>               if (m_client.PacketHandler == null)
+</I>&gt;<i> -                 return;
+</I>&gt;<i> +                 return false;
+</I>&gt;<i>  
+</I>&gt;<i>               if (m_client.PacketHandler.PacketQueue == null)
+</I>&gt;<i> -                 return;
+</I>&gt;<i> +                 return false;
+</I>&gt;<i>  
+</I>&gt;<i>              //First of all make sure our packet queue isn't above our threshold 
+</I>&gt;<i>  
+</I>&gt;<i> @@ -252,24 +251,21 @@
+</I>&gt;<i>               {
+</I>&gt;<i>                  bool justreset = false;
+</I>&gt;<i>              
+</I>&gt;<i> -
+</I>&gt;<i> -
+</I>&gt;<i>                  for (int x = m_priorities.Count - 1; x &gt; -1; x--)
+</I>&gt;<i>                  {
+</I>&gt;<i>                      
+</I>&gt;<i>                      J2KImage imagereq = m_imagestore[m_priorities.Values[x]];
+</I>&gt;<i>                      if (imagereq.m_decoded == true &amp;&amp; !imagereq.m_completedSendAtCurrentDiscardLevel)
+</I>&gt;<i>                      {
+</I>&gt;<i> -
+</I>&gt;<i>                          numCollected++;
+</I>&gt;<i>                          //SendPackets will send up to ten packets per cycle
+</I>&gt;<i> -                        if (imagereq.SendPackets(m_client))
+</I>&gt;<i> +                        if (imagereq.SendPackets(m_client, maxpack))
+</I>&gt;<i>                          {
+</I>&gt;<i>                              //Send complete
+</I>&gt;<i>                              if (!imagereq.m_completedSendAtCurrentDiscardLevel)
+</I>&gt;<i>                              {
+</I>&gt;<i>                                  imagereq.m_completedSendAtCurrentDiscardLevel = true;
+</I>&gt;<i> -                                m_outstandingtextures--;
+</I>&gt;<i> +                                Interlocked.Decrement(ref m_outstandingtextures);
+</I>&gt;<i>                                  //Re-assign priority to bottom
+</I>&gt;<i>                                  //Remove the old priority
+</I>&gt;<i>                                  m_priorities.Remove(imagereq.m_designatedPriorityKey);
+</I>&gt;<i> @@ -310,13 +306,10 @@
+</I>&gt;<i>  
+</I>&gt;<i>                          justreset = true; //prevents us from getting stuck in a loop
+</I>&gt;<i>                      }
+</I>&gt;<i> -
+</I>&gt;<i> -
+</I>&gt;<i>                  }
+</I>&gt;<i>              }
+</I>&gt;<i>  
+</I>&gt;<i> -
+</I>&gt;<i> -
+</I>&gt;<i> +            return m_outstandingtextures != 0;
+</I>&gt;<i>          }
+</I>&gt;<i>  
+</I>&gt;<i>          //Faux destructor
+</I>&gt;<i>
+</I>&gt;<i> Modified: trunk/bin/OpenSim.ini.example
+</I>&gt;<i> ===================================================================
+</I>&gt;<i> --- trunk/bin/OpenSim.ini.example	2009-06-25 07:39:48 UTC (rev 9923)
+</I>&gt;<i> +++ trunk/bin/OpenSim.ini.example	2009-06-25 07:42:06 UTC (rev 9924)
+</I>&gt;<i> @@ -1208,12 +1208,15 @@
+</I>&gt;<i>  
+</I>&gt;<i>  [LLClient]
+</I>&gt;<i>      ; Resend packets markes as reliable until they are received
+</I>&gt;<i> +    ;
+</I>&gt;<i>      ;ReliableIsImportant = false
+</I>&gt;<i>  
+</I>&gt;<i>      ; Maximum number of times to resend packets marked reliable
+</I>&gt;<i> +    ;
+</I>&gt;<i>      ;MaxReliableResends = 3
+</I>&gt;<i>  
+</I>&gt;<i>      ; Configures how ObjectUpdates are compressed.
+</I>&gt;<i> +    ;
+</I>&gt;<i>      ;TerseUpdatesPerPacket=10
+</I>&gt;<i>      ;FullUpdatesPerPacket=14
+</I>&gt;<i>      ;TerseUpdateRate=10
+</I>&gt;<i> @@ -1221,7 +1224,23 @@
+</I>&gt;<i>  
+</I>&gt;<i>      ;PacketMTU = 1400
+</I>&gt;<i>      
+</I>&gt;<i> +    ; TextureUpdateRate (mS) determines how many times per second
+</I>&gt;<i> +    ; texture send processing will occur. The default is 100mS.
+</I>&gt;<i> +    ;
+</I>&gt;<i> +    ;TextureRequestRate = 100
+</I>&gt;<i>  
+</I>&gt;<i> +    ; TextureSendLimit determines how many different textures
+</I>&gt;<i> +    ; will be considered on each cycle. Textures are selected
+</I>&gt;<i> +    ; by priority. The old mechanism specified a value of 10 for
+</I>&gt;<i> +    ; this parameter.
+</I>&gt;<i> +    ;
+</I>&gt;<i> +    ;TextureSendLimit = 10
+</I>&gt;<i> +
+</I>&gt;<i> +    ; TextureDataLimit determines how many packets will be sent for
+</I>&gt;<i> +    ; each of the selected textures. Default is 5.
+</I>&gt;<i> +    ;
+</I>&gt;<i> +    ;TextureDataLimit = 5
+</I>&gt;<i> +
+</I>&gt;<i>  ;;
+</I>&gt;<i>  ;; These are defatuls that are overwritten below in [Architecture].
+</I>&gt;<i>  ;; These defaults allow OpenSim to work out of the box with
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-commits mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-commits at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-commits">https://lists.berlios.de/mailman/listinfo/opensim-commits</A>
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006932.html">[Opensim-dev] Kudos MW
+</A></li>
+	<LI>Next message: <A HREF="006934.html">[Opensim-dev] Remove Region from Grid Server
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6933">[ date ]</a>
+              <a href="thread.html#6933">[ thread ]</a>
+              <a href="subject.html#6933">[ subject ]</a>
+              <a href="author.html#6933">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

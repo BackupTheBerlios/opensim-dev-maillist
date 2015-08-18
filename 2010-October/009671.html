@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] What I've Learned About AvatarAppearance
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20What%20I%27ve%20Learned%20About%20AvatarAppearance&In-Reply-To=%3C4CBF51F3.9060109%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009670.html">
+   <LINK REL="Next"  HREF="009672.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] What I've Learned About AvatarAppearance</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20What%20I%27ve%20Learned%20About%20AvatarAppearance&In-Reply-To=%3C4CBF51F3.9060109%40t-data.com%3E"
+       TITLE="[Opensim-dev] What I've Learned About AvatarAppearance">melanie at t-data.com
+       </A><BR>
+    <I>Wed Oct 20 22:32:51 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009670.html">[Opensim-dev] What I've Learned About AvatarAppearance
+</A></li>
+        <LI>Next message: <A HREF="009672.html">[Opensim-dev] What I've Learned About AvatarAppearance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9671">[ date ]</a>
+              <a href="thread.html#9671">[ thread ]</a>
+              <a href="subject.html#9671">[ subject ]</a>
+              <a href="author.html#9671">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+Mic Bowman wrote:
+&gt;<i> comments below...
+</I>&gt;<i> like i said... right now, the impact of the visual parameters is
+</I>&gt;<i> disproportionately high.
+</I>&gt;<i> the viewer takes multiple calls to setappearance setting a block of params
+</I>&gt;<i> with each
+</I>&gt;<i> call. the current code forwards each one of these updates out to all
+</I>&gt;<i> clients.
+</I>&gt;<i> 
+</I>&gt;<i> what i've seen is that when i get the right set of vparams sent to the
+</I>&gt;<i> viewer on the initial
+</I>&gt;<i> send of the avatar data (there is a sendappearance() call that needed to be
+</I>&gt;<i> added to
+</I>&gt;<i> sendinitialdata i think) then you avoid the updates completely.
+</I>&gt;<i> 
+</I>&gt;<i> the other way to get around the mass updates caused by establishing the
+</I>&gt;<i> visual
+</I>&gt;<i> params is to hold off on sending any appearance updates out to other
+</I>&gt;<i> clients. that
+</I>&gt;<i> would be good anyway.
+</I>&gt;<i> 
+</I>
+I'&#7743; all for streamlining this.
+
+&gt;<i> all the assets generated as baked textures are marked temporary. i know
+</I>&gt;<i> we have a cleaner that removes temp assets from the database periodically.
+</I>&gt;<i> it doesn't really create much load and very easy to clean up. we are
+</I>&gt;<i> experimenting
+</I>&gt;<i> with other geographical caches that help as well.
+</I>&gt;<i> 
+</I>&gt;<i> that being said... i was planning to make it a configurable option (just
+</I>&gt;<i> sets
+</I>&gt;<i> the value of &quot;local&quot; field in caps.cs where the baked texture is uploaded.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+I know that, in my grid, I would never want baked textures in my
+asset server at all. It's fine as an option, so I have the option of
+preventing the storage of these textures on my systems.
+
+&gt;<i> the could be.. but the setup costs caused by ACD are high already. the real
+</I>&gt;<i> point here
+</I>&gt;<i> is to re-use that already cached appearance assets (cached in the viewers
+</I>&gt;<i> of the avatars already in a region). rebaking or moving the assets from
+</I>&gt;<i> simulator to simulator doesn't really help much with that. its the same
+</I>&gt;<i> bandwidth whether the client uploads the textures (they don't get
+</I>&gt;<i> rebaked just re-uploaded)  or whether they come through agentcircuitdata.
+</I>&gt;<i> and what we're trying to do is to take advantage of them already being
+</I>&gt;<i> in the cache (so passing them through agentcircuitdata will hopefully
+</I>&gt;<i> be a waste of time in most cases).
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>I suppose it would make ACD rather large. Maybe it's not such a good
+idea.
+
+&gt;&gt;<i> The avatar appearance (avatar service) is a name-value pair storage
+</I>&gt;&gt;<i> anyway, so it could easily hold the UUIDs of baked textures along
+</I>&gt;&gt;<i> with the components of the avatar appearance. It could also hold the
+</I>&gt;&gt;<i> visual params, the question there is to what degree that is useful.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> the encoding i have right now is one string (OSDMap) for all of the
+</I>&gt;<i> appearance
+</I>&gt;<i> assets. when i looked at the userdata code, i think every field/value pair
+</I>&gt;<i> generates
+</I>&gt;<i> a separate database update. and given that the appearance gets re-saved for
+</I>&gt;<i> every attachment right now (that is, on login the attachments module forces
+</I>&gt;<i> a save of the appearance once for each attachment even for attachments that
+</I>&gt;<i> are already in the appearance data) that seemed like a lot of db writes.
+</I>&gt;<i> 
+</I>&gt;<i> could you expand the size of the string value that can be stored to medium
+</I>&gt;<i> string?
+</I>&gt;<i> that would be enough size to handle the encoding i'm using.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+Having one row for each item is highly desirable, as it is easy to,
+for instance, programmatically detach a single attachment, or unwear
+a single wearable, like through a website. Storing the entire
+appearance in one OSD is not what we would want. The overhead of
+rewriting 27 rows is negligible in such a small table.
+
+&gt;<i> i'm going to move my dev onto a github repository. i'll send the link when
+</I>&gt;<i> thats done.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+Great, thanks.
+
+Melanie
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009670.html">[Opensim-dev] What I've Learned About AvatarAppearance
+</A></li>
+	<LI>Next message: <A HREF="009672.html">[Opensim-dev] What I've Learned About AvatarAppearance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9671">[ date ]</a>
+              <a href="thread.html#9671">[ thread ]</a>
+              <a href="subject.html#9671">[ subject ]</a>
+              <a href="author.html#9671">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

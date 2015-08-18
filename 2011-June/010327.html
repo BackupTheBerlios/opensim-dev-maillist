@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Simian vs ROBUST difference, problems,	and work-arounds
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Simian%20vs%20ROBUST%20difference%2C%20problems%2C%0A%09and%20work-arounds&In-Reply-To=%3C4E0C8A9A.7080103%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010326.html">
+   <LINK REL="Next"  HREF="010329.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Simian vs ROBUST difference, problems,	and work-arounds</H1>
+    <B>Aaron Duffy</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Simian%20vs%20ROBUST%20difference%2C%20problems%2C%0A%09and%20work-arounds&In-Reply-To=%3C4E0C8A9A.7080103%40gmail.com%3E"
+       TITLE="[Opensim-dev] Simian vs ROBUST difference, problems,	and work-arounds">aduffy70 at gmail.com
+       </A><BR>
+    <I>Thu Jun 30 16:39:22 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010326.html">[Opensim-dev] The Overte Foundation for OpenSimulator
+</A></li>
+        <LI>Next message: <A HREF="010329.html">[Opensim-dev] The Overte Foundation for OpenSimulator (Justin	Clark-Casey)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10327">[ date ]</a>
+              <a href="thread.html#10327">[ thread ]</a>
+              <a href="subject.html#10327">[ subject ]</a>
+              <a href="author.html#10327">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>While trying to get Null database regions attached to ScienceSim I 
+stumbled onto a difference between using Simian and ROBUST that causes 
+some problems.  Dan Lake helped me to find work-arounds and I want to 
+share those in case anyone else runs into the same issue.
+
+When you create a new region to attach to a ROBUST grid, the first time 
+it starts it prompts you for an estate and an estate owner.  When you 
+create a region to attach to a Simian grid, it does not prompt.  Instead 
+it sets the estate owner to the grid master avatar.  The work-around is 
+to manually change the estate owner in the database with a command like:
+     update estate_settings set EstateOwner=&quot;your-avatar-UUID-here&quot;;
+
+But if you want to use the Null storage provider there is no database to 
+update so you can't change the estate owner.  There is no way to use the 
+Null storage provider in a region attached to a Simian grid and have the 
+region owned by anyone other than the grid master avatar.
+
+If you are willing to have a database for estate data, there is a 
+workaround.  You still set the GridCommon.ini file to use the Null 
+storage provider for the database service...
+     [DatabaseService]
+     StorageProvider = &quot;OpenSim.Data.Null.dll&quot;
+
+... but also add a section to use MySQL (or SQLite) for the estate data 
+store:
+     [EstateDataStore]
+     StorageProvider = &quot;OpenSim.Data.MySQL.dll&quot;
+     ConnectionString = &quot;Data Source=localhost;Database=opensim;User 
+ID=youruser;Password=yourpassword;&quot;
+
+The first time you start the region it will still default to be owned by 
+the grid master avatar, but at least now there is a database where you 
+can manually change it.
+
+Aaron
+
+-- 
+
+Aaron M. Duffy
+aduffy70.org
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010326.html">[Opensim-dev] The Overte Foundation for OpenSimulator
+</A></li>
+	<LI>Next message: <A HREF="010329.html">[Opensim-dev] The Overte Foundation for OpenSimulator (Justin	Clark-Casey)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10327">[ date ]</a>
+              <a href="thread.html#10327">[ thread ]</a>
+              <a href="subject.html#10327">[ subject ]</a>
+              <a href="author.html#10327">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

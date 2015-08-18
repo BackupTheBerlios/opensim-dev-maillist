@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] external host name
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20external%20host%20name&In-Reply-To=%3CBLU134-W3944DC4C4F471EECC12059D5F90%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003988.html">
+   <LINK REL="Next"  HREF="004019.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] external host name</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20external%20host%20name&In-Reply-To=%3CBLU134-W3944DC4C4F471EECC12059D5F90%40phx.gbl%3E"
+       TITLE="[Opensim-dev] external host name">stefan at tribalmedia.se
+       </A><BR>
+    <I>Fri Dec 12 11:30:49 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003988.html">[Opensim-dev] external host name
+</A></li>
+        <LI>Next message: <A HREF="004019.html">[Opensim-dev] external host name
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3993">[ date ]</a>
+              <a href="thread.html#3993">[ thread ]</a>
+              <a href="subject.html#3993">[ subject ]</a>
+              <a href="author.html#3993">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+ 
+&gt;<i> Then we should resolve all hostname fields int he LL stack, and feed &gt; the client IP addresses. 
+</I> 
++1 and a pleading 'just do it' from the man responsible for the mess in the first place... ;)
+ 
+&gt;<i> That should still allow us flexible handling.
+</I> 
+But use DnsEndPoints in the core. I don't know if the local binding interface ('internal_ip') could/should be an DnsEndPoint as well, but I believe it should (so it would really be 'bind_to_host_interface')
+ 
+(In some corporate settings, you use the DNS to resolve the internal/external IP - using DnsEndPoint for internal_ip would let you specify the same host for internal and external) - it's also a step towards IPv6 compliance.
+&gt;<i> Most importantly, we should not string-compare hostss. Not if (host &gt; a == host b) but if (resolve(host a) == resolve(host b))
+</I>Do we ever actually do that? Even after resolving, they might not match. If we compare hosts, I believe that's an indication we might be doing something wrong somewhere.
+ &gt; Melanie
+/Stefan
+&gt;<i> &gt; Diva Canto wrote:&gt; &gt; I agree. The problem is that the client doesn't understand that, and &gt; &gt; this causes problems with caps urls.&gt; &gt; &gt; &gt; Melanie wrote:&gt; &gt;&gt; A host name can also be an IP address. IP addresses and hostnames &gt; &gt;&gt; are interchangable and we can't assume DNS presence. So, the field &gt; &gt;&gt; should accept a name or IP, and resolve names, like almost &gt; &gt;&gt; everything else on the internet does.&gt; &gt;&gt;&gt; &gt;&gt; Melanie&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt; Cristina Videira Lopes wrote:&gt; &gt;&gt; &gt; &gt;&gt;&gt; The thing is that this can potentially create a RegionInfo data &gt; &gt;&gt;&gt; structure with&gt; &gt;&gt;&gt; nRegionInfo.ExternalHostName = regionData.IPADDR;&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; This is inconsistent with certain queries on the Grid server, like &quot;give &gt; &gt;&gt;&gt; me all my neighbors&quot; which may send host names.&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; So, back to the point: someone needs to decide what is it that &gt; &gt;&gt;&gt; RegionInfo.ExternalHostName is supposed to hold.&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; Teravus Ovares wrote:&gt; &gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; RegionUpData is my fault, and spawned from compatibility issues with&gt; &gt;&gt;&gt;&gt; .NET remoting and Mono remoting with complex types. It is only used&gt; &gt;&gt;&gt;&gt; to notify a neighbor region that 'this region is up'&gt; &gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt; Best Regards&gt; &gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt; Teravus&gt; &gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt; On 12/11/08, Cristina Videira Lopes &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lopes at ics.uci.edu</A>&gt; wrote:&gt; &gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt;&gt; Things are very messy right now. You can search for &quot;sim_ip&quot;, for example,&gt; &gt;&gt;&gt;&gt;&gt; which is used in chatting with the grid server, and where it is being&gt; &gt;&gt;&gt;&gt;&gt; converted to an IP address in about half of the cases.&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; To compensate, and before I noticed this inconsistency, Homer introduced&gt; &gt;&gt;&gt;&gt;&gt; another field called &quot;sim_host&quot;, so not to mess with what was already there,&gt; &gt;&gt;&gt;&gt;&gt; that is supposed to carry the external host name, but this only works up to&gt; &gt;&gt;&gt;&gt;&gt; the point in which RegionInfo data structures are created. At that point, we&gt; &gt;&gt;&gt;&gt;&gt; need to decide what to place in m_externalHostName, sim_ip or sim_host.&gt; &gt;&gt;&gt;&gt;&gt; Which means changes in OGS1.&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; I also noticed that there is yet another data structure called RegionUpData&gt; &gt;&gt;&gt;&gt;&gt; that uses IP addresses.&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; So, messy. Someone should decide what this field is supposed to be, and make&gt; &gt;&gt;&gt;&gt;&gt; it a rule.&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; Charles Krinke wrote:&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; Dear Diva:&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; You have a very good point and I would support harmonizing to one notion&gt; &gt;&gt;&gt;&gt;&gt; even at the expense of breaking some things for a while.&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; In fact, if someone can identify what some of those things are, or come up&gt; &gt;&gt;&gt;&gt;&gt; with a couple of search strings or grep expressions, I would like to look at&gt; &gt;&gt;&gt;&gt;&gt; the anomalies myself.&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; +1 on external_host_name&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; Charles&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; ________________________________&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; From: Cristina Videira Lopes &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lopes at ics.uci.edu</A>&gt;&gt; &gt;&gt;&gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; &gt;&gt;&gt;&gt;&gt; Sent: Thursday, December 11, 2008 2:42:05 PM&gt; &gt;&gt;&gt;&gt;&gt; Subject: [Opensim-dev] external host name&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; It turns out that a lot of problems with CAPs have to do with&gt; &gt;&gt;&gt;&gt;&gt; inconsistencies surrounding the URL of the seed cap. Specifically, in&gt; &gt;&gt;&gt;&gt;&gt; some cases we're producing URLs with hostnames, other times we're&gt; &gt;&gt;&gt;&gt;&gt; producing URLs with IP addresses, for example:&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; <A HREF="http://ucigrid03.nacs.uci.edu:9000/CAPS/4cfc94fa-09be-409b-b136-cda2cdde0000/">http://ucigrid03.nacs.uci.edu:9000/CAPS/4cfc94fa-09be-409b-b136-cda2cdde0000/</A>&gt; &gt;&gt;&gt;&gt;&gt; vs.&gt; &gt;&gt;&gt;&gt;&gt; MailScanner has detected a possible fraud attempt from &quot;128.200.71.43:9000&quot;&gt; &gt;&gt;&gt;&gt;&gt; claiming to be MailScanner warning: numerical links are often malicious:&gt; &gt;&gt;&gt;&gt;&gt; <A HREF="http://128.200.71.43:9000/CAPS/4cfc94fa-09be-409b-b136-cda2cdde0000/">http://128.200.71.43:9000/CAPS/4cfc94fa-09be-409b-b136-cda2cdde0000/</A>&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; The client is not smart enough to test if this is the same host, it&gt; &gt;&gt;&gt;&gt;&gt; assumes it isn't, so it decides someone's trying to game it.&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; The inconsistencies are all over the code in OpenSim, and they pertain&gt; &gt;&gt;&gt;&gt;&gt; to the use of ExternalHostName in several data s! tructures. In some&gt; &gt;&gt;&gt;&gt;&gt; cases, an explicit conversion to IP addresses is made.&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; We should converge to one single thing. And I believe that thing should&gt; &gt;&gt;&gt;&gt;&gt; be whatever it is given in external_host_name config. Is this right?&gt; &gt;&gt;&gt;&gt;&gt; However, I am a bit afraid this is going to break 17 different things...&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; Crista&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; _______________________________________________&gt; &gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list&gt; &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt;&gt;&gt; ________________________________&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; _______________________________________________&gt; &gt;&gt;&gt;&gt; Opensim-dev&gt; &gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt;&gt; mailing&gt; &gt;&gt;&gt;&gt;&gt; list&gt; &gt;&gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt;&gt; _______________________________________________&gt; &gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list&gt; &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; _______________________________________________&gt; &gt;&gt;&gt;&gt; Opensim-dev mailing list&gt; &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; &gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; ------------------------------------------------------------------------&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; _______________________________________________&gt; &gt;&gt;&gt; Opensim-dev mailing list&gt; &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt; &gt; &gt;&gt; _______________________________________________&gt; &gt;&gt; Opensim-dev mailing list&gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt; &gt;&gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; ------------------------------------------------------------------------&gt; &gt; &gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081212/8bdf84e1/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081212/8bdf84e1/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003988.html">[Opensim-dev] external host name
+</A></li>
+	<LI>Next message: <A HREF="004019.html">[Opensim-dev] external host name
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3993">[ date ]</a>
+              <a href="thread.html#3993">[ thread ]</a>
+              <a href="subject.html#3993">[ subject ]</a>
+              <a href="author.html#3993">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

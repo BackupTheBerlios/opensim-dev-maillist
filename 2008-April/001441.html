@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Question on Avatar Appearance persistance
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Question%20on%20Avatar%20Appearance%20persistance&In-Reply-To=%3C20080412120022.GS22178%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001428.html">
+   <LINK REL="Next"  HREF="001443.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Question on Avatar Appearance persistance</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Question%20on%20Avatar%20Appearance%20persistance&In-Reply-To=%3C20080412120022.GS22178%40dague.net%3E"
+       TITLE="[Opensim-dev] Question on Avatar Appearance persistance">sean at dague.net
+       </A><BR>
+    <I>Sat Apr 12 14:00:22 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001428.html">[Opensim-dev] Question on Avatar Appearance persistance
+</A></li>
+        <LI>Next message: <A HREF="001443.html">[Opensim-dev] User/Agent/Avatar Was: Question on Avatar Appearance	persistance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1441">[ date ]</a>
+              <a href="thread.html#1441">[ thread ]</a>
+              <a href="subject.html#1441">[ subject ]</a>
+              <a href="author.html#1441">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Fri, Apr 11, 2008 at 06:09:56PM +0100, Michael Wright wrote:
+&gt;<i> okay will try to make this my last email (before anyone replies) on this. But I think I'm understanding more of what you meant. 
+</I>&gt;<i> 
+</I>&gt;<i> And while I think there is no reason why we couldn't have
+</I>&gt;<i> AvatarAppearance hanging off UserProfile data. I'm still not convinced
+</I>&gt;<i> there is a need to try to connect all these things. Avatar Appearance
+</I>&gt;<i> is certainly a scene thing. In that every ScenePresence needs a
+</I>&gt;<i> reference to one. But we could move the actual Av atar Appearance
+</I>&gt;<i> class out to OpenSim.framework, or if going with the &quot;Anemic Domain
+</I>&gt;<i> Model&quot; appoach suggested by Stefan then we could have a base
+</I>&gt;<i> AvatarAppearance in the model project. Then in the avatar appearance
+</I>&gt;<i> module fetch the appearance object that was attached to the user
+</I>&gt;<i> profile.
+</I>&gt;<i> 
+</I>&gt;<i> But I'm not sure I really see any benefit in this over the module
+</I>&gt;<i> doing a direct request to the user server for the appearance. I
+</I>&gt;<i> actually think its better to decouple things in this way.
+</I>
+By decoupling from the user server, we've coupled AppearanceModule to
+DataMapper, and are managing database connections in a RegionModule,
+which I think is a worse approach.  
+
+m_scene.CommsManager.UserService.GetUserProfile(id) seems
+like a much better approach.  We could just add .GetUserAppearance and
+friends to it.
+
+&gt;<i> As I said in my last email, there could also be some bots/NPC's that
+</I>&gt;<i> don't have userprofiles. And also I think there is a chance that scene
+</I>&gt;<i> presences are created (and the appearance fetched) before the user
+</I>&gt;<i> profiles are. But can't be sure of that without looking deeper in the
+</I>&gt;<i> code.
+</I>
+If an NPC exists in the environment, I would think it would have a
+profile (it needs that for Name for instance).
+
+&gt;<i> But anyway as long as we went through the avatar appearance factory
+</I>&gt;<i> module concept to fetch the appearance that was attached to the user
+</I>&gt;<i> profile. Then I guess there is nothing stopping it. Just seems a
+</I>&gt;<i> coupling that isn't needed.
+</I>
+Yes, that's probably strictly true.  Actually, we don't really need it
+hanging off of UserProfile.  What I really meant was that
+AvatarAppearance was an object that existed, and was fetchable/updatable
+from the UserService by UUID.
+
+&gt;<i> I am very strongly of the opinion that we need to keep the factory
+</I>&gt;<i> module concept. So that a different module could be used. Different
+</I>&gt;<i> regions/applications might want a completely different approach to how
+</I>&gt;<i> the appearance of the avatars are handled. Like a game might want to
+</I>&gt;<i> randomly just give each user one of a set of preset avatars.
+</I>&gt;<i> 
+</I>&gt;<i> But with this factory module. We can actually fetch the appearance
+</I>&gt;<i> from where ever we want, including the userprofile if it is decided.
+</I>
+If we move the default storage back into UserService, I don't think
+we'll have an issue here.  UserService will just support a persistance
+model for appearance, should anyone want to use that.  How appearance is
+created remains in the region modules.
+
+    -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080412/394c4b61/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080412/394c4b61/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001428.html">[Opensim-dev] Question on Avatar Appearance persistance
+</A></li>
+	<LI>Next message: <A HREF="001443.html">[Opensim-dev] User/Agent/Avatar Was: Question on Avatar Appearance	persistance
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1441">[ date ]</a>
+              <a href="thread.html#1441">[ thread ]</a>
+              <a href="subject.html#1441">[ subject ]</a>
+              <a href="author.html#1441">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

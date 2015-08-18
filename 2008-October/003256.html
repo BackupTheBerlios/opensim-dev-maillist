@@ -1,0 +1,374 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Update libode, or work towards better physics handling in this libode revision?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20libode%2C%0A%20or%20work%20towards%20better%20physics%20handling%20in%20this%20libode%20revision%3F&In-Reply-To=%3COF8B15DB39.DE5662AA-ON852574DB.005E0CAC-852574DB.0066803E%40us.ibm.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003254.html">
+   <LINK REL="Next"  HREF="003257.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Update libode, or work towards better physics handling in this libode revision?</H1>
+    <B>Mike Pitman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20libode%2C%0A%20or%20work%20towards%20better%20physics%20handling%20in%20this%20libode%20revision%3F&In-Reply-To=%3COF8B15DB39.DE5662AA-ON852574DB.005E0CAC-852574DB.0066803E%40us.ibm.com%3E"
+       TITLE="[Opensim-dev] Update libode, or work towards better physics handling in this libode revision?">pitman at us.ibm.com
+       </A><BR>
+    <I>Tue Oct  7 20:39:36 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003254.html">[Opensim-dev] Update libode,	or work towards better physics handling in this libode revision?
+</A></li>
+        <LI>Next message: <A HREF="003257.html">[Opensim-dev] Update libode, or work towards better physics handling in this libode revision?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3256">[ date ]</a>
+              <a href="thread.html#3256">[ thread ]</a>
+              <a href="subject.html#3256">[ subject ]</a>
+              <a href="author.html#3256">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+&gt;<i> Teravus writes:
+</I>&gt;<i> To answer the question on tests/calibration..   I guess the purpose is
+</I>&gt;<i> to set the variety of settings (and there are a plurality of them) to
+</I>&gt;<i> produce reasonable physics results while using the least resources
+</I>&gt;<i> possible in doing so.    It might be easy to configure in double
+</I>&gt;<i> floating point mode, but we'd use twice to three times the CPU to
+</I>&gt;<i> accomplish that.  Usually what I do is get it in a usable state with
+</I>&gt;<i> high resource usage and scale the resource usage back until a balance
+</I>&gt;<i> is acchieved.   This usually requires a lot of trial and error,
+</I>&gt;<i> additionally, in the past, it has required the same process for each
+</I>&gt;<i> platform (win/*nix/mac).
+</I>
+I'd really be surprised if double precision would make a noticeable
+difference here. It does for energy conservation with realistic potentials
+in molecular dynamics, but even there some folks get away with single
+precision by playing tricks. I can imagine setting to double precision
+while your tweaking things just to take the possibility of single precision
+problems off the table though.
+
+&gt;<i> The first thing that I do is get collisions stable.   Avatar shouldn't
+</I>&gt;<i> fall through the ground or shoot millions of meters into the air when
+</I>&gt;<i> they log-in.
+</I>Some thoughts/questions toward possible automated collision tests:
+      - Could we agree on a responce for an avatar falling and hitting the
+ground from, say, 10m, 100m, and 1000m? Or do we want simple splat and
+stand anim?
+      - How bouncy should they objects be, and how much is the physics vs
+the material property?
+      - Do we want std tests of spheres for a range of materials falling
+and colliding with other objects and terrain?
+      - Do we want pos/vel measurements at the inner timestep level or
+inworld by scripts in the falling object calling out positions on a timer,
+or both as a characterization of inworld vs server side timing?
+      - Is it useful to setup various chutes and circular slides for
+spheres or pachinco type scenarious to test convergence of results with
+decreasing timestep size, so we can find a largest timestep/min cpu effort
+to get a consistent simulation result?
+
+&gt;<i> Next, I tune the avatar PID controller so it moves the avatar's
+</I>&gt;<i> physics proxy effectively.  (un-tuned, you might see a result where
+</I>&gt;<i> pressing a button causes you to go in the direction you want but with
+</I>&gt;<i> a slow, curving direction change from from what seems like some random
+</I>&gt;<i> direction)
+</I>
+I'm unsure on the specifics of the PID controller, but it seems like the
+end game on tuning it may be very subjective and stylized (how many g's do
+you want to pull when banking in flight?). Are there programmable bot
+flight sequences that could be used to track changes in response?
+
+&gt;<i> After that, I find the best balance of frame frequency, collision
+</I>&gt;<i> testing, contacts and contact friction..    and CPU usage while
+</I>&gt;<i> testing against a very thin object in multiple directions. (tests to
+</I>&gt;<i> ensure that I don't pass through a thin object at reasonable
+</I>&gt;<i> velocities).
+</I>
+With a basis of tests and expected responses we might be able to get a
+handle or a path to an overall figure of merit that could be simplex
+optimized (scratches his grey beard) or something even more blunt. At the
+very least, it may help speed up adopting and tuning physics updates in the
+future...
+
+
+&gt;<i> After that, I usually patch the libode library with some fixes that
+</I>&gt;<i> apply to our use case.  In the past, superfluous asserts in the
+</I>&gt;<i> library have caused random crashes. (Yes, I've tried to beat it over
+</I>&gt;<i> the head of the ode developers and they insist on having them).  Also,
+</I>&gt;<i> in the past, the heightfield collider needed a few patches to work
+</I>&gt;<i> properly.  Without the patches, the ode library is very unstable.
+</I>
+heh, no automation there..
+
+&gt;<i> After that, I usually work on more fine grained details, like
+</I>llMove2Target.
+
+&gt;<i> This process needs to be done for windows platforms and usually also
+</I>&gt;<i> has to be done for *nix platforms.   Furthermore, Mac platforms often
+</I>&gt;<i> need a few small tweaks after that, but most of the *nix platform
+</I>&gt;<i> settings apply.
+</I>
+Tests might really help getting a uniform response across platforms
+
+&gt;<i> This is a relatively long process of starting the simulator, fixing
+</I>&gt;<i> something, stopping it..    starting it over again..  tweaking
+</I>&gt;<i> something, stopping it..   over and over until it's right.   There's
+</I>&gt;<i> some math involved in finding what fps/collision detection settings
+</I>&gt;<i> /could possibly/ be good, but a lot of it is just, trial and error.
+</I>
+I feel your pain. I spent many years in similar loops.. just seeing if
+there's anyway to ease the burden...
+
+Comments on some params in the ODE section of the ini file, (my comments
+follow ###)
+
+
+[ODEPhysicsSettings]
+; World Step size. (warning these are dangerous.  Changing these will
+probably cause your scene to explode dramatically)
+; reference: fps = (0.09375/ODE_STEPSIZE) * 1000;
+world_stepsize = 0.020
+world_internal_steps_without_collisions = 10
+### clearly the param that has the main effect on stability and CPU usage
+is stepsize, but steps without collisions
+### is somewhat coupled inversely: larger stepsize may in some ranges
+support smaller steps
+### without collisions since that value is related to handling 'reasonable
+velocities' for moving objects.
+### There might be some guideline based on the product of the two:
+world_stepsize * world_internal_steps_without_collisions
+### which when multiplied by a 'reason velocity' gives the distance that
+object would travel without a collision check
+
+;World Space settings. Affects memory consumption vs Collider CPU time for
+avatar and physical prim
+world_hashspace_size_low = -4
+world_hashSpace_size_high = 128
+;Dynamic space settings Affects memory consumption vs Collider CPU time for
+static prim
+meters_in_small_space = 29.9
+small_hashspace_size_low = -4
+small_hashspace_size_high = 66
+### Not sure whether hash table granularity is a sensitive tuning target
+
+;  Contact properties. (the stuff that happens when things come in contact
+with each other)
+; surface layer around geometries other geometries can sink into before
+generating a contact
+world_contact_surface_layer = 0.001
+### Does this factor scale any material specific value for material
+hardness? or is this a material independent factor?
+
+; Non Moving Terrain Contact (avatar isn't moving)
+nm_terraincontact_friction = 255.0
+nm_terraincontact_bounce = 0.1
+nm_terraincontact_erp = 0.1025
+; Moving Terrain Contact (avatar is moving)
+m_terraincontact_friction = 75.0
+m_terraincontact_bounce = 0.05
+m_terrainContact_erp = 0.05025
+; Moving Avatar to object Contact
+m_avatarobjectcontact_friction = 75.0
+m_avatarobjectcontact_bounce = 0.1
+; Object to Object Contact and Non-Moving Avatar to object
+objectcontact_friction = 250.0
+objectcontact_bounce = 0.2
+### The bounce and friction may automatable with std ballistics/pachinco
+tests
+###
+
+; PID Controller Settings. These affect the math that causes the avatar to
+reach the
+; desired velocity
+; See <A HREF="http://en.wikipedia.org/wiki/PID_controller">http://en.wikipedia.org/wiki/PID_controller</A>
+av_pid_derivative_linux = 3200.0
+av_pid_proportional_linux = 1400.0
+av_pid_derivative_win = 2200.0
+av_pid_proportional_win = 900.0;
+;girth of the avatar.  Adds radius to the height also
+av_capsule_radius = 0.37
+; Max force permissible to use to keep the avatar standing up straight
+av_capsule_standup_tensor_win = 550000
+av_capsule_standup_tensor_linux = 2000000
+; used to calculate mass of avatar.
+; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS,
+2)*CAPSULE_LENGTH);
+; av_density * AVvolume;
+av_density = 80
+; use this value to cut 52% of the height the sim gives us
+av_height_fudge_factor = 0.52
+; used to control llMove2Target
+body_pid_derivative = 35
+body_pid_gain = 25
+; Used for llSetStatus.  How rigid the object rotation is held on the axis
+specified
+body_motor_joint_maxforce_tensor_linux = 2
+body_motor_joint_maxforce_tensor_win = 5
+###
+### Maybe some coded bot movement tests could help with the pid controller
+settings ??
+###
+
+
+
+-Mike / Rez
+
+
+
+
+                                                                           
+             &quot;Teravus Ovares&quot;                                              
+             &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.co</A>                                             
+             m&gt;                                                         To 
+             Sent by:                  <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>        
+             opensim-dev-bounc                                          cc 
+             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">es at lists.berlios.</A>                                             
+             de                                                    Subject 
+                                       Re: [Opensim-dev] Update libode,    
+                                       or work towards better physics      
+             10/07/2008 10:11          handling in this libode revision?   
+             AM                                                            
+                                                                           
+                                                                           
+             Please respond to                                             
+             <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists</A>                                             
+                .berlios.de                                                
+                                                                           
+                                                                           
+
+
+
+
+No worries on the burden
+
+To answer the question on tests/calibration..   I guess the purpose is
+to set the variety of settings (and there are a plurality of them) to
+produce reasonable physics results while using the least resources
+possible in doing so.    It might be easy to configure in double
+floating point mode, but we'd use twice to three times the CPU to
+accomplish that.  Usually what I do is get it in a usable state with
+high resource usage and scale the resource usage back until a balance
+is acchieved.   This usually requires a lot of trial and error,
+additionally, in the past, it has required the same process for each
+platform (win/*nix/mac).
+
+The first thing that I do is get collisions stable.   Avatar shouldn't
+fall through the ground or shoot millions of meters into the air when
+they log-in.
+
+Next, I tune the avatar PID controller so it moves the avatar's
+physics proxy effectively.  (un-tuned, you might see a result where
+pressing a button causes you to go in the direction you want but with
+a slow, curving direction change from from what seems like some random
+direction)
+
+After that, I find the best balance of frame frequency, collision
+testing, contacts and contact friction..    and CPU usage while
+testing against a very thin object in multiple directions. (tests to
+ensure that I don't pass through a thin object at reasonable
+velocities).
+
+After that, I usually patch the libode library with some fixes that
+apply to our use case.  In the past, superfluous asserts in the
+library have caused random crashes. (Yes, I've tried to beat it over
+the head of the ode developers and they insist on having them).  Also,
+in the past, the heightfield collider needed a few patches to work
+properly.  Without the patches, the ode library is very unstable.
+
+After that, I usually work on more fine grained details, like
+llMove2Target.
+
+This process needs to be done for windows platforms and usually also
+has to be done for *nix platforms.   Furthermore, Mac platforms often
+need a few small tweaks after that, but most of the *nix platform
+settings apply.
+
+This is a relatively long process of starting the simulator, fixing
+something, stopping it..    starting it over again..  tweaking
+something, stopping it..   over and over until it's right.   There's
+some math involved in finding what fps/collision detection settings
+/could possibly/ be good, but a lot of it is just, trial and error.
+
+Best Regards
+
+Teravus
+
+
+On 10/7/08, Dr Scofield &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt; wrote:
+&gt;<i> Teravus Ovares wrote:
+</I>&gt;<i> &gt; ok, so far, 2 for update, 0 for current lib.
+</I>&gt;<i>
+</I>&gt;<i> +1 for update --- but i'm kind of feeling bad saying that because that
+</I>places a
+&gt;<i> tremendous burden on you...
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> dr dirk husemann ---- virtual worlds research ---- ibm zurich research
+</I>lab
+&gt;<i> SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ----
+</I><A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+&gt;<i> RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 -
+</I><A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081007/8c80c69d/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081007/8c80c69d/attachment.html</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: graycol.gif
+Type: image/gif
+Size: 105 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081007/8c80c69d/attachment.gif">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081007/8c80c69d/attachment.gif</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: pic17417.gif
+Type: image/gif
+Size: 1255 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081007/8c80c69d/attachment-0001.gif">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081007/8c80c69d/attachment-0001.gif</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: ecblank.gif
+Type: image/gif
+Size: 45 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081007/8c80c69d/attachment-0002.gif">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081007/8c80c69d/attachment-0002.gif</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003254.html">[Opensim-dev] Update libode,	or work towards better physics handling in this libode revision?
+</A></li>
+	<LI>Next message: <A HREF="003257.html">[Opensim-dev] Update libode, or work towards better physics handling in this libode revision?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3256">[ date ]</a>
+              <a href="thread.html#3256">[ thread ]</a>
+              <a href="subject.html#3256">[ subject ]</a>
+              <a href="author.html#3256">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

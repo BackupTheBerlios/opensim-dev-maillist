@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Release 0.7 RC1 Test Feedback
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Release%200.7%20RC1%20Test%20Feedback&In-Reply-To=%3C414470381.20100618213539%40adeptsql.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008779.html">
+   <LINK REL="Next"  HREF="008786.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Release 0.7 RC1 Test Feedback</H1>
+    <B>Alex Ra</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Release%200.7%20RC1%20Test%20Feedback&In-Reply-To=%3C414470381.20100618213539%40adeptsql.com%3E"
+       TITLE="[Opensim-dev] Release 0.7 RC1 Test Feedback">info at adeptsql.com
+       </A><BR>
+    <I>Fri Jun 18 20:35:39 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008779.html">[Opensim-dev] Release 0.7 RC1 Test Feedback
+</A></li>
+        <LI>Next message: <A HREF="008786.html">[Opensim-dev] Release 0.7 RC1 Test Feedback
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8782">[ date ]</a>
+              <a href="thread.html#8782">[ thread ]</a>
+              <a href="subject.html#8782">[ subject ]</a>
+              <a href="author.html#8782">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>DC&gt; As far as I understand it, the new driver was added because it
+DC&gt; supports stored procedures [better?]; stored procedures will allow
+DC&gt; us to speed up some things. But 0.7 still doesn't have any stored
+DC&gt; procedures, so the new capabilities are mute.
+
+
+Hello Diva,
+
+It was me who put the updated MySql driver into the project, so I'm
+the one to kick for the mess.
+
+ The reasons were:
+
+(a) Yes, the ability to *define* multi-statement stored procs. MySQL has
+a rather hairy way to switch DELIMITER while defining an SP, so
+defining anything with a ';' inside was either impossible or very tricky
+with the previous driver.
+
+You are also correct that stored procs are NOT used currently, however
+they can be used to provide &quot;fast&quot; tracking of asset access times,
+which, as I understand, is required for cleaning up unused assets and
+preventing the database from growing infinitely. The relevant code is
+ready, tested and described by me somewhere on Mantis, with a link to
+github, but I don't think anybody has bothered to review / merge it
+(yet).
+
+The last time I looked, the access tracking functionality was
+commented out in the asset store code, because sending an UPDATE after
+each asset fetch just kills the performance (like 10 times slower).
+The solution based on stored procs has a performance penalty of about
+10-15%.
+
+I can re-post the link to Mantis where this approach is described, if
+anybody is interested.
+
+(b) the less important reason is just to keep up with the most recent
+versions of the driver.
+
+Updating the driver also involved some changes in the stores to
+correctly convert between values returned/accepted by the driver and
+UUIDs in the code. The reason is that the new driver implicitly
+converts CHAR(36), returning it as Guid (rather than a string). With
+the &quot;Old Guids&quot; config var, the driver would instead convert
+BINARY(16) to Guid.
+
+With the new driver and the corresponding code changes in place, the
+&quot;Old Guids&quot; config var should NOT be used.
+
+
+Best regards,
+
+Alex
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008779.html">[Opensim-dev] Release 0.7 RC1 Test Feedback
+</A></li>
+	<LI>Next message: <A HREF="008786.html">[Opensim-dev] Release 0.7 RC1 Test Feedback
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8782">[ date ]</a>
+              <a href="thread.html#8782">[ thread ]</a>
+              <a href="subject.html#8782">[ subject ]</a>
+              <a href="author.html#8782">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

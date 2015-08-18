@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Does OpenSim need to leave so many packets marked as reliable?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Does%20OpenSim%20need%20to%20leave%20so%20many%20packets%20marked%0A%20as%20reliable%3F&In-Reply-To=%3C48E522A9.3040307%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003174.html">
+   <LINK REL="Next"  HREF="003177.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Does OpenSim need to leave so many packets marked as reliable?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Does%20OpenSim%20need%20to%20leave%20so%20many%20packets%20marked%0A%20as%20reliable%3F&In-Reply-To=%3C48E522A9.3040307%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Does OpenSim need to leave so many packets marked as reliable?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Oct  2 21:36:09 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003174.html">[Opensim-dev] Does OpenSim need to leave so many packets marked	as reliable?
+</A></li>
+        <LI>Next message: <A HREF="003177.html">[Opensim-dev] Does OpenSim need to leave so many packets marked as	reliable?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3175">[ date ]</a>
+              <a href="thread.html#3175">[ thread ]</a>
+              <a href="subject.html#3175">[ subject ]</a>
+              <a href="author.html#3175">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hmm, yes
+
+By the way, you may want to ignore my earlier yammerings - I'm not able to reproduce consistent numbers at the moment - 
+the 95% I had might have been an anomaly.
+
+The best thing to do is probably to look at which packets the Linden grid is marking as reliable and do the same thing 
+for now, if we are actually doing anything different.
+
+Dahlia Trimble wrote:
+&gt;<i> I seem to recall there was once a discussion about using UDP vs TCP for 
+</I>&gt;<i> sim&lt;-&gt;viewer communication, and one of the arguments against TCP (I 
+</I>&gt;<i> believe it was a LL employee's opinion) was that the sim network stack 
+</I>&gt;<i> would easily become overloaded managing all of the packets that  it 
+</I>&gt;<i> would have to deliver reliably in the case of network problems, and this 
+</I>&gt;<i> could easily use up all the available memory in the server machine and 
+</I>&gt;<i> bog it down. The advantage to UDP in this case would be the ability to 
+</I>&gt;<i> discard packets where the information was no longer timely. I suspect 
+</I>&gt;<i> something similar may apply in the case of overzealous use of the 
+</I>&gt;<i> reliable flag as well.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> On Thu, Oct 2, 2008 at 11:59 AM, Justin Clark-Casey 
+</I>&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;<i>     Hmm, I then did the obvious thing and compared it (unscientifically)
+</I>&gt;<i>     with a couple of sessions on the Linden Lab grid.
+</I>&gt;<i>     There, reliable packets appear to compromise approximately 40% of
+</I>&gt;<i>     the transfer.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>     -------- Original Message --------
+</I>&gt;<i>     Subject: Does OpenSim need to leave so many packets marked as reliable?
+</I>&gt;<i>     Date: Thu, 02 Oct 2008 19:32:57 +0100
+</I>&gt;<i>     From: Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt;
+</I>&gt;<i>     To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> 
+</I>&gt;<i>     Hi there,
+</I>&gt;<i> 
+</I>&gt;<i>     A vast number of the packets that we send out from OpenSim (usually
+</I>&gt;<i>      &gt;95% according to the statistics printed to the
+</I>&gt;<i>     Linden viewer log on shutdown) are marked as reliable.  This
+</I>&gt;<i>     requires that the viewer respond with an ack, and it just
+</I>&gt;<i>     doesn't appear that this is done very well when a large number of
+</I>&gt;<i>     reliables are sent.  A lot of acks never come and we
+</I>&gt;<i>     often appear to end up resending thousands (or in the worst case
+</I>&gt;<i>     tens of thousands) of packets.
+</I>&gt;<i> 
+</I>&gt;<i>     In a private experiment I've set Header.Reliable = false for the
+</I>&gt;<i>     LayerDataPacket and ObjectUpdatePacket (which appear to
+</I>&gt;<i>     be the greatest sent by count, and which are currently reliable by
+</I>&gt;<i>     default in libOMV).  Naturally, this cuts down the
+</I>&gt;<i>     vast number of resends (and possibly some of the packet_out_of_order
+</I>&gt;<i>     messages that come out on the console log) without
+</I>&gt;<i>     any apparant ill effects.  However, my testing has been pretty
+</I>&gt;<i>     limited so I'm minded to wait until Monday before making
+</I>&gt;<i>     any trunk changes, since then I can get a better load test with
+</I>&gt;<i>     multiple avatars (this doesn't stop anybody else testing
+</I>&gt;<i>     of course :-)
+</I>&gt;<i> 
+</I>&gt;<i>     Any opinions on this?  Is there a good reason for these packets to
+</I>&gt;<i>     remain reliable (when resends are probably rare
+</I>&gt;<i>     anyway)?  libOMV appears to mark every packet as reliable by
+</I>&gt;<i>     default...  and then OpenSim removes this from a couple of
+</I>&gt;<i>     them but not from others.
+</I>&gt;<i> 
+</I>&gt;<i>     --
+</I>&gt;<i>     justincc
+</I>&gt;<i>     Justin Clark-Casey
+</I>&gt;<i>     <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003174.html">[Opensim-dev] Does OpenSim need to leave so many packets marked	as reliable?
+</A></li>
+	<LI>Next message: <A HREF="003177.html">[Opensim-dev] Does OpenSim need to leave so many packets marked as	reliable?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3175">[ date ]</a>
+              <a href="thread.html#3175">[ thread ]</a>
+              <a href="subject.html#3175">[ subject ]</a>
+              <a href="author.html#3175">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

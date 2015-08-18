@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20a%20cleanup/correction%20of%20the%0A%09region-module%20system&In-Reply-To=%3Cebe9df730901250216t75f02300sf08df45411ca765e%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004615.html">
+   <LINK REL="Next"  HREF="004667.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal for a cleanup/correction of the	region-module system</H1>
+    <B>Homer Horwitz</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%20for%20a%20cleanup/correction%20of%20the%0A%09region-module%20system&In-Reply-To=%3Cebe9df730901250216t75f02300sf08df45411ca765e%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Proposal for a cleanup/correction of the	region-module system">homerhorwitz at googlemail.com
+       </A><BR>
+    <I>Sun Jan 25 11:16:53 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004615.html">[Opensim-dev] Proposal for a cleanup/correction of	the	region-module system
+</A></li>
+        <LI>Next message: <A HREF="004667.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4616">[ date ]</a>
+              <a href="thread.html#4616">[ thread ]</a>
+              <a href="subject.html#4616">[ subject ]</a>
+              <a href="author.html#4616">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Sun, Jan 25, 2009 at 3:33 AM, Jeff Ames &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jeffames at gmail.com</A>&gt; wrote:
+&gt;<i>...
+</I>&gt;<i> For a non-shared module, is there a functional difference between
+</I>&gt;<i> Initialise and AddRegion?  Likewise with RemoveRegion and Close.
+</I>Registration happens in Initialise, so when the AddRegion call happens, all the
+modules are available already.
+
+Same for RemoveRegion and Close:
+During RemoveRegion, all the modules are still available. During
+Close, some might
+have been closed before your module is closed.
+
+On Sun, Jan 25, 2009 at 8:39 AM, Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; wrote:
+&gt;<i>
+</I>&gt;&gt;<i> For shared modules, is there some technical reason or use case that
+</I>&gt;&gt;<i> requires a PostInitialise after Initialise?  The only case I can think
+</I>&gt;&gt;<i> of is interdependent region modules that need each other to be
+</I>&gt;&gt;<i> initialized before they can add regions.
+</I>&gt;<i>
+</I>&gt;<i> [Frisby, Adam]
+</I>&gt;<i>
+</I>&gt;<i> Close - it's more so you can start 'doing things' after every region has been registered. Prior to PostInitialise you cannot be sure that everything has been constructed yet, and/or other modules have registered their interfaces.
+</I>
+Actually, in the new one PostInitialise happens after every
+*Initialise* has been run,
+not after every *AddRegion* has been run. You just can't execute a method once
+after all regions has been registered, as I can add regions on the fly
+(that's one of
+the problems I see with the old version as stated in the Wiki
+article): You'll either
+end up calling it more than once for some regions (if you call it
+after every AddRegion),
+or not at all for some regions (if you call it only once).
+
+But for the intended new semantics: good point, Jedd, I added that
+just because it is
+in the current system. In PostInitialise, all the (shared) modules
+have been registered
+already. On the other hand, it's the same in AddRegion, and I'd find
+it more consistent
+to the non-shared modules to not depend on PostInitialise in the shared ones (in
+AddRegion, the non-shared modules are available, too). If you have to
+do something
+that should happen after all the shared modules are initiali(z|s)ed,
+it might make sense
+to postpone it a bit further and do it when the first region is added.
+
+So, +1 for making the interface a bit smaller and removing PostInitialise.
+
+Cheers,
+  Homer
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004615.html">[Opensim-dev] Proposal for a cleanup/correction of	the	region-module system
+</A></li>
+	<LI>Next message: <A HREF="004667.html">[Opensim-dev] Proposal for a cleanup/correction of the	region-module system
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4616">[ date ]</a>
+              <a href="thread.html#4616">[ thread ]</a>
+              <a href="subject.html#4616">[ subject ]</a>
+              <a href="author.html#4616">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,171 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim search
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20search&In-Reply-To=%3C475364.70136.qm%40web82602.mail.mud.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001324.html">
+   <LINK REL="Next"  HREF="001336.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim search</H1>
+    <B>Charles Krinke</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20search&In-Reply-To=%3C475364.70136.qm%40web82602.mail.mud.yahoo.com%3E"
+       TITLE="[Opensim-dev] OpenSim search">cfk at pacbell.net
+       </A><BR>
+    <I>Fri Apr  4 05:45:55 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001324.html">[Opensim-dev] OpenSim search
+</A></li>
+        <LI>Next message: <A HREF="001336.html">[Opensim-dev] Potential MySQL issue with centralized datastor
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1326">[ date ]</a>
+              <a href="thread.html#1326">[ thread ]</a>
+              <a href="subject.html#1326">[ subject ]</a>
+              <a href="author.html#1326">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I feel pretty good at all that Diva and others have done. It appears that a lot of thought has gone into enough configuration to allow the different use cases. So, I would like to encourage this work and commend Diva, KMeisthax and others.
+
+Charles
+
+----- Original Message ----
+From: Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Cc: William Cook &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">wcook at cs.utexas.edu</A>&gt;
+Sent: Thursday, April 3, 2008 6:22:53 PM
+Subject: [Opensim-dev] OpenSim search
+
+Dear opensim-devs,
+
+kmeisthax (David Wendt) and I have been working on supporting search for 
+OpenSims. It is my pleasure to announce that we have the very first 
+implementation working! Very extremely alpha...
+Initial deployment has been done in a few regions in OSGrid, with the 
+time and generosity of my close collaborators here at UCI, Sean 
+Hennessee and John Ward, and, of course, Charles Krinke from OSGrid.
+Here is a search interface:
+
+<A HREF="http://metaverseink.com/preview-1.1.html">http://metaverseink.com/preview-1.1.html</A>
+(select OpenSims)
+WARNINGS:
+(1) not a lot of words there yet; try &quot;wright plaza&quot; or &quot;irvine&quot;
+(2) most links don't work, especially the all-important Map/Go ;-)
+
+Let me explain what this is all about, and how you can try it in your 
+own regions.
+
+Fundamentally, this is about finding 3D spaces through text search. The 
+search problem can be seen in many lights. It can be seen as a grid 
+problem, or as a metaverse problem, and these are not contradictory. For 
+grids that implement the walled-garden model of virtual worlds 
+(intranets and not only), search is something that they provide 
+internally, but no data is exposed to the outside. For grids that are 
+open, the regions' data is exposed to the world so that 3rd parties can 
+provide value-added services, such as search. The way we've done it, we 
+take no sides on the issue; it's up to the grid operators, region 
+administrators, and users to decide.
+
+So, down to the technical aspects. There are two independent parts to this:
+
+A) On the side of OpenSim, this involves exposing regions' data every so 
+often in a format that is appropriate for data collection services to 
+consume. We implemented a DataSnapshot module, in the true spirit of 
+modularity in OpenSim. Our module is fairly independent of the rest of 
+the code, it doesn't even need to be compiled together, and we haven't 
+bugged you about adding this code to the main distribution -- which we 
+hope will happen, but it's not necessary. You can try it right now by 
+using the corresponding dll -- instructions here: 
+<A HREF="http://metaverseink.com/resources/">http://metaverseink.com/resources/</A>
+This module does three things: 1) it periodically generates xml 
+representations of the searchable data of the regions; 2) it notifies 
+data services of the existence of the simulator; and 3) it serves 
+requests for giving out the xml files. The workings of the module are 
+ruled by a few configuration settings in OpenSim.ini. The source code of 
+the DataSnapshot module is hosted on my svn server at UCI. We'll gladly 
+give it out to the OpenSim project, or we can keep it here. Whatever you 
+think is best.
+
+B) Once these snapshots, and their serving, are in place it's up to data 
+collection services to come and get them. This part I did by myself, 
+wearing my Metaverse Ink hat -- it was just easier to reuse what we 
+already have for indexing SL. That's what you see in that web 
+interface.  Note, however, that Metaverse Ink is not the only data 
+collection service possible. Anyone can develop their own data 
+collection service for search or something else. Also, I plan to develop 
+a grid-wide search engine based on the same concepts, that closed grids 
+can use. That component will be open sourced and given to the OpenSim 
+project.
+
+About data exposure control:
+
+This snapshot module only exposes data that is marked &quot;Show in search&quot;. 
+(detail: right now, it only exposes parcel information; I need to have 
+conversation with the libsl folks about the objects' &quot;Show in search&quot; 
+property). So, public exposure is ultimately controlled by the users. 
+Region admins also have control of data exposure by running the 
+DataSnapshot module or not. Finally grid operators also have control by 
+allowing the regions to run the DataSnapshot module or not, and to give 
+out the data to external data services or not (we haven't implemented 
+this region-grid protocol yet, but it's perfectly doable, if people want 
+it).
+
+There's tons more! But this email is already too long, so I leave it at 
+that. Bottom line: please check
+<A HREF="http://metaverseink.com/preview-1.1.html">http://metaverseink.com/preview-1.1.html</A>
+and then, if you want to see your regions there, follow the instructions 
+here:
+<A HREF="http://metaverseink.com/resources/">http://metaverseink.com/resources/</A>
+(Note that the updates are not instantaneous. It may take a while... 
+especially if the engine gets stuck while I'm sleeping :-)
+ 
+My kudos to the original architects of OpenSim for establishing this 
+wonderful plugin architecture!
+
+Comments / suggestions / ... very welcome!
+
+Crista / Diva
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080403/5241654d/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080403/5241654d/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001324.html">[Opensim-dev] OpenSim search
+</A></li>
+	<LI>Next message: <A HREF="001336.html">[Opensim-dev] Potential MySQL issue with centralized datastor
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1326">[ date ]</a>
+              <a href="thread.html#1326">[ thread ]</a>
+              <a href="subject.html#1326">[ subject ]</a>
+              <a href="author.html#1326">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

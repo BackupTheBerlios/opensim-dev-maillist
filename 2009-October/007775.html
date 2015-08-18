@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Severely%20Decreased%20LSL%20Script%20Performance%20from%0A%200.6.5%20-%3E%200.6.6%20-%3E%200.6.7&In-Reply-To=%3C4ACFB37A.3020901%40liferain.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007754.html">
+   <LINK REL="Next"  HREF="007753.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7</H1>
+    <B>Shack Dougall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Severely%20Decreased%20LSL%20Script%20Performance%20from%0A%200.6.5%20-%3E%200.6.6%20-%3E%200.6.7&In-Reply-To=%3C4ACFB37A.3020901%40liferain.com%3E"
+       TITLE="[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7">shack at liferain.com
+       </A><BR>
+    <I>Sat Oct 10 00:04:42 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007754.html">[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+</A></li>
+        <LI>Next message: <A HREF="007753.html">[Opensim-dev] How many Regions Opensim can stored?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7775">[ date ]</a>
+              <a href="thread.html#7775">[ thread ]</a>
+              <a href="subject.html#7775">[ subject ]</a>
+              <a href="author.html#7775">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dahlia's suggestion about making the prims phantom during rezzing was 
+helpful, but didn't fix my problems completely.
+
+It looks like there are several problems that are converging to create a 
+perfect storm.
+
+1) Something about script execution or creation is slower in 0.6.6.  I 
+can't put my finger on it, but I definitely see a significant difference.
+
+2) I'm not sure if this is a new problem or if it is simply being made 
+visible by Problem 1, but I'm seeing scripts spontaneously stop 
+executing in 0.6.6.  For example, I have one script that makes a call to 
+llSleep.  Before it sleeps, it prints the number of seconds that it will 
+sleep and then when it comes back from sleep, it prints &quot;I'm back&quot;.  I 
+have clearly seen that, in some cases, it never comes back.  I don't 
+know if the script terminates or is dropped from the queue or what.  It 
+just never executes after that.  The problem isn't unique to llSleep.  I 
+suspect that several unexplained occurrences are due to something like this.
+
+3) There is a problem in which scripts that kill themselves are not 
+removed from Active Scripts 
+(<A HREF="http://opensimulator.org/mantis/view.php?id=2929">http://opensimulator.org/mantis/view.php?id=2929</A>).  I know that this 
+happens in 0.6.5 and 0.6.6.  I think it happens in 0.6.7, but I've been 
+doing so much testing that I can't remember if I specifically confirmed 
+that or not.
+
+4) 0.6.7 imposed a very restrictive limit on the distance that an LSL 
+script can move a child prim. 
+(<A HREF="http://opensimulator.org/mantis/view.php?id=4228">http://opensimulator.org/mantis/view.php?id=4228</A>).  OpenSim is 
+basically unusable for my LSL rezzer until this is relaxed.
+
+Anyway, those are the issues that I am currently aware of.  As I develop 
+repros for these and other issues, I will post them to Mantis.
+
+I'm on vacation next week, so I won't be working on this until the 
+following week.
+
+--Shack
+
+Shack Dougall wrote:
+&gt;<i> Thanks for that suggestion, Dahlia.  I don't know if it will help, but 
+</I>&gt;<i> it is consistent with one other thing that I observed in 0.6.7.  When my 
+</I>&gt;<i> libopenmv program was creating the rezzer today, I saw my first ODE 
+</I>&gt;<i> crash ever.  It took down the whole server.  It's possible that some 
+</I>&gt;<i> changes in ODE are contributing to the problem.
+</I>&gt;<i>
+</I>&gt;<i> I'll give it a try and report back.  --Shack
+</I>&gt;<i>
+</I>&gt;<i> Dahlia Trimble wrote:
+</I>&gt;<i>   
+</I>&gt;&gt;<i> I'm not sure what may be causing your delays but I do have one 
+</I>&gt;&gt;<i> suggestion which may help mitigate some issues you are seeing: try 
+</I>&gt;&gt;<i> making any prins that you rez phantom and do not change that state 
+</I>&gt;&gt;<i> until the entire object is complete. This will eliminate a lot of 
+</I>&gt;&gt;<i> unnecessafy interaction with the physics engine and may improve 
+</I>&gt;&gt;<i> reliability and speed.
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> On Tue, Oct 6, 2009 at 2:03 PM, Shack Dougall &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">shack at liferain.com</A> 
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">shack at liferain.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     One part of Prim Composer is an LSL-based rezzing system that
+</I>&gt;&gt;<i>     creates a
+</I>&gt;&gt;<i>     build from notecard data.
+</I>&gt;&gt;<i>     <A HREF="http://liferain.com/downloads/primcomposer/">http://liferain.com/downloads/primcomposer/</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     In OpenSim 0.6.5, this system worked almost as good as in Second Life.
+</I>&gt;&gt;<i>     Unfortunately, it does not work well in 0.6.6 and is unusable in 0.6.7
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     *Test Platform*: Standalone, Windows XP, MySQL, ODE Physics,
+</I>&gt;&gt;<i>     Meshmerizer.  Other than this I use the defaults.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     So, the question is &quot;What is causing the problem?&quot;  What has changed
+</I>&gt;&gt;<i>     since 0.6.5 that causes the LSL rezzer to perform so badly?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     I have verified that the script engine defaults have not changed.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     *How the rezzer works*
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     The rezzer contains linksets with various numbers of prims, e.g.,
+</I>&gt;&gt;<i>     Linkset-10 is a linkset with 10 prims in it.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     1. The rezzer reads data out of a notecard. It sees how many prims
+</I>&gt;&gt;<i>     should be in the next linkset and rezzes a linkset from its inventory
+</I>&gt;&gt;<i>     with that number of prims.
+</I>&gt;&gt;<i>     2. When the linkset rezzes, the root prim tells the rezzer that it is
+</I>&gt;&gt;<i>     alive and the rezzer sends it the UUID and line number of a
+</I>&gt;&gt;<i>     notecard to
+</I>&gt;&gt;<i>     read via chat.  At this point, the rezzer goes back to Step 1.
+</I>&gt;&gt;<i>     3. The root prim then sends a link message to its children telling
+</I>&gt;&gt;<i>     them
+</I>&gt;&gt;<i>     the UUID and a line number to read.
+</I>&gt;&gt;<i>     4.  Each prim in the linkset then reads their data independently from
+</I>&gt;&gt;<i>     the notecard and then performs llSetPrimitiveParams to transform
+</I>&gt;&gt;<i>     themselves into the shape determined by the notecard data.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     It's actually a lot more complicated than that, but you get the idea.
+</I>&gt;&gt;<i>     So, lots of prims are being rezzed very quickly via LSL and each prim
+</I>&gt;&gt;<i>     has a script in it that reads notecard data and sets params.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     In 0.6.5, this process runs very smoothly--prims and scripts are
+</I>&gt;&gt;<i>     created
+</I>&gt;&gt;<i>     and execute quickly.  In 0.6.6 and above, something is happening that
+</I>&gt;&gt;<i>     drastically slows this process down.  Either the prims are rezzing
+</I>&gt;&gt;<i>     slower, or the scripts are starting slower or the scripts are
+</I>&gt;&gt;<i>     executing
+</I>&gt;&gt;<i>     slower.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     In any event, the difference is extreme.  It is bad in 0.6.6 and seems
+</I>&gt;&gt;<i>     to be even worse in 0.6.7.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Does anyone have any ideas or suggestions?  Is this a bug?  Is it an
+</I>&gt;&gt;<i>     inevitable fact of life?  Can it be improved?  What can I do to help
+</I>&gt;&gt;<i>     with the process?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     I'm more than happy to create a video showing the difference.  The LSL
+</I>&gt;&gt;<i>     scripts are open source.  I can also set you up with some test
+</I>&gt;&gt;<i>     data and
+</I>&gt;&gt;<i>     a copy of my maxport utility if anyone wants to try to reproduce
+</I>&gt;&gt;<i>     it.  It
+</I>&gt;&gt;<i>     is very easy to do.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Thanks in advance!  --Shack
+</I>&gt;&gt;<i>     _______________________________________________
+</I>&gt;&gt;<i>     Opensim-dev mailing list
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>   
+</I>&gt;&gt;<i>     
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>   
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007754.html">[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+</A></li>
+	<LI>Next message: <A HREF="007753.html">[Opensim-dev] How many Regions Opensim can stored?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7775">[ date ]</a>
+              <a href="thread.html#7775">[ thread ]</a>
+              <a href="subject.html#7775">[ subject ]</a>
+              <a href="author.html#7775">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

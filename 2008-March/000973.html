@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] robot simulation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20robot%20simulation&In-Reply-To=%3C732333.6168.qm%40web51304.mail.re2.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000972.html">
+   <LINK REL="Next"  HREF="000974.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] robot simulation</H1>
+    <B>dan miller</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20robot%20simulation&In-Reply-To=%3C732333.6168.qm%40web51304.mail.re2.yahoo.com%3E"
+       TITLE="[Opensim-dev] robot simulation">danbmil99 at yahoo.com
+       </A><BR>
+    <I>Sat Mar  1 06:35:04 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000972.html">[Opensim-dev] robot simulation
+</A></li>
+        <LI>Next message: <A HREF="000974.html">[Opensim-dev] robot simulation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#973">[ date ]</a>
+              <a href="thread.html#973">[ thread ]</a>
+              <a href="subject.html#973">[ subject ]</a>
+              <a href="author.html#973">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>--- Jordi &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mumismo at gmail.com</A>&gt; wrote:
+&gt;<i> Hi,
+</I>
+Welcome Jordi.  I do robotic simulation by day, and have been known to
+contribute to the physics plugins on nights and weekends.  I have goals very
+similar to your own.  A few points inline below.
+&gt;<i> 
+</I>&gt;<i> I am collaborating in the development of a robotic simulator (
+</I>&gt;<i> <A HREF="http://playerstage.sourceforge.net/wiki/Gazebo">http://playerstage.sourceforge.net/wiki/Gazebo</A>).
+</I>&gt;<i> I wanted to add a multiuser mode oriented to allow competitions. Searching
+</I>&gt;<i> around I have found OpenSim.
+</I>
+I used playerstage &amp; Gazebo while doing robotics at CMU.  The simulator I
+work on at my day job is similar in some ways to PS/G (we considered using
+it but for various reasons developed our own).  A common element to all
+these projects is ODE -- it's the physics engine under Gazebo, my work code,
+and is by far the most developed engine for Opensim.  Unfortunately there
+are many issues other than just the physics engine to consider before
+undertaking an integration.
+
+&gt;<i> 
+</I>&gt;<i> I have being asking about this in the chat channel and basically OpenSim
+</I>&gt;<i> lacks and needs to accommodate this kind of simulator at least the
+</I>&gt;<i> following:
+</I>&gt;<i> 
+</I>&gt;<i> - realistic physic simulation (IMHO
+</I>&gt;<i> <A HREF="http://www.adrianboeing.com/pal/index.html">http://www.adrianboeing.com/pal/index.html</A> is the way to go)
+</I>&gt;<i> - sensors: cameras (multicameras), lasers, contact, gyroscopes,
+</I>&gt;<i> temperature,
+</I>&gt;<i> microphones, GPS , etc.
+</I>&gt;<i> - joints, articulated bodies
+</I>&gt;<i> - code to make articulated bodies move, reach etc using the joints and the
+</I>&gt;<i> physic
+</I>&gt;<i> - External interfaces so that programs can control all that (in their own
+</I>&gt;<i> process without using scripting )
+</I>
+Yep, that's what opensim would need, to be able to do the kind of simulation
+we're discussing here.  However, problems arise when you start to think
+about how the server and client components are architected.  Second Life is
+basically a gamer world; the physics is there to impart a sense of realism. 
+However, most of what you see typically in SL involves scripting and
+animation, which often ignore physics completely.  Everything the server
+does has to be transmitted to each client over the internet, with variable
+delays, packet loss, etc.  The client is designed to try to produce an
+acceptable result in spite of these conditions.  The upshot is that the
+client frequently presents behavior to the user that is not exactly what the
+simulator is 'thinking', and is also not the same from client to client. 
+The most obvious example of this is in avatar animation, which is basically
+a client-side script.  I'm still a bit unclear how server-side scripting
+really works, but I imagine it's basically streaming messages to the client
+about the position, velocity, etc. of each object ('prim' in SL
+terminology).  There is no provision in the client to understand things like
+linkages, wheels, etc -- the client is very dumb, it just tries to show
+things where they are supposed to be.  It also does some interpolation of
+velocity between messages, which can cause quite a bit of mischief.
+
+The good news is that this project is really in its infancy, and there is an
+opportunity to get involved in something that is still baking in the oven. 
+The trickiest part will be to decide what can be done on the server side
+that will remain compatible with the Linden viewer, which will be the
+standard client-side application for the foreseeable future.  Alternatively,
+one could imagine extending the client side to do things more in line with a
+shared, deeply realistic simulation.  The OpenCroquet project seems to have
+been developed with this sort of thing in mind, but it's a research project,
+not something we've seen work in the real world (ie over the internet, with
+hundreds of users simultaneously).
+
+&gt;<i> What OpenSim has that our simulator lacks is :
+</I>&gt;<i> - multiuser environment
+</I>&gt;<i> - project visibility
+</I>&gt;<i> - Tons of tools, models, etc
+</I>&gt;<i> - Scripting
+</I>&gt;<i> - good navigation system in the world
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> I am considering switching efforts to OpenSim but I want to know if
+</I>&gt;<i> invasive
+</I>&gt;<i> changes like those would be welcomed. Keep in mind that the simulation
+</I>&gt;<i> will
+</I>&gt;<i> be much more computer intensive. Also, maintaining the interfaces for
+</I>&gt;<i> external programs can be tedious and get few users.
+</I>&gt;<i> Also, it seems that OpenViewer is in an early stage of development. Some
+</I>&gt;<i> of
+</I>&gt;<i> those changes would need support from the client.
+</I>&gt;<i> 
+</I>&gt;<i> Any comments welcomed.
+</I>&gt;<i> Mostly: it would be welcomed? Anyone interested in helping with this?
+</I>&gt;<i> 
+</I>well, I for one am very interested.  We can get into a deeper discussion of
+the technical challenges on IRC some time.  My moniker is danx0r.
+
+-dbm
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000972.html">[Opensim-dev] robot simulation
+</A></li>
+	<LI>Next message: <A HREF="000974.html">[Opensim-dev] robot simulation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#973">[ date ]</a>
+              <a href="thread.html#973">[ thread ]</a>
+              <a href="subject.html#973">[ subject ]</a>
+              <a href="author.html#973">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

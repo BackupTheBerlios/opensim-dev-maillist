@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Feature Request ...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Feature%20Request%20...&In-Reply-To=%3CBLU134-W2369B515290DADF843ECAED5F10%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004204.html">
+   <LINK REL="Next"  HREF="004207.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Feature Request ...</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Feature%20Request%20...&In-Reply-To=%3CBLU134-W2369B515290DADF843ECAED5F10%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Feature Request ...">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sat Dec 20 22:13:05 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004204.html">[Opensim-dev] Feature Request ...
+</A></li>
+        <LI>Next message: <A HREF="004207.html">[Opensim-dev] Feature Request ...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4205">[ date ]</a>
+              <a href="thread.html#4205">[ thread ]</a>
+              <a href="subject.html#4205">[ subject ]</a>
+              <a href="author.html#4205">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Excellent! We really need windows service wrappers for the various exe's.
+ 
+A couple of pointers:
+ 
+1) Since this is (in practice) a windows-only project, you should implement this as a 'forge' project;
+<A HREF="http://forge.opensimulator.org/gf/">http://forge.opensimulator.org/gf/</A>
+2) To be able to do so, you should implement the services as 'wrappers', separate applications that _use_ the Main Classes, not change or expand on them, like for example for the grid service wrapper:
+ 
+    partial class GridServ : ServiceBase    {        private GridServerBase m_gridApplication;
+        protected override void OnStart(string[] args)        {            // Define working directory (For a service, this is set to System dir by default...)            Process pc = Process.GetCurrentProcess();            string useDirectory = pc.MainModule.FileName.Substring(0, pc.MainModule.FileName.LastIndexOf(@&quot;\&quot;));            Directory.SetCurrentDirectory(useDirectory);
+            log4net.Config.XmlConfigurator.Configure();
+            m_gridApplication = new GridServerBase();
+            m_gridApplication.Startup();        }   }
+ 
+(This snippet taken from Tribal Medias proprietary service wrappers - feel free to copy+paste.)
+ 
+3) When you've done the wrappers, the next step is to add a method to communicate with the consoles. One way to go about it is to have the service process redirect the console in and output to a named pipe, and then supply a console app that listens/writes to those pipes.
+Best regards,Stefan AnderssonTribal Media AB
+
+
+
+Date: Sat, 20 Dec 2008 19:53:32 +0100From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Develope at Ashuan.deTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.deSubject</A>: [Opensim-dev] Feature Request ...
+
+
+
+Hi Friends,
+ 
+i wish to implement the feature to run all Gridcomponents (Userserver, Assetserver ....) as a Service.
+My work is now only to evaluate how easy or not it is ... it is easy .. but ...
+ 
+I must add an Reference to the System.ServiceProcess in several Project.
+Now my question ... 
+ 
+Is there a Problem doing this?
+And second how do i include an reference into a .patch-File?
+ 
+Kai
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081220/3374cc93/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081220/3374cc93/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004204.html">[Opensim-dev] Feature Request ...
+</A></li>
+	<LI>Next message: <A HREF="004207.html">[Opensim-dev] Feature Request ...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4205">[ date ]</a>
+              <a href="thread.html#4205">[ thread ]</a>
+              <a href="subject.html#4205">[ subject ]</a>
+              <a href="author.html#4205">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

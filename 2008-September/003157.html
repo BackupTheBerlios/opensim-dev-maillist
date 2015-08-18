@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Questions about attachment point and offset
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20attachment%20point%20and%20offset&In-Reply-To=%3C286a06680809300155v6114cf8s3626da991082b53d%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003152.html">
+   <LINK REL="Next"  HREF="003153.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Questions about attachment point and offset</H1>
+    <B>Tao YANG (GMAIL)</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Questions%20about%20attachment%20point%20and%20offset&In-Reply-To=%3C286a06680809300155v6114cf8s3626da991082b53d%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Questions about attachment point and offset">thomas.tao.yang at gmail.com
+       </A><BR>
+    <I>Tue Sep 30 10:55:10 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003152.html">[Opensim-dev] Questions about attachment point and offset
+</A></li>
+        <LI>Next message: <A HREF="003153.html">[Opensim-dev] [Opensim-commits] r6567 -	trunk/OpenSim/Region/Application
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3157">[ date ]</a>
+              <a href="thread.html#3157">[ thread ]</a>
+              <a href="subject.html#3157">[ subject ]</a>
+              <a href="author.html#3157">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Teravus,
+
+Thank you very much for replying.
+
+Attachment is a very important feature but it does not work well even in
+latest revision of OpenSim.
+I am curious and trying to do something to improve it.
+
+Sorry, I think maybe I did not ask the questions very clearly.
+Please let me explain again.
+
+1,2,3 are concerning to attachment point
+There are two places where attachment point is saved in recent source code.
+(r6463)
+One is saved in &quot;avatarattachments&quot; table in DB and there is no
+corresponding data structure in memory.
+The other is saved in &quot;assets&quot; table in DB, which is corresponding to
+SceneObjectGroup.m_rootPart.Shape.State in memory.
+When avatar logs in, the value of &quot;attachpoint&quot; field of &quot;avatarattachments&quot;
+table will be used to indicate the attachment point if some prim of
+inventory should be attached.
+When avatar wears some prim, the value of
+&quot;SceneObjectGroup.m_rootPart.Shape.State&quot; will be used.
+I wonder why there exist two places to save the value of attachment point at
+the same time.
+
+4,5,6 are concerning to attachment offset
+Yes, I can understand that many kinds of data could be saved in &quot;data&quot; filed
+of &quot;assets&quot; table, that SceneObjectGroup.RootPart.Shape.PCode can
+distinguish them.
+What I am not sure is if SceneObjectGroup.RootPart.Shape.PCode ==
+PCode.Prim, how to know whether it is being attached (being worn) or not.
+
+Next is about the value of the offset.
+In my opinion, after being attached to avatar or being taken to avatar's
+inventory from grand, there should not remain the concept which directly
+indicates the absolute position of an object(prim).
+We can know the absolute position of it by the fomular which looks like the
+following,
+A = B + C + D
+A: absolute position of an attached object
+B: absolute position of the owner
+C: offset of attachment point to the avatar
+D: offset of prim to attachment point
+(C and D could be combined)
+So I guess,
+  if prim is being attached, SceneObjectGroup.AbsolutePosition is the offset
+of attachment.  ex. (-1.23463, 6.54345, -0.36323)
+  if prim is not being attached, SceneObjectGroup.AbsolutePosition should be
+zero. ex. (0, 0, 0)
+But I noticed that the value of &quot;GroupPosition&quot; is not (0, 0, 0) but the
+absolute position in region even though the prim is not being attached.
+And I could not see the attached prim on the screen sometime because
+attachment point is not 0, but the value of offset is very large such as
+(128.234, 130.6434, 21.4536) in some strange cases.
+
+I wonder the concept and original design here.
+
+Thanks
+Thomas
+
+2008/9/29 Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt;
+
+&gt;<i> 1.  Shape.State is where the data is saved in the object itself.  It's
+</I>&gt;<i> saved there because there are 'other things' that go there as well..
+</I>&gt;<i> like the Tree type.  It also gets persisted.   Attachment point is
+</I>&gt;<i> not.  Do you want to keep picking the attachment point when wearing an
+</I>&gt;<i> item, or do you want it to remember?
+</I>&gt;<i>
+</I>&gt;<i> 2. ??
+</I>&gt;<i> 3. ??
+</I>&gt;<i> 4. Because you don't look at the asset table alone ever.   You always
+</I>&gt;<i> look at it in the context of an inventory item.   There could be many
+</I>&gt;<i> inventory items referring to the same asset. (but in practice this is
+</I>&gt;<i> rarely the case)
+</I>&gt;<i> 5.  Yes.  If you have it in SceneObjectGroup, there's actually a
+</I>&gt;<i> method to call to determine if it's an attachment for you.
+</I>&gt;<i> 6.  Technically, you could pull out the asset data from the assets
+</I>&gt;<i> table, decode it, and search for prim with a State that is nonzero and
+</I>&gt;<i> a pcode = [to the enum value PCode.Prim]
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 9/28/08, Tao YANG (GMAIL) &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">thomas.tao.yang at gmail.com</A>&gt; wrote:
+</I>&gt;<i> &gt; Hi everyone,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Could anyone kindly answer the following questions?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 1. Why attachment point is saved in both &quot;avatarattachments&quot; table and
+</I>&gt;<i> &gt; &quot;SceneObjectGroup.m_rootPart.Shape.State&quot; at the same time
+</I>&gt;<i> &gt; 2. Why the one saved in &quot;avatarattachments&quot; table is used when avatar
+</I>&gt;<i> logs
+</I>&gt;<i> &gt; in?
+</I>&gt;<i> &gt; 3. Why the one saved in
+</I>&gt;<i> &gt; &quot;SceneObjectGroup.m_rootPart.Shape.State&quot; when &quot;wear&quot;?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 4. Why attachment offset is not saved in &quot;avatarattachments&quot; table
+</I>&gt;<i> &gt;     but &quot;SceneObjectGroup.m_rootPart.GroupPosition&quot;, which
+</I>&gt;<i> &gt; is converted to &quot;X&quot;, &quot;Y&quot;, &quot;Z&quot; sub-elements of &quot;GroupPosition&quot; element in
+</I>&gt;<i> the
+</I>&gt;<i> &gt; &quot;data&quot; filed of &quot;assets&quot; table?
+</I>&gt;<i> &gt; 5. Is &quot;SceneObjectGroup.AbsolutePosition&quot; used as
+</I>&gt;<i> &gt; attachment offset when a prim is attached?
+</I>&gt;<i> &gt; 6. If the anser of Q.5 is &quot;YES&quot;, how to know whether the prim is attached
+</I>&gt;<i> or
+</I>&gt;<i> &gt; not when reading &quot;data&quot; from &quot;assets&quot; table?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Thanks in advance
+</I>&gt;<i> &gt; Thomas
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080930/e795fe12/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080930/e795fe12/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003152.html">[Opensim-dev] Questions about attachment point and offset
+</A></li>
+	<LI>Next message: <A HREF="003153.html">[Opensim-dev] [Opensim-commits] r6567 -	trunk/OpenSim/Region/Application
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3157">[ date ]</a>
+              <a href="thread.html#3157">[ thread ]</a>
+              <a href="subject.html#3157">[ subject ]</a>
+              <a href="author.html#3157">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

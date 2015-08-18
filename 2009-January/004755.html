@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] proposal: cleanup and break up region modules
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20proposal%3A%20cleanup%20and%20break%20up%20region%20modules&In-Reply-To=%3C4981C6D4.3030209%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004754.html">
+   <LINK REL="Next"  HREF="004751.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] proposal: cleanup and break up region modules</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20proposal%3A%20cleanup%20and%20break%20up%20region%20modules&In-Reply-To=%3C4981C6D4.3030209%40googlemail.com%3E"
+       TITLE="[Opensim-dev] proposal: cleanup and break up region modules">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Jan 29 16:10:12 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004754.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+        <LI>Next message: <A HREF="004751.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4755">[ date ]</a>
+              <a href="thread.html#4755">[ thread ]</a>
+              <a href="subject.html#4755">[ subject ]</a>
+              <a href="author.html#4755">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sean Dague wrote:
+&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> Sean Dague wrote:
+</I>&gt;&gt;&gt;<i> MW wrote:
+</I>&gt;&gt;&gt;&gt;<i> Putting aside the optimisations for now, as I think that is a different question. As if we are going to have a dynamic module system then those issues come with it.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> While I think having every module in a separate dll/project is too much. As Stefan said I think we have just about enough projects in the core as it is. But I can see a case for moving all the modules that are currently in OpenSim.Region.Environment, into a single separate project/dll called something like OpenSim.Region.CoreModules. 
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> And if we could as Justin said, impove the module loading system, so that the operator can turn on and off the loading/usage of any modules in a single dll. 
+</I>&gt;&gt;&gt;<i> Ah, but the problem is then those all need to release at the same time.
+</I>&gt;&gt;&gt;<i>  One of the reasons to get us into seperate dlls per module is so that
+</I>&gt;&gt;&gt;<i> the IRC module could be updated and distributed without pushing out the
+</I>&gt;&gt;&gt;<i> rest of the dll.
+</I>&gt;&gt;<i> I would actually argue that in this particular case the IRC module is not a core module and should be in the forge.
+</I>&gt;<i> 
+</I>&gt;<i> But that's really saying 2 things.  It should be a seperate dll, and it
+</I>&gt;<i> should be in a seperate source tree.  I'm personally not a fan of doing
+</I>&gt;<i> both of those things at once, because they are seperate things, and it's
+</I>&gt;<i> easy to forget that.
+</I>
+This is the case if we have a separate assembly for all modules, but if one has a single dll for all core modules then 
+they really aren't separate things.  If one finds oneself wanting to update a single module that doesn't provide 
+functionality that almost everybody will use (such as irc), then that module is not core and should be in its own 
+assembly.  And non-core modules in their own assemblies shouldn't really be shipped with core OpenSim in the long term - 
+they should be in the forge or hosted elsewhere.
+
+&gt;<i> 
+</I>&gt;&gt;&gt;<i> It would mean that we would easily be able to replace implementations
+</I>&gt;&gt;&gt;<i> for various core modules without needing to touch the rest.  For
+</I>&gt;&gt;&gt;<i> instance, when diva started to tackle the world map issue, she not only
+</I>&gt;&gt;&gt;<i> had to build her own world map, but to change the one in the core to not
+</I>&gt;&gt;&gt;<i> load.  Had we been under this model, she wouldn't have needed to do that.
+</I>&gt;&gt;<i> This would still mean that people would have to move the dll being included in core so that it was no longer loaded by 
+</I>&gt;&gt;<i> the system.  To me, this seems no less of a task than having a configurable list of modules that are loaded.  Having to 
+</I>&gt;&gt;<i> move dlls also means that it isn't easy to pass configuration files around - instead you have to give instructions or 
+</I>&gt;&gt;<i> scripts for moving around modules in the filesystem.
+</I>&gt;<i> 
+</I>&gt;<i> This comes back to the addins question.  Having seen this work pretty
+</I>&gt;<i> well with gnome-do, I think that gets addressed seperately, including
+</I>&gt;<i> the ability to notify you of new upstream modules and download them.
+</I>
+Yes, there may well be some interaction here with how mono.addins wants to work.
+
+&gt;<i> 
+</I>&gt;&gt;&gt;<i> Don't fear the projects, more projects don't hurt you. :)
+</I>&gt;&gt;<i> But in this case they do, in terms of cluttering up the solution with lots and lots of projects that are all used anyway 
+</I>&gt;&gt;<i> in almost all OpenSim installations and possible in terms of increasing build times (I admit that I may be paranoid on 
+</I>&gt;&gt;<i> this point and there might be ways to fix this via nant changes).  It will also increase the effort required for 
+</I>&gt;&gt;<i> refactoring existing code into modules, since creating a new project takes more time.
+</I>&gt;<i> 
+</I>&gt;<i> So we should put all the database drivers into a single dll?  As a Linux
+</I>&gt;<i> user I'm pained far more by filesystem cluster and mismatch of classname
+</I>&gt;<i> to .cs file, or dll to directory.
+</I>
+I'm not advocating it, but why not if they're all core supported databases?  One reason is that they all contain modules 
+which implement the same set of interfaces, so one has to choose between them.  At the moment one of the only way we 
+have to do this is by specifying dlls in OpenSim.ini (the other way is having the modules enable/disable depending on 
+passed in config, which is nasty).  If there were another way to specify enable/disable then one could put them all in a 
+single dll.
+
+One can go the other way and say that why shouldn't we modularize more and put each individual database service (asset, 
+inventory, etc.) into its own module, so that we end up with 21 of them (not counting nhibernate stuff)?  After all, 
+people might want to host different services on different 'databases' (e.g. assets as files in a filesystem, user data 
+in LDAP and inventory data in MySQL).  You still end up with the issue of how to selectively enable/disable stuff 
+whether you put them in separate dlls or all in one.
+
+&gt;<i> 
+</I>&gt;<i> We've already decided that seperation and organization is needed, look
+</I>&gt;<i> at all the structure in the OpenSim/Region/Environment/Modules directory
+</I>&gt;<i> tree.
+</I>&gt;<i> 
+</I>&gt;<i> That being said, this isn't an all or nothing approach.  I'd say step
+</I>&gt;<i> one, lets get the modules into a seperate dll (like diva suggested).
+</I>&gt;<i> Then we can experiment with some level break up and see if it does cause
+</I>&gt;<i> the end of the world. :)  If so, we can quickly go back.
+</I>
+I agree with what other people have said - these would be better off as a separate dll.  And by all means experiment 
+once this is done, but I would really not want to see us slide into something that more people have expressed concern 
+about than support for, at least not without seeing some more convincing arguments/evidence that the benefits outweigh 
+the cons (or that the cons are unfounded).
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004754.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+	<LI>Next message: <A HREF="004751.html">[Opensim-dev] proposal: cleanup and break up region modules
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4755">[ date ]</a>
+              <a href="thread.html#4755">[ thread ]</a>
+              <a href="subject.html#4755">[ subject ]</a>
+              <a href="author.html#4755">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

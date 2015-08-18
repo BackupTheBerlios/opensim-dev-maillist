@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Fwd: Issue 1096 in singularity-viewer: [AVFACTORY]: Missing baked texture spamming console
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fwd%3A%20Issue%201096%20in%20singularity-viewer%3A%20%5BAVFACTORY%5D%3A%0A%20Missing%20baked%20texture%20spamming%20console&In-Reply-To=%3CCAG6z%2BU4LB%2BTzhb9g17Y_Sra0J60YJmkqXxh0wFcrz82_2vw6rA%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011969.html">
+   <LINK REL="Next"  HREF="011971.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Fwd: Issue 1096 in singularity-viewer: [AVFACTORY]: Missing baked texture spamming console</H1>
+    <B>Fleep Tuque</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Fwd%3A%20Issue%201096%20in%20singularity-viewer%3A%20%5BAVFACTORY%5D%3A%0A%20Missing%20baked%20texture%20spamming%20console&In-Reply-To=%3CCAG6z%2BU4LB%2BTzhb9g17Y_Sra0J60YJmkqXxh0wFcrz82_2vw6rA%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Fwd: Issue 1096 in singularity-viewer: [AVFACTORY]: Missing baked texture spamming console">fleep513 at gmail.com
+       </A><BR>
+    <I>Mon Oct 14 17:12:31 CEST 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011969.html">[Opensim-dev] Test: opensm with PostGreSQL connection - Crash...
+</A></li>
+        <LI>Next message: <A HREF="011971.html">[Opensim-dev] Fwd: Issue 1096 in singularity-viewer: [AVFACTORY]: Missing baked texture spamming console
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11970">[ date ]</a>
+              <a href="thread.html#11970">[ thread ]</a>
+              <a href="subject.html#11970">[ subject ]</a>
+              <a href="author.html#11970">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm not sure if there is already a mantis bug report on this and I don't
+have time right this second to look, but thought I'd forward this message
+along as an FYI.  I recall having some discussions about this with Justin
+and Neb prior to OSCC but I don't recall what the resolution was if any.
+
+- Chris/Fleep
+
+---------- Forwarded message ----------
+From: &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">singularity-viewer at googlecode.com</A>&gt;
+Date: Mon, Oct 14, 2013 at 10:35 AM
+Subject: Re: Issue 1096 in singularity-viewer: [AVFACTORY]: Missing baked
+texture spamming console
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">fleep513 at gmail.com</A>
+
+
+
+Comment #1 on issue 1096 by <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jayden.b... at gmail.com</A>: [AVFACTORY]: Missing
+baked texture spamming console
+<A HREF="http://code.google.com/p/**singularity-viewer/issues/**detail?id=1096&lt;http://code.google.com/p/singularity-viewer/issues/detail?id=1096">http://code.google.com/p/**singularity-viewer/issues/**detail?id=1096&lt;http://code.google.com/p/singularity-viewer/issues/detail?id=1096</A>&gt;
+
+As a very interested observer of this issue, but not a Singu team member
+just a user, I would like to make a hopefully helpful comment and also
+confirm this issue.
+
+I noticed this issue about 2 weeks ago and have been testing extensively
+since then as I too suffered it.
+
+I have mostly solved the byproduct; the error message in the log (not the
+root cause) by enabling the server cache (copy the FlotsamCache.ini.example
+to FlotsamCache.ini - OS setup documents mostly forget to constantly tell
+people this rather important step &gt;.&gt;).
+
+As a side effect loads are also much faster.
+
+Googlefu found and confirmed that enabling *both* memory and disk caching
+in the FlotsamCache.ini file must be done to remove the error. (Devs:
+Remind me to add the cross reference to OpenSim's mantis later. hehe.)
+
+With 2 weeks solid testing, it seems at least on my OS regions if you don't
+have both settings set to on then the baked textures are obtained by the
+server on TP in, but not applied and then lost by the OpenSim server as it
+deals with everything else before finally rendering you. Before this
+workaround, on my regions at least, when it came time to render the avatar
+I saw the warning in the logs. The previously sent but lost (due to
+insufficient server caching) baked textures are thus re-requested and
+applied and you finally turn from cloud to avatar.
+
+(As a hint to the reporter, I also bumped up my cache retention quite a lot
+as my three regions are not so high traffic. I can afford the ram and disk
+to hold things for 3 days to a week even. YMMV depending on scenes and
+visitors.)
+
+All that said:
+
+There is STILL the root cause to this issue as I see it, in that the baked
+textures for a new person to the region - to my inexpert eyes looking at
+both server and client logs in depth - are done at the wrong interest level
+or lost by the server. As a hint to any developer who looks at this in the
+future; it's almost looks like the avatar needs to be baked, rendered and
+placed in world before the world is drawn around it... as an alternative,
+there could be a new step included in the initial region processes... draw
+a known default texture as skin/eyes until the baked texture is ready.
+
+I suspect Cool does this by displaying a blank white skin, but I've not yet
+bothered digging into Henri's code to see his differences. Avatars on Cool
+do rez super fast, but they come in as blank textured, 0xFFFFFF coloured
+and remain that way it seems for as long as Singu people are clouds. It's
+better to look at.
+
+((Votes +1 for return of your shape but 0xFFFFFF skinned Ruths))
+
+No matter what viewer though... My own server logs after this flotsam
+change is made show new people to the region will be unbaked for a while.
+Far less than without a server cache though. Some people will need to force
+rebake. But the error is gone.
+
+As a respectful triage hint... I'd love to be proven wrong but this seems
+like it's an OpenSim root cause, but I do feel Singu could handle that
+failure better. I should discuss it one day in depth with a dev when new
+people into my region stay as a cloud.
+
+
+
+Reporter: If you have fcache turned on with both memory and hard disk and
+are seeing those errors then my findings are for a different bug. But as
+the error messages were the same 2 weeks ago and I've not had one since...
+it is worth writing this.
+
+
+/me leaves it for the very capable Singu team to research/triage further. ;)
+
+-- 
+You received this message because you starred the issue.
+You may adjust your notification preferences at:
+<A HREF="https://code.google.com/**hosting/settings&lt;https://code.google.com/hosting/settings">https://code.google.com/**hosting/settings&lt;https://code.google.com/hosting/settings</A>&gt;
+
+Reply to this email to add a comment.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20131014/10f5e8fb/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20131014/10f5e8fb/attachment.html</A>&gt;
+</PRE>
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011969.html">[Opensim-dev] Test: opensm with PostGreSQL connection - Crash...
+</A></li>
+	<LI>Next message: <A HREF="011971.html">[Opensim-dev] Fwd: Issue 1096 in singularity-viewer: [AVFACTORY]: Missing baked texture spamming console
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11970">[ date ]</a>
+              <a href="thread.html#11970">[ thread ]</a>
+              <a href="subject.html#11970">[ subject ]</a>
+              <a href="author.html#11970">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

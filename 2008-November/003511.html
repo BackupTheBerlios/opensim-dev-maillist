@@ -1,0 +1,258 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Renaming innerscene
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Renaming%20innerscene&In-Reply-To=%3C275643.77926.qm%40web23004.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003510.html">
+   <LINK REL="Next"  HREF="003512.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Renaming innerscene</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Renaming%20innerscene&In-Reply-To=%3C275643.77926.qm%40web23004.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Renaming innerscene">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Thu Nov  6 17:26:17 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003510.html">[Opensim-dev] Renaming innerscene
+</A></li>
+        <LI>Next message: <A HREF="003512.html">[Opensim-dev] Renaming innerscene
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3511">[ date ]</a>
+              <a href="thread.html#3511">[ thread ]</a>
+              <a href="subject.html#3511">[ subject ]</a>
+              <a href="author.html#3511">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yeah I don't care what base class the actual link/etc code goes in. Just meant there should be some seperation of the levels. So I was actually thinking of SceneObjectGroup as part of the InnerScene level and not at this point really concerned which class has which functions. 
+
+And with SceneObjectPart I believe the general opinion of just about everyone is that we should get rid of it and just have SceneObjects. 
+
+&quot;Frisby, Adam&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; wrote:                        I actually think that linking/etc probably doesn&#146;t belong in scene.
+   
+  Rather &#150; it belongs in SceneObjectGroup &#150; I actually think that SceneObjectPart doesn&#146;t belong in Scene either.
+   
+  Eg:
+   
+  InnerScene -&gt; IEntity[]
+   
+  IEntity[] += SceneObjectGroup
+   
+  SceneObjectGroup Parts[];
+   
+  We do the conversions/etc in LLClientView and other clientstacks which support a IClientPrimitive interface.
+   
+  Adam
+   
+   
+        From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Michael Wright
+ Sent: Thursday, 6 November 2008 8:01 AM
+ To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+ Subject: Re: [Opensim-dev] Renaming innerscene
+  
+  
+   
+  Well parts of the Linking /attaching code would need to be in there. The code to actually connect the prims. But the actually handling of the client commands and anything above the actual connect commands should be in the Region level. Like with attachments if we update the attachment db list, that should be handled in the Region level. 
+ 
+ Same with Rezzing a object. There would be a base command in the InnerScene to add a new prim(s), but the handling of the Client command, and the fetching of the Prim data from Inventory would be a higher level function. 
+ 
+ So I just mean we should keep the very base level of functionality related to the 3D objects in the InnerScene. And anything above that should be in a high level. 
+ 
+ Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+  Michael Wright wrote:
+ &gt; Well I think the plan/design was always meant to be based on functional 
+ &gt; units. Region/current Scene was never meant to be a metadata wrapper 
+ &gt; around InnerScene. It was meant to contain high level functions, at the 
+ &gt; region level. Like rezzing a object/ derezzing a object. Linking 
+ &gt; objects, attaching objects to a Avatar. I wouldn't class those as base 
+ &gt; scene level functions. And they can be seperated however we want.
+ 
+ So what kind of things would be in InnerScene/SceneGraph, if not things link linking/delink and attachment/detachment 
+ (both of which are there at the moment)? I'm not that familiar with exactly what one would normally expect to be in a 
+ scene graph, coming as I do from an enterprise programming environment.
+ 
+ &gt; 
+ &gt; I just firmly believe we should have a base layer that has the 
+ &gt; functionality that is focused on the 3D and sending/receiving clients 
+ &gt; related to the movement of objects in the scene.
+ &gt; 
+ &gt; */Justin Clark-Casey /* wrote:
+ &gt; 
+ &gt; Heh, InnerScene has always confused me too - interesting to find out
+ &gt; that nobody remembers what it was for (as Alan
+ &gt; alluded to, this shows the value of writing embedded class level
+ &gt; code documentation ;)
+ &gt; 
+ &gt; I agree with Melanie - I feel that ultimately a split into
+ &gt; functional units would be better than having two classes, one
+ &gt; containing all region related information and one providing scene
+ &gt; services. Especially if the outer class just wraps
+ &gt; the inner classes' methods (but I suspect that wouldn't be the plan).
+ &gt; 
+ &gt; I assume that the conceptual difference between scene and a region
+ &gt; is that the first provides the core simulation
+ &gt; services while the latter consists of metadata (e.g. which region
+ &gt; the scene represents). If there was a separate region
+ &gt; class, I'm not convinced that there would be very much in it, beyond
+ &gt; what is already in RegionInfo.
+ &gt; 
+ &gt; 
+ &gt; Melanie wrote:
+ &gt; &gt; As one who has spent a lot of time in InnerScene with the local
+ &gt; &gt; dragons, I see that in lots of cases, even having it InnerScene at
+ &gt; &gt; all complicates things horrendously.
+ &gt; &gt; There are actions that change between Scene and InnerScene 4 times
+ &gt; &gt; to get the job done. That could be done much more efficiently if
+ &gt; &gt; those methods were combined and then split up into functional units,
+ &gt; &gt; rather than &quot;3d&quot; scoped.
+ &gt; &gt;
+ &gt; &gt; One flow I found was like this:
+ &gt; &gt;
+ &gt; &gt; Caller calls Scene:A
+ &gt; &gt; Scene:A calls InnerScene:A
+ &gt; &gt; Scene:A calls Scene:B
+ &gt; &gt; Scene:A calls InnerScene:C
+ &gt; &gt; InnerScene:C calls Scene:C
+ &gt; &gt; Scene:A returns.
+ &gt; &gt;
+ &gt; &gt; This is overcomplex and baffling to new coders. I am not surprised
+ &gt; &gt; that many people choose not to touch it.
+ &gt; &gt;
+ &gt; &gt; Needless to say, I removed the above flow and made it into a single
+ &gt; &gt; call into InnerScene. It was part of attachment rezzing. When i did
+ &gt; &gt; that, I streamlined that flow.
+ &gt; &gt;
+ &gt; &gt; I believe InnerScene and Scene should not be separate, or not be
+ &gt; &gt; separated along the line they are separated now.
+ &gt; &gt;
+ &gt; &gt; On the name, I don't really care.
+ &gt; &gt;
+ &gt; &gt; +-0 there.
+ &gt; &gt;
+ &gt; &gt; Melanie
+ &gt; &gt;
+ &gt; &gt;
+ &gt; &gt; Frisby, Adam wrote:
+ &gt; &gt;&gt; +1'ing,
+ &gt; &gt;&gt;
+ &gt; &gt;&gt; I had no idea what InnerScene was for myself.
+ &gt; &gt;&gt;
+ &gt; &gt;&gt; Adam
+ &gt; &gt;&gt;
+ &gt; &gt;&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+ &gt; [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Michael
+ &gt; Wright
+ &gt; &gt;&gt; Sent: Thursday, 6 November 2008 5:22 AM
+ &gt; &gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+ &gt; &gt;&gt; Subject: [Opensim-dev] Renaming innerscene
+ &gt; &gt;&gt;
+ &gt; &gt;&gt; A long time ago, we started the process of separating the 3d
+ &gt; scene handling code into its own class, rather than having it mixed
+ &gt; in with more region level code, like rezzing/inventory handling.
+ &gt; &gt;&gt;
+ &gt; &gt;&gt; It was always planned to renamed the InnerScene and Scene
+ &gt; classes, once this separation of the 3d scene graph code was
+ &gt; completed. The original plan being that Scene became Region (or
+ &gt; something like that) and InnerScene changed to Scene.
+ &gt; &gt;&gt;
+ &gt; &gt;&gt; It might be a bit to much work to rename the Scene class at this
+ &gt; stage. But what are everyone thoughts on renaming InnerScene to
+ &gt; something like SceneGraph.
+ &gt; &gt;&gt;
+ &gt; &gt;&gt; I think the InnerScene class is one of the more confusing areas
+ &gt; as a lot new coders aren't really aware what design role it is meant
+ &gt; to play.
+ &gt; &gt;&gt;
+ &gt; &gt;&gt;
+ &gt; &gt;&gt;
+ &gt; &gt;&gt;
+ &gt; &gt;&gt;
+ &gt; &gt;&gt;
+ &gt; ------------------------------------------------------------------------
+ &gt; &gt;&gt;
+ &gt; &gt;&gt; _______________________________________________
+ &gt; &gt;&gt; Opensim-dev mailing list
+ &gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+ &gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+ &gt; &gt; _______________________________________________
+ &gt; &gt; Opensim-dev mailing list
+ &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+ &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+ &gt; &gt;
+ &gt; 
+ &gt; 
+ &gt; -- 
+ &gt; justincc
+ &gt; Justin Clark-Casey
+ &gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+ &gt; _______________________________________________
+ &gt; Opensim-dev mailing list
+ &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+ &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+ &gt; 
+ &gt; 
+ &gt; 
+ &gt; ------------------------------------------------------------------------
+ &gt; 
+ &gt; _______________________________________________
+ &gt; Opensim-dev mailing list
+ &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+ &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+ 
+ 
+ -- 
+ justincc
+ Justin Clark-Casey
+ <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+ _______________________________________________
+ Opensim-dev mailing list
+ <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+ <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+   
+    
+  
+  
+  _______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081106/5030d698/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081106/5030d698/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003510.html">[Opensim-dev] Renaming innerscene
+</A></li>
+	<LI>Next message: <A HREF="003512.html">[Opensim-dev] Renaming innerscene
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3511">[ date ]</a>
+              <a href="thread.html#3511">[ thread ]</a>
+              <a href="subject.html#3511">[ subject ]</a>
+              <a href="author.html#3511">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

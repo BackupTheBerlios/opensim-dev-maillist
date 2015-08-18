@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] weird idea #1: lightweight agent/ spectator
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20weird%20idea%20%231%3A%20lightweight%20agent/%20spectator&In-Reply-To=%3C72C1C9E5780A134F896530D480F22BB702F46588%40hermes.bitlab.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004691.html">
+   <LINK REL="Next"  HREF="004698.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] weird idea #1: lightweight agent/ spectator</H1>
+    <B>Dirk Krause</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20weird%20idea%20%231%3A%20lightweight%20agent/%20spectator&In-Reply-To=%3C72C1C9E5780A134F896530D480F22BB702F46588%40hermes.bitlab.de%3E"
+       TITLE="[Opensim-dev] weird idea #1: lightweight agent/ spectator">dirk.krause at pixelpark.com
+       </A><BR>
+    <I>Mon Jan 26 14:24:39 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004691.html">[Opensim-dev] weird idea #1: lightweight agent/ spectator
+</A></li>
+        <LI>Next message: <A HREF="004698.html">[Opensim-dev] weird idea #1: lightweight agent/ spectator
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4693">[ date ]</a>
+              <a href="thread.html#4693">[ thread ]</a>
+              <a href="subject.html#4693">[ subject ]</a>
+              <a href="author.html#4693">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Well, I don't dare to hope this ... but if there would be an existing approach that relieves the bottleneck even for normal avatars - this would be obviously tremendously better!
+
+Two points:
+- if it would be worthwhile to think about how to implement such a thing, it might be good to introduce a second avatar mechanism ('lightweight' or whatever) to not break the compatibility. Because from what you write my feeling is that the update per head movement dilemma is an inherent 'feature' of the whole grid thought.
+
+- about the five threads: are these corresponding to the roundabout additional 5 processes I see when I log in to a Linux box? I ask because I found out (and documented in a previous mail) that these threads add up over time when you log in and out. So the overall number of processes increases over time by simply logging an agent in and out again. If this is the case then this might be a bug worth to be mantissed.
+
+
+
+-----Urspr&#252;ngliche Nachricht-----
+Von: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] Im Auftrag von Sean Dague
+Gesendet: Montag, 26. Januar 2009 14:03
+An: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Betreff: Re: [Opensim-dev] weird idea #1: lightweight agent/ spectator
+
+Dahlia Trimble wrote:
+&gt;<i> I thought that the biggest contributors to agent related overhead were 
+</I>&gt;<i> the object updates and asset downloads that had to be sent to each 
+</I>&gt;<i> viewer - not sure that a &quot;simple observer&quot; would reduce that overhead all that much.
+</I>&gt;<i> Perhaps if these data transfers could somehow be offloaded from the 
+</I>&gt;<i> host that was managing the scene, some sort of &quot;sharding&quot; but only 
+</I>&gt;<i> scene content and updates, and let the clients still send their 
+</I>&gt;<i> individual updates to the main host? This may accomplish something similar to what you are describing.
+</I>
+A year ago a China research team at IBM went digging here, did a bunch of changes, and got up to 1000 pCampbots running around at once.
+Unfortunately they threw the baby out with the bathwater in what they optimized away, so it wasn't useful for anything other than their experiment.
+
+What was learned in that process, as I sifted through results, is we've got this N^2 bottle neck on avatars that is really our issue.  My information is a bit out of date, as its been a few months since I've been in Clientview, so corrections here would be appreciated.
+
+When an avatar moves it's head that information needs to be propogated around to  everyone else in the environment.  That's N new packets.  But in any real situation all Avatars are moving around, or looking around, or in other ways asking the server to send around updates.  And they need to send as many updates as avatars in the environment.
+
+Part of the problem is the sender is in the Clientview.  So in order to get that packet back out you need to get it in, distribute it to your 20 client view threads, then signal them all, and they send things back out.  Because they have to look up a bunch of info, there is a whole series of locks in those Clientviews that get taken all the time.  And I mean *all* the time.  At some point we're effectively spending more time dealing with locks then doing anything else.  People in a Linux environment running the serverstats plugin will see this as the Systemtime spike.  At some point System Time ends up consuming more processor than User Time, which is very bad.  That means lots of context switches into your kernel.
+
+One solution here would be to get the execution out of clientview, and have a single network stack for OpenSim.  User clientviews to convert packets to objects, and objects to packets, but don't let it send them.
+ Leave that up to a global packet system.  That would also let you damp bandwidth at a global level, which today, there isn't really a view off, because each client view is rather isolated with it's own execution stack (5 threads or so).  It turns out that in this case our paralism is actually slowing us down.
+
+That would take a good chunk of work, and it would probably break stuff for a while, both of which is why I've not gone after it.  It could also be a wrong approach, given other data on the table.
+
+At any rate, I really think we need to be able to do 40 full avatars prior to opening things up for lightweight avatars, that will drive more load (though not N^2 load if we don't give them an appearance or animations or look at updating).
+
+	-Sean
+
+--
+Sean Dague / Neas Bade
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+<A HREF="http://dague.net">http://dague.net</A>
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004691.html">[Opensim-dev] weird idea #1: lightweight agent/ spectator
+</A></li>
+	<LI>Next message: <A HREF="004698.html">[Opensim-dev] weird idea #1: lightweight agent/ spectator
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4693">[ date ]</a>
+              <a href="thread.html#4693">[ thread ]</a>
+              <a href="subject.html#4693">[ subject ]</a>
+              <a href="author.html#4693">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Supporting shell environment variables
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Supporting%20shell%20environment%20variables&In-Reply-To=%3C4ECEA6B5.9010506%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010767.html">
+   <LINK REL="Next"  HREF="010769.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Supporting shell environment variables</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Supporting%20shell%20environment%20variables&In-Reply-To=%3C4ECEA6B5.9010506%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Supporting shell environment variables">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Nov 24 21:19:01 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010767.html">[Opensim-dev] Supporting shell environment variables
+</A></li>
+        <LI>Next message: <A HREF="010769.html">[Opensim-dev] Overte Foundation Contributor License Agreements	updated
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10768">[ date ]</a>
+              <a href="thread.html#10768">[ thread ]</a>
+              <a href="subject.html#10768">[ subject ]</a>
+              <a href="author.html#10768">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks for the reply, BlueWall.  Response below.
+
+On 24/11/11 02:00, BlueWall wrote:
+&gt;<i> On 11/23/2011 05:54 PM, Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> Hi BlueWall. Nice work. I do have some comments
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> * Will this work with all config sections, not just Environment? (e.g.
+</I>&gt;&gt;<i> ${DataService|ConnectionString}
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> The [Environment] section is actually created internally by nini when the EnvConfigSource is created. It is only a place
+</I>&gt;<i> for the user to set the keys that will be read from the environment, and that section will maintain them.
+</I>&gt;<i>
+</I>&gt;<i> Now, you are able to use any key in it's own section, or any other. You could do something like...
+</I>&gt;<i>
+</I>&gt;<i> [Network]
+</I>&gt;<i> SRV_HOST=&quot;<A HREF="http://ascent.bluewallgroup.com">http://ascent.bluewallgroup.com</A>&quot;
+</I>&gt;<i>
+</I>&gt;<i> [InventoryService]
+</I>&gt;<i> InventoryServerURI = ${Network|SRV_HOST}:8003
+</I>&gt;<i>
+</I>&gt;<i> [AvatarService]
+</I>&gt;<i> AvatarServerURI = ${Network|SRV_HOST}:8003
+</I>&gt;<i>
+</I>&gt;<i> [PresenceService]
+</I>&gt;<i> PresenceServerURI = ${Network|SRV_HOST}:8003
+</I>&gt;<i>
+</I>&gt;<i> ... We could have been doing that all along. It was already part of Nini.
+</I>
+You learn something new every day :).  Yes, it could be a good idea to use that for some of the config.
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;&gt;<i> * Wouldn't it be more natural to use . as the separator rather than |
+</I>&gt;&gt;<i> (e.g. ${DatabaseService.ConnectionString}?
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> The syntax for the replaceable keys is part of the original Nini. See the Nini docs for more on that
+</I>&gt;<i> (<A HREF="http://nini.sourceforge.net/Manual/NiniManual-2.htm#KeyValueExpanding">http://nini.sourceforge.net/Manual/NiniManual-2.htm#KeyValueExpanding</A>} . The pipe is also used by Nini to separate
+</I>&gt;<i> terms in a list. See: &quot;3.3 Key Value Lists&quot; @ <A HREF="http://nini.sourceforge.net/Manual/NiniManual-3.htm#AdvancedTopics">http://nini.sourceforge.net/Manual/NiniManual-3.htm#AdvancedTopics</A>
+</I>
+If that's pre-existing syntax then fair enough.
+
+&gt;<i>
+</I>&gt;&gt;<i> * What happens now if somebody actually wants to use a literal
+</I>&gt;&gt;<i> ${&lt;something&gt;} string? Is the $ escapable?
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> It will probably be empty when the keys are expanded. I'll look into that to see what happens. I can escape it if it's
+</I>&gt;<i> not already doing it.
+</I>
+It's not a big deal but this kind of thing can crop up in unexpected places.  The approach used elsewhere in OpenSim is 
+to escape with a \, but this might be problematic if people are using Windows paths.
+
+&gt;<i>
+</I>&gt;&gt;<i> * Is the [Environment] section really necessary with explicit imports
+</I>&gt;&gt;<i> (which look pretty hacky)? Wouldn't it be simpler to implicitly create
+</I>&gt;&gt;<i> an [Environment] section? I feel this is more along the approach taken
+</I>&gt;&gt;<i> by other languages/systems which make the whole Environment space
+</I>&gt;&gt;<i> available.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Any program would need to select the variables it is interested in at some point. And in this case, we are opening up
+</I>&gt;<i> the ability for the user to define the keys that we will fetch the shell values for instead of having them hard-coded.
+</I>&gt;<i> The first place I thought of putting them was a separate file, but that is too detached and another ini file is probably
+</I>&gt;<i> the last thing we need. It seems pretty convenient to place them in a section. That section should give the keys a
+</I>&gt;<i> significance that they are treated differently as a group. And haveing them in a section also connects them in the
+</I>&gt;<i> user's mind to that purpose. The syntax for the pla might be a little bit awkward first time through using the
+</I>&gt;<i> ${Section|Key} syntax, but that is (and had been forever) Nini's syntax for expanding keys. We should have been using
+</I>&gt;<i> that by now to define repetitive values in our configuration files.
+</I>&gt;<i>
+</I>&gt;<i> A [Environment] section is created internally (in Nini) when the EnvConfigSource is created and it holds the variables
+</I>&gt;<i> picked from the shell on the system facing side. And on the OpenSim side, that is the name of the section that is read
+</I>&gt;<i> to look for keys that will correspond to shell variables. And we can use that opportunity to set a default value
+</I>&gt;<i> (although it doesn't yet have the means - WIP) at the key's definition...
+</I>&gt;<i>
+</I>&gt;<i> OpenSim ConfigurationLoader
+</I>&gt;<i> <A HREF="https://github.com/opensim/opensim/blob/master/OpenSim/Region/Application/ConfigurationLoader.cs#L199">https://github.com/opensim/opensim/blob/master/OpenSim/Region/Application/ConfigurationLoader.cs#L199</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Nini EnvConfigSource
+</I>&gt;<i> <A HREF="https://github.com/BlueWall/Nini-Dev/blob/master/Source/Config/EnvConfigSource.cs#L72">https://github.com/BlueWall/Nini-Dev/blob/master/Source/Config/EnvConfigSource.cs#L72</A>
+</I>
+I guess what I was saying is that one could automatically add every key from EnvConfigSource into [Environment] in the 
+main config source rather than having to explicitly select them.
+
+This would be more along the lines of other programs which provide something like an Environment hash from which one can 
+select any env var that happens to be present (e.g System.Environment in .NET, %ENV in Perl, getenv() in PHP).  In 
+OpenSim's case, one would know that everything from the environment is already in [Environment] without having to do any 
+extra selection work with a somewhat confusing RT_ZONE=&quot;&quot; syntax.
+
+&gt;<i>
+</I>&gt;<i> There is probably lots of room for improvement and bug fixes (hopefully not so many bugs :) I'll especially be watching
+</I>&gt;<i> all the channels for activity concerning this to fix/add documentation etc. as needed.
+</I>&gt;<i>
+</I>&gt;<i> Thanks!
+</I>&gt;<i> BlueWall
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010767.html">[Opensim-dev] Supporting shell environment variables
+</A></li>
+	<LI>Next message: <A HREF="010769.html">[Opensim-dev] Overte Foundation Contributor License Agreements	updated
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10768">[ date ]</a>
+              <a href="thread.html#10768">[ thread ]</a>
+              <a href="subject.html#10768">[ subject ]</a>
+              <a href="author.html#10768">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

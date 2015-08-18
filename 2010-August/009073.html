@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Introduce key:value pair dictionaries into SOP and PrimitiveBaseShape
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Introduce%20key%3Avalue%20pair%20dictionaries%0A%20into%20SOP%20and%20PrimitiveBaseShape&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D0124258B38%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009062.html">
+   <LINK REL="Next"  HREF="009080.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Introduce key:value pair dictionaries into SOP and PrimitiveBaseShape</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Introduce%20key%3Avalue%20pair%20dictionaries%0A%20into%20SOP%20and%20PrimitiveBaseShape&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D0124258B38%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Proposal: Introduce key:value pair dictionaries into SOP and PrimitiveBaseShape">john.hurliman at intel.com
+       </A><BR>
+    <I>Wed Aug  4 19:23:16 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009062.html">[Opensim-dev] Mumble &amp; Voice
+</A></li>
+        <LI>Next message: <A HREF="009080.html">[Opensim-dev] Proposal: Introduce key:value pair dictionaries into SOP and PrimitiveBaseShape
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9073">[ date ]</a>
+              <a href="thread.html#9073">[ thread ]</a>
+              <a href="subject.html#9073">[ subject ]</a>
+              <a href="author.html#9073">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Does it actually need to hold arbitrary data types, or would the LLSD type system encompass everything you need? It natively handles all the basic C# value types, the domain-specific types in OpenMetaverseTypes.dll (vectors/quaternions), plus arrays and maps. The main benefit you get from using an OSDMap is transparent serialization of arbitrary data. There's no way to serialize Dictionary&lt;string, object&gt; transparently* (aside from digging ourselves back into the .NET serialization hole) so you end up with something like Dictionary&lt;string, ISerializableData&gt; and define methods on the ISerializableData interface for storing and loading an OSDMap anyways. Restricting the type system of data that can be attached to SOG/SOPs also makes memory handling and cleanup more straightforward, since you know there are no unmanaged pointers or special resources such as sockets attached directly to prims that need cleanup before prims are thrown away. Finally, it eases dependency issues since you never have to worry about defining a MyExtendedPrimData class in one assembly and trying to typecast to it in another assembly. With over 90 different assemblies in OpenSim right now this can cause major headaches.
+
+John
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;<i> Sent: Thursday, July 29, 2010 8:55 AM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Proposal: Introduce key:value pair dictionaries
+</I>&gt;<i> into SOP and PrimitiveBaseShape
+</I>&gt;<i> 
+</I>&gt;<i> On 29/07/10 01:40, Dahlia Trimble wrote:
+</I>&gt;<i> &gt; Similar to the OSDMap in libomv?
+</I>&gt;<i> 
+</I>&gt;<i> Not dissimilar, though the in-memory maps in OpenSim would need to hold
+</I>&gt;<i> arbitrary data types.  We couldn't use OSDMap directly unless we were
+</I>&gt;<i> happy to serialize objects to and from OSD for every get and set (or change
+</I>&gt;<i> the values directly in the OSD representation, which might be an idea).
+</I>&gt;<i> 
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On Wed, Jul 28, 2010 at 2:39 PM, Justin Clark-Casey
+</I>&gt;<i> &gt; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;&gt; wrote:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     Hi there.  Whilst implementing media-on-a-prim, I've been keeping as
+</I>&gt;<i> &gt;     much code in the MOAP region module as possible.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     I'm quite impressed with how feasible this is.  However, there
+</I>&gt;<i> &gt;     remain three major structures where the core of OpenSim has to
+</I>&gt;<i> &gt;     understand something about media on a prim.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     1)  Database plugins - to get/put values to named database columns
+</I>&gt;<i> &gt;     (e.g. prims.MediaURL).
+</I>&gt;<i> &gt;     2)  Script functions (e.g. llGetPrimMediaParams()).
+</I>&gt;<i> &gt;     3)  Scene objects (PrimitiveBaseShape.Media and
+</I>&gt;<i> &gt;     SceneObjectPart.MediaURL).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     It's difficult to do anything right now about (1) and (2), but I
+</I>&gt;<i> &gt;     believe there is an opportunity to address (3).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     What I would like to do is introduce dictionaries into
+</I>&gt;<i> &gt;     PrimitiveBaseShape and SceneObjectPart that would supplement
+</I>&gt;<i> &gt;     existing fields by storing arbitrary key/value pairs.  So instead of
+</I>&gt;<i> &gt;     having to hardcode a new MediaURL property on SceneObjectPart I
+</I>&gt;<i> &gt;     could instead get/put the data as something like
+</I>&gt;<i> &gt;     SceneObjectPart.Values[&quot;MediaURL&quot;].
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     Thus, the dictionaries can act as blackboards for communication
+</I>&gt;<i> &gt;     between plugins and modules without the core of OpenSim having to
+</I>&gt;<i> &gt;     get involved.  I think that this would move us a tiny way towards
+</I>&gt;<i> &gt;     our vision of being a generic virtual environment platform and away
+</I>&gt;<i> &gt;     from hardcoded Second Life specifics, and make it easier to write
+</I>&gt;<i> &gt;     more ambitious region modules without additions to core.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     Thoughts?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;     --
+</I>&gt;<i> &gt;     Justin Clark-Casey (justincc)
+</I>&gt;<i> &gt;     <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> &gt;     <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> &gt;     _______________________________________________
+</I>&gt;<i> &gt;     Opensim-dev mailing list
+</I>&gt;<i> &gt;     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> &gt;     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009062.html">[Opensim-dev] Mumble &amp; Voice
+</A></li>
+	<LI>Next message: <A HREF="009080.html">[Opensim-dev] Proposal: Introduce key:value pair dictionaries into SOP and PrimitiveBaseShape
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9073">[ date ]</a>
+              <a href="thread.html#9073">[ thread ]</a>
+              <a href="subject.html#9073">[ subject ]</a>
+              <a href="author.html#9073">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

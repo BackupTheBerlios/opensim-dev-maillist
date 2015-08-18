@@ -1,0 +1,270 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] networking issues
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20networking%20issues&In-Reply-To=%3CAANLkTik-7aEHQ2%3Dg28C8EAM%3Dv70TY-4ADx3jEx0%2BAS-_%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010066.html">
+   <LINK REL="Next"  HREF="010080.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] networking issues</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20networking%20issues&In-Reply-To=%3CAANLkTik-7aEHQ2%3Dg28C8EAM%3Dv70TY-4ADx3jEx0%2BAS-_%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] networking issues">cmickeyb at gmail.com
+       </A><BR>
+    <I>Mon Mar 28 21:19:56 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010066.html">[Opensim-dev] networking issues
+</A></li>
+        <LI>Next message: <A HREF="010080.html">[Opensim-dev] networking issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10075">[ date ]</a>
+              <a href="thread.html#10075">[ thread ]</a>
+              <a href="subject.html#10075">[ subject ]</a>
+              <a href="author.html#10075">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>the only thing we've touched so far is the entity update queue. that's all
+avatar updates &amp; prim updates. we haven't touched any of the other packets.
+the resend focus would be for prims &amp; avatar updates only.
+--mic
+
+
+On Mon, Mar 28, 2011 at 11:19 AM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+
+&gt;<i> Hi,
+</I>&gt;<i>
+</I>&gt;<i> sounds great.
+</I>&gt;<i>
+</I>&gt;<i> Some things to consider:
+</I>&gt;<i>
+</I>&gt;<i> - Some actions require explicit sending of a packet which is an
+</I>&gt;<i> update packet, but is used for special cases. Sit, stand, changing
+</I>&gt;<i> group tags, creating/joining groups are all such cases where special
+</I>&gt;<i> care needs to be taken.
+</I>&gt;<i>
+</I>&gt;<i> - Resend is evil for static objects and avatars, but may be needed
+</I>&gt;<i> to sync up dead reckoning with the real data on physical objects.
+</I>&gt;<i> Just a feeling.
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i> Mic Bowman wrote:
+</I>&gt;<i> &gt; Over the last several weeks, Dan Lake &amp; I have been looking some of the
+</I>&gt;<i> &gt; networking performance issues in opensim. As always, our concerns are
+</I>&gt;<i> with
+</I>&gt;<i> &gt; the problems caused by very complex scenes with very large numbers of
+</I>&gt;<i> &gt; avatars. However, I think some of the issues we have found will generally
+</I>&gt;<i> &gt; improve networking with OpenSim. Since the behavior represents a fairly
+</I>&gt;<i> &gt; significant change in behavior (though the number of lines of code is not
+</I>&gt;<i> &gt; great), I'm going to put this into a separate branch for testing (called
+</I>&gt;<i> &gt; queuetest) in the opensim git repository.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; We've found several problems with the current
+</I>&gt;<i> &gt; networking/prioritization code.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; * Reprioritization is completely broken for SceneObjectParts. On
+</I>&gt;<i> &gt; reprioritization, the current code uses the localid stored in the scene
+</I>&gt;<i> &gt; Entities list but since the scene does not store the localid for SOPs,
+</I>&gt;<i> that
+</I>&gt;<i> &gt; attempt always fails. So the original priority of the SOP continues to be
+</I>&gt;<i> &gt; used. This could be the cause of some problems since the initial
+</I>&gt;<i> &gt; prioritization assumes position 128,128. I don't understand all the
+</I>&gt;<i> possible
+</I>&gt;<i> &gt; ramifications, but suffice it to say, using the localid is causing
+</I>&gt;<i> &gt; problems.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Fix: The sceneentity is already stored in the update, just use that
+</I>&gt;<i> instead
+</I>&gt;<i> &gt; of the localid.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; * We currently pull (by default) 100 entity updates from the entityupdate
+</I>&gt;<i> &gt; queue and convert them into packets. Once converted into packets, they
+</I>&gt;<i> are
+</I>&gt;<i> &gt; then queued again for transmissions. This is a bad thing. Under any kind
+</I>&gt;<i> of
+</I>&gt;<i> &gt; load, we've measured the time in the packet queue to be up to many
+</I>&gt;<i> &gt; hundreds/thousands of milliseconds (and to be highly variable). When an
+</I>&gt;<i> &gt; object changes one property and then doesn't change it again, the time in
+</I>&gt;<i> &gt; the packet queue is largely irrelevant. However, if the object is
+</I>&gt;<i> &gt; continuously changing (an avatar changing position, a physical object
+</I>&gt;<i> &gt; moving, etc) then the conversion from a entity update to a packet
+</I>&gt;<i> &quot;freezes&quot;
+</I>&gt;<i> &gt; the properties to be sent. If the object is continuously changing, then
+</I>&gt;<i> with
+</I>&gt;<i> &gt; fairly high probability, the packet contains old data (the properties of
+</I>&gt;<i> the
+</I>&gt;<i> &gt; entity from the point at which it was converted into a packet).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The real problem is that, in theory, to improve the efficiency of the
+</I>&gt;<i> &gt; packets (fill up each message) we are grabbing big chunks of updates.
+</I>&gt;<i> Under
+</I>&gt;<i> &gt; load, that causes queuing at the packet layer which makes updates stale.
+</I>&gt;<i> &gt; That is... queuing at the packet layer is BAD.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Fix: We implemented an adaptive algorithm for the number of updates to
+</I>&gt;<i> grab
+</I>&gt;<i> &gt; with each pass. We set a target time of 200ms for each iteration. That
+</I>&gt;<i> &gt; means, we are trying to bound the maximum age of any update in the packet
+</I>&gt;<i> &gt; queue to 200ms. The adaptive algorithm looks a lot like a TCP slow start:
+</I>&gt;<i> &gt; every time we complete an iteration (flush the packet queue) in less than
+</I>&gt;<i> &gt; 200ms we increase linearly the number of updates we take in the next
+</I>&gt;<i> &gt; iteration (add 5 to the count) and when we don't make it back in 200ms,
+</I>&gt;<i> we
+</I>&gt;<i> &gt; drop the number we take quadratically (cut the number in half). In our
+</I>&gt;<i> &gt; experiments with large numbers of moving avatars, this algorithm works
+</I>&gt;<i> &gt; *very* well. The number of updates taken per iteration stabilizes very
+</I>&gt;<i> &gt; quickly and the response time is dramatically improved (no &quot;snap back&quot; on
+</I>&gt;<i> &gt; avatars, for example). One difference from the traditional slow start...
+</I>&gt;<i> &gt; since the number of &quot;static&quot; items in the queue is very high when a
+</I>&gt;<i> client
+</I>&gt;<i> &gt; first enters a region, we start with the number of updates taken at 500.
+</I>&gt;<i> &gt; that gets the static items out of the queue quickly (and delay doesn't
+</I>&gt;<i> &gt; matter as much) and the number taken is generally stable before the
+</I>&gt;<i> &gt; login/teleport screen even goes away.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; * The current prioritization queue can lead to update starvation. The
+</I>&gt;<i> &gt; prioritization algorithm dumps all entity updates into a single ordered
+</I>&gt;<i> &gt; queue. Lets say you have several hundred avatars moving around in a
+</I>&gt;<i> scene.
+</I>&gt;<i> &gt; Since we take a limited number of updates from the queue in each
+</I>&gt;<i> iteration,
+</I>&gt;<i> &gt; we will take only the updates for the &quot;closest&quot; (highest priority)
+</I>&gt;<i> avatars.
+</I>&gt;<i> &gt; However, since those avatars continue to move, they are re-inserted into
+</I>&gt;<i> the
+</I>&gt;<i> &gt; priority queue *ahead* of the updates that were already there. So...
+</I>&gt;<i> unless
+</I>&gt;<i> &gt; the queue can be completely emptied each iteration or the priority of the
+</I>&gt;<i> &gt; &quot;distant&quot; (low priority) avatars changes, those avatars will never be
+</I>&gt;<i> &gt; updated.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Fix: We converted the single priority queue into multiple priority queues
+</I>&gt;<i> &gt; and use fair queuing to retrieve updates from each. Here's how it works
+</I>&gt;<i> &gt; (more or less)... the current metrics (all of the current prioritization
+</I>&gt;<i> &gt; algorithms use distance at some point for prioritization) compute a
+</I>&gt;<i> distance
+</I>&gt;<i> &gt; from the avatar/camera to an object. We take the log of that distance and
+</I>&gt;<i> &gt; use that as the index for the queue where we place the update. So close
+</I>&gt;<i> &gt; things go into the highest priority queue and distant things go into the
+</I>&gt;<i> &gt; lowest priority queue. Since the area covered by a priority queue grows
+</I>&gt;<i> as
+</I>&gt;<i> &gt; the square of the radius, the distant (lowest priority queues) will have
+</I>&gt;<i> the
+</I>&gt;<i> &gt; most objects while the highest priority queues will have a small number
+</I>&gt;<i> of
+</I>&gt;<i> &gt; objects. Inside each priority queue, we order the updates by the time in
+</I>&gt;<i> &gt; which they entered the queue. Then we pull a fixed number of updates from
+</I>&gt;<i> &gt; each priority queue each iteration. The result is that local updates get
+</I>&gt;<i> a
+</I>&gt;<i> &gt; high fraction of the outgoing bandwidth but distant updates are
+</I>&gt;<i> guaranteed
+</I>&gt;<i> &gt; to get at least &quot;some&quot; of the bandwidth. No starvation. The current
+</I>&gt;<i> &gt; prioritization algorithm we implemented is a modification of the &quot;best
+</I>&gt;<i> &gt; avatar responsiveness&quot; and &quot;front back&quot; in that we use root prim location
+</I>&gt;<i> &gt; for child prims and the priority of updates &quot;in back&quot; of the avatar is
+</I>&gt;<i> lower
+</I>&gt;<i> &gt; than updates &quot;in front&quot;. Our experiments show that the fair queuing does
+</I>&gt;<i> &gt; drain the update queue AND continues to provide a disproportionately high
+</I>&gt;<i> &gt; percentage of the bw to &quot;close&quot; updates.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; One other note on this... we should be able to improve the performance of
+</I>&gt;<i> &gt; reprioritization with this approach. If we know the distance an avatar
+</I>&gt;<i> has
+</I>&gt;<i> &gt; moved, we only have to reprioritize objects that might have changed
+</I>&gt;<i> priority
+</I>&gt;<i> &gt; queues. Haven't implemented this yet but have some ideas for how to do
+</I>&gt;<i> it.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; * The resend queue is evil. When an update packet is sent (they are
+</I>&gt;<i> marked
+</I>&gt;<i> &gt; reliable) it is moved to a queue to await acknowledgement. If no
+</I>&gt;<i> &gt; acknowledgement is received (in time), the packet is retransmitted and
+</I>&gt;<i> the
+</I>&gt;<i> &gt; wait time is doubled and so on... What that means is that a resend
+</I>&gt;<i> packets
+</I>&gt;<i> &gt; in a scene that is rapidly changing will often contain updates that are
+</I>&gt;<i> &gt; outdated. That is, when we resend the packet, we are just resending old
+</I>&gt;<i> data
+</I>&gt;<i> &gt; (and if you're having a lot of resends that means you already have a bad
+</I>&gt;<i> &gt; connection &amp; now you're filling it up with useless data).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Fix: this isn't implemented yet (help would be appreciated)... we think
+</I>&gt;<i> that
+</I>&gt;<i> &gt; instead of saving packets for resend... a better solution would be to
+</I>&gt;<i> keep
+</I>&gt;<i> &gt; the entity updates that went into the packet. if we don't receive an ack
+</I>&gt;<i> in
+</I>&gt;<i> &gt; time, then put the entity updates back into the entity update queue (with
+</I>&gt;<i> &gt; entry time from their original enqueuing). That would ensure that we send
+</I>&gt;<i> an
+</I>&gt;<i> &gt; update for the object &amp; that the data sent is the most recent.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; * One final note... per client bandwidth throttles seem to work very
+</I>&gt;<i> well.
+</I>&gt;<i> &gt; however, our experiments with per-simulator throttles was not positive.
+</I>&gt;<i> it
+</I>&gt;<i> &gt; appeared that a small number of clients was consuming all of the bw
+</I>&gt;<i> &gt; available to the simulator and the rest were starved. Haven't looked into
+</I>&gt;<i> &gt; this any more.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; So...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Feedback appreciated... there is some logging code (disabled) in the
+</I>&gt;<i> branch;
+</I>&gt;<i> &gt; real data would be great. And help testing. there are a number of
+</I>&gt;<i> &gt; attachment, deletes and so on that i'm not sure work correctly.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; --mic
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20110328/cb9364f5/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20110328/cb9364f5/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010066.html">[Opensim-dev] networking issues
+</A></li>
+	<LI>Next message: <A HREF="010080.html">[Opensim-dev] networking issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10075">[ date ]</a>
+              <a href="thread.html#10075">[ thread ]</a>
+              <a href="subject.html#10075">[ subject ]</a>
+              <a href="author.html#10075">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

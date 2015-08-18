@@ -1,0 +1,304 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Memory cache
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Memory%20cache&In-Reply-To=%3C7e8b2c180905211206o1dcc433cgc8630930f607fa63%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006589.html">
+   <LINK REL="Next"  HREF="006594.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Memory cache</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Memory%20cache&In-Reply-To=%3C7e8b2c180905211206o1dcc433cgc8630930f607fa63%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Memory cache">cmickeyb at gmail.com
+       </A><BR>
+    <I>Thu May 21 21:06:21 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006589.html">[Opensim-dev] Memory cache
+</A></li>
+        <LI>Next message: <A HREF="006594.html">[Opensim-dev] Memory cache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6590">[ date ]</a>
+              <a href="thread.html#6590">[ thread ]</a>
+              <a href="subject.html#6590">[ subject ]</a>
+              <a href="author.html#6590">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>so removing the asset cache from a &quot;reasonable&quot; number of regions has
+not changed the number of requests to the asset server. it sure sounds
+like asset cache was not absorbing many of the asset requests.
+
+regarding the performance... nothing concrete.. but the way the
+process queue function in the cache code looks to be written right
+now, it would process at most five asset requests then sleep for half
+a second before it processed any others. if the cache was not
+absorbing any requests... then the best you're going to get is 10
+assets per second. which for a complex scene might take awhile.
+
+--mic
+
+
+On Thu, May 21, 2009 at 11:57 AM, Nebadon Izumi &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">nebadon2025 at gmail.com</A>&gt; wrote:
+&gt;<i> osgrid has seen 0% increase in traffic to the asset server.
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="http://assets.osgrid.org/stats">http://assets.osgrid.org/stats</A>
+</I>&gt;<i>
+</I>&gt;<i> have a look for yourself.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Thu, May 21, 2009 at 11:55 AM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Indeed, it might be it's not really working....
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Mic Bowman wrote:
+</I>&gt;&gt;<i> &gt; is there any instrumentation in the asset cache about hit rate? the
+</I>&gt;&gt;<i> &gt; fact that there is no measurable increase reported on the osgrid asset
+</I>&gt;&gt;<i> &gt; server with the caches turned off suggests that the cache isn't really
+</I>&gt;&gt;<i> &gt; absorbing many hits (either because its not working the way its
+</I>&gt;&gt;<i> &gt; expected to or because the re-use isn't significant).
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; --mic
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; On Thu, May 21, 2009 at 11:43 AM, &#160;&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt; The cache, as configured, has 32K asset slots, which is a lot. So it
+</I>&gt;&gt;<i> &gt;&gt; takes a while until the cache releases some objects for the GC to
+</I>&gt;&gt;<i> &gt;&gt; collect. I think there's something else going on with that cache --
+</I>&gt;&gt;<i> &gt;&gt; probably too many locking conflicts between threads, or something like
+</I>&gt;&gt;<i> &gt;&gt; that. Whatever it is, it's much heavier than fetching the assets from
+</I>&gt;&gt;<i> &gt;&gt; the remote asset server, which is amazing. And another amazing thing is
+</I>&gt;&gt;<i> &gt;&gt; that remote fetching of so many assets at the same time (whenever a
+</I>&gt;&gt;<i> &gt;&gt; client connects) has such good observable performance for the user.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; If the purpose of the cache is to go easy on the asset server (not
+</I>&gt;&gt;<i> &gt;&gt; necessarily improve the observable performance, which is already very
+</I>&gt;&gt;<i> &gt;&gt; good without the mem cache) it might make more sense to use a file
+</I>&gt;&gt;<i> &gt;&gt; system / local DB instead of a memory cache.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Stefan Andersson wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt; If the cache is releasing objects, I think we might well be seeing
+</I>&gt;&gt;<i> &gt;&gt;&gt; LOH fragmentation.
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; <A HREF="http://msdn.microsoft.com/en-us/magazine/cc534993.aspx">http://msdn.microsoft.com/en-us/magazine/cc534993.aspx</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; The solution would then be to break the binaries apart into byte cucks
+</I>&gt;&gt;<i> &gt;&gt;&gt; smaller than the LOH trshold.
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; Best regards,
+</I>&gt;&gt;<i> &gt;&gt;&gt; Stefan Andersson
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; Date: Wed, 20 May 2009 17:21:51 -0400
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; Subject: Re: [Opensim-dev] Memory cache
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; We are using an external caching library I believe, it could be
+</I>&gt;&gt;<i> &gt;&gt;&gt; sitting in there.
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; Adam
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; -----Original Message-----
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; Sent: Wednesday, 20 May 2009 1:56 PM
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; Subject: Re: [Opensim-dev] Memory cache
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; The surprise really is that the cache would be a performance loss
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; instead of a performance gain. What is there that makes it so
+</I>&gt;&gt;<i> &gt;&gt;&gt; slow?
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; Melanie
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; Frisby, Adam wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; As chief engineer aboard the USS OSgrid, I might want to
+</I>&gt;&gt;<i> &gt;&gt;&gt; recommend
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; against this.
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; Not having the sims cache assets will mean that every asset
+</I>&gt;&gt;<i> &gt;&gt;&gt; request
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; will hit the core asset server which in turn will result in
+</I>&gt;&gt;<i> &gt;&gt;&gt; higher
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; bandwidth requirements for it in the long run. It doesn't appear
+</I>&gt;&gt;<i> &gt;&gt;&gt; to
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; have made a huge impact on our bandwidth charts for this week yet
+</I>&gt;&gt;<i> &gt;&gt;&gt; -
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; however I wouldn't be surprised if it did if everyone did this.
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; Adam
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Nebadon Izumi
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; Sent: Wednesday, 20 May 2009 10:19 AM
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; Subject: Re: [Opensim-dev] Memory cache
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; Yay for mistakes that end in gains!!! of course if anyone asks
+</I>&gt;&gt;<i> &gt;&gt;&gt; i
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; planned this ;P anyway i thought people would like to see my ini
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; changes.. this is what lead to the discovery:
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; [OpenSim.ini]
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; The following is the configuration section for the new style
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; grid servers
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; If you don't know what this is, don't enable it. It will eat
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; your data,
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; format your hard drive and make all meat in your fridge
+</I>&gt;&gt;<i> &gt;&gt;&gt; spoil.
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; You have been warned.
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Some of this is starting to work!
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; [Modules]
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Choose one
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;AssetServices = &quot;LocalAssetServicesConnector&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; AssetServices = &quot;RemoteAssetServicesConnector&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;AssetServices = &quot;HGAssetBroker&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; If you don't want asset caching in the regions, comment this
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; AssetCaching = &quot;CoreAssetCache&quot; ;&lt;&lt;&lt;---*** SEE ERROR HERE
+</I>&gt;&gt;<i> &gt;&gt;&gt; ***---
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; -&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Choose one
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;UserServices = &quot;LocalUserServicesConnector&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; UserServices = &quot;RemoteUserServicesConnector&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; [AssetService]
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Parameters for local assets, formerly known as &quot;standalone&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; LocalServiceModule =
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &quot;OpenSim.Services.AssetService.dll:AssetService&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; StorageProvider = &quot;OpenSim.Data.SQLite.dll&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;StorageProvider = &quot;OpenSim.Data.MySQL.dll&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;ConnectionString = &quot;Data
+</I>&gt;&gt;<i> &gt;&gt;&gt; Source=localhost;Database=opensim;User
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; ID=opensim;Password=opensim;&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; DefaultAssetLoader =
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &quot;OpenSim.Framework.AssetLoader.Filesystem.dll&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; AssetLoaderArgs = &quot;assets/AssetSets.xml&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Parameters for remote assets, formerly known as &quot;grid&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; AssetServerURI = &quot;<A HREF="http://assets.osgrid.org:8003/">http://assets.osgrid.org:8003/</A>&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Paremeters for the Hypergrid connector
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;; Parameters for the HG Broker
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Use this one if you have a standalone grid
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;LocalGridAssetService =
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &quot;OpenSim.Services.AssetService.dll:AssetService&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Use this one if this sim is connected to a grid-wide asset
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; server
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;LocalGridAssetService =
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &quot;OpenSim.Services.Connectors.dll:AssetServiceConnector&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;HypergridAssetService =
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &quot;OpenSim.Services.AssetService.dll:HGAssetService&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; [AssetCache]
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ; Number of buckets for assets
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; CacheBuckets = 32768
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; [UserService]
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; ;LocalServiceModule =
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &quot;OpenSim.Services.UserService.dll:UserService&quot;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; [/OpenSim.ini]
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; Please test this out and see if you see gains too and let us
+</I>&gt;&gt;<i> &gt;&gt;&gt; know.
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; Neb
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; ---------------------------------------------------------------------
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; ---
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; &#160;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Michael Emory Cerquoni - Nebadon Izumi @ <A HREF="http://osgrid.org">http://osgrid.org</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006589.html">[Opensim-dev] Memory cache
+</A></li>
+	<LI>Next message: <A HREF="006594.html">[Opensim-dev] Memory cache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6590">[ date ]</a>
+              <a href="thread.html#6590">[ thread ]</a>
+              <a href="subject.html#6590">[ subject ]</a>
+              <a href="author.html#6590">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

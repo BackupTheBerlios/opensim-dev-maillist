@@ -1,0 +1,189 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Module/Plugin Loading
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3C1214297621.23760.54.camel%40localhost.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002047.html">
+   <LINK REL="Next"  HREF="001991.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Module/Plugin Loading</H1>
+    <B>Ryan McDougall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3C1214297621.23760.54.camel%40localhost.localdomain%3E"
+       TITLE="[Opensim-dev] Module/Plugin Loading">sempuki1 at gmail.com
+       </A><BR>
+    <I>Tue Jun 24 10:53:41 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002047.html">[Opensim-dev] NYC Meetup - Wednesday 25th June (ie,	this wednesday)
+</A></li>
+        <LI>Next message: <A HREF="001991.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1989">[ date ]</a>
+              <a href="thread.html#1989">[ thread ]</a>
+              <a href="subject.html#1989">[ subject ]</a>
+              <a href="author.html#1989">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I've started looking at module/plugin loading in OpenSim. Some have
+commented that the current situation where things are loaded and
+initialized ad hoc should be replaced by a greater use of Mono.Addins.
+
+In my survey of the code I've identified a lot of copy-paste code, which
+minimally I can remove by consolidating that code into a common class or
+method. However I'd like to try and do a little better, and provide a
+framework for all the ad hoc loading.
+
+I've identified the following Interfaces which appear to be loaded
+dynamically somewhere:
+
+
+ILogData
+IUserData
+IAssetProvider
+IInventoryData
+IApplicationPlugin
+IRegionModule
+IRegionDataStore
+IGridPlugin
+IGridData
+IGenericConfig
+IDataNode
+IDataSnapshotProvider
+IClientNetworkServer
+IPhysicsPlugin
+IMeshingPlugin
+ITerrainEffect
+ITerrainLoader
+ITarget
+
+Does that look like a comprehensive list?
+Whats the difference between a Plugin and a Module?
+
+I suggest wrapping Mono.Addins into a simple common loader class as
+follows:
+
+Extend IPlugin to the following:
+
+public class PluginInitData {}
+
+public interface IPlugin : IDispose
+{
+  string Version { get; }
+  string Name { get; }
+  void Initialise (PluginInitData);
+}
+
+and create:
+
+PluginLoader : IDispose
+{
+  List&lt;IPlugin&gt; plugins = new List&lt;IPlugin&gt;();
+
+  PluginLoader (string dir)
+  {            
+    AddPluginDir (dir);
+  }
+
+  void AddPluginDir (string dir)
+  {
+    AddinManager.Initialize (dir);
+  }
+
+  void Load (string extpoint, PluginInitData data)
+  {
+    LoadUninitialized (extpoint);
+    Initialize (data);
+  }
+
+  void LoadUninitialized &lt;T&gt; (string extpoint) where T : IPlugin
+  {
+    AddinManager.Registry.Update (null);
+    ExtensionNodeList ns = AddinManager.GetExtensionNodes(extpoint);
+    foreach (TypeExtensionNode n in ns)
+    {
+      log.Info(&quot;[PLUGINS]: Loading plugin &quot; + n.Path);
+      plugins.Add ((T) n.CreateInstance());
+    }
+  }
+
+  void Initialize (PluginInitData data)
+  {
+    foreach (IPlugin p in plugins)
+      p.Initialize (data);
+  }
+
+  void Dispose ()
+  {
+    foreach (IPlugin p in plugins)
+    p.Dispose ();
+  }
+}
+
+Which would be used in the following way:
+
+1. Plugins would be created this way
+
+class MyPluginInitData : PluginInitData
+{
+  int foo;
+  string bar;
+};
+
+class MyPlugin : IPlugin
+{
+  Initialize (PluginInitData data)
+  {
+    MyPluginInitData d = data as MyPluginInitData;
+    //...
+  }
+  //...
+}
+
+2. And would be loaded this way:
+
+PluginLoader loader = new PluginLoader (&quot;my/plugin/dir&quot;);
+MyPluginInitData data = new MyPluginInitData (42, &quot;huzzah&quot;);
+
+loader.load (&quot;/OpenSim/MyPlugins&quot;, data);
+
+Whozit w = new Whozit();
+w.lart (loader.plugins); // does stuff with plugins
+
+What do you think?
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002047.html">[Opensim-dev] NYC Meetup - Wednesday 25th June (ie,	this wednesday)
+</A></li>
+	<LI>Next message: <A HREF="001991.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1989">[ date ]</a>
+              <a href="thread.html#1989">[ thread ]</a>
+              <a href="subject.html#1989">[ subject ]</a>
+              <a href="author.html#1989">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

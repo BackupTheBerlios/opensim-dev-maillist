@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Problem with the bots
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Problem%20with%20the%20bots&In-Reply-To=%3CAANLkTinn3ynWR3E-RXyb74WN0-jupR-MhBsvYFDuwMP3%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009512.html">
+   <LINK REL="Next"  HREF="009510.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Problem with the bots</H1>
+    <B>Mister Blue</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Problem%20with%20the%20bots&In-Reply-To=%3CAANLkTinn3ynWR3E-RXyb74WN0-jupR-MhBsvYFDuwMP3%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Problem with the bots">misterblue at misterblue.com
+       </A><BR>
+    <I>Tue Sep  7 23:01:29 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009512.html">[Opensim-dev] Problem with the bots
+</A></li>
+        <LI>Next message: <A HREF="009510.html">[Opensim-dev] Problem with the bots
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9513">[ date ]</a>
+              <a href="thread.html#9513">[ thread ]</a>
+              <a href="subject.html#9513">[ subject ]</a>
+              <a href="author.html#9513">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>We added a new command to TestClient to create a swarm of independently
+acting bots (<A HREF="http://www.sciencesim.com/wiki/doku.php/vwperf/testclient_swarm&lt;%28http://www.sciencesim.com/wiki/doku.php/vwperf/testclient_swarm">http://www.sciencesim.com/wiki/doku.php/vwperf/testclient_swarm&lt;%28http://www.sciencesim.com/wiki/doku.php/vwperf/testclient_swarm</A>&gt;).
+The modified TestClient is distributed with the tests. Email me for a patch
+if you want to build sources.
+
+The new TestClient command creates one bot which randomly wanders within a
+defined area. Each of the bots is managed separately and independently
+(motion, direction, target). As mentioned before, we start 25 if these
+independent bots per TestClient instance.
+
+Our goal is to create a close to realistic load on the simulator so it is
+important to drive the bots from a client program. If you are not interested
+in load testing the simulator, running bots from a region module is a
+solution others have used.
+
+-- mb
+
+On Mon, Sep 6, 2010 at 9:07 PM, &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">it at nii.ac.jp</A>&gt; wrote:
+
+&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> Thanks a lot for the answer Dan. Now I know what to expect. And I have
+</I>&gt;<i> another question.
+</I>&gt;<i> You are talking about independant bots, do you mean that you can control
+</I>&gt;<i> each bot in a single Testclient instance independantly ? (for instance, make
+</I>&gt;<i> a bot move forward while another move backward, or don't move ?)
+</I>&gt;<i>
+</I>&gt;<i> To do so, I wasn't using testclient put the opensim Scenepresence Object
+</I>&gt;<i> (scenepresence.controlingclient) that enable to actually have indepedant
+</I>&gt;<i> bots.
+</I>&gt;<i>
+</I>&gt;<i> I would like to know how independant are you bots.
+</I>&gt;<i>
+</I>&gt;<i> Thanks you very much
+</I>&gt;<i>
+</I>&gt;<i> IT
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> It takes TestClient 5-15 minutes to bake 25 clients if they are all logging
+</I>&gt;<i> in at the same time (depends on hardware and other load on the client box).
+</I>&gt;<i> In our experiments, we use several multi-core servers each running multiple
+</I>&gt;<i> TestClient processes where each process hosts 25 bots. We can usually log in
+</I>&gt;<i> 500-1000 bots to our grid within 20 minutes and get all of them fully baked
+</I>&gt;<i> and ready for action. Instead of running 100 bots in a single TestClient,
+</I>&gt;<i> consider running 4 TestClients and have each one connect 25 bots. TestClient
+</I>&gt;<i> uses lightweight threads to handle packets from the simulator and if you
+</I>&gt;<i> have 100 bots moving around then there are a LOT of packets to process. A
+</I>&gt;<i> machine with more cores or hardware threads will improve your experience
+</I>&gt;<i> dramatically when simulating lots of independent bots in TestClient.
+</I>&gt;<i>
+</I>&gt;<i> ~Dan
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">it at nii.ac.jp</A>
+</I>&gt;<i> Sent: Monday, September 06, 2010 3:01 AM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Problem with the bots
+</I>&gt;<i>
+</I>&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> Actually I would like to know a little bit more about the test you have
+</I>&gt;<i> done to assess the number of bot that can be runned on a simulation.
+</I>&gt;<i> My main concern is the time we have to wait to log several bot.
+</I>&gt;<i>
+</I>&gt;<i> Indeed, I can log bots and ensure their appearance will be Ok, but it
+</I>&gt;<i> requires a lot of time. (in OpenSim 0.7.0), for instance, to log 25 bots, it
+</I>&gt;<i> takes me almost 10 minutes if I want everybody to be baked.
+</I>&gt;<i>
+</I>&gt;<i> I am using the Testclient Object (inherited from GridClient).
+</I>&gt;<i> What about the time it took you to have 100 avatars on a sim ?
+</I>&gt;<i> And another question, according to
+</I>&gt;<i> <A HREF="http://www.sciencesim.com/wiki/doku.php/vwperf/profiling_069_070">http://www.sciencesim.com/wiki/doku.php/vwperf/profiling_069_070</A>
+</I>&gt;<i> The test have been made on 6.9  ?
+</I>&gt;<i> What about 7.0 ?
+</I>&gt;<i>
+</I>&gt;<i> Thanks a lot for your help
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> IT
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20100907/2384adfc/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20100907/2384adfc/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009512.html">[Opensim-dev] Problem with the bots
+</A></li>
+	<LI>Next message: <A HREF="009510.html">[Opensim-dev] Problem with the bots
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9513">[ date ]</a>
+              <a href="thread.html#9513">[ thread ]</a>
+              <a href="subject.html#9513">[ subject ]</a>
+              <a href="author.html#9513">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

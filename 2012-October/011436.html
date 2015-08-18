@@ -1,0 +1,278 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Update for group module &amp; flotsam
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3CCALPwqfZ8U2gFhLmWS-_%3DaqLCCy-yA2JJ113CvzKc8TcNkF1dJg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011434.html">
+   <LINK REL="Next"  HREF="011441.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Update for group module &amp; flotsam</H1>
+    <B>Akira Sonoda</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Update%20for%20group%20module%20%26%20flotsam&In-Reply-To=%3CCALPwqfZ8U2gFhLmWS-_%3DaqLCCy-yA2JJ113CvzKc8TcNkF1dJg%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Update for group module &amp; flotsam">akira.sonoda.1 at gmail.com
+       </A><BR>
+    <I>Sun Oct 14 23:53:06 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011434.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+        <LI>Next message: <A HREF="011441.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11436">[ date ]</a>
+              <a href="thread.html#11436">[ thread ]</a>
+              <a href="subject.html#11436">[ subject ]</a>
+              <a href="author.html#11436">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>IMHO finding out which group members are online and sending group IM/Notice
+etc. to them actually should not be done by the region server from which
+the group IM/notice etc. is sent.
+This is a task which should be done centrally in case of OSgrid in Dallas
+TX ( <A HREF="http://wiki.osgrid.org/index.php/Infrastructure">http://wiki.osgrid.org/index.php/Infrastructure</A> ). The region server
+should only collect the group IM/notice etc. and send it to the central
+group server or in the other way receiving IM/notice etc. from the central
+group server and distribute it to the Agents active on the region(s).
+
+But there are even other places which can and should be improved. I did
+some tests with some viewers counting the web requests to the central
+infrastructure:
+
+Test 1: Teleport from a Plaza to one of my regions located on a server in
+Europe and afterwards logging out:
+
+Cool VL Viewer: 912 Requests mostly SynchronousRestForms POST
+<A HREF="http://presence.osgrid.org/presence">http://presence.osgrid.org/presence</A> ( i guess to inform all my 809 friends
+[mostly only 5% online] I am going offline because the calls to the
+presence service were done after i closed the viewer)
+Singularity Veiwer: 921 Requests mostly calls to presence after logoff
+Teapot viewer: 910 Requests mostly calls to presence after logoff
+Astra Viewer: 917 Requests mostly calls to presence after logoff
+Firestorm: 1005 Requests mostly calls to presence after logoff
+Imprudence: 918 mostly calls to presence after logoff
+
+So far so good. I have no idea why my 760 offline friends have to be
+informed that I went offline ...
+(Details can be found here:
+<A HREF="https://docs.google.com/open?id=0B301xueh1kxdNG1wLWo2YVVfYjA">https://docs.google.com/open?id=0B301xueh1kxdNG1wLWo2YVVfYjA</A> )
+
+Test 2: Direct Login onto my Region and then Logoff-( with FetchInventory2
+disabled )
+
+Cool VL Viewer: 2232 Requests mostly calls to presence ~800 during login
+and ~800 during logout and xinventory
+Singularity Viwer: 2340 Requests mostly calls to presence and xinventory
+Teapot Viewer: Produced 500+ Threads in a very short time and then the
+OpenSim.exe crashed
+Astra Viewer: 2831 Request mostly calls to presence and xinventory
+Firestorm Viwer: ACK Timeout for me. OpenSim.exe survived on 500 Threads
+for 30+ minutes producing 4996 Requests mostly xinventory
+Imprudence: 1745 Requests mostly presence
+
+Again why do all my 809 friends have do be verified with single requests?
+Then why this difference in xinventory Requests? And why are both Teapot
+and Firestorm producing so many Threads in such a short time? and bring
+OpenSim.exe to crash or closely to crash ...
+( Details can be found here:
+<A HREF="https://docs.google.com/open?id=0B301xueh1kxdMDJxWm5UR2QtU2c">https://docs.google.com/open?id=0B301xueh1kxdMDJxWm5UR2QtU2c</A> )
+
+Test 3: Direct Login to my Region with FetchInventory2 enabled.
+
+Teapot Viewer: I closed the viwer after 30 minutes. Number of Threads were
+still rising up to 260. In the end i counted 30634 xinventory requests...
+My Inventory has 14190 items !!!
+Firestorm Viwer: Quite normal approx 2020 Requests ... quite some slow
+FetchInventoryDescendandts2 Caps. with 100 sec max
+
+( Details can be found here:
+<A HREF="https://docs.google.com/open?id=0B301xueh1kxdNEtEeUVFamU1QUE">https://docs.google.com/open?id=0B301xueh1kxdNEtEeUVFamU1QUE</A> )
+
+Just my observations this week end.
+Akira
+
+
+
+2012/10/13 Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;
+
+&gt;<i> Hi Michelle.  I've now had some more time to think about this.  In fact, I
+</I>&gt;<i> established a proposal summary page at [1] which I'll change as we go along
+</I>&gt;<i> (or please feel free to change yourself).  We do need to fix this problem
+</I>&gt;<i> of group IM taking massive time with groups that aren't that big.
+</I>&gt;<i>
+</I>&gt;<i> I do like the approach of caching online status (and login time) in the
+</I>&gt;<i> groups service.
+</I>&gt;<i>
+</I>&gt;<i> 1.  It's reasonably simple.
+</I>&gt;<i> 2.  One network call to fetch online group members per IM.
+</I>&gt;<i> 3.  May allow messaging across multiple OpenSimulator installations.
+</I>&gt;<i>
+</I>&gt;<i> However, this approach does mean
+</I>&gt;<i>
+</I>&gt;<i> 1.  Independently updating the groups services on each login/logout.  I'm
+</I>&gt;<i> not saying this is a problem, particularly if it saves traffic later on.
+</I>&gt;<i> 2.  Groups service has to deal with extra information.  Again, this is
+</I>&gt;<i> fairly simple so not necessarily a fatal issue though it does mean every
+</I>&gt;<i> groups implementations needs to do this in some manner.
+</I>&gt;<i> 3.  Online cache is not reusable by other services in the future.
+</I>&gt;<i>
+</I>&gt;<i> On a technical note, the XmlRpc groups module does in theory cache data
+</I>&gt;<i> for 30 seconds by default, so a change in online status may not be seen for
+</I>&gt;<i> upto 30 seconds.  I personally think that this is a reasonable tradeoff.
+</I>&gt;<i>
+</I>&gt;<i> Rather, of the above cons, 3 is the one I'm finding most serious.  If
+</I>&gt;<i> other services would also benefit from online status caching in the future,
+</I>&gt;<i> they would have to implement their own caches (and be updated from
+</I>&gt;<i> simulators).
+</I>&gt;<i>
+</I>&gt;<i> I do agree that making a GridUser.LoggedIn() call for every single group
+</I>&gt;<i> member on every single IM is unworkable.  Even if this is only done once
+</I>&gt;<i> and cached for a certain period of time it could be a major issue for large
+</I>&gt;<i> groups.
+</I>&gt;<i>
+</I>&gt;<i> So an alternative approach could be to add a new call to GridUser service
+</I>&gt;<i> (maybe LoggedIn(List&lt;UUID&gt;) that will only return GridInfo for those that
+</I>&gt;<i> are logged in.  This could then be cached simulator-side for a certain
+</I>&gt;<i> period of time (e.g. 30 seconds like the groups information) and used for
+</I>&gt;<i> group IM.
+</I>&gt;<i>
+</I>&gt;<i> This has the advantages that
+</I>&gt;<i>
+</I>&gt;<i> 1.  Groups and future services don't need to do their own login caching.
+</I>&gt;<i> 2.  Future services can use the same information and code rather than have
+</I>&gt;<i> to cache login information themselves.
+</I>&gt;<i>
+</I>&gt;<i> However, it does
+</I>&gt;<i>
+</I>&gt;<i> 1.  Require GridUserInfo caching simulator-side, I would judge this to be
+</I>&gt;<i> a more complex approach.
+</I>&gt;<i> 2.  Mean that during the cache period, new online group messages will not
+</I>&gt;<i> receive messages.  (this is going to happen with GetGroupMembers() caching
+</I>&gt;<i> anyway).
+</I>&gt;<i> 3.  Traffic is still generated to the GridUser service at the end of every
+</I>&gt;<i> simulator-side caching period.  This is probably not a huge burden.
+</I>&gt;<i>
+</I>&gt;<i> So right now, I'm somewhat more in favour of a GridUserInfo simulator-side
+</I>&gt;<i> caching approach than caching login information within the groups service.
+</I>&gt;<i>  However, unlike you, I haven't actually tried to implement this approach
+</I>&gt;<i> so there may well be issues that I haven't seen.
+</I>&gt;<i>
+</I>&gt;<i> What do you think, Michelle (or anybody else)?
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 10/10/12 19:47, Michelle Argus wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> <A HREF="http://code.google.com/p/**flotsam/">http://code.google.com/p/**flotsam/</A> &lt;<A HREF="http://code.google.com/p/flotsam/">http://code.google.com/p/flotsam/</A>&gt;is the the current flotsam version and points to the github repro which I
+</I>&gt;&gt;<i> forked and
+</I>&gt;&gt;<i> then patched.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> None of the changes I proposed in my git fork have been implemented,
+</I>&gt;&gt;<i> neither in opensim nor in flotsam.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   Consider my proposal as a quick fix for the time beeing which does not
+</I>&gt;&gt;<i> solve all other issues mentioned by later
+</I>&gt;&gt;<i> mailings.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Am 09.10.2012 10:24, schrieb Ai Austin:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Michelle Argus on Wed Oct 3 18:00:23 CEST 2012:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> I have added some changes to the group module of OpenSim and the
+</I>&gt;&gt;&gt;&gt;<i> flotsam server.
+</I>&gt;&gt;&gt;&gt;<i> ...
+</I>&gt;&gt;&gt;&gt;<i> The changes can be found in the 2 gits here: &lt;
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://github.com/MAReantals**">https://github.com/MAReantals**</A>&gt;<A HREF="https://github.com/MAReantals">https://github.com/MAReantals</A>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> NB: Both changes to flotsam and opensim are backward compatible and do
+</I>&gt;&gt;&gt;&gt;<i> not require that both parts are updated. If some simulators are not
+</I>&gt;&gt;&gt;&gt;<i> updated it can happen that some groupmembers do not receive
+</I>&gt;&gt;&gt;&gt;<i> groupmessages as their online status is not updated correctly. In a grid
+</I>&gt;&gt;&gt;&gt;<i> like OSgrid my recomendation would thus be to first update the
+</I>&gt;&gt;&gt;&gt;<i> simulators and at a later stage flotsam.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Hi Michelle... I am looking at what is needed to update the Openvue grid
+</I>&gt;&gt;&gt;<i> which is using the flotsam XmlRpcGroups
+</I>&gt;&gt;&gt;<i> module.  the GITHub repository has the changes from a few days ago...
+</I>&gt;&gt;&gt;<i> but I wonder if there has been an update/commit
+</I>&gt;&gt;&gt;<i> into the main Opensim Github area already.  I cannot see a  related
+</I>&gt;&gt;&gt;<i> commit looking back over the last week or so.  Is
+</I>&gt;&gt;&gt;<i> the core system updated so this module is up to date in that?  I also
+</I>&gt;&gt;&gt;<i> note that the Opensim.ini.example file contains
+</I>&gt;&gt;&gt;<i> a reference to <A HREF="http://code.google.com/p/**flotsam/&lt;http://code.google.com/p/flotsam/">http://code.google.com/p/**flotsam/&lt;http://code.google.com/p/flotsam/</A>&gt;for details of how to install the service.. but that seems to be
+</I>&gt;&gt;&gt;<i> pointing at an out of date version?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I think for the flotsam php end it is straightforward and I obtained the
+</I>&gt;&gt;&gt;<i> changed groups.sql and xmlrpc.php files
+</I>&gt;&gt;&gt;<i> needed.  But note that people are still pointed via the
+</I>&gt;&gt;&gt;<i> opensim.ini.example comments at the old version on
+</I>&gt;&gt;&gt;<i> <A HREF="http://code.google.com/p/**flotsam/">http://code.google.com/p/**flotsam/</A> &lt;<A HREF="http://code.google.com/p/flotsam/">http://code.google.com/p/flotsam/</A>&gt;so that either needs updating to teh latest version, or the comment in
+</I>&gt;&gt;&gt;<i> opensim.ini.exmaple needs to be changed.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> To avoid mistakes, I wonder if you can clarify where to go for the parts
+</I>&gt;&gt;&gt;<i> needed and at what revision/date of OpenSim
+</I>&gt;&gt;&gt;<i> 0.7.5 dev master this was introduced, what to get and what to change for
+</I>&gt;&gt;&gt;<i> an existing service in terms of the data base
+</I>&gt;&gt;&gt;<i> tables, OpenSim.exe instance and the web support php code areas?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Thanks Michelle, Ai
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> OSVW Consulting
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20121014/2283cb5e/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20121014/2283cb5e/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011434.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+	<LI>Next message: <A HREF="011441.html">[Opensim-dev] Update for group module &amp; flotsam
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11436">[ date ]</a>
+              <a href="thread.html#11436">[ thread ]</a>
+              <a href="subject.html#11436">[ subject ]</a>
+              <a href="author.html#11436">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

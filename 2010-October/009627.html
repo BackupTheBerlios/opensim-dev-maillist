@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] .net serialization of SOGs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.net%20serialization%20of%20SOGs&In-Reply-To=%3C4CB1DA25.9070107%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009622.html">
+   <LINK REL="Next"  HREF="009628.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] .net serialization of SOGs</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.net%20serialization%20of%20SOGs&In-Reply-To=%3C4CB1DA25.9070107%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] .net serialization of SOGs">diva at metaverseink.com
+       </A><BR>
+    <I>Sun Oct 10 17:22:13 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009622.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+        <LI>Next message: <A HREF="009628.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9627">[ date ]</a>
+              <a href="thread.html#9627">[ thread ]</a>
+              <a href="subject.html#9627">[ subject ]</a>
+              <a href="author.html#9627">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After thinking about it, I think I know the way out of our dependence on 
+.net serialization. I'm planning to do this [today], so if anyone has 
+concerns, please speak up.
+
+The main problem with what we have is that the serialization is being 
+done automagically by .net via reflection, leaving us completely out of 
+the loop and at the mercy of the nasty .net serialization restrictions. 
+So the smooth transition out of this is to reproduce the serialization 
+strings that .net is producing, but via our own code. That will be stage 
+1, and will ensure 100% compatibility with the data that already exists. 
+But that will give us the ground to then do the right things with 
+serialization, like adding a MIME type and a version number to whatever 
+is being serialized.
+
+Luckily jhurliman has already done most of it in libomv, probably as a 
+consequence of him pulling his hair when he encountered the SOG 
+serialization in OpenSim... I'm undecided on whether to reuse that code 
+as-is or copy-paste-change it, since I'm planning to add more fields, 
+and context, to the SOG serializations. Without getting into flame wars 
+between OpenSim and libomv, any thoughts on this, from a pragmatic point 
+of view?
+
+
+On 10/9/2010 12:39 PM, Dahlia Trimble wrote:
+&gt;<i> How about the various OSD serializations in libomv? They seem to be
+</I>&gt;<i> pretty robust these days.
+</I>&gt;<i>
+</I>&gt;<i> On Sat, Oct 9, 2010 at 11:05 AM, &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     Dear devs,
+</I>&gt;<i>
+</I>&gt;<i>     I'm pulling my hair here with the serialization of scene objects.
+</I>&gt;<i>     This is horrible! Using .Net serialization for something as
+</I>&gt;<i>     important as this is the worst idea ever. We're completely frozen.
+</I>&gt;<i>     I'm trying to add an additional field for the creator info, and I'm
+</I>&gt;<i>     stuck in all sorts of ways: I can't compute the value of that field
+</I>&gt;<i>     at serialization-time, and then there are the issues of
+</I>&gt;<i>     compatibility with previous versions of the SOP class.
+</I>&gt;<i>
+</I>&gt;<i>     I'd like to understand all the implications of doing an entirely
+</I>&gt;<i>     different serialization procedure, one that does not use reflection,
+</I>&gt;<i>     and that allows for processing-during-serialization. What will
+</I>&gt;<i>     break, and therefore needs fixing?
+</I>&gt;<i>
+</I>&gt;<i>     I understand all archiving related to previous versions will break,
+</I>&gt;<i>     so we need to keep supporting the existing serialization 'disease'
+</I>&gt;<i>     for the foreseeable future. I also understand that TPs/crossings
+</I>&gt;<i>     between sims that talk different SOG serializations will break, but
+</I>&gt;<i>     that's not so bad.
+</I>&gt;<i>
+</I>&gt;<i>     Anything else I should be aware of before I go off and redo this?
+</I>&gt;<i>
+</I>&gt;<i>     Diva / Crista
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009622.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+	<LI>Next message: <A HREF="009628.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9627">[ date ]</a>
+              <a href="thread.html#9627">[ thread ]</a>
+              <a href="subject.html#9627">[ subject ]</a>
+              <a href="author.html#9627">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

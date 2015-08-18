@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Loadable modules and Scripting extensions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Loadable%20modules%20and%20Scripting%20extensions&In-Reply-To=%3C63d649160902011727h70bdbcbfr4bac53fd2e0d0fe5%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004860.html">
+   <LINK REL="Next"  HREF="004846.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Loadable modules and Scripting extensions</H1>
+    <B>Rob Smart</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Loadable%20modules%20and%20Scripting%20extensions&In-Reply-To=%3C63d649160902011727h70bdbcbfr4bac53fd2e0d0fe5%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Loadable modules and Scripting extensions">rob.s.smart at gmail.com
+       </A><BR>
+    <I>Mon Feb  2 02:27:18 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004860.html">[Opensim-dev] AssetBase and metadata
+</A></li>
+        <LI>Next message: <A HREF="004846.html">[Opensim-dev] Loadable modules and Scripting extensions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4839">[ date ]</a>
+              <a href="thread.html#4839">[ thread ]</a>
+              <a href="subject.html#4839">[ subject ]</a>
+              <a href="author.html#4839">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi All,
+
+A fairly lengthy description follows of why we cant currently create
+loadable Modules that provide extra script functions...
+
+I currently have an Opensim publish subscribe module that exposes its
+functionality through new scripting commands osPublish and osSubscribe,
+unfortunately i cannot release it into the main OpenSim project yet for
+licensing reasons. I'd managed to
+develop the module without having to alter any existing code from the main
+OpenSim codebase, but i still had to merge changes in the prebuild file
+every time i synched with SVN.
+
+Tonight I finally got round to attempting to separate it out from the main
+OpenSim codebase into a dll module of its own, all was going well until I
+got to the point of testing and found that my scripting methods
+(osPublish,osSubscribe) were no longer being recognised when the scripts
+were compiled in world.
+
+I poked around a bit and found that the ApiManager class only search within
+the active dll assembly for API classes, I altered this so that it searched
+all assemblies. At this point it was finding my API interface and
+successfully initing it. However once
+again the osPublish,osSubscribe methods were not found when compiling a test
+script in world.
+
+More tracing and I found that the Compiler.cs class has hard coded
+references to two ScriptEngine dlls
+
+parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
+                    &quot;OpenSim.Region.ScriptEngine.Shared.dll&quot;));
+parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
+                    &quot;OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll&quot;));
+
+
+I temporarily added a reference to my module DLL so that it was on the
+compile path for scripts (not sure how to get round this yet)
+
+at this time i now get...
+
+The imported type
+`OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass' is defined
+multiple times
+
+Because ScriptBaseClass is made up of several partial classes...
+i.e.  OSSL_Stub.cs, LSL_Stub.cs
+
+I discovered that partial classes cannot be spread across DLLs, so currently
+we have a limitation that prevents us producing loadable modules that
+provide extra script functions.
+
+My opinion is that this is a fairly major restriction in the module system,
+well... actually its a limitation of the script engine...
+
+Any ideas on a solution to this ? hoping for an easy solution, but my
+suspicion is it may involve some re-architecting.
+
+cheers,
+Rob Smart
+(Yossarian Seattle)
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090202/626d5764/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090202/626d5764/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004860.html">[Opensim-dev] AssetBase and metadata
+</A></li>
+	<LI>Next message: <A HREF="004846.html">[Opensim-dev] Loadable modules and Scripting extensions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4839">[ date ]</a>
+              <a href="thread.html#4839">[ thread ]</a>
+              <a href="subject.html#4839">[ subject ]</a>
+              <a href="author.html#4839">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

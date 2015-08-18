@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Object Representation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Object%20Representation&In-Reply-To=%3CBLU134-W24E9965270CBC36987465AD52B0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000870.html">
+   <LINK REL="Next"  HREF="000881.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Object Representation</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Object%20Representation&In-Reply-To=%3CBLU134-W24E9965270CBC36987465AD52B0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Object Representation">stefan at tribalmedia.se
+       </A><BR>
+    <I>Tue Feb 12 19:45:09 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000870.html">[Opensim-dev] Object Representation
+</A></li>
+        <LI>Next message: <A HREF="000881.html">[Opensim-dev] Object Representation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#871">[ date ]</a>
+              <a href="thread.html#871">[ thread ]</a>
+              <a href="subject.html#871">[ subject ]</a>
+              <a href="author.html#871">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes, either closures, or 'state objects'. Or, if there is actually some method to this madness so it can be normalized and described with a clever set of classes.
+ 
+I was tossing around the notion of a 'link set position' so that there was a global position, and that every part, including what would be the 'root' had an offset from that.
+ 
+It definitively has its merits (you get one place to get/set absolute position, and another to set offset) but the backside is that you need quite a few re-calculations of prim positions and rotations when rendering to packets. Also, I'm a bit unsure as of how that would translate into attachment coords.
+ 
+I don't know, anybody has any strong feelings on that issue? Would you like to have 'peer prims' or a 'root prim'?
+ 
+/Stefan
+ 
+
+
+
+Date: Tue, 12 Feb 2008 08:56:43 -0800From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: Re: [Opensim-dev] Object Representation
+In general, and talking without knowing the specifics here (so, ignore me), this situation sounds like a good candidate for closures. I.e. associate a function to each object, which governs what can and can't be done with the object in each point in time. The associations between objects and these functions can be determined by some sort of deterministic event-driven state machine, I'm guessing. &quot;linkset attached to avatar&quot; ==&gt; all objects in linkset moved to state &quot;attached&quot;, whose associated function says &quot;no sitting here&quot;.What this gives you is a way of changing the object semantics dynamically without sprinkling the code with conditionals -- just change its function. Semantically equivalent to changing the class at run-time.But that's just me talking without having read any of the previous discussions.Stefan Andersson wrote: 
+
+
+
+Sean, ace of you to take this up. I'm starting to think that we need to come up with a process to figure this out, rather than just figure it out, because everytime we start thinking of it, you start walking in circles. I know from experience, and Darren and I just had one of those tangly discussions where we tried to make heads and tails of the whole object graph, where objects change their properties and the semantics of their properties due to how they are used. (ie, scenes have linksets, that have objects, that have child objects,  that have avatars sitting on them, that have attachment points, that have attachements, that are linksets, that has root objects, that has child objects... you can't sit on an attachment, can you? Please, dear god?) Combine this with our needs a) to be SL conformantb) to have as sleek an API as possible andc) to have efficient storage and exchange of content and we have an alphabet soup to transform into a sonnet. Could we set up a wiki page where we could all pour our knowledge into it, with suggestions and experiences? /Stefan
+
+&gt;<i> Date: Fri, 8 Feb 2008 08:02:53 -0500&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] Object Representation&gt; &gt; Per request, lets run with the thread here. The question at hand is&gt; database refactoring, which well all agree needs to be done. The reason&gt; it hasn't been done so far is because it turns out we end up with&gt; objects at least 4 different formats, needed for different things.&gt; &gt; Object on the Wire - this definition comes from libsecondlife&gt; Object in the code - SceneObjectPart / SceneObjectGroup&gt; Object at rest - Database tables (which actually vary between db&gt; backends)&gt; Object in XML - we have 2? versions of this already.&gt; &gt; One of the challenges in getting to a grand unified scheme is that&gt; all those representations are in some ways equal. Today they are&gt; divergent enough that a lot of work is required at times to chunk them&gt; into one form or another.&gt; &gt; So, here is your chance to be a hero in the OpenSim world. :) Ideas on&gt; how to reasonably pull all this together to give us a much more&gt; consistent serialization approach are very welcomed. Please pile on.&gt; &gt; I think that solving this is probably our next big battle. I'm excited&gt; to see the NHibernate work getting very close, as I think that's a huge&gt; step forward in this regard. This probably also means we need to bring&gt; up the SOP/SOG discussion that Stephan wanted to kick off as well.&gt; &gt; -Sean&gt; &gt; -- &gt; __________________________________________________________________&gt; &gt; Sean Dague Mid-Hudson Valley&gt; sean at dague dot net Linux Users Group&gt; <A HREF="http://dague.net">http://dague.net</A> <A HREF="http://mhvlug.org">http://mhvlug.org</A>&gt; &gt; There is no silver bullet. Plus, werewolves make better neighbors&gt; than zombies, and they tend to keep the vampire population down.&gt; __________________________________________________________________
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080212/b27bb93b/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080212/b27bb93b/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000870.html">[Opensim-dev] Object Representation
+</A></li>
+	<LI>Next message: <A HREF="000881.html">[Opensim-dev] Object Representation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#871">[ date ]</a>
+              <a href="thread.html#871">[ thread ]</a>
+              <a href="subject.html#871">[ subject ]</a>
+              <a href="author.html#871">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

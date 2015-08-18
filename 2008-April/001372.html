@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Question about Threads Use in OpenSim ...
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Question%20about%20Threads%20Use%20in%20OpenSim%20...&In-Reply-To=%3C47FCEB74.7020704%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001371.html">
+   <LINK REL="Next"  HREF="001374.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Question about Threads Use in OpenSim ...</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Question%20about%20Threads%20Use%20in%20OpenSim%20...&In-Reply-To=%3C47FCEB74.7020704%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Question about Threads Use in OpenSim ...">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed Apr  9 18:14:44 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001371.html">[Opensim-dev] Question about Threads Use in OpenSim ...
+</A></li>
+        <LI>Next message: <A HREF="001374.html">[Opensim-dev] Question about Threads Use in OpenSim ...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1372">[ date ]</a>
+              <a href="thread.html#1372">[ thread ]</a>
+              <a href="subject.html#1372">[ subject ]</a>
+              <a href="author.html#1372">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Is this a freeze with 100% cpu?  sdague has been having some mono-1.9 
+issues in this area.
+
+Alternatively, I've also seen Wright Plaza on osgrid deadlock once (with 
+idling cpu levels), which might be something to do with people logging 
+in to a specific location selected in the login screen (I'm a bit hazy 
+on the details since I haven't chased this one up).
+
+--
+justincc
+
+
+Ursula MATOVA wrote:
+&gt;<i> Hi Stefan, 
+</I>&gt;<i>
+</I>&gt;<i> Well, I'm now testing SVN.4111 and it seems to work better ... 
+</I>&gt;<i> Sometimes the Sim freeze, but most often in Standalone mode.
+</I>&gt;<i>
+</I>&gt;<i> For now, I can run OpenSim, with acceptable response time in 4x4 Regions.
+</I>&gt;<i>
+</I>&gt;<i> And I had an Idea the past night :)
+</I>&gt;<i>
+</I>&gt;<i> I think the component that use too many CPU is the one that deal with 
+</I>&gt;<i> port 9000 ( mean something in OpenSim.exe ).
+</I>&gt;<i>
+</I>&gt;<i> Here is what I'm thinking that :
+</I>&gt;<i>
+</I>&gt;<i> As I mention in Mantis #909, I'm running OpenSim in Grid mode, 4x4 
+</I>&gt;<i> Regions, BUT, I have created 6 Virtual Servers with Xen.
+</I>&gt;<i>
+</I>&gt;<i> Linux Debian 4.0r3 Etch, Mono 1.9 /  Xen 3.1.0.
+</I>&gt;<i>
+</I>&gt;<i> Here is the Topology  :
+</I>&gt;<i>
+</I>&gt;<i> Dom0 ( 256Mo ) &lt;-- Main Host ( Nothing on it except xen ),
+</I>&gt;<i> DomU ( osg200 / 256MB Ram ) &lt;-- Apache + MySQL ( Maybe Squid in the 
+</I>&gt;<i> future ),
+</I>&gt;<i> DomU ( osg201 / 256MB Ram ) &lt;-- OpenSim &quot;U+G+A+I&quot;, ( Will update it to 
+</I>&gt;<i> 512MB Ram )
+</I>&gt;<i> DomU ( osg203 / 512MB Ram ) &lt;-- OpenSim &quot;S&quot; ( Region Server, 4 Regions ),
+</I>&gt;<i> DomU ( osg204 / 512MB Ram ) &lt;-- OpenSim &quot;S&quot; ( Region Server, 4 Regions ),
+</I>&gt;<i> DomU ( osg205 / 512MB Ram ) &lt;-- OpenSim &quot;S&quot; ( Region Server, 4 Regions ),
+</I>&gt;<i> DomU ( osg206 / 512MB Ram ) &lt;-- OpenSim &quot;S&quot; ( Region Server, 4 Regions ),
+</I>&gt;<i>
+</I>&gt;<i> The startup order is : osg200 &gt; osg201 ( UGAI ) &gt; osg203 (S) &gt; osg204 ... 
+</I>&gt;<i>
+</I>&gt;<i> While monitoring my firewall logs, I found that even if my avatar is 
+</I>&gt;<i> located in a region that belongs to OSG204( for example ) ... There 
+</I>&gt;<i> was Network Trafic to port 9000 ( OSG203 -- The first Region server I 
+</I>&gt;<i> started ).
+</I>&gt;<i> And, while monitoring RAM/CPU Usage on my Virtual Servers, I have 
+</I>&gt;<i> noticed that OSG203 is in &quot;High CPU usage&quot; state ( much more that 
+</I>&gt;<i> OSG204, 205 or 206 )
+</I>&gt;<i>
+</I>&gt;<i> Of course I have to confirm all those points and drop you some 
+</I>&gt;<i> metrics. And I have some more tests to prove that. But it could be a 
+</I>&gt;<i> good start point for investigation.
+</I>&gt;<i>
+</I>&gt;<i> I'll make tests tonight and post the results there.
+</I>&gt;<i>
+</I>&gt;<i> Regards,
+</I>&gt;<i>
+</I>&gt;<i> Ursula.
+</I>&gt;<i>
+</I>&gt;<i> (( Ouch, my english turns bad :D Sorry. ))
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Le 9 avr. 08 &#224; 17:48, Stefan Andersson a &#233;crit :
+</I>&gt;&gt;<i> What's the current status on the thread issues? Are we looking into 
+</I>&gt;&gt;<i> it? Have we identified consumers/culprits?
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> Best,
+</I>&gt;&gt;<i> /Stefan
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ursula.matova at klintcentral.net</A> 
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ursula.matova at klintcentral.net</A>&gt;
+</I>&gt;&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> &gt; Date: Sun, 17 Feb 2008 11:09:27 +0100
+</I>&gt;&gt;<i> &gt; Subject: [Opensim-dev] Question about Threads Use in OpenSim ...
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Hi all,
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; First, please be indulgent about my poor english :) You all know how 
+</I>&gt;&gt;<i> &gt; french people are bad with foreign languages ...
+</I>&gt;&gt;<i> &gt; Thanks in advance.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Well, I'm running OpenSim in StandAlone mode, 3x3 Regions ( as Grid 
+</I>&gt;&gt;<i> &gt; mode is so difficult to configure behind a firewall ) ...
+</I>&gt;&gt;<i> &gt; Using a home made &quot;Linux From Scratch&quot; box with Mono 1.2.6 ( daily 
+</I>&gt;&gt;<i> &gt; snapshot ) ...
+</I>&gt;&gt;<i> &gt; The computer is an Athlon64X2 4400+ with 4GB Ram ... ( is it large 
+</I>&gt;&gt;<i> &gt; enough ? )
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; In the past ( before SVN.3335 or something ) when running OpenSim, 
+</I>&gt;&gt;<i> &gt; just after the simulator goes Up, the OpenSim.exe process use around 
+</I>&gt;&gt;<i> &gt; 96 threads and everything works fine,
+</I>&gt;&gt;<i> &gt; But, now, I saw that this number of threads reach 118 :(
+</I>&gt;&gt;<i> &gt; As I posted in the past in Mantis that Mono under Linux is really bad 
+</I>&gt;&gt;<i> &gt; ( performances &amp; coredump ) when you reach the limit of 170 threads ...
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; When I connect 1 user to the sim : Thread count is now reaching : 157
+</I>&gt;&gt;<i> &gt; When I connect a 2nd user to the sim : Thread count reach : 200
+</I>&gt;&gt;<i> &gt; ( in that case : 200 threads used, the sim doesn't crash like in the 
+</I>&gt;&gt;<i> &gt; past but I find everything slow ... and my CPU is now 100% use / 7% 
+</I>&gt;&gt;<i> &gt; Ram used )
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Then, that mean, each time a user is connecting to the Sim, it use 
+</I>&gt;&gt;<i> &gt; about 40 threads ...
+</I>&gt;&gt;<i> &gt; So, if I like to connect 20 users, I need around 40x20 threads = 800 
+</I>&gt;&gt;<i> &gt; threads ...
+</I>&gt;&gt;<i> &gt; And I'm not sure at all that Mono could manage that :(
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; What's you're feeling on that point ?
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; So, my question is : why not forking a new &quot;OpenSim.exe&quot; process for 
+</I>&gt;&gt;<i> &gt; each new connected user ?
+</I>&gt;&gt;<i> &gt; Of course it's mostly for the standalone mode ( but the problem is a 
+</I>&gt;&gt;<i> &gt; bit the same in Grid Mode ) ...
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Maybe it's a simple/stupid idea from me, because I haven't enough 
+</I>&gt;&gt;<i> &gt; development skills to help all the people working hard to bring up 
+</I>&gt;&gt;<i> &gt; this marvelous simulator.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Please, just let me know your position about it.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Thanks a lot guys for all your dev,
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Regards,
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; Ursula Matova
+</I>&gt;&gt;<i> &gt; ( Of course this is my S/L Avatar Name :) )
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001371.html">[Opensim-dev] Question about Threads Use in OpenSim ...
+</A></li>
+	<LI>Next message: <A HREF="001374.html">[Opensim-dev] Question about Threads Use in OpenSim ...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1372">[ date ]</a>
+              <a href="thread.html#1372">[ thread ]</a>
+              <a href="subject.html#1372">[ subject ]</a>
+              <a href="author.html#1372">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

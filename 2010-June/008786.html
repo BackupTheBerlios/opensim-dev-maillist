@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Release 0.7 RC1 Test Feedback
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Release%200.7%20RC1%20Test%20Feedback&In-Reply-To=%3C4C1BC6CE.2080102%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008782.html">
+   <LINK REL="Next"  HREF="008769.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Release 0.7 RC1 Test Feedback</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Release%200.7%20RC1%20Test%20Feedback&In-Reply-To=%3C4C1BC6CE.2080102%40t-data.com%3E"
+       TITLE="[Opensim-dev] Release 0.7 RC1 Test Feedback">melanie at t-data.com
+       </A><BR>
+    <I>Fri Jun 18 21:19:42 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008782.html">[Opensim-dev] Release 0.7 RC1 Test Feedback
+</A></li>
+        <LI>Next message: <A HREF="008769.html">[Opensim-dev] Opensim 0.7 use of port 82
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8786">[ date ]</a>
+              <a href="thread.html#8786">[ thread ]</a>
+              <a href="subject.html#8786">[ subject ]</a>
+              <a href="author.html#8786">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Actually, that code is on my list. However, since there is such a
+hue and cry over the new driver, I have refrained from putting into
+master, since that would &quot;freeze&quot; the new driver in place.
+
+Although I'm a proponent of forward motion, we MAY have to roll back
+the driver and migration change. I really want to avoid that, but
+until that issue is resolved, I just can't commit any code that
+builds on it.
+
+Melanie
+
+Alex Ra wrote:
+&gt;<i> DC&gt; As far as I understand it, the new driver was added because it
+</I>&gt;<i> DC&gt; supports stored procedures [better?]; stored procedures will allow
+</I>&gt;<i> DC&gt; us to speed up some things. But 0.7 still doesn't have any stored
+</I>&gt;<i> DC&gt; procedures, so the new capabilities are mute.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Hello Diva,
+</I>&gt;<i> 
+</I>&gt;<i> It was me who put the updated MySql driver into the project, so I'm
+</I>&gt;<i> the one to kick for the mess.
+</I>&gt;<i> 
+</I>&gt;<i>  The reasons were:
+</I>&gt;<i> 
+</I>&gt;<i> (a) Yes, the ability to *define* multi-statement stored procs. MySQL has
+</I>&gt;<i> a rather hairy way to switch DELIMITER while defining an SP, so
+</I>&gt;<i> defining anything with a ';' inside was either impossible or very tricky
+</I>&gt;<i> with the previous driver.
+</I>&gt;<i> 
+</I>&gt;<i> You are also correct that stored procs are NOT used currently, however
+</I>&gt;<i> they can be used to provide &quot;fast&quot; tracking of asset access times,
+</I>&gt;<i> which, as I understand, is required for cleaning up unused assets and
+</I>&gt;<i> preventing the database from growing infinitely. The relevant code is
+</I>&gt;<i> ready, tested and described by me somewhere on Mantis, with a link to
+</I>&gt;<i> github, but I don't think anybody has bothered to review / merge it
+</I>&gt;<i> (yet).
+</I>&gt;<i> 
+</I>&gt;<i> The last time I looked, the access tracking functionality was
+</I>&gt;<i> commented out in the asset store code, because sending an UPDATE after
+</I>&gt;<i> each asset fetch just kills the performance (like 10 times slower).
+</I>&gt;<i> The solution based on stored procs has a performance penalty of about
+</I>&gt;<i> 10-15%.
+</I>&gt;<i> 
+</I>&gt;<i> I can re-post the link to Mantis where this approach is described, if
+</I>&gt;<i> anybody is interested.
+</I>&gt;<i> 
+</I>&gt;<i> (b) the less important reason is just to keep up with the most recent
+</I>&gt;<i> versions of the driver.
+</I>&gt;<i> 
+</I>&gt;<i> Updating the driver also involved some changes in the stores to
+</I>&gt;<i> correctly convert between values returned/accepted by the driver and
+</I>&gt;<i> UUIDs in the code. The reason is that the new driver implicitly
+</I>&gt;<i> converts CHAR(36), returning it as Guid (rather than a string). With
+</I>&gt;<i> the &quot;Old Guids&quot; config var, the driver would instead convert
+</I>&gt;<i> BINARY(16) to Guid.
+</I>&gt;<i> 
+</I>&gt;<i> With the new driver and the corresponding code changes in place, the
+</I>&gt;<i> &quot;Old Guids&quot; config var should NOT be used.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Best regards,
+</I>&gt;<i> 
+</I>&gt;<i> Alex
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008782.html">[Opensim-dev] Release 0.7 RC1 Test Feedback
+</A></li>
+	<LI>Next message: <A HREF="008769.html">[Opensim-dev] Opensim 0.7 use of port 82
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8786">[ date ]</a>
+              <a href="thread.html#8786">[ thread ]</a>
+              <a href="subject.html#8786">[ subject ]</a>
+              <a href="author.html#8786">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

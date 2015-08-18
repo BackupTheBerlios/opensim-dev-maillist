@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Supplying IScene instead of Scene for the	future region modules mechanism
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Supplying%20IScene%20instead%20of%20Scene%20for%20the%09future%0A%20region%20modules%20mechanism&In-Reply-To=%3CBLU134-W27B7A7C19B85181FB989CAD57C0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006147.html">
+   <LINK REL="Next"  HREF="006150.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Supplying IScene instead of Scene for the	future region modules mechanism</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Supplying%20IScene%20instead%20of%20Scene%20for%20the%09future%0A%20region%20modules%20mechanism&In-Reply-To=%3CBLU134-W27B7A7C19B85181FB989CAD57C0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Supplying IScene instead of Scene for the	future region modules mechanism">stefan at tribalmedia.se
+       </A><BR>
+    <I>Tue Apr 14 21:21:01 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006147.html">[Opensim-dev] Supplying IScene instead of Scene for the	future region modules mechanism
+</A></li>
+        <LI>Next message: <A HREF="006150.html">[Opensim-dev] Supplying IScene instead of Scene for the	future region modules mechanism
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6149">[ date ]</a>
+              <a href="thread.html#6149">[ thread ]</a>
+              <a href="subject.html#6149">[ subject ]</a>
+              <a href="author.html#6149">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+ 
+&gt;<i> - Should core really limit what _can_ be done by non-core module coders?
+</I>
+Yes. And in what sequence, and in what ways. That is what programming is. That is what designing is. And it's how you help people understand the intended use of an API.
+ 
+We've already done that in Scene. Some things are private, some are protected. Some functions take values as parameters, others use the internal state.
+ 
+&gt;<i> - Is it very likely that anyone would make a new Scene-type object 
+</I>&gt;<i> without inheriting from Scene?
+</I>
+Yes, definitively. Mocking is the most immediate example, but I can definitively think of scenarios where the inner workings of the SceneGraph would work radically different. For example, if the administration of inner state should be different, optimized, or simply react in other ways - say, because a third-party external protocol is radically different. I can definitively see why you'd want a 'passive' scene that just worked as a data model, not even running updates or backups for example, while still being able to function in a live region, and work with other SceneGraph objects.
+
+&gt;<i> I believe that passing Scene directly is the right thing to do, as 
+</I>&gt;<i> the region modules' functionality is largely tied to Scene in an 
+</I>&gt;<i> indissoluble way anyway.
+</I> 
+Which is in itself part of the problem. The way concrete classes are tied together right now makes it a mess to encapsulate, re-define or unit test in any sensible manner.
+ 
+&gt;<i> Any interface would just have to carry 
+</I>&gt;<i> almost all methods of Scene anyway, and add yet another file to edit 
+</I>&gt;<i> when adding fundamental functionality.
+</I>
+Which is why I was proposing one re-evaluate the Scene methods, one by one. Incidentally, if what you say is true, we have WAY too many public methods and properties on Scene.
+
+&gt;<i> Also, I believe it is very unlikely that someone would not inherit 
+</I>&gt;<i> Scene since it provides a huge amount of the bery basic 
+</I>&gt;<i> functionality everyone needs. If someone doesn't inherit Scene, they 
+</I>&gt;<i> are doing something fundamentally different and existing region 
+</I>&gt;<i> modules would be of no use to them anyway.
+</I>
+The problem is rather it provides too much, and in a way that makes it impossible to disentangle for cases where you want to be able to work with the classes in other ways than as part of a living live region.
+
+&gt;<i> I know such an IScene would break all my private region modules, and 
+</I>&gt;<i> probably everyone else's, unless I add a slew of methods and 
+</I>&gt;<i> properties to IScene to make them work again.
+</I>
+I don't think anybody, so far, has proposed to define what the supplied IScene would and would not contain. That is why I think there should be a serparation between what the core wants out of a IScene and what the region modules want.
+
+ 
+
+And maybe the region should have _more_ available than the core should. I can definitively think of cases where the core would want to be able to run a scene that does not implement the full ISceneForRegionModules simply because there will be no region modules loaded for that scene.
+ 
+&gt;<i> I believe we can't possibly anticipate every method that needs to be 
+</I>&gt;<i> accessed, and we should not limit it to what we think is &quot;correct&quot; 
+</I>&gt;<i> or &quot;hygienic&quot;. After all, someone may not even want to tell us what 
+</I>&gt;<i> their region modules are for, therefore would not aubmit their patch 
+</I>&gt;<i> but keep it as a private patch, adding maintenance effort and 
+</I>&gt;<i> complicating things.
+</I>
+I say 'correct' and 'hygienic' purely from a state-encapsulating, and best-practise point of view. If we believe neither of these apply to the method under discussion, or if we're too lazy to help the implementer get a coherent picture of how the public and protected methods are supposed to interact, then we'll just not bother, add the method and move on.
+
+&gt;<i> I believe that would not be in the spirit of the BSD licensing if we 
+</I>&gt;<i> were to say &quot;you can do what you want with it, but we'll make it as 
+</I>&gt;<i> hard as we can&quot;.
+</I>
+Nobody has, as far as I can see, forwarded that sentiment. I think we must be both misunderstanding each other?
+ 
+/Stefan
+
+&gt;<i> Stefan Andersson wrote:
+</I>&gt;<i> &gt; Justin, Homer;
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; consider two things you might:
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 1) take the opportunity to take a moment to re-ponder each &quot;missing&quot; IScene power - should the caller perhaps move instead? Or should the called method move to a place where the caller has access without going thru IScene? Maybe the Scene is too big, not IScene too small?
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 2) maybe the notion of a IScene vs a ISceneBase is really an indication that you should have a 'ISceneForRegionModules' instead - an facade enumerating the powers the core wish to expose to the scene, to force the region module coder to code in a hygienic way. Laying the foundations for a ISceneAPI, if you will?
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; On my mind for a long time, both these things has been.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; Best regards,
+</I>&gt;<i> &gt; Stefan Andersson
+</I>&gt;<i> &gt; Tribal Media AB
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt;&gt; Date: Tue, 14 Apr 2009 18:02:45 +0100
+</I>&gt;<i> &gt;&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>
+</I>&gt;<i> &gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt; Subject: [Opensim-dev] Supplying IScene instead of Scene for the future region modules mechanism
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; Hey Homer (since this is primarily addressed to you :),
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; I see you're making some progress on the up-and-coming new region modules mechanism.
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; Instead of passing Scene itself to region modules, could we create an interface so that we better control the amount of 
+</I>&gt;<i> &gt;&gt; innards that we expose to region modules? It's convenient-ish to give the original Scene class to modules now, but it 
+</I>&gt;<i> &gt;&gt; will cause us problems down the road.
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; I'm quite happy to pitch in with this if you want. I suggest renaming the existing IScene to ISceneBase (since that's 
+</I>&gt;<i> &gt;&gt; what it really is) and creating a new IScene that's implemented by Scene.
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; It strikes me that it's going to be more convenient to do this when we introduce the new system than as a separate change.
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; Thoughts?
+</I>&gt;<i> &gt;&gt; 
+</I>&gt;<i> &gt;&gt; -- 
+</I>&gt;<i> &gt;&gt; justincc
+</I>&gt;<i> &gt;&gt; Justin Clark-Casey
+</I>&gt;<i> &gt;&gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090414/312f228c/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090414/312f228c/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006147.html">[Opensim-dev] Supplying IScene instead of Scene for the	future region modules mechanism
+</A></li>
+	<LI>Next message: <A HREF="006150.html">[Opensim-dev] Supplying IScene instead of Scene for the	future region modules mechanism
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6149">[ date ]</a>
+              <a href="thread.html#6149">[ thread ]</a>
+              <a href="subject.html#6149">[ subject ]</a>
+              <a href="author.html#6149">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

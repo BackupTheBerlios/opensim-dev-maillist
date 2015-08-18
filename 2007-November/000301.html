@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Revising the grid standards (Part I - Principles)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Revising%20the%20grid%20standards%20%28Part%20I%20-%20Principles%29&In-Reply-To=%3C20071102184005.GF5478%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000298.html">
+   <LINK REL="Next"  HREF="000300.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Revising the grid standards (Part I - Principles)</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Revising%20the%20grid%20standards%20%28Part%20I%20-%20Principles%29&In-Reply-To=%3C20071102184005.GF5478%40dague.net%3E"
+       TITLE="[Opensim-dev] Revising the grid standards (Part I - Principles)">sean at dague.net
+       </A><BR>
+    <I>Fri Nov  2 19:40:05 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000298.html">[Opensim-dev] Revising the grid standards (Part I - Principles)
+</A></li>
+        <LI>Next message: <A HREF="000300.html">[Opensim-dev] Revising the grid standards (Part II - Implementation	details)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#301">[ date ]</a>
+              <a href="thread.html#301">[ thread ]</a>
+              <a href="subject.html#301">[ subject ]</a>
+              <a href="author.html#301">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Sat, Nov 03, 2007 at 12:16:14AM +0800, Adam Frisby wrote:
+&gt;<i> This is going to be the first of two emails, this one's containing some 
+</I>&gt;<i> of the principles needed for a revised grid protocol, the next one will 
+</I>&gt;<i> contain some sample ideas for specific implementation details.
+</I>&gt;<i> 
+</I>&gt;<i> The problems with the grid code right now:
+</I>&gt;<i> 
+</I>&gt;<i> 1. It's centralised - has no chance whatsoever of scaling.
+</I>&gt;<i> 2. It cant decide whether it wants to be REST, XMLRPC or Remoting.
+</I>&gt;<i> 3. It's a mess, has issues with concurrent requests and locking and the
+</I>&gt;<i>     server code needs a general overhaul.
+</I>&gt;<i> 4. It doesn't support any kind of real authentication or security.
+</I>&gt;<i> 5. Linking grids together is not really feasible without sharing
+</I>&gt;<i>     servers.
+</I>&gt;<i> 
+</I>&gt;<i> In these respects, it's about on-par with what the Linden Grid does 
+</I>&gt;<i> right now. While everyone has recognised it's been temporary - it's 
+</I>&gt;<i> probably about now we should be replacing it with something better.
+</I>&gt;<i> 
+</I>&gt;<i> So, let's nail this one down - we need a revised standard that has the 
+</I>&gt;<i> following features:
+</I>&gt;<i> 
+</I>&gt;<i> Core:
+</I>&gt;<i> 	1. Secure - maintains authentication and hashes of important
+</I>&gt;<i> 	   (all?) messages so that impersonating a fraudulent request
+</I>&gt;<i> 	   is possible.
+</I>I presume you mean isn't possible. :)
+
+&gt;<i> 	2. All requests should use URI's instead of IP/Port
+</I>&gt;<i> 	   combinations.
+</I>
++1
+
+&gt;<i> 	3. No abitrary split of services (eg Asset, User, Grid)
+</I>&gt;<i> 	   simply make: &quot;this provides the following features:
+</I>&gt;<i> 		* user login
+</I>&gt;<i> 		* asset download&quot;
+</I>
++1
+
+&gt;<i> 	4. One protocol to rule them all, be it SOAP, REST, XMLRPC or
+</I>&gt;<i> 	   a sink-neutral remoting implementation. (remoting + scale?)
+</I>
++1 in theory, though I think we'll need to make allowances for certain
+remoting that may need different QOS.  For instances, the Script Server
+(and possible Physics Server idea) is going to have vaguely realtime
+requirements (the right answer and the wrong time is the wrong answer),
+that some of the rest of the grid won't have.
+
+One the specifics front the more I get into REST, the more I like it as
+an answer here.
+
+&gt;<i> 	5. Users / Regions should be represented as a URI so they can
+</I>&gt;<i> 	   be sent to other grids without too much hassle.
+</I>
++1
+
+&gt;<i> 	6. Some comms may require a higher speed serialiser,
+</I>&gt;<i> 	   we should use URI's where possible to specify which is in
+</I>&gt;<i> 	   use. (eg <A HREF="tcp://">tcp://</A> vs <A HREF="soap://">soap://</A>)
+</I>
+Right, exactly the caveats on point 4.
+
+&gt;<i> 
+</I>&gt;<i> Optional:
+</I>&gt;<i> 	1. Region control / administration - the same protocol should be 	 
+</I>&gt;<i> usable on the region server to do things such as send restart
+</I>&gt;<i> 	   commands.
+</I>
+Interesting idea, I like it :)
+
+&gt;<i> 	2. Use a URI / Capability for handling secure requests (needs to
+</I>&gt;<i> 	   be combined with SSL/TLS - will need a CA setup for people
+</I>&gt;<i> 	   who don't want to buy certs [Root CA -&gt; Grid -&gt; Region?])
+</I>
+Yep, agreed.
+
+     -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071102/6c683fee/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071102/6c683fee/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000298.html">[Opensim-dev] Revising the grid standards (Part I - Principles)
+</A></li>
+	<LI>Next message: <A HREF="000300.html">[Opensim-dev] Revising the grid standards (Part II - Implementation	details)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#301">[ date ]</a>
+              <a href="thread.html#301">[ thread ]</a>
+              <a href="subject.html#301">[ subject ]</a>
+              <a href="author.html#301">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

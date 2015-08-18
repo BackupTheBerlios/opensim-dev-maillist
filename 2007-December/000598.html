@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Partial libSL.Packet fix submitted
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Partial%20libSL.Packet%20fix%20submitted&In-Reply-To=%3C1198136239.6182.19.camel%403Di0018n%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000597.html">
+   <LINK REL="Next"  HREF="000599.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Partial libSL.Packet fix submitted</H1>
+    <B>Johan Berntsson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Partial%20libSL.Packet%20fix%20submitted&In-Reply-To=%3C1198136239.6182.19.camel%403Di0018n%3E"
+       TITLE="[Opensim-dev] Partial libSL.Packet fix submitted">johan at ngigroup.com
+       </A><BR>
+    <I>Thu Dec 20 08:37:19 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000597.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+        <LI>Next message: <A HREF="000599.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#598">[ date ]</a>
+              <a href="thread.html#598">[ thread ]</a>
+              <a href="subject.html#598">[ subject ]</a>
+              <a href="author.html#598">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>This problem is not caused by my work, but of changes in later versions
+of LibSL. It has changed from using ToString (unhyphenated) and
+ToStringHyphenated(), to only using ToString() (hyphenated). This means
+that there is no way of getting an unhyphenated string from libSL
+anymore. I changed all instances of  ToStringHyphenated() in OpenSim to
+ToString(), but I didn't realize that there would be a problem with
+plain ToString() calls.
+
+The basic problem is that we are relying on a libSL behaviour that is
+outside our control, and has changed. If we want to keep up to date with
+libSL I suggest that the problem is solved.
+
+Possible solutions:
+1. Identify the problematic ToString() calls and use a utility function
+(Util.ConvertToUnhyphentated) to fix them like before.
+2. Write scripts to update the current databases to use hyphenated
+GUID:s
+3. Change the code not to use ToString at all.
+
+I prefer option 3, and to be compatible it could output unhyphenated
+GUIDs. At least this means that we won't have problems every time libSL
+is refactored (and ToString is meant as a debug tool, not as a provider
+of keys to a database)
+
+
+On Wed, 2007-12-19 at 23:55 -0700, Nebadon Izumi wrote:
+&gt;<i> I got the following errors on my grid when i updated to 2765
+</I>&gt;<i> on the machine that is running the UGAI and Sim i got  the following
+</I>&gt;<i> errors:
+</I>&gt;<i> <A HREF="http://www.pastebin.ca/824868">http://www.pastebin.ca/824868</A>
+</I>&gt;<i> 
+</I>&gt;<i> on the remote sim servers i got these following errors:
+</I>&gt;<i> <A HREF="http://www.pastebin.ca/824870">http://www.pastebin.ca/824870</A>
+</I>&gt;<i> 
+</I>&gt;<i> needless to say my Grid does not run at all when updating to r2765.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> On Dec 19, 2007 10:55 PM, Johan Berntsson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">johan at ngigroup.com</A>&gt; wrote:
+</I>&gt;<i>         &gt;From the IRC:
+</I>&gt;<i>         
+</I>&gt;<i>         02:44:09 PM) CIA-1: opensim: chi11ken * r2765 /trunk/ (43
+</I>&gt;<i>         files in 20
+</I>&gt;<i>         dirs): Added patch from Johan. First attempt to solve the
+</I>&gt;<i>         LibSL.Packet
+</I>&gt;<i>         GC problem. Works with LibSL rev&gt;1532
+</I>&gt;<i>         (02:50:40 PM) joha2: The patch implements a PacketPool
+</I>&gt;<i>         (currently in 
+</I>&gt;<i>         UPDServer.cs) which recycles packages. It is used by all
+</I>&gt;<i>         incoming
+</I>&gt;<i>         packets, and the RegionHandshakePacket, and can easily be
+</I>&gt;<i>         extended to
+</I>&gt;<i>         all outgoing packages later. I have submitted a libSL patch
+</I>&gt;<i>         which is
+</I>&gt;<i>         included from rev. 1532, but the libsecondlife.dll version in
+</I>&gt;<i>         OpenSim is
+</I>&gt;<i>         based on rev 1498 with these files from the later version
+</I>&gt;<i>         (mapgenerator.cs, Types.cs, template.cs). Rev. 1532 compiles
+</I>&gt;<i>         and works,
+</I>&gt;<i>         but the avatar's clothes are gray, so something is wrong. I
+</I>&gt;<i>         don't think 
+</I>&gt;<i>         this is caused by my changes, but by other changes in LibSL,
+</I>&gt;<i>         and I'm
+</I>&gt;<i>         hoping that someone can figure out what's wrong. Until then
+</I>&gt;<i>         1498 + the
+</I>&gt;<i>         patched files from 1532 should be ok.
+</I>&gt;<i>         ---
+</I>&gt;<i>         I will need to expand the fix to work for all packets and do
+</I>&gt;<i>         performance 
+</I>&gt;<i>         testing to verify that it works better, but this should work
+</I>&gt;<i>         for now.
+</I>&gt;<i>         
+</I>&gt;<i>         Cheers,
+</I>&gt;<i>         Johan
+</I>&gt;<i>         
+</I>&gt;<i>         
+</I>&gt;<i>         _______________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000597.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+	<LI>Next message: <A HREF="000599.html">[Opensim-dev] Partial libSL.Packet fix submitted
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#598">[ date ]</a>
+              <a href="thread.html#598">[ thread ]</a>
+              <a href="subject.html#598">[ subject ]</a>
+              <a href="author.html#598">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

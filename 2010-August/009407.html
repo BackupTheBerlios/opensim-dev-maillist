@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Global identifiers
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3C4C7BA1A8.5070102%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009402.html">
+   <LINK REL="Next"  HREF="009409.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Global identifiers</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3C4C7BA1A8.5070102%40t-data.com%3E"
+       TITLE="[Opensim-dev] Global identifiers">melanie at t-data.com
+       </A><BR>
+    <I>Mon Aug 30 14:18:48 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009402.html">[Opensim-dev] Global identifiers
+</A></li>
+        <LI>Next message: <A HREF="009409.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9407">[ date ]</a>
+              <a href="thread.html#9407">[ thread ]</a>
+              <a href="subject.html#9407">[ subject ]</a>
+              <a href="author.html#9407">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>While you have a case with using a central table, rather than
+storing the URL string, and therefore the name, all over the place,
+your request schema would not work.
+
+First off, it overcomplicates (IMO) things if you even attempt to
+show the current name of an identity. My plan has been to show the
+name AT CREATION TIME on a prim, e.g. the displyed creator name of a
+prim will not change, even if the underlying identity changes their
+name. This removes much complaxity.
+
+Second, your system breaks when a prim is taken to a new grid after
+the grid it was created on has vanished from the internet. In that
+case, even the initial lookup will fail and you have no data to display.
+
+Therefore, I'd prefer to go with my initial recommendation and
+indeed store the URL, including the name, &quot;all over the place&quot;. The
+client view can always decide to ignore that part and to a table
+lookup, or even contact the grid of origin.
+
+It seems that a lot of people here are all for omitting information
+that would be helpful for the 90% case in order to make their
+particular corner case the norm. 90% of avatars never change names.
+
+Melanie
+
+Bob Wellman wrote:
+&gt;<i> Can I subvert this discussion back to the original question of Global Identifiers?
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> I have been following the discussion on Global Identifiers with interest and I see strong differences of opinion but merits in both arguments. I agree that hard coding meaning into the URI seems like an inflexible way forward but I also see that minimising lookup traffic between grids is desirable too. So I have been trying to think is there a middle way to compromise on this. I have the kernel of an idea I would like to put forward for discussion.
+</I>&gt;<i>  
+</I>&gt;<i> Let us say we invent a new table in the local grids database (called UserLookup maybe) and the key to that table is the URI diva proposed (without the user name part) sent intially. Sorry Melanie but please read on before deciding.
+</I>&gt;<i>  
+</I>&gt;<i> Draft table design here:
+</I>&gt;<i>  
+</I>&gt;<i> 1) Original URI  (key)
+</I>&gt;<i> 2) Original User name
+</I>&gt;<i> 3) Last verification date.
+</I>&gt;<i> 4) Current user name
+</I>&gt;<i> 5) Current URI (optional idea see later)
+</I>&gt;<i>  
+</I>&gt;<i> When the original URI is received (or later referenced) we do a check against this table to see if a lookup is available and proceed as follows:
+</I>&gt;<i> 1) If the lookup is not on file&#8230; we immediately send to the other grid for verification and the user name and we add the lookup to the table with original user name and current user name the same.
+</I>&gt;<i> 2) If the lookup is on file but out of date &#8230; we send to the other grid for verification (this can be dleayed if need be) and take the latest feedback of user name and update the lookup with current name.
+</I>&gt;<i> 3) If the lookup is on file but not out of date (most times this will be the case) &#8230; we do nothing.
+</I>&gt;<i>  
+</I>&gt;<i> What constitutes out of date will be configurable in Opensim.ini (out-of-date= x days). In Melanie&#8217;s case she will set forever as avatars must not be changeable. For others this can be tailored to their requirements of speed versus flexibility.
+</I>&gt;<i>  
+</I>&gt;<i> The user service already looks up the Prims user UUID to decode the name for local avatars so it just would be changed to do this new lookup at the same time. I think of it this way &#8230;The user service currently answer the question &#8220;who is this&#8221; and would now answer &#8220;who in the global community is this&#8221;.
+</I>&gt;<i>  
+</I>&gt;<i> This method keeps the database design 3rd normal form rather than storing key decodes all over the database, as to not do this will at some stage cause database chaos just like it did in appearance sometime ago. Can you tell I have a database design background...LOL
+</I>&gt;<i>  
+</I>&gt;<i> If a grid goes bust or is temporary offline we have the last know user info to rely on using just local grid lookup, which covers the very valid argument Melanie made that we need to know identity even if the other grids no longer there. 
+</I>&gt;<i>  
+</I>&gt;<i> We can also have the ability to recognise that verification has not been available for a long time so cross grid IM is probably no longer available to this agent.  In the case of an avatar moving grid maybe the forwarding address can be sent back and the current URI stored (the fifth column) at the next look up verification. If the forwarding doesnt ecist or is only temporary, it does matter, as we have last known address stored at our grid, which is the best thats possible. Maintaining an IM link of freindship to an agent that moves grids becomes feasible too. So this keeps things flexible for those that think this is the correct approach long term.
+</I>&gt;<i>  
+</I>&gt;<i> In summary this method reduces the need for massive cross grid lookups and still keeps the link between the URI and the user name flexible.
+</I>&gt;<i>  
+</I>&gt;<i> Just my opinion (and I expect to be overruled) but felt I should say this anyway if only to purge my guilt of saying nothing just to avoid a slap down &#8230;LOL 
+</I>&gt;<i>  
+</I>&gt;<i> Thanks for reading it.. Bob Wellman (PMgrid)
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;&gt;<i> Date: Sun, 29 Aug 2010 19:59:34 -0700
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Global identifiers
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> See my previous email about what changed.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> We seem to have quite different concepts of what a standards process is. 
+</I>&gt;&gt;<i> In my book, a standards process is something that happens *after* 
+</I>&gt;&gt;<i> implementations exist, and preferably several competing ones; in the 
+</I>&gt;&gt;<i> people in VWRAP's book, it seems to mean &quot;let's design something 
+</I>&gt;&gt;<i> together from scratch and on paper&quot;.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Let's see how well these two concepts can co-exist. Maybe they can't!
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Meadhbh Hamrick wrote:
+</I>&gt;&gt;<i> &gt; what's changed?
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; last year you (diva) seemed to have no interest in merging VWRAP with
+</I>&gt;&gt;<i> &gt; Hypergrid. if i remember correctly, hypergrid was going to go off and
+</I>&gt;&gt;<i> &gt; do an implementation while VWRAP went another way to try to
+</I>&gt;&gt;<i> &gt; incrementally build a standard and some code to implement it.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; there's still, of course, room for you at the table. but if i remember
+</I>&gt;&gt;<i> &gt; correctly, you seemed to have problems with LLSD/LLIDL (now about to
+</I>&gt;&gt;<i> &gt; get renamed DSD) and you had a security model that didn't work with
+</I>&gt;&gt;<i> &gt; zha's use cases.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; if you're interested in making the case for why VWRAP should adopt the
+</I>&gt;&gt;<i> &gt; hypergrid security model and drop DSD, you're welcome to participate
+</I>&gt;&gt;<i> &gt; in the VWRAP mailing list.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; and i encourage you to actually do so before dropping a spec on the group.
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; -cheers
+</I>&gt;&gt;<i> &gt; -meadhbh
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; --
+</I>&gt;&gt;<i> &gt; meadhbh hamrick * it's pronounced &quot;maeve&quot;
+</I>&gt;&gt;<i> &gt; @OhMeadhbh * <A HREF="http://meadhbh.org/">http://meadhbh.org/</A> * <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">OhMeadhbh at gmail.com</A>
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> &gt; On Sun, Aug 29, 2010 at 5:29 PM, &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt; Melanie is just right, as usual... well, as in 90% of the time :)
+</I>&gt;&gt;<i> &gt;&gt; The cacheable_data was a brilliant idea, and if you had experience with
+</I>&gt;&gt;<i> &gt;&gt; OpenSim in the wild, in how volatile these worlds are and how much these
+</I>&gt;&gt;<i> &gt;&gt; particular remote lookups lag the sims, you would come to appreciate it,
+</I>&gt;&gt;<i> &gt;&gt; instead of being put off by her dominatrix attitude.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; OpenSim core has been contributing center-front in VWRAP: John Hurliman is a
+</I>&gt;&gt;<i> &gt;&gt; core developer of OpenSim.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Mike Dickson wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt; That's great to hear. And the first I've heard of it. I'm on the VWRAP
+</I>&gt;&gt;<i> &gt;&gt;&gt; mailing list and yes, John has made some very substantive contributions
+</I>&gt;&gt;<i> &gt;&gt;&gt; to the discussion. I haven't seen anything from OpenSim core during any
+</I>&gt;&gt;<i> &gt;&gt;&gt; part of the discussion to date. I'm a pretty smart guy but not
+</I>&gt;&gt;<i> &gt;&gt;&gt; omnipotent. I've simply interpreted the lack of participation as lack
+</I>&gt;&gt;<i> &gt;&gt;&gt; of interest and past comments would tend to support that (I can dig them
+</I>&gt;&gt;<i> &gt;&gt;&gt; out if you like). And there is no &quot;general feeling&quot; in VWRAP as to your
+</I>&gt;&gt;<i> &gt;&gt;&gt; proposal since its never been presented or discussed there.
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; I'm not interested in a war, just open dialog and a sincere interest in
+</I>&gt;&gt;<i> &gt;&gt;&gt; interoperability. I'll be glad to read the proposal when its made. In
+</I>&gt;&gt;<i> &gt;&gt;&gt; the meantime I'd appreciate you not attribute negative motives to
+</I>&gt;&gt;<i> &gt;&gt;&gt; anything I've said. I've been simply trying to make technical arguments
+</I>&gt;&gt;<i> &gt;&gt;&gt; against an approach I think is wrong headed and not though out. I've
+</I>&gt;&gt;<i> &gt;&gt;&gt; seen discussion here pretty much get cut off when a core member
+</I>&gt;&gt;<i> &gt;&gt;&gt; &quot;dictates&quot; the solution. Melanie seems to have made up her mind. Fine.
+</I>&gt;&gt;<i> &gt;&gt;&gt; Go build it. Best of luck to you. In the meantime I'll look forward to
+</I>&gt;&gt;<i> &gt;&gt;&gt; the Hypergrid proposal to VWRAP and reserve my comments for that time.
+</I>&gt;&gt;<i> &gt;&gt;&gt; BTW, I've found the VWRAP discussions to be pretty open and devoid of
+</I>&gt;&gt;<i> &gt;&gt;&gt; politics. People will assert politics over almost anything of course
+</I>&gt;&gt;<i> &gt;&gt;&gt; but the dialog has been mostly open and good natured (and quiet lately).
+</I>&gt;&gt;<i> &gt;&gt;&gt; It will be good to have you at the table. Given OpenSim gets a fair bit
+</I>&gt;&gt;<i> &gt;&gt;&gt; of attention it would have been nice if you'd been there all along.
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; Mike
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; On Mon, 2010-08-30 at 00:00 +0000, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; Mike,
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; That's an interesting statement to make, considering that John Hurliman
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; and I are working on writing up the *working* Hypergrid 1.5 as a proposal to
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; VWRAP, since we have both concluded that the concepts being talked there
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; lately, without any implementation behind them, are essentially
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; indistinguishable from the working HG 1.5 that lots of people are already
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; using.
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; It seems that you are trying really hard to make this look like a war
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; between OpenSimulator and VWRAP. I don't think that's the general feeling in
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; VWRAP, I think it's just you. The proposal to VWRAP will happen. Hopefully,
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; most people there will be able to assess the technical issues, independent
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; of the political ones. (emphasis on *hopefully*)
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; Diva / Crista
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; Mike Dickson wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; Fine, then do what you like. The code's all available. If I don't like
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; it I can change it. Of course that sort of shoots holes in
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; interoperability. But then I didn't feel that hyper-grid belonged in
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; core either for the same reason.
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; I think you've way over trivialized the whole set of interactions
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; between agent, asset and simulator services in situations where those
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; services are defined by different principals. As Meadbh said, this
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; feels like optimizing to solve a specific problem before you've really
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; looked at the larger issues. It might be instructive just to simply walk
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; through some use cases and see where things fall apart. Alot of that
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; discussion has already taken place on the VWRAP list but OpenSim core
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; seems to be dead set against involvement in that.
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; I don't see a way to contribute here beyond the opinion I've already
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; voiced so I'll drop this.
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; Mike
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; On Sun, 2010-08-29 at 22:56 +0000, Melanie wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; Sorry, i disagree. The information included is defined by the
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; REQUIRED data on the recipient, not on what data the sender wants to
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; provide. the recipient NEEDS a displayable field. It can't be optional.
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; Melanie
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; Mike Dickson wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; If the decision is to go ahead and do cache-able data then I'd agree,
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; do
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; it as attribute NVP's and make them optional. The originating agennt
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; service is then free to define the semantics of the attributes it
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; exposes.
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; Mike
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; On Sun, 2010-08-29 at 21:42 +0000, Ai Austin wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; <A HREF="protocol://authority/resource_type/resource_id[/cacheable_data">protocol://authority/resource_type/resource_id[/cacheable_data</A>]
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; +1
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; consider ensuring that at least the name is provided in a form that
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; can be resolved fast and locally by including the avatar firstname+lastname
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; - in whatever form the providing grid wishes to address issues raised by
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; others - so long as the strings are &quot;legal&quot; in the creator/owner fields.
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; would it be worth making sure that the &quot;cachable data&quot; is in the form
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; of keyword=value pairs, and hence put in a &quot;parameter&quot; form after ? rather
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; than a final /?
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; <A HREF="protocol://authority/resource_type/resource_id[?key_value_pair[,...">protocol://authority/resource_type/resource_id[?key_value_pair[,...</A>]]
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; with a minimum suggested (or required?)
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; avatarname=firstname+lastname if the resource_type = user
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt; 
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  		 	   		  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009402.html">[Opensim-dev] Global identifiers
+</A></li>
+	<LI>Next message: <A HREF="009409.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9407">[ date ]</a>
+              <a href="thread.html#9407">[ thread ]</a>
+              <a href="subject.html#9407">[ subject ]</a>
+              <a href="author.html#9407">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

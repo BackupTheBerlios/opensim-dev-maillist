@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] About Processing on Assets Table	(Discussion	#2057)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20About%20Processing%20on%20Assets%20Table%0A%09%28Discussion%09%232057%29&In-Reply-To=%3CBLU134-W43131E50C7E2CE33B1CFCD5630%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002763.html">
+   <LINK REL="Next"  HREF="002737.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] About Processing on Assets Table	(Discussion	#2057)</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20About%20Processing%20on%20Assets%20Table%0A%09%28Discussion%09%232057%29&In-Reply-To=%3CBLU134-W43131E50C7E2CE33B1CFCD5630%40phx.gbl%3E"
+       TITLE="[Opensim-dev] About Processing on Assets Table	(Discussion	#2057)">stefan at tribalmedia.se
+       </A><BR>
+    <I>Fri Aug 29 10:18:47 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002763.html">[Opensim-dev] About Processing on Assets Table (Discussion	#2057)
+</A></li>
+        <LI>Next message: <A HREF="002737.html">[Opensim-dev] About Processing on Assets Table (Discussion	#2057)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2769">[ date ]</a>
+              <a href="thread.html#2769">[ thread ]</a>
+              <a href="subject.html#2769">[ subject ]</a>
+              <a href="author.html#2769">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think we have to think about what an 'asset' is supposed to represent.
+ 
+At the moment we have a naive implementation where we more or less store what's communicated over the wire; this probably should be normalized over a couple of levels;
+ 
+binary level - we could have a binary table, only storing immutable binaries, indexed and de-duplicated on sha-1 - these are common, global for the trust context, and have no single 'owner' or 'creator'.
+ 
+'static asset data' - those aspects of an asset that are immutable from one 'owners' point of view - 'owner', 'creator', creation date; stuff like that - they are probably the same for all types of assets.
+ 
+'dynamic asset data' - those parts of an 'asset' that change over time - attachment coordinates, stuff like that. 
+ 
+'inventory asset data' - those parts of an asset that reflect it being referenced several times from various inventories. I guess inventory permissions is part of this, for example.
+ 
+The point with doing this is that even if you can emulate immutable assets, you could also emulate a number of other schemes - and at the same time keep the number of duplicated historic rows down to a minimum.
+also, re-creating the legacy 'assets' table as a view from this normalized table structure would be very simple.
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+Date: Fri, 29 Aug 2008 12:22:24 +0800From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">thomas.tao.yang at gmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: Re: [Opensim-dev] About Processing on Assets Table (Discussion #2057)
+Thanks a lot, Melanie, Michael and Sean!OK, since it is a hard rule of protocol that assets are immutable and out of our control, we have to keep it.But I am really worried that let asset table increase without limit and there is no way to clear garbage.And I do not like the term asset here.  It could be matter, resource or even object, etc.I suggest that we could create a new table to save those which are really assets.(TBD):-)Well, the issue could turn to attachment processing.*** 0 ***I have to ask a primary question first.Why the object is saved in prims, primshapes and primitems tables when it is created on the grand,but deleted from the 3 tables and saved in assets table when it is attached?Actually, the object is saved in all the 4 tables when it is attached for the first time and deleted from 3 primXXX tables when it is detached for the first time.But in memory, the object is always SceneObjectGroup's object no matter it is on the ground or attached to the avatar.*** 1 ***Michael wrote&gt;If it is creating a new asset every time a user simple attaches/detaches a prim, then it is something that should be looked at. As I don't think it should be happening.Exactly speaking, only detach makes it creating a new asset.You know there is no process especially for saving the changes of an attached object.So, the detach process is doing the followings.1. Detaches the attached object (deleting the object from scene, updating avatar's inventory item)2. Saves the latest information of the attached object to assets table by creating a new asset and make avatar's corresponding inventory item change its reference to the new one.    Here I want to point out that in the following 2 conditions, this process will make the previous asset garbage which is never be used and no longer known by the world.    A. the attached object changed but its asset only belongs to one avatar    B. there is no changes on the attached objectI think it could resolve it checking whether the attached object has been changed in condition b.In condition A, it seems no way but to create a new asset because we should keep the rule no update on asset.*** 2 ***Attachment point is saved in avatarattachments table, but other information of attachment and other properties of the object are still saved in assets table, such asposition(offset), rotation, shape, color, light, flexible path, texture, script, etc., which can be edit in Edit Windows of Viewer.I also noticed that the attachment info has been defined in class SceneObjectPart but not Serializable.        [XmlIgnore]        public bool IsAttachment = false;        [XmlIgnore]        public LLUUID AttachedAvatar = LLUUID.Zero;        [XmlIgnore]        public LLVector3 AttachedPos = LLVector3.Zero;        [XmlIgnore]        public uint AttachmentPoint = (byte)0;Could anyone explain the relationship of the two implements for attachment info?*** 3 ***Although based on updating the existing asset, I am considering the persistence of attachment.I am discussing with Melanie in #2064, where Melanie wrote &gt;Currently, this is by design. There is no method to save changes during edit, as that would create yet more asset bloat. It really should save on closing the edit window, but we don't get a notification of that.Function ProcessBackup() in class SceneObjectGroup is saving the prims background.  Should we use it for reference?I tried to make a patch but not completed for some problem.  And I will attach the patch to #2064 for reference only later.Thomas
+2008/8/28 Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>&gt;
+
+Michael Wright wrote:&gt; If it is creating a new asset every time a user simple attaches/detaches a prim, then it is something that should be looked at. As I don't think it should be happening.&gt;&gt; But as Melanie explain in the mantis issue, if a user makes a change, like changes the attachment point, then this does result in a new asset being created. Assets are sharable and as Melanie explained you never know who else has a refference to that asset. So you can't update it, as it would effect everyone who is using that asset.&gt;&gt; There has been talk in the past about lots of different possible changes to the asset system. But any big changes would need a lot of changes deep in the core of opensim.&gt;&gt; &quot;Tao YANG (GMAIL)&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">thomas.tao.yang at gmail.com</A>&gt; wrote: Hi everyone,&gt;&gt; I discussed this issue a little with melanie in Mantis #2057.  Thanks melanie!&gt; Even though #2057 was turned into resolved, not fixable,&gt; I still have some questions and want to discuss it with you all.&gt;&gt; Please allow me describe this issue again in brief.&gt; I first noticed the problem when I was testing attachment using MySQL,&gt; that &quot;assets&quot; table increased without limit if you attach/detach repeatedly.&gt;   Reading source code, there is no real deleting, updating, but adding on the table.&gt; So I report it in #2057 and tried to attach a patch.&gt; And melanie explained the reason why assets cannot be updated or deleted.&gt;&gt;  The point could be whether the records in assets table can be updated or deleted.&gt; 1. Is it good technically that asset table is increasing without any limit?&gt;  2. In case of attachment, for example,&gt;    if an attached object is not shared with others, after modifying or when&gt;    detaching it, should we still create a new record in assets table, letting&gt;    the previous one become garbage and never be used?&gt;     I think the process on attachment should be improved.  But that could be based&gt;    on how assets work.Also remember, assets being immutable is a function of the protocol.The client will never fetch an asset that it already has, so if you wereto ever update an assets content you would need to force all viewers toclear their caches and restart their viewers.  This is a protocoloptimization which may be good or bad, but it out of our control.       -Sean--Sean Dague / Neas <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Badesdague at gmail.comhttp</A>://dague.net_______________________________________________Opensim-dev mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.dehttps</A>://lists.berlios.de/mailman/listinfo/opensim-dev
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080829/8042d914/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080829/8042d914/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002763.html">[Opensim-dev] About Processing on Assets Table (Discussion	#2057)
+</A></li>
+	<LI>Next message: <A HREF="002737.html">[Opensim-dev] About Processing on Assets Table (Discussion	#2057)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2769">[ date ]</a>
+              <a href="thread.html#2769">[ thread ]</a>
+              <a href="subject.html#2769">[ subject ]</a>
+              <a href="author.html#2769">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

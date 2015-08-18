@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] BulletSim missive re ApplyImpulse and Buoyancy
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20BulletSim%20missive%20re%20ApplyImpulse%20and%20Buoyancy&In-Reply-To=%3CAAE09D093609C24B8163782ABA2A418225B12080%40FMSMSX102.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011565.html">
+   <LINK REL="Next"  HREF="011566.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] BulletSim missive re ApplyImpulse and Buoyancy</H1>
+    <B>Adams, Robert</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20BulletSim%20missive%20re%20ApplyImpulse%20and%20Buoyancy&In-Reply-To=%3CAAE09D093609C24B8163782ABA2A418225B12080%40FMSMSX102.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] BulletSim missive re ApplyImpulse and Buoyancy">robert.adams at intel.com
+       </A><BR>
+    <I>Wed Dec 26 20:00:56 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011565.html">[Opensim-dev] PRIM_PHYSICS_SHAPE_TYPE and PRIM_PHYSICS_SHAPE_CONVEX missing.
+</A></li>
+        <LI>Next message: <A HREF="011566.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11557">[ date ]</a>
+              <a href="thread.html#11557">[ thread ]</a>
+              <a href="subject.html#11557">[ subject ]</a>
+              <a href="author.html#11557">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>For people playing with the BulletSim physics engine, the latest version in master fixes llSetBuoyancy() and fixes/improves llApplyImpulse().
+
+That's the short report. Now for WAY more detail than anyone but a few physics tweekers care about:
+
+llSetBuoyancy now works for physical objects. The problem here was an oddity with how Bullet sets an object's gravity when the object is made physical. Today, buoyancy is implemented by changing the gravity effect on the individual object. Sometime in the future, buoyancy will be changed to apply an additional force to the physical object (like to push up and negate the effect of gravity). This will allow the setting of gravity for individual objects (a new SL feature that is not yet in OpenSim).
+
+llApplyImpulse now works close to how it does in SL. I spent some time pushing around blocks in OpenSim and SL in order to get movement about the same.
+
+Vehicle developers have mentioned that the implementation of llApplyImpulse has always been wonky and values from SL don't work in OpenSim. In digging into this, I've found some confusion in OpenSim's implementation of llApplyImpulse.
+
+llApplyImpulse is defined as a simple mass/force transfer. That is, &quot;llApplyImpulse(V * llGetMass(), false)&quot; will set the object moving at velocity V.  The way forces are defined in physics engines is &quot;force per second&quot;. This means that for any individual simulation step (there are 11 per second in OpenSim), only part of the force is applied (&quot;forceAppliedThisStep = forcePerSecond * fractionOfSecondForThisSimulationStep&quot;). Since llApplyImpulse is an &quot;instantaneous&quot; push (it happens only once), to account for the reduction in the force based on the simulation step time, the impulse force can be multiplied internally in the physics engine driver to overcome this.
+
+It seems this correction has been implemented haphazardly in OpenSim. For instance, ODEPrim.AddForce multiplies the force by a constant 100[1]. SceneObjectGroup.GrabMovement divides the force by a constant 10[2] before calling PhysicalActor.AddForce. There are various other multiplications and divisions by 10 scattered about. I presume the &quot;10&quot; is because it is close to the number of simulation steps per second (&quot;11&quot;) and would give results that would seem correcter.
+
+The current resolution for BulletSim is to scale up the force specified to BSPrim.AddForce so the total force is applied the next simulation step. This makes llApplyImpulse work as it does in SL.  A similar change was made to BSCharacter.AddForce. Hopefully, some weapons people will tell me if this is good or bad.
+
+Anyway, what users will notice is that llApplyImpulse is different with BulletSim and hopefully &quot;correct&quot;.
+
+-- ra
+
+[1] Why &quot;100&quot; I don't know as it is more than the 11 that would overcome the step time division. This could be for how ODE does sub-steps, but not sure.
+[2] I presume this was to overcome the 100 in ODE and to get a multiplier closer to the step divisor of 11.
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20121226/716aaffc/attachment-0001.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20121226/716aaffc/attachment-0001.html</A>&gt;
+</PRE>
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011565.html">[Opensim-dev] PRIM_PHYSICS_SHAPE_TYPE and PRIM_PHYSICS_SHAPE_CONVEX missing.
+</A></li>
+	<LI>Next message: <A HREF="011566.html">[Opensim-dev] IRegisterInterface for extending scene entities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11557">[ date ]</a>
+              <a href="thread.html#11557">[ thread ]</a>
+              <a href="subject.html#11557">[ subject ]</a>
+              <a href="author.html#11557">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

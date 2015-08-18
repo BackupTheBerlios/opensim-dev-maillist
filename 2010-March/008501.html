@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SceneGraph data access refactoring
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SceneGraph%20data%20access%20refactoring&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD805C28B95B%40orsmsx502.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008500.html">
+   <LINK REL="Next"  HREF="008502.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SceneGraph data access refactoring</H1>
+    <B>Lake, Dan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SceneGraph%20data%20access%20refactoring&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD805C28B95B%40orsmsx502.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] SceneGraph data access refactoring">dan.lake at intel.com
+       </A><BR>
+    <I>Fri Mar 19 00:38:11 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008500.html">[Opensim-dev] about the user information in 0.7 (master)
+</A></li>
+        <LI>Next message: <A HREF="008502.html">[Opensim-dev] SceneGraph data access refactoring
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8501">[ date ]</a>
+              <a href="thread.html#8501">[ thread ]</a>
+              <a href="subject.html#8501">[ subject ]</a>
+              <a href="author.html#8501">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I am committing a set of patches this week which make data access and locking of presences within the scene graph more consistent. There are currently many ways to get presence data from the scene graph and/or iterate over it. To name a few, there are GetScenePresence, TryGetAvatar, GetScenePresences and ForEachScenePresence.  Unfortunately, some of these have relied on the callers locking the list or checking for null references which was missing in many places.
+
+
+
+The patches move all locking into SceneGraph, eliminate GetScenePresence in favor of TryGetAvatar, and consolidates the two different presence iteration patterns. Instead of calling GetScenePresences() and iterating over the result, modules and other code should call ForEachScenePresence(Action&lt;ScenePresence&gt;) and let SceneGraph do the parallel work. Eventually this will also mean that the list does not need to be copied or locked in order to iterate since it changes infrequently but is iterated my many callers simultaneously.
+
+
+
+The goal is to move SceneGraph toward a self-supporting container of entities with properties and a small lightweight interface for adding, removing, and performing actions on the container through the use of properties/components, filters, and delegates. Supporting or allowing a module to grab a reference to the internal array of presences and lock it so that no other thread may add/remove/iterate is seriously limiting scalability and has introduced reliability issues and races between the scene and some modules.
+
+
+
+Dan lake
+
+Intel Labs
+
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>&gt;
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20100318/4535aa3f/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20100318/4535aa3f/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008500.html">[Opensim-dev] about the user information in 0.7 (master)
+</A></li>
+	<LI>Next message: <A HREF="008502.html">[Opensim-dev] SceneGraph data access refactoring
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8501">[ date ]</a>
+              <a href="thread.html#8501">[ thread ]</a>
+              <a href="subject.html#8501">[ subject ]</a>
+              <a href="author.html#8501">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

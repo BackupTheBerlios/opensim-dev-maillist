@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Signing content to prevent malicous creator spoofing was &quot;Re: Global identifiers&quot;
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Signing%20content%20to%20prevent%20malicous%20creator%0A%20spoofing%20was%20%22Re%3A%20Global%20identifiers%22&In-Reply-To=%3CAANLkTin7vO8WcyRwieiPDsi5FKEi83z5S742kpboxfjS%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009491.html">
+   <LINK REL="Next"  HREF="009493.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Signing content to prevent malicous creator spoofing was &quot;Re: Global identifiers&quot;</H1>
+    <B>Meadhbh Hamrick</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Signing%20content%20to%20prevent%20malicous%20creator%0A%20spoofing%20was%20%22Re%3A%20Global%20identifiers%22&In-Reply-To=%3CAANLkTin7vO8WcyRwieiPDsi5FKEi83z5S742kpboxfjS%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Signing content to prevent malicous creator spoofing was &quot;Re: Global identifiers&quot;">ohmeadhbh at gmail.com
+       </A><BR>
+    <I>Fri Sep  3 03:13:05 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009491.html">[Opensim-dev] Signing content to prevent malicous creator spoofing	was &quot;Re: Global identifiers&quot;
+</A></li>
+        <LI>Next message: <A HREF="009493.html">[Opensim-dev] Signing content to prevent malicous creator spoofing was &quot;Re: Global identifiers&quot;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9492">[ date ]</a>
+              <a href="thread.html#9492">[ thread ]</a>
+              <a href="subject.html#9492">[ subject ]</a>
+              <a href="author.html#9492">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>hey robert,
+
+thanks for forking the new thread, my eyes were beginning to glaze
+over as the conversation drifted away from the original topic.
+
+just thought i would chime in with a few points.
+
+first off, the act of signing should be interpreted as the
+demonstration of an existing trust relationship; it's important we
+understand that. verifying the signature on a blob of data is no
+better than verifying the blob's hash UNLESS you ascribe some level of
+trust to the key that was used to sign the data in the first place.
+(this might have been part of your original point. just trying to be
+more explicit here.)
+
+for example, if you receive a signed blob, you have to have a key to
+verify the signature. common practice is to include the signing key
+along with the blob in the form of an X.509 certificate. but if you
+accept self signed certificates with any arbitrary subject identity, a
+&quot;bad guy&quot; could just spin his own key, generate a self signed cert and
+give it to you.
+
+more refined PKI users know this and maintain a list of identities
+they trust. so self signed certs with those identities or certs issued
+under trusted roots are believed to contain public keys associated
+with trusted entities.
+
+two of the parameters in an X.509 certificate define the dates the
+certificate is valid. the semantics of these fields originally bound
+the issuing party to keep information about the status of the key
+available during the validity period.
+
+the problem with using signatures after a grid has long gone is that
+if the certificates containing the signing keys associated with the
+signatures were issued by the evaporated grid, there's no one to
+maintain the status of the keys. in an X.509 PKI, relying parties
+expect the key issuer to be around during the certificate's validity
+period to generate CRLs or respond to OCSP queries.
+
+the reason we have this requirement is to understand whether the
+signing keys are to be trusted. when you submit a public key to a CA
+for signing, buried in the CP or the CPS are policies that may require
+you (the signing key holder) to agree to tell the CA if your signing
+keys are compromised.
+
+people rarely ever do this, of course, but it _is_ what we expected to
+happen back when we were creating X.509.
+
+so i guess what i'm saying is if you don't have a way of managing the
+trust on signatures on individual assets, then signatures are useless
+(because a bad guy could easily whip up a key pair about as easily as
+it could a hash). but if you do provide a facility for trust
+management using X.509 certificates on individual objects, it has the
+potential to be a big mess for the end user (think about how often you
+get a cert warning in your browser.)
+
+ubiquity plus security equals a constant. so if you want to have a
+virtual world where anyone can drop in and anyone can provide signed
+content to the local scene graph, then it's going to be VERY hard to
+insure the real or pseudonymous identity of the people who control the
+keys used to sign the assets.
+
+if you're after a more closed, less ubiquitous experience, this will
+likely be less of a problem.
+
+&lt;plug type=&quot;shameless&quot;&gt; for more information about ubiquity vs.
+applicability, see
+<A HREF="http://blog.meadhbh.org/2010/08/ubiquity-vs-applicability.html">http://blog.meadhbh.org/2010/08/ubiquity-vs-applicability.html</A> &lt;/plug&gt;
+
+over in the VWRAP world we were tasked with synthesizing a trust model
+that could work for all the group's participants. if i read david
+levine's requirements correctly, he's a little more interested in this
+model than linden was. i'm guessing this had to do with IBM being more
+interested in things like Lotus SameTime3d and linden being more
+interested (at the time) in opening the grid to a small number of
+third party asset servers and simulators.
+
+during the OGP era at linden, we were looking at ways of opening up
+the grid to trusted third parties. (please don't take this to mean we
+wanted to open a spigot on the side of our asset servers so any
+content thief could siphon content directly out of the asset server.)
+linden's business model requires the content community to have faith
+in linden's ability to control illicit copying of their IP.(yes, i'm a
+copyleftist and believe in fair use, but i also believe that it's the
+content creator's right to select a license they find acceptable. and
+linden was adamant about ensuring copy protection worked for it's
+content creation community.)
+
+so our requirements at linden were probably a little different than
+enterprise &amp; education grids or some of the more experimental OpenSim
+regions out there. (though i would suspect that a number of the newer
+grids aimed at content creators like InWorldz and SponOn will feel
+similar pressures from their content community.)
+
+in the linden / InWorldz / SpotOn use case, where the operator has to
+make assurances to it's content creation community that content
+control mechanisms work, it MAY be enough to just evaluate the
+identity of a peer service. if the peer is trusted, then you simply
+let them access your conmtent. the meaning of the word &quot;trusted&quot; in
+this context is, &quot;i trust that peer to honor the content control
+meta-data of objects i give them.&quot;
+
+it becomes a little simpler in this case, cause you don't have to
+evaluate trust of each individual asset, only of the peer you may have
+received the object from.
+
+so... in conclusion...
+
+a. signing is not a panacea.
+b. it may be enough to simply trust the server that gave you an asset
+c. signing individual objects is not useless, but it may have utility
+limited to the &quot;small world&quot; use case.
+d. i don't think there's a one size fits all trust model.
+
+(wow. that was a much longer post than i thought i was going to make.
+if you made it this far, i owe you a beer or a coffee or something for
+sitting through my occasionally rambling verbiage. hit me up the next
+time you see me...)
+
+-cheers
+-meadhbh
+--
+meadhbh hamrick * it's pronounced &quot;maeve&quot;
+@OhMeadhbh * <A HREF="http://meadhbh.org/">http://meadhbh.org/</A> * <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">OhMeadhbh at gmail.com</A>
+
+
+
+On Thu, Sep 2, 2010 at 5:08 PM, Robert G. Jakabosky
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bobby at sharedrealm.com</A>&gt; wrote:
+&gt;<i> Changed subject to reflect new topic, sorry for thread hijacking. &#160;I should
+</I>&gt;<i> have started a new thread.
+</I>&gt;<i>
+</I>&gt;<i> On Thursday 02, Melanie wrote:
+</I>&gt;&gt;<i> There is no way to prevent malicious spoofing. Leastways, no easy
+</I>&gt;&gt;<i> way that doesn't involve losing data at some point or other. Even
+</I>&gt;&gt;<i> keys can't be verified once the original grid has vanished.
+</I>&gt;<i>
+</I>&gt;<i> Spoofing can be prevented with signing. &#160;People have been using public/private
+</I>&gt;<i> keys to digitally sign e-mail messages to authentication that the message was
+</I>&gt;<i> written by them and not changed/written by someone else. &#160;If the original
+</I>&gt;<i> grid vanishes then all prims that where created on that grid will have the
+</I>&gt;<i> creator name marked with &quot;(unverified)&quot;. &#160;Prims only need to be verified when
+</I>&gt;<i> they are being imported (either from an inventory/region archive or when
+</I>&gt;<i> rezed from a foreign user). &#160;If the creator's public key is still available
+</I>&gt;<i> and the prim's signature is invalid, then the grid can either deny the import
+</I>&gt;<i> or clear the creator id.
+</I>&gt;<i>
+</I>&gt;&gt;<i> We have to accept some things can't be perfect. In the end, you have
+</I>&gt;&gt;<i> a gatekeeper. Use it. Allow user only from grids you trust or have a
+</I>&gt;&gt;<i> contract with.
+</I>&gt;<i>
+</I>&gt;<i> Wasn't Hypergrid trying to make it easy for users from any grid to TP to any
+</I>&gt;<i> other grid (as long as both are Hypergrid enabled)?
+</I>&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Robert G. Jakabosky wrote:
+</I>&gt;&gt;<i> &gt; On Monday 30, Melanie wrote:
+</I>&gt;&gt;<i> &gt;&gt; While you have a case with using a central table, rather than
+</I>&gt;&gt;<i> &gt;&gt; storing the URL string, and therefore the name, all over the place,
+</I>&gt;&gt;<i> &gt;&gt; your request schema would not work.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; First off, it overcomplicates (IMO) things if you even attempt to
+</I>&gt;&gt;<i> &gt;&gt; show the current name of an identity. My plan has been to show the
+</I>&gt;&gt;<i> &gt;&gt; name AT CREATION TIME on a prim, e.g. the displyed creator name of a
+</I>&gt;&gt;<i> &gt;&gt; prim will not change, even if the underlying identity changes their
+</I>&gt;&gt;<i> &gt;&gt; name. This removes much complaxity.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Second, your system breaks when a prim is taken to a new grid after
+</I>&gt;&gt;<i> &gt;&gt; the grid it was created on has vanished from the internet. In that
+</I>&gt;&gt;<i> &gt;&gt; case, even the initial lookup will fail and you have no data to display.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; If grids don't verify the Creator URL when receiving a prim from another
+</I>&gt;&gt;<i> &gt; grid (not the original grid where it was created), then anyone can spoof
+</I>&gt;&gt;<i> &gt; the prim's creator to be any creator from any other grid. &#160;A spoofer
+</I>&gt;&gt;<i> &gt; would only have to create there own Hypergrid enabled region that they
+</I>&gt;&gt;<i> &gt; control and make spoofed prims (with griefer content) then hypergrid to
+</I>&gt;&gt;<i> &gt; another grid and rez a copy of the spoofed prim there. &#160;Now they can
+</I>&gt;&gt;<i> &gt; grief people on other grids and tarnish someone else's name.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; hmm, there might still be a way to spoof the creator of a prim, even if
+</I>&gt;&gt;<i> &gt; the &quot;Creator URL&quot; is validated with the grid that creator is from. &#160;How
+</I>&gt;&gt;<i> &gt; would Hypergrid validate the original creator for a prim that comes from
+</I>&gt;&gt;<i> &gt; some other grid? &#160;Lets say a prim is created on grid ABC, then copied to
+</I>&gt;&gt;<i> &gt; grid XYZ, then copied to grid Acme. &#160;How would the last grid &quot;Acme&quot;
+</I>&gt;&gt;<i> &gt; validate the prim's original creator? &#160;It received the prim from a third
+</I>&gt;&gt;<i> &gt; party grid, which might be run by a spoofer.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; One way to stop spoofing is to add a public/private key to the creators
+</I>&gt;&gt;<i> &gt; profile (only the public key would be available to other grids) and have
+</I>&gt;&gt;<i> &gt; all exported prims be signed with the creators private key. &#160;Then any
+</I>&gt;&gt;<i> &gt; grid receiving that prim could verify that the prim hasn't be modified
+</I>&gt;&gt;<i> &gt; using the creators public key (which would have to be requested from the
+</I>&gt;&gt;<i> &gt; &quot;Creator URL&quot;).
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;&gt; Therefore, I'd prefer to go with my initial recommendation and
+</I>&gt;&gt;<i> &gt;&gt; indeed store the URL, including the name, &quot;all over the place&quot;. The
+</I>&gt;&gt;<i> &gt;&gt; client view can always decide to ignore that part and to a table
+</I>&gt;&gt;<i> &gt;&gt; lookup, or even contact the grid of origin.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; It seems that a lot of people here are all for omitting information
+</I>&gt;&gt;<i> &gt;&gt; that would be helpful for the 90% case in order to make their
+</I>&gt;&gt;<i> &gt;&gt; particular corner case the norm. 90% of avatars never change names.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; You can still get most of the speed-up you are looking for with a table
+</I>&gt;&gt;<i> &gt; that caches the URL -&gt; display name. &#160;I am not trying to argue against
+</I>&gt;&gt;<i> &gt; putting the display name in the URL, just against using it without
+</I>&gt;&gt;<i> &gt; verifying it.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Robert G. Jakabosky
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009491.html">[Opensim-dev] Signing content to prevent malicous creator spoofing	was &quot;Re: Global identifiers&quot;
+</A></li>
+	<LI>Next message: <A HREF="009493.html">[Opensim-dev] Signing content to prevent malicous creator spoofing was &quot;Re: Global identifiers&quot;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9492">[ date ]</a>
+              <a href="thread.html#9492">[ thread ]</a>
+              <a href="subject.html#9492">[ subject ]</a>
+              <a href="author.html#9492">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

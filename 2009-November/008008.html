@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Designing with Instrumentation in mind.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Designing%20with%20Instrumentation%20in%20mind.&In-Reply-To=%3C34cc66250911271810x31d1d824m7baf602fe209174c%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008021.html">
+   <LINK REL="Next"  HREF="008010.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Designing with Instrumentation in mind.</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Designing%20with%20Instrumentation%20in%20mind.&In-Reply-To=%3C34cc66250911271810x31d1d824m7baf602fe209174c%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Designing with Instrumentation in mind.">teravus at gmail.com
+       </A><BR>
+    <I>Sat Nov 28 03:10:11 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008021.html">[Opensim-dev] Node.js, anyone?
+</A></li>
+        <LI>Next message: <A HREF="008010.html">[Opensim-dev] Designing with Instrumentation in mind.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8008">[ date ]</a>
+              <a href="thread.html#8008">[ thread ]</a>
+              <a href="subject.html#8008">[ subject ]</a>
+              <a href="author.html#8008">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hey there,
+
+A while back, we had somewhat reasonable statistics being generated
+and presented to the client.    They were not always accurate, but
+based on what I saw, I could, pretty much pin certain parts of the
+simulator as the limiting factor during load tests.  I'd say, the
+number 1 reason that they were semi-accurate and not accurate..  in
+the past..   is because nobody ever thought about instrumentation
+during the functionality design.     It was always 'tacked on later'.
+  One example of this..    is the current AssetCache implementation.
+  There's no way, currently, to know, at a glance..   how many
+external requests it has open.   Additionally, it will be extremely
+difficult to put one in because of the way the objects are designed
+and accessed.  To put one in, an event needs to be added to the
+IAssetService interface and each AssetCache implementation will need
+an interlocked int to count how many gets and puts it currently has
+open to the external data source as well as it's own event calling
+schedule.   Then, the IAssetService property in Scene, (AssetService)
+will need an event handler..   which updates the values in
+SimStatsReporter in Scene (StatsReporter).   This idea of external
+access resource instrumentation should really have been built in to
+the design of the AssetService.
+
+This last recent load test, there were no real statistics that I could
+use to determine what the limiting factor was.
+Time Dilation was pegged at 1.0..    even when the simulator was
+obviously struggling.    Total Frame time (MS) was -50ms even when the
+simulation MS was 850ms and the Physics ms was 250ms, so the
+inconsistencies made it impossible to know what part of the simulator
+was struggling.  Agent Updates were erratic..   sometimes high..
+sometimes low when the simulator was fine and when it was struggling.
+Pending Uploads and Downloads were always 0, so there was no way to
+know how well the simulator was downloading and uploading assets to
+and from the grid.   Packet stats were non-existant, so there was no
+way to know how well the UDP handlers were faring under the load.
+When it crashed, it crashed with a mono based stack trace which
+pointed to out of memory errors, so the only way that you could,
+scientifically, find out what the issue is..   is to run a load test
+under a memory profiler.     We know, that running a public load test
+under a memory profiler is quite impractical.
+
+To make something better, I need to know two things, where it is, and
+where I want it to be.    How can we make OpenSimulator better if we
+don't have statistics that point to where we are currently?
+
+On that note, I propose that, when designing objects for functionality
+in OpenSimulator, that we also consider if the objects should be
+instrumented and, what would be the best way to go about instrumenting
+the objects.  We should incorporate instrumentation into the design of
+the objects.   Some of that instrumentation is appropriate for a
+client to see, some of it might not be.   Consider that, many of them
+should be client facing and be included in the SimStats that get sent
+to the client..    so that we can have a reasonable idea of what's
+going on with a simulator at a glance.   Also, in the design of the
+instrumentation, we make sure that the instrumentation is accurate and
+lightweight.
+
+The load test went reasonably...      but, we didn't get half of the
+information on the simulator that we needed to be able to improve it.
+
+
+Please comment :)     I look forward to hearing your responses.
+
+Regards
+
+Teravus
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008021.html">[Opensim-dev] Node.js, anyone?
+</A></li>
+	<LI>Next message: <A HREF="008010.html">[Opensim-dev] Designing with Instrumentation in mind.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8008">[ date ]</a>
+              <a href="thread.html#8008">[ thread ]</a>
+              <a href="subject.html#8008">[ subject ]</a>
+              <a href="author.html#8008">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

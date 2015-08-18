@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Opensim database management - garbage collection
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Opensim%20database%20management%20-%20garbage%20collection&In-Reply-To=%3C38107402-2B19-498F-B610-89B34805455A%40cs.st-andrews.ac.uk%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004431.html">
+   <LINK REL="Next"  HREF="004433.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Opensim database management - garbage collection</H1>
+    <B>J Ross Nicoll</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Opensim%20database%20management%20-%20garbage%20collection&In-Reply-To=%3C38107402-2B19-498F-B610-89B34805455A%40cs.st-andrews.ac.uk%3E"
+       TITLE="[Opensim-dev] Opensim database management - garbage collection">jrn2005 at cs.st-andrews.ac.uk
+       </A><BR>
+    <I>Fri Jan 16 03:15:11 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004431.html">[Opensim-dev] Opensim database management - garbage collection
+</A></li>
+        <LI>Next message: <A HREF="004433.html">[Opensim-dev] Online HyperGrid Link list for OpenSim's 2nd	birthday
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4438">[ date ]</a>
+              <a href="thread.html#4438">[ thread ]</a>
+              <a href="subject.html#4438">[ subject ]</a>
+              <a href="author.html#4438">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I realise they're epoch times, it just seems a little odd to have them  
+instead of database native date/time types. I wondered if there was a  
+compatibility reason or something...
+
+Number of times accessed makes it easy to sweep for assets that were  
+accessed once and then discarded, which is going to be by far the most  
+common case for assets that can be deleted. It also I think provides a  
+nice second level of safety that you're not about to delete something  
+that was in heavy use until some point in time. Even for a table of 1  
+million entries, we're talking about 4MB of data added. Heck, use a 16- 
+bit integer, cap the count at 65536, it's only 2MB of data and still  
+works for my main use case.
+
+On 15 Jan 2009, at 17:24, Charles Krinke wrote:
+
+&gt;<i> The integers for create_time and access_time are &quot;epoch times&quot;,  
+</I>&gt;<i> where the beginning of the epoch is 1/1/70.
+</I>&gt;<i>
+</I>&gt;<i> To convert one uses the mysql function from_unixtime(create_time) or  
+</I>&gt;<i> from_unixtime(access_time) to see a YY-MM-DD-HH-MM-SS format.
+</I>&gt;<i>
+</I>&gt;<i> On OSGrid, we now have about 1,000,000 entries in the assets table  
+</I>&gt;<i> consuming about 50 GBytes. Of those 1,000,000 entries, about half  
+</I>&gt;<i> have create_time == 0. It looks like the earliest is around the  
+</I>&gt;<i> beginning of November, 2008 when the logic to write create_time and  
+</I>&gt;<i> access_time became operational.
+</I>&gt;<i>
+</I>&gt;<i> I look at that and think that have access_time and create_time is a  
+</I>&gt;<i> really good thing. I am not sure I could support number of times  
+</I>&gt;<i> accessed as these seem sufficient to me at this point, but perhaps I  
+</I>&gt;<i> am being myopic.
+</I>&gt;<i>
+</I>&gt;<i> Charles
+</I>&gt;<i>
+</I>&gt;<i> From: J Ross Nicoll &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jrn2005 at cs.st-andrews.ac.uk</A>&gt;
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Sent: Thursday, January 15, 2009 7:37:16 AM
+</I>&gt;<i> Subject: Re: [Opensim-dev] Opensim database management - garbage  
+</I>&gt;<i> collection
+</I>&gt;<i>
+</I>&gt;<i> Any chance of a number of times accessed field for assets, in addition
+</I>&gt;<i> to the access_time field?
+</I>&gt;<i>
+</I>&gt;<i> While I'm looking at the assets table, is there any specific reason
+</I>&gt;<i> why creation/access times are stored as integers rather than using
+</I>&gt;<i> actual date &amp; time types?
+</I>&gt;<i>
+</I>&gt;<i> On 15 Jan 2009, at 00:24, Mike Mazur wrote:
+</I>&gt;<i>
+</I>&gt;<i> &gt; Hi,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On Wed, 14 Jan 2009 22:22:09 +0000
+</I>&gt;<i> &gt; Ai Austin &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ai.ai.austin at googlemail.com</A>&gt; wrote:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;&gt; I wonder if someone can summarise for me the way in which Opensim
+</I>&gt;<i> &gt;&gt; manages old inaccessible assets...
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; From what I understand, nothing is done to old inaccessible assets.
+</I>&gt;<i> &gt; There is some difficulty in determining which assets are  
+</I>&gt;<i> inaccessible.
+</I>&gt;<i> &gt; The reasons include:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; - assets can be referenced in scripts by UUID (so I heard)
+</I>&gt;<i> &gt; - assets may be referenced by regions not currently online
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; In a grid where you control all the regions and databases, it should
+</I>&gt;<i> &gt; be
+</I>&gt;<i> &gt; feasible to write a tool that can discover inaccessible assets.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;&gt; I.e. if someone uploads a texture, perhaps uses
+</I>&gt;<i> &gt;&gt; it on an object that is then deleted, and then delete a texture, is
+</I>&gt;<i> &gt;&gt; it removed from the database... or can it persist and be there
+</I>&gt;<i> &gt;&gt; forever?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; AFAIK the texture remains in the DB forever.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Mike
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> The University of St Andrews is a charity registered in Scotland : No
+</I>&gt;<i> SC013532
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+The University of St Andrews is a charity registered in Scotland : No  
+SC013532
+
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090116/77d6c61b/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090116/77d6c61b/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004431.html">[Opensim-dev] Opensim database management - garbage collection
+</A></li>
+	<LI>Next message: <A HREF="004433.html">[Opensim-dev] Online HyperGrid Link list for OpenSim's 2nd	birthday
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4438">[ date ]</a>
+              <a href="thread.html#4438">[ thread ]</a>
+              <a href="subject.html#4438">[ subject ]</a>
+              <a href="author.html#4438">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

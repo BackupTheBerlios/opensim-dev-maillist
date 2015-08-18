@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Solution attempt about code duplication in database plugins
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Solution%20attempt%20about%20code%20duplication%20in%0A%20database%20plugins&In-Reply-To=%3CBAY105-W2474D0441590D41BF3BD92D5480%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000656.html">
+   <LINK REL="Next"  HREF="000650.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Solution attempt about code duplication in database plugins</H1>
+    <B>Laurent B.</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Solution%20attempt%20about%20code%20duplication%20in%0A%20database%20plugins&In-Reply-To=%3CBAY105-W2474D0441590D41BF3BD92D5480%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Solution attempt about code duplication in database plugins">grumly57 at hotmail.com
+       </A><BR>
+    <I>Tue Jan  8 21:00:01 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000656.html">[Opensim-dev] Solution attempt about code duplication in	database plugins
+</A></li>
+        <LI>Next message: <A HREF="000650.html">[Opensim-dev] FW: CentralScripting offers Free Office/Build	spaces in CentralGrid to scripters and OpenDev members
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#659">[ date ]</a>
+              <a href="thread.html#659">[ thread ]</a>
+              <a href="subject.html#659">[ subject ]</a>
+              <a href="author.html#659">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello Sean,
+ 
+Thank you very much for you feedback.
+ 
+&gt;<i> Have you attempted this with the Prims tables yet? One of the reasons
+</I>&gt;<i> of the current approach is that once you get 30 columns in a table you
+</I>&gt;<i> end up having column definition duplication a lot with the approach you
+</I>&gt;<i> took, which is equally bad in terms of getting code duplication. The
+</I>&gt;<i> original sqlite approach was attempting to solve that, but caused other
+</I>&gt;<i> duplication issues in the process.
+</I> 
+Yes I tried. I kept the DataAdapters approach to get it done quicker.
+I have been trying MSSQL, SQlite, and (believe it or not) Jet Engine,
+for MS Access.
+ 
+It was my first try, and I had unfortunately (or not) lost the code.
+The Command objects were created using a class that inherits from IDbEngine,
+then attached them to DataAdapters.
+ 
+I am planning to try to implement the prim datastore using pure SQL
+queries, the same way as Asset is currently implemented.
+I would like to compare performances against the current DataAdapters 
+approach. I assume running a 15000 prims sim with SQLite using the
+current Datastore implementation is a memory/perfs hog.
+ 
+I agree with you according to columns definition code replication. I am
+pretty sure this could be solved by using a good object design.
+ 
+&gt;<i> There are enough differences in SQL engine implementations where field
+</I>&gt;<i> types may need to vary between implementations (though field names
+</I>&gt;<i> should not).
+</I> 
+I agree. Despite of I am not confortable enough with SQlite and MySQL to add
+more, I hope I could help people around to deal with MSSQL.
+ 
+&gt;<i> The ADO.NET approach was my idea early on to avoid duplication in the
+</I>&gt;<i> code base. I consider it a failed experiment, as it didn't give nearly
+</I>&gt;<i> the amount of benefit as I was expecting, and it definitely through in a
+</I>&gt;<i> bunch of overhead that wasn't entirely anticipated.
+</I> 
+I am sorry about this :(
+I am sure you know already about it, but ADO.NET &quot;philosophy&quot; is not 
+restricted to DataSet and DataAdapters.
+It relies on a robust objet model that contains common database objects, 
+interfaces, and factory patterns that is supposed to help dealing 
+with different data engines : this is the way I am trying.
+I remember having developed half a dozen of data access layers dedicated
+to run with several data engines, using a similar approach.
+Of course, they did not include tables creation nor not-CLS compliant 
+types mapping. That's why the use case here is very challenging.
+ 
+&gt;<i> My theories on moving forward with cleaning up the database code is as
+</I>&gt;<i> follows (these are up for debate, just trying to show my own perspective
+</I>&gt;<i> here):
+</I>&gt;<i> 
+</I>&gt;<i> 1. take another stab at nhibernate. There were issues with mono when
+</I>&gt;<i> this was attempted 6 months ago which I'm hoping we can get past. I'm
+</I>&gt;<i> going to do some experiments here this week to see if nhibernate will
+</I>&gt;<i> work for us.
+</I> 
+Nhibernate definitely deserve a try. I dont know about it, and I'm 
+impatient to watch and learn it.
+ 
+&gt;<i> 2. Move out the ADO.NET implementations. The approach we should take is
+</I>&gt;<i> one similar to the MySQL Assets plugin where the SQL definitions are
+</I>&gt;<i> done in a seperate resource file. We can do upgrades via this model as
+</I>&gt;<i> well.
+</I> 
+I will continue this way, and maybe patch something to Mantis as sure I am
+sure to have something that runs good enough.
+Meanwhile, I will also try to follow the regular updates that are made in 
+the current evolving libraries, focusing particularly on the MySQL 
+implementation which seems to be the best one.
+
+Again, thanks for your feedback,
+
+Cheers,
+Laurent.
+
+_________________________________________________________________
+Nouveau ! Cr&#233;ez votre profil Messenger !
+<A HREF="http://home.services.spaces.live.com/">http://home.services.spaces.live.com/</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080108/f34b26fc/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080108/f34b26fc/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000656.html">[Opensim-dev] Solution attempt about code duplication in	database plugins
+</A></li>
+	<LI>Next message: <A HREF="000650.html">[Opensim-dev] FW: CentralScripting offers Free Office/Build	spaces in CentralGrid to scripters and OpenDev members
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#659">[ date ]</a>
+              <a href="thread.html#659">[ thread ]</a>
+              <a href="subject.html#659">[ subject ]</a>
+              <a href="author.html#659">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

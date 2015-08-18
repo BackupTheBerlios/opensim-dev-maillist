@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection string
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Opensim%200.7%20tidying%20up%20the%20MySQL%20DB%20connection%0A%20string&In-Reply-To=%3C4C1BF037.5090300%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008794.html">
+   <LINK REL="Next"  HREF="008801.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection string</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Opensim%200.7%20tidying%20up%20the%20MySQL%20DB%20connection%0A%20string&In-Reply-To=%3C4C1BF037.5090300%40t-data.com%3E"
+       TITLE="[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection string">melanie at t-data.com
+       </A><BR>
+    <I>Sat Jun 19 00:16:23 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008794.html">[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection	string
+</A></li>
+        <LI>Next message: <A HREF="008801.html">[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection string
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8795">[ date ]</a>
+              <a href="thread.html#8795">[ thread ]</a>
+              <a href="subject.html#8795">[ subject ]</a>
+              <a href="author.html#8795">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The long run times can't be avoided. MySQL alter table is
+excruciatingly slow with the huge BLOBs opensim uses.
+
+We have to live with it.
+
+I think there may be middle road between rollback and error. I'll
+look at it.
+
+Melanie
+
+Alex Ra wrote:
+&gt;<i> DC&gt; Since you were the one who wrote the newly introduced
+</I>&gt;<i> DC&gt; MySqlMigrations class, which uses the MySqlScript class, can you
+</I>&gt;<i> DC&gt; please explain how we can get around the issue that Frank is
+</I>&gt;<i> DC&gt; talking about?
+</I>&gt;<i> 
+</I>&gt;<i> Hello Diva,
+</I>&gt;<i> 
+</I>&gt;<i> I haven't looked how the timeouts are implemented in the driver,
+</I>&gt;<i> the code I added/modified doesn't do anything about them.
+</I>&gt;<i> 
+</I>&gt;<i> MySqlScript class is ONLY needed if a proc needs to be defined.
+</I>&gt;<i> Otherwise, the common Migration class can be used for mySQL just as
+</I>&gt;<i> for all other DBs.
+</I>&gt;<i> 
+</I>&gt;<i> I'm not sure the regular MySqlCommand would work any
+</I>&gt;<i> better with huge timeouts than MySqlScript.  If the timeout can be
+</I>&gt;<i> extended beyond the &quot;default default&quot; of 30 sec but then hits a
+</I>&gt;<i> limit, it sounds to me more like some server-side limitation
+</I>&gt;<i> then something in MySqlScript.
+</I>&gt;<i> 
+</I>&gt;<i> I can look at the driver sources, but not today.
+</I>&gt;<i> 
+</I>&gt;<i> Re rolling back to the old driver:  the code changes that accompanied
+</I>&gt;<i> the driver update can be found in r/12794, r/12795.  The converter
+</I>&gt;<i> function in DBGuids.cs is supposed to convert between UUIDs and the
+</I>&gt;<i> DB-specific representation more or less regardless of what the driver
+</I>&gt;<i> returns (string or Guid). So it should be possible to rollback the
+</I>&gt;<i> driver (or use &quot;OldGuids&quot; var) without actually touching the code.
+</I>&gt;<i> MySqlMigration would have to be removed, though.
+</I>&gt;<i> 
+</I>&gt;<i> I wonder what could make the migration run so slow, may be it would
+</I>&gt;<i> make sense to look into the migration scripts and try to optimize them
+</I>&gt;<i> somehow (add/remove some indexes or whatever).  Most of the migration stuff is
+</I>&gt;<i> just about adding/changing columns and for all I know a server should be
+</I>&gt;<i> able to process quite a lot of data in 1 hour (like hundreds of
+</I>&gt;<i> thousands rows).
+</I>&gt;<i> 
+</I>&gt;<i> Can Frank provide some details on what parts of the migration are
+</I>&gt;<i> especially slow?
+</I>&gt;<i> 
+</I>&gt;<i> When people start migrating their DBs to 0.7, it would be nice to make
+</I>&gt;<i> sure the scripts are reasonably efficient.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; Since you were the one who wrote the newly introduced
+</I>&gt;<i> DC&gt; MySqlMigrations class, which uses the MySqlScript class, can you
+</I>&gt;<i> DC&gt; please explain how we can get around the issue that Frank is
+</I>&gt;<i> DC&gt; talking about? It looks like the MySqlScript class has some
+</I>&gt;<i> DC&gt; hardcoded timeouts. Frank says that we might be able to specify a
+</I>&gt;<i> DC&gt; timeout between 0 and 1 hour, but not more. Some DB migrations,
+</I>&gt;<i> DC&gt; especially assets, might take more than 1 hour.
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; I'm really considering rolling back to using the old driver
+</I>&gt;<i> DC&gt; because this one is causing too much grief and confusion at this
+</I>&gt;<i> DC&gt; critical time when we want things to be stable.
+</I>&gt;<i> DC&gt;  
+</I>&gt;<i> DC&gt; Any light on this new driver, especially its limitations/bugs,
+</I>&gt;<i> DC&gt; and how we can overcome them, would be very much appreciated so
+</I>&gt;<i> DC&gt; that we can try to continue to use it in dev code.
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; Thanks.
+</I>&gt;<i> DC&gt; Crista
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; On 6/18/2010 10:57 AM, Frank Nichols wrote: 
+</I>&gt;<i> DC&gt; The use of the MysqlScript class is at the heart of most of the
+</I>&gt;<i> DC&gt; problems I have seen with the migration of mysql databases from
+</I>&gt;<i> DC&gt; 0.6.9 to 0.7.0. The problem seems to be that the default command
+</I>&gt;<i> DC&gt; timeout value for processing a sql statement with this class is 30
+</I>&gt;<i> DC&gt; seconds, which is far to short to alter a table inserting a column
+</I>&gt;<i> DC&gt; when there are hundreds of thousands of rows in that table.  
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; In researching this it appears that the devart version of the new
+</I>&gt;<i> DC&gt; MySql.data.dll has a version of the MysqlScript which allows you
+</I>&gt;<i> DC&gt; to set the command timeout programmatically, however the mysql
+</I>&gt;<i> DC&gt; version of this library does not have this property available. As
+</I>&gt;<i> DC&gt; far as I could see there is currently no way to set the command
+</I>&gt;<i> DC&gt; timeout. So, it would appear that automatic migrations are doomed
+</I>&gt;<i> DC&gt; to fail in any case where they take more than 30 seconds.
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; Frank
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; On Fri, Jun 18, 2010 at 7:13 AM, Michael Cerquoni &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">nebadon2025 at gmail.com</A>&gt; wrote:
+</I>&gt;<i> DC&gt; I have to say so far this new MySQL connector has been absolutely
+</I>&gt;<i> DC&gt; nothing but trouble for Frank Nichols and myself testing Migration
+</I>&gt;<i> DC&gt; from 0.6.9 to 0.7,  All throughout the testing we have had nothing
+</I>&gt;<i> DC&gt; but failure after failure from this new MySQL connector that has
+</I>&gt;<i> DC&gt; been introduced.  It has been nearly impossible to move forward on
+</I>&gt;<i> DC&gt; to 0.7 because of this,  I have no doubt that this will be a major
+</I>&gt;<i> DC&gt; problem for everyone to migrate over if you have even what seems
+</I>&gt;<i> DC&gt; like the most minimal amounts of data.   At this time i really
+</I>&gt;<i> DC&gt; have to give this new connector a -1.   Can someone please explain
+</I>&gt;<i> DC&gt; to me why the Original MySQL connector that seemed to work
+</I>&gt;<i> DC&gt; perfectly for years has now been replaced with one that constantly
+</I>&gt;<i> DC&gt; times out during migrations and gives nothing but trouble with
+</I>&gt;<i> DC&gt; DNS, requires us to use additional connection string settings, and
+</I>&gt;<i> DC&gt; basiclly makes moving on to 0.7 impossible for myself and others??
+</I>&gt;<i> DC&gt; I must be missing something here! 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; On Fri, Jun 18, 2010 at 6:06 AM, AlexRa &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">info at adeptsql.com</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;<i> AA&gt;&gt; But I note that I has &quot;pooling=false;&quot; in my own string though its
+</I>&gt;<i> AA&gt;&gt; not been in the example ini files for a while.  Anyone know what this
+</I>&gt;<i> AA&gt;&gt; does and if its wise to keep it in the string if I had a working
+</I>&gt;<i> AA&gt;&gt; 0.6.9 system with it there before?
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; Hello Ai,
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; Can't tell you why the &quot;pooling=false;&quot; was there in the 1st place, but
+</I>&gt;<i> DC&gt; I've noticed that it did cause connection failures on a Windows box during
+</I>&gt;<i> DC&gt; performance testing (thousands mySQL requests in a loop, each with
+</I>&gt;<i> DC&gt; connect/disconnect). The error didn't happen without the &quot;pooling=false;&quot;
+</I>&gt;<i> DC&gt; option. I don't know if that affects mySQL on Linux as well.
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; Best regards,
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; Alex
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> DC&gt; _______________________________________________
+</I>&gt;<i> DC&gt; Opensim-dev mailing list
+</I>&gt;<i> DC&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> DC&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Best regards,
+</I>&gt;<i> 
+</I>&gt;<i> Alex
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008794.html">[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection	string
+</A></li>
+	<LI>Next message: <A HREF="008801.html">[Opensim-dev] Opensim 0.7 tidying up the MySQL DB connection string
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8795">[ date ]</a>
+              <a href="thread.html#8795">[ thread ]</a>
+              <a href="subject.html#8795">[ subject ]</a>
+              <a href="author.html#8795">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

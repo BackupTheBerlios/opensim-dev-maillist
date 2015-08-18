@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] IClientAPI.GetDefaultAnimation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IClientAPI.GetDefaultAnimation&In-Reply-To=%3C4B047B53.4090902%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007903.html">
+   <LINK REL="Next"  HREF="008099.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] IClientAPI.GetDefaultAnimation</H1>
+    <B>Peter Newman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20IClientAPI.GetDefaultAnimation&In-Reply-To=%3C4B047B53.4090902%40gmail.com%3E"
+       TITLE="[Opensim-dev] IClientAPI.GetDefaultAnimation">wizarth at gmail.com
+       </A><BR>
+    <I>Wed Nov 18 23:55:15 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007903.html">[Opensim-dev] IClientAPI.GetDefaultAnimation
+</A></li>
+        <LI>Next message: <A HREF="008099.html">[Opensim-dev] Freeswitch and OpenSim 0.6.7
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7904">[ date ]</a>
+              <a href="thread.html#7904">[ thread ]</a>
+              <a href="subject.html#7904">[ subject ]</a>
+              <a href="author.html#7904">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>OK, that makes sense. Since I'm poking in the area, I'll see about 
+moving those out of the core and across IClientAPI.
+
+Peter N
+
+Melanie wrote:
+&gt;<i> The purpose of this method is to provide the animations that are
+</I>&gt;<i> hardcoded in the viewer. These are, specifically, the facial
+</I>&gt;<i> expressions, which cannot be triggered any other way.
+</I>&gt;<i> 
+</I>&gt;<i> To allow LSL scripts to trigger those by name, we have a method in
+</I>&gt;<i> the client view. This should really be in the client view, since
+</I>&gt;<i> core should not be hardcoded to use linden UUIDs. The LL standard
+</I>&gt;<i> animations file should actually not be read by a core component, the
+</I>&gt;<i> core component (AvatarAnimations) should defer that tot he client view.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> Peter Newman wrote:
+</I>&gt;&gt;<i> Hello,
+</I>&gt;&gt;<i> I'd like to know if there is a non-obvious reason why IClientAPI 
+</I>&gt;&gt;<i> provides GetDefaultAnimation . The reason I ask is I've done some work 
+</I>&gt;&gt;<i> with AvatarAnimations and related to not use magic strings (&quot;SIT&quot;, 
+</I>&gt;&gt;<i> &quot;STAND&quot;, etc) for avatar states. However, I noticed the llStartAnimation 
+</I>&gt;&gt;<i> implementation calls ScenePresence.AddAnimation, which calls 
+</I>&gt;&gt;<i> IClientAPI.GetDefaultAnimation (and is the only place that calls it) . 
+</I>&gt;&gt;<i> However, the only client that has an implementation of this function is 
+</I>&gt;&gt;<i> the LLClient, all others return UUID.Zero or throw an exception.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In LLClient, the implementation there duplicates the functionality of 
+</I>&gt;&gt;<i> AvatarAnimations, reading in the same file and parsing it into a 
+</I>&gt;&gt;<i> duplicate of one of the data structures that AvatarAnimations provides.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I ask, is there a reason for the IClientAPI implementation to implement 
+</I>&gt;&gt;<i> this function that seems to reproduce functionality available to 
+</I>&gt;&gt;<i> ScenePresence already. Since the animation updates for moving don't use 
+</I>&gt;&gt;<i> this function, it seems it is limited only to llStartAnimation.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> My thought is, if there is no reason otherwise, to remove this function 
+</I>&gt;&gt;<i> from IClientAPI, redirect the ScenePresence.AddAnimation to use the 
+</I>&gt;&gt;<i> AvatarAnimation class. Even independent of the changes I've made for the 
+</I>&gt;&gt;<i> removal of strings, it seems like this would be more efficient.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Peter N
+</I>&gt;&gt;<i> aka Wizarth
+</I>&gt;&gt;<i> <A HREF="http://www.wizarth.com.au/">http://www.wizarth.com.au/</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007903.html">[Opensim-dev] IClientAPI.GetDefaultAnimation
+</A></li>
+	<LI>Next message: <A HREF="008099.html">[Opensim-dev] Freeswitch and OpenSim 0.6.7
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7904">[ date ]</a>
+              <a href="thread.html#7904">[ thread ]</a>
+              <a href="subject.html#7904">[ subject ]</a>
+              <a href="author.html#7904">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

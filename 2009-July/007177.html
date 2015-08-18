@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Attached Linksets and Collisions? (on SVN 10029)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Attached%20Linksets%20and%20Collisions%3F%20%28on%20SVN%2010029%29&In-Reply-To=%3C4A6214CB.4030906%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007175.html">
+   <LINK REL="Next"  HREF="007178.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Attached Linksets and Collisions? (on SVN 10029)</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Attached%20Linksets%20and%20Collisions%3F%20%28on%20SVN%2010029%29&In-Reply-To=%3C4A6214CB.4030906%40t-data.com%3E"
+       TITLE="[Opensim-dev] Attached Linksets and Collisions? (on SVN 10029)">melanie at t-data.com
+       </A><BR>
+    <I>Sat Jul 18 20:30:35 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007175.html">[Opensim-dev] Attached Linksets and Collisions? (on SVN 10029)
+</A></li>
+        <LI>Next message: <A HREF="007178.html">[Opensim-dev] IClientAPI interface change warning. r10057
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7177">[ date ]</a>
+              <a href="thread.html#7177">[ thread ]</a>
+              <a href="subject.html#7177">[ subject ]</a>
+              <a href="author.html#7177">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I believe you have just found the issue that is making lbsa crash! 
+Physics activity on login is taking it down to unusable levels, and 
+this might just be it. Of course, attachments shouldn't have a 
+physics actor at all but from what you are saying, they get one. Now 
+all the universe makes sense. 42!!!
+
+Melanie
+
+John Sheridan wrote:
+&gt;<i> Gang,
+</I>&gt;<i>   Before I plug this into Mantis, I wanted to confirm this with the 
+</I>&gt;<i> developers.  Recently I've been noticing that after teleporting in or 
+</I>&gt;<i> attaching something my avatar has been getting bumped / tossed around 
+</I>&gt;<i> quite a bit.  It occurred to me, that this seems like its typically a 
+</I>&gt;<i> physical reaction - as if one were to be hit with a physical prim or 
+</I>&gt;<i> collide into a static prim. So I looked up the top colliders in the 
+</I>&gt;<i> estate tools and found a whole bunch of colliding prims (~300 in total) 
+</I>&gt;<i> all at the same location and owned by me.  Which was strange enough on 
+</I>&gt;<i> its own given the sim was empty of prims other then what was attached to 
+</I>&gt;<i> my avatar.
+</I>&gt;<i> 
+</I>&gt;<i>   So to test I removed all of my attachments then suddenly the 
+</I>&gt;<i> collisions cleared.  When I re-attached everything they returned.  To 
+</I>&gt;<i> dig a bit deeper, I rezzed my hair and shoes to the ground, and found 
+</I>&gt;<i> that everything was normal, and the physics option was not ticked.  Out 
+</I>&gt;<i> of curiosity, I set the hair and both shoes to phantom, took them back 
+</I>&gt;<i> into inventory, then re-attached.  Surprisingly, no more collisions! 
+</I>&gt;<i> 
+</I>&gt;<i>   From the looks of this it seems that when attached, prims are either 
+</I>&gt;<i> becoming physical and colliding with one another and the avatar, or more 
+</I>&gt;<i> likely are remaining normal / static and just colliding with the avatar 
+</I>&gt;<i> since they're not moving or flying haphazardly about as is typical of a 
+</I>&gt;<i> physical prim when bumped.
+</I>&gt;<i> 
+</I>&gt;<i>   Upon further testing though, I did however discover something rather 
+</I>&gt;<i> interesting.  So far I've only tested with the skull attachment point, 
+</I>&gt;<i> but when a single prim is attached it acts normally.  The avatar is not 
+</I>&gt;<i> bumped when it rezzes and no collisions show in the estate tools.  
+</I>&gt;<i> However, when two or more prims are linked and then attached the avatar 
+</I>&gt;<i> is bumped around and it seems that only the prims in the linkset that 
+</I>&gt;<i> are touching the avatar begin to register collisions within the estate 
+</I>&gt;<i> tools. 
+</I>&gt;<i> 
+</I>&gt;<i> To reproduce this:
+</I>&gt;<i> 
+</I>&gt;<i> 1 - rez a single prim to the ground
+</I>&gt;<i> 2 - take to inventory
+</I>&gt;<i> 3 - attach to skull
+</I>&gt;<i> 
+</I>&gt;<i>  - Check the estate tools and no collisions show.
+</I>&gt;<i> 
+</I>&gt;<i> 1 - rez several prims to the ground
+</I>&gt;<i> 2 - link them
+</I>&gt;<i> 3 - take to inventory
+</I>&gt;<i> 4 - attach to skull
+</I>&gt;<i> 
+</I>&gt;<i>  - Check the estate tools and only the prims in the linkset which are 
+</I>&gt;<i> touching the avatar will show.
+</I>&gt;<i> 
+</I>&gt;<i> 1 - re-rez the linkset to the ground
+</I>&gt;<i> 2 - tick the phantom checkbox
+</I>&gt;<i> 3 - take to inventory
+</I>&gt;<i> 4 - attach to skull.
+</I>&gt;<i> 
+</I>&gt;<i>  - Check the state tools and no collisions show.
+</I>&gt;<i> 
+</I>&gt;<i> I wonder if per chance this is related to the recent oddness with logins 
+</I>&gt;<i> / teleports / sim crossings where ODE has been going batty? 
+</I>&gt;<i> 
+</I>&gt;<i> Thanks, :)
+</I>&gt;<i> 
+</I>&gt;<i>  - John / Orion Pseudo
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007175.html">[Opensim-dev] Attached Linksets and Collisions? (on SVN 10029)
+</A></li>
+	<LI>Next message: <A HREF="007178.html">[Opensim-dev] IClientAPI interface change warning. r10057
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7177">[ date ]</a>
+              <a href="thread.html#7177">[ thread ]</a>
+              <a href="subject.html#7177">[ subject ]</a>
+              <a href="author.html#7177">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

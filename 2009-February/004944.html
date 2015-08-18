@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] AssetServer Observations and Suggestions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20AssetServer%20Observations%20and%20Suggestions&In-Reply-To=%3C139840.67643.qm%40web82604.mail.mud.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004943.html">
+   <LINK REL="Next"  HREF="004948.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] AssetServer Observations and Suggestions</H1>
+    <B>Charles Krinke</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20AssetServer%20Observations%20and%20Suggestions&In-Reply-To=%3C139840.67643.qm%40web82604.mail.mud.yahoo.com%3E"
+       TITLE="[Opensim-dev] AssetServer Observations and Suggestions">cfk at pacbell.net
+       </A><BR>
+    <I>Sun Feb  8 22:02:52 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004943.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+        <LI>Next message: <A HREF="004948.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4944">[ date ]</a>
+              <a href="thread.html#4944">[ thread ]</a>
+              <a href="subject.html#4944">[ subject ]</a>
+              <a href="author.html#4944">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Well, lets see if we can disect the problem a bit more and maybe take these issues one at a time.
+
+I believe it may be a reasonable argument that the terrain of a region is a property of the region so that a regions terrain should be stored in the regions database and not on the assetServer database. In particular, I would argue that all the old terrain edits should be deleted from the assetServer database as they are not accessible or useful anymore.
+
+Without even getting into any issues of inventory across regions, lets see if we can find a consensus on handling the current &quot;terrainImage&quot; that is stored on the assetServer and then go to another issue. I pick this one first as it seems more clearcut, but lets see how the discussion goes.
+
+Charles
+
+
+
+
+________________________________
+From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Sent: Sunday, February 8, 2009 12:37:52 PM
+Subject: Re: [Opensim-dev] AssetServer Observations and Suggestions
+
+Hi,
+
+I think while some alternate scenarios are possible, the real 
+solution lies in pure &quot;storage providers&quot; that a user subscribes to, 
+and which are grid-independent, or in local storage on the user's 
+hard disk.
+
+In the interim, we should maybe create a means to determine which 
+assets can be discarded. SPecifically, scan eacha nd every prim 
+asset to determine referenced textures and content items. Scan each 
+region to determine inworld item asset references. Tag all items not 
+found, wait a while, then judiciously delete.
+
+Basically, the only resources that a script will reference by UUID 
+are textures and sounds. Animations cannot be referenced by UUID, 
+neither can other prim objects, unless god mode rez is used.
+Wearables can't be referenced by asset ID either, so these will 
+always have an inventory item, be it in user inventory or inworld. I 
+believe that within about 6 months, equilibrium will be reached, 
+e.g. a point where growth in the asset database is proportional to 
+the actual number of new items created, rather than just old copies 
+of edited items.
+
+Assets on region is a bad idea, IMHO, because it means that region 
+operators are responsible for the inventories of users who have no 
+region at all, and user inventories would be available only if that 
+region happens to be up. in OSGrid, that can't be depended on.
+
+Melanie
+
+
+Frank Nichols wrote:
+&gt;<i> I like the idea of shifting responsibility for user storage costs closer 
+</I>&gt;<i> to the user. Region maybe a good place to do this.
+</I>&gt;<i> 
+</I>&gt;<i> Frank
+</I>&gt;<i> 
+</I>&gt;<i> Charles Krinke wrote:
+</I>&gt;&gt;<i> We have been studying the assets table on OSGrid as it heads toward 
+</I>&gt;&gt;<i> the &quot;disk full&quot; stage and I have a couple of observations and am 
+</I>&gt;&gt;<i> heading towards a suggestion. Maybe this is already accounted for in 
+</I>&gt;&gt;<i> the &quot;Cable Beach&quot; project, at which point, this will only indicate 
+</I>&gt;&gt;<i> that I did not read all the exchanges carefully enough.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It appears to me that we are storing on the MySQL data store at the 
+</I>&gt;&gt;<i> assetServer on a grid every edit of every script, terrainImage and 
+</I>&gt;&gt;<i> clothingItem amongst other things. So, my first observation is that we 
+</I>&gt;&gt;<i> appear to be storing all the older, obsolete items that can no longer 
+</I>&gt;&gt;<i> be accessed.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Additionally, it appears to me that we are also storing things that 
+</I>&gt;&gt;<i> could arguably be stored on the regions datastore, such as the 
+</I>&gt;&gt;<i> terrainImage.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Now, to the beginnings of a suggestion. It seems to me that each 
+</I>&gt;&gt;<i> avatar will have a &quot;home&quot; region. And that perhaps that is the place 
+</I>&gt;&gt;<i> to store the items in an avatars inventory. Things like scripts, 
+</I>&gt;&gt;<i> notecards, textures and the like.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> At that point, the assetServer on a grid could be used to store only 
+</I>&gt;&gt;<i> pointers (or URL's) to each avatars inventory on his or her home region.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So, by doing that, we start shifting the ever increasing disk storage 
+</I>&gt;&gt;<i> requirements of a grid back to the regions distributed around the 
+</I>&gt;&gt;<i> internet.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Again, perhaps Cable Beach is already doing this, and if so, this is 
+</I>&gt;&gt;<i> great. If not, I put out these ideas and duck as the tomatoes start 
+</I>&gt;&gt;<i> flying.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Charles
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090208/dc45f4e9/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090208/dc45f4e9/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004943.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+	<LI>Next message: <A HREF="004948.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4944">[ date ]</a>
+              <a href="thread.html#4944">[ thread ]</a>
+              <a href="subject.html#4944">[ subject ]</a>
+              <a href="author.html#4944">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

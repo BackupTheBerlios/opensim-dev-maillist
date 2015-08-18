@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Capabilities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Capabilities&In-Reply-To=%3C9E4FDCC0-F4A1-416D-A871-770F597B8F00%40playsign.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010131.html">
+   <LINK REL="Next"  HREF="010139.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Capabilities</H1>
+    <B>Toni Alatalo</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Capabilities&In-Reply-To=%3C9E4FDCC0-F4A1-416D-A871-770F597B8F00%40playsign.net%3E"
+       TITLE="[Opensim-dev] Capabilities">toni at playsign.net
+       </A><BR>
+    <I>Fri Apr 29 23:55:42 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010131.html">[Opensim-dev] Capabilities
+</A></li>
+        <LI>Next message: <A HREF="010139.html">[Opensim-dev] Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10132">[ date ]</a>
+              <a href="thread.html#10132">[ thread ]</a>
+              <a href="subject.html#10132">[ subject ]</a>
+              <a href="author.html#10132">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Apr 30, 2011, at 12:37 AM, Justin Clark-Casey wrote:
+&gt;<i> It might be good to separate out generic capabilities code from Linden specifics in case some other environment uses them in the future.  However, this is speculative.
+</I>
+My understanding was like Melanie's, that CAPS are a somewhat generic thing and not specific to the Linden model. Just a way to get access to things with one time URLs. AFAIK a key to many things in the VWRAP drafts?
+
+For example, when we added Mumble VOIP to reX, and we needed some way for the sim to tell what Mumble server is designated for that place, CAPS came to mind as an option (I had finally learned what they are, after 2-3 years of hearing rumours :), and that's how Matti K. ended up implementing it then:
+
+<A HREF="http://wiki.realxtend.org/index.php/Current_Mumble_Server_Info_Delivery_Mechanism">http://wiki.realxtend.org/index.php/Current_Mumble_Server_Info_Delivery_Mechanism</A>
+Client do http get request to 'mumble_server_info' caps url and get response with following headers:
+Mumble-Server, Mumble-Version, Mumble-Channel, Mumble-User, Mumble-Password, Mumble-AvatarId, Mumble-ContextId
+(BTW Matti K. later talked with the other ppl who also worked with mumble later, and the plan is/was to switch to their more developed impl for making opensim give mumble info -- that simple impl documented there was basically whipped together in an afternoon iirc).
+
+I don't see anything Linden specific about that.
+
+That said, I've no idea about the server side code for that in Opensim, dunno what these refactorings would actually mean. Just echoing the view that the idea at least seems generic.
+
+~Toni
+
+
+&gt;<i> Also, perhaps a typo point is the the current module is OpenSim.Region.ClientStack.LindenUDP, rather than OpenSim.Region.ClientStackLindenUDP
+</I>&gt;<i> 
+</I>&gt;<i> On 29/04/11 22:19, Diva Canto wrote:
+</I>&gt;&gt;<i> I would like to clean up the way OpenSim handles capabilities. Here are my goals:
+</I>&gt;&gt;<i> (1) move everything-capabilities into LL space, because this is something that's very specific to the Linden-family of
+</I>&gt;&gt;<i> clients; and
+</I>&gt;&gt;<i> (2) make Capability URLs be externally configurable so that some of those services can be served from a Robust server,
+</I>&gt;&gt;<i> if operators see that need
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> More specifically, I would like to:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> - rename OpenSim.Region.ClientStackLindenUDP to OpenSim.Region.ClientStackLinden
+</I>&gt;&gt;<i> - create two folders in there: UDP and Capabilities
+</I>&gt;&gt;<i> - Move everything that's currently under OpenSim.Region.ClientStackLindenUDP to the subfolder UDP
+</I>&gt;&gt;<i> - Move OpenSim.Framework.Capabilities to the subfolder Capabilities
+</I>&gt;&gt;<i> - Move the module that's currently in OpenSim.Region.CoreModules.Agent.Capabilities (CapabilitiesModule) to
+</I>&gt;&gt;<i> OpenSim.Region.ClientStackLinden.Capabilities
+</I>&gt;&gt;<i> - Move what's currently in OpenSim.Region.CoreModules.Framework.EventQueue to OpenSim.Region.ClientStackLinden.Capabilities
+</I>&gt;&gt;<i> - Move what's currently in OpenSim.Region.CoreModules.Framework.Avatar.Assets to
+</I>&gt;&gt;<i> OpenSim.Region.ClientStackLinden.Capabilities
+</I>&gt;&gt;<i> - refactor some of these modules, so that the handlers themselves are in OpenSim.Server.Handlers, so that they can be
+</I>&gt;&gt;<i> served from a Robust server
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thoughts? Objections? Cautions?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Crista / Diva
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> -- 
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010131.html">[Opensim-dev] Capabilities
+</A></li>
+	<LI>Next message: <A HREF="010139.html">[Opensim-dev] Capabilities
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10132">[ date ]</a>
+              <a href="thread.html#10132">[ thread ]</a>
+              <a href="subject.html#10132">[ subject ]</a>
+              <a href="author.html#10132">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

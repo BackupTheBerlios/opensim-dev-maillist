@@ -1,0 +1,514 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Large page kernel tweaks for reduced memory	prefetch penalties in high performance computing applications	on linux
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Large%20page%20kernel%20tweaks%20for%20reduced%20memory%0A%09prefetch%20penalties%20in%20high%20performance%20computing%20applications%0A%09on%20linux&In-Reply-To=%3C170fa1780806152045x3551cf3dyd0e891c6953390d3%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001828.html">
+   <LINK REL="Next"  HREF="001830.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Large page kernel tweaks for reduced memory	prefetch penalties in high performance computing applications	on linux</H1>
+    <B>James Stallings II</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Large%20page%20kernel%20tweaks%20for%20reduced%20memory%0A%09prefetch%20penalties%20in%20high%20performance%20computing%20applications%0A%09on%20linux&In-Reply-To=%3C170fa1780806152045x3551cf3dyd0e891c6953390d3%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Large page kernel tweaks for reduced memory	prefetch penalties in high performance computing applications	on linux">james.stallings at gmail.com
+       </A><BR>
+    <I>Mon Jun 16 05:45:25 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001828.html">[Opensim-dev] Large page kernel tweaks for reduced memory prefetch penalties in high performance computing applications on linux
+</A></li>
+        <LI>Next message: <A HREF="001830.html">[Opensim-dev] Large page kernel tweaks for reduced	memoryprefetch penalties in high performance computing	applicationson linux
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1829">[ date ]</a>
+              <a href="thread.html#1829">[ thread ]</a>
+              <a href="subject.html#1829">[ subject ]</a>
+              <a href="author.html#1829">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks Marius!
+
+For a very insightful and informative exposition in response to my post. I
+eagerly await your forthcoming detailed post in this regard.
+
+To be honest, I had not sought so much to address the garbage collection
+problem with large pages - it was mentioned to me in discussion with others
+that someone had obtained increases in region server performance on linux by
+'compiling mono with large page support'.
+
+Based on this shred of information, I set out to determine what we could do
+to address certain stability problems on linux. I was unaware that similar
+issues had been seen on other *nix flavors than linux. It is unfortunate,
+but we have very little information on the issue.
+
+Perhaps this is a sign of growing stability in other areas of the
+application space.
+
+In the process of bringing into focus the mention of large pages through
+some web research this morning, I saw where we might make some gains in
+performance on linux by utilising large pages; however, there were still
+parts of the puzzle missing (part of the research shows that certain memory
+allocation methods took advantage of large pages and others did not). This
+would seem to indicate that the application, and I assume the application
+would be the mono VM, would need to do something special to take advantage
+of large page support. This brings us up to the point where the research
+became unproductive, as I was unable to determine precisely how this might
+be accomplished.
+
+In light of what you've said in your post, I suspect that a very busy region
+with a lot of asset overhead would benefit from both large page usage and
+such optimizations you mention; object reuse springs directly into mind.
+
+I am growing confident that we are drawing down on this issue, and will
+bring solutions to light in the near term.
+
+Cheers!
+James
+
+On Sun, Jun 15, 2008 at 6:52 PM, Mariusz Nowostawski &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mariusz at nowostawski.org</A>&gt; wrote:
+
+&gt;<i> Hi all,
+</I>&gt;<i>
+</I>&gt;<i> I am happy that issues related to performance, efficiency and stability
+</I>&gt;<i> of OpenSim on various platforms are getting more attention recently and
+</I>&gt;<i> that many folks are looking into it.
+</I>&gt;<i>
+</I>&gt;<i> Together with 3Di (Japan) we are looking into those issues too, and will
+</I>&gt;<i> be more than happy to share our results and solutions in due time. We
+</I>&gt;<i> are putting efforts to put together a summary of our findings online and
+</I>&gt;<i> make it possible to monitor certain aspects of OpenSim performance and
+</I>&gt;<i> memory management into our nightly build system, so it will be easier
+</I>&gt;<i> for the community to monitor what is working where, on which platforms
+</I>&gt;<i> and with what results. I'll keep you updated on that.
+</I>&gt;<i>
+</I>&gt;<i> As for the large page support: this is very architecture specific issue:
+</I>&gt;<i> different intel, amd and sparc MMUs support different page sizes, and
+</I>&gt;<i> then various OSes again can be compiled with a specific page size
+</I>&gt;<i> support - so there is no single solution for every platform/OS
+</I>&gt;<i> combination. Most common denominator seems to be the use of 4k and 8k
+</I>&gt;<i> and most configurations of architecture/OS use those page sizes by
+</I>&gt;<i> default. Solaris kernel can support multiple page sizes, although it is
+</I>&gt;<i> a bit more tricky than it sounds, and for example on SPARC not
+</I>&gt;<i> everything can be easily negotiated with the kernel. It all depends on
+</I>&gt;<i> which architecture a given OS runs.
+</I>&gt;<i>
+</I>&gt;<i> Poor memory management and large memory footprint is not going to be
+</I>&gt;<i> solved by recompiling something with large page support - to the
+</I>&gt;<i> contrary - the footprint and memory usage would most likely got much
+</I>&gt;<i> worse then. Large page support is usually for apps that do their own
+</I>&gt;<i> memory management, and it is usually increasing the overall memory
+</I>&gt;<i> footprint and improving the performance. To really benefit from large
+</I>&gt;<i> pages the software must take exclusive care of memory management itself.
+</I>&gt;<i> And in case of OpenSim it is a bit tricky. Let me explain - normally -
+</I>&gt;<i> memory management (say, when programming in C) is difficult - one needs
+</I>&gt;<i> to make lots of decisions and trade-offs between 3 general issues: a)
+</I>&gt;<i> memory footprint b) performance c) maintainability.  To really make
+</I>&gt;<i> things fast and small one needs to re-implement the memory management
+</I>&gt;<i> herself, and take care of things - this will put strain on the
+</I>&gt;<i> maintainability but will keep both, memory footprint and performance in
+</I>&gt;<i> their best. What usually happens is that one uses standard libc to keep
+</I>&gt;<i> the maintanability high, and makes tradeoffs - to be fast and big, or
+</I>&gt;<i> slow and small.
+</I>&gt;<i>
+</I>&gt;<i> With software running on VMs, there are much more levels to be
+</I>&gt;<i> considered when managing memory:
+</I>&gt;<i> a) application level
+</I>&gt;<i> b) VM level
+</I>&gt;<i> c) OS level
+</I>&gt;<i> In case of OpenSim, there is the following to consider:
+</I>&gt;<i>
+</I>&gt;<i> 1. object instances allocations, de-allocations, arrays and collection
+</I>&gt;<i> management, hashes, large memory management, database queries etc. On
+</I>&gt;<i> the application level lots of good things can be done by &quot;normal&quot; C#
+</I>&gt;<i> programmers.  This can dramatically boost performance and reduce the
+</I>&gt;<i> memory footprint. For example - re-implementing some of the collection
+</I>&gt;<i> classes usually renders good results. Reducing the number of new object
+</I>&gt;<i> creation, and &quot;recycling&quot; the objects inside the application instead of
+</I>&gt;<i> creating new instances and letting the system to garbage collect unused
+</I>&gt;<i> instances - this also can dramatically improve both, performance and
+</I>&gt;<i> memory footprint. And so on - good programming practices, taking care of
+</I>&gt;<i> memory usage and memory management can make things really better -
+</I>&gt;<i> especially on systems running on VMs. Even little things like boxing,
+</I>&gt;<i> and efficient use of native data types - this all contribute.
+</I>&gt;<i>
+</I>&gt;<i> 2. VM-level (being it Mono or any VM) - performance here can be tweaked
+</I>&gt;<i> by many parameters, but, the biggest contributor is garbage collector
+</I>&gt;<i> itself. Different garbage collectors have different ways of managing
+</I>&gt;<i> memory, and these can substantially change the way applications behave.
+</I>&gt;<i>  From our limited experiences to date, mono with different GCs behaves
+</I>&gt;<i> completely different - stability, performance and footprint are all
+</I>&gt;<i> highly sensitive to the GC used. We are getting quite good results when
+</I>&gt;<i> using the latest Boehm GC - but things can be tweaked even better.
+</I>&gt;<i>
+</I>&gt;<i> 3. OS - what I mean here is:
+</I>&gt;<i> - the memory management left out and not handled by the APP itself or VM
+</I>&gt;<i> including large page support,
+</I>&gt;<i> - I/O,
+</I>&gt;<i> - threads management,
+</I>&gt;<i> - IPC (especially shared memory),
+</I>&gt;<i> - and networking.
+</I>&gt;<i> These all can be tweaked. Normally these are designed to be generic and
+</I>&gt;<i> handle wide range of cases and apps. In case of OpenSim alone, things
+</I>&gt;<i> can be improved and tweaked for a particular purpose alone.
+</I>&gt;<i>
+</I>&gt;<i> This is all pretty complex. There is no silver bullet that will
+</I>&gt;<i> magically make OpenSim run faster with small memory footprint. But -
+</I>&gt;<i> there are many areas improvement can be made, and it will be desirable
+</I>&gt;<i> to have a more targeted efforts towards that - Over here we are trying
+</I>&gt;<i> to draw a roadmap of all those various aspects, and I am grateful for
+</I>&gt;<i> good discussion and contribution from many people that put things in
+</I>&gt;<i> perspective.
+</I>&gt;<i>
+</I>&gt;<i> For any of you doing any testing - please take a note on the exact
+</I>&gt;<i> kernel, mono version, GC used and post these together with your
+</I>&gt;<i> results/observations. This will help replicating some scenarios and
+</I>&gt;<i> digging into causes of various behaviours. For one thing, we were unable
+</I>&gt;<i> to replicate most of problems with Mono on our own Linux setups - as for
+</I>&gt;<i> Solaris on SPARC, these are highly sensitive to exact version and GC
+</I>&gt;<i> used - we have cases of complete mono crashes, to the system running
+</I>&gt;<i> well, subject to various tweaking of compile parameters. As said
+</I>&gt;<i> earlier, we want to put a report together, to gather all these in a
+</I>&gt;<i> single place, so others can compare it to what is observed and so on.
+</I>&gt;<i> I'll keep you posted on that,
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> cheers
+</I>&gt;<i> Mariusz
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> James Stallings II wrote:
+</I>&gt;<i> &gt; Greetings,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Included below is a transcript of a recent sunday morning discussion in
+</I>&gt;<i> re:
+</I>&gt;<i> &gt; the mono/large pages stuff that's recently appeared on the radar.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; as you will see, it is really more of a kernel-tweaking issue, although
+</I>&gt;<i> the
+</I>&gt;<i> &gt; application does come into play in the way it requests memory. For our
+</I>&gt;<i> &gt; purposes, 'application' in that last sentence is mono, not opensim.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Hope this provides some insights :)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Cheers
+</I>&gt;<i> &gt; daTwitch
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Oh, still researching how to take advantage of this end-to-end wrt our
+</I>&gt;<i> &gt; application. Will update as I uncover more information.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; &lt;daTwitch&gt; this is somewhat relevant:
+</I>&gt;<i> &gt; <A HREF="http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6664521">http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6664521</A>
+</I>&gt;<i> &gt; &lt;daTwitch&gt; although I finf the placating sycophantic tone of the bug
+</I>&gt;<i> &gt; submitter makes me want to find him an emotional support group
+</I>&gt;<i> &gt; &lt;nebadon&gt; lol
+</I>&gt;<i> &gt; &lt;daTwitch&gt; the universe has surely reversed it's polarity; computer
+</I>&gt;<i> science
+</I>&gt;<i> &gt; (which is where I learned the term &quot;egoless programming&quot;) is now
+</I>&gt;<i> saturated
+</I>&gt;<i> &gt; with sensitivity; and Fine Arts, once considered the most subjective
+</I>&gt;<i> subject
+</I>&gt;<i> &gt; under quanititative and qualititative analysis, is consumed with issues
+</I>&gt;<i> &gt; relating to process, review, and open, formal  critique
+</I>&gt;<i> &gt; &lt;daTwitch&gt; aat least, it was where I went to school lols
+</I>&gt;<i> &gt; &lt;daTwitch&gt; this is also relevant, if somewhat more out of date.
+</I>&gt;<i> &gt; Unfortunately, this looks almost identical to the things we're seeing,
+</I>&gt;<i> and
+</I>&gt;<i> &gt; given the age of the issue, and that we're still seeing it now, doesnt
+</I>&gt;<i> give
+</I>&gt;<i> &gt; me a lot of hope for getting the mono folk to take the problem on.
+</I>&gt;<i> &gt; &lt;daTwitch&gt;
+</I>&gt;<i> &gt; <A HREF="http://lists.ximian.com/pipermail/mono-list/2006-April/031312.html">http://lists.ximian.com/pipermail/mono-list/2006-April/031312.html</A>
+</I>&gt;<i> &gt; &lt;daTwitch&gt; although it is encouraging that the OpenSolaris folk claim to
+</I>&gt;<i> &gt; have fixed the problem with a patch to their O/S
+</I>&gt;<i> &gt; &lt;daTwitch&gt; maybe someone should investigate how this performs under
+</I>&gt;<i> &gt; opensolaris
+</I>&gt;<i> &gt; &lt;daTwitch&gt; The discussion of TLBs (translation buffers, which are crucial
+</I>&gt;<i> to
+</I>&gt;<i> &gt; page addressing in these memory models), in this article:
+</I>&gt;<i> &gt; <A HREF="http://lwn.net/Articles/173882/">http://lwn.net/Articles/173882/</A> suggests that some kernel optimizations
+</I>&gt;<i> on
+</I>&gt;<i> &gt; the server hardware in question can significantly improve the performance
+</I>&gt;<i> of
+</I>&gt;<i> &gt; memory accesses in general for a given program - if I read it right, it
+</I>&gt;<i> &gt; would indicate that we would need to build the correct optimizations into
+</I>&gt;<i> &gt; the k
+</I>&gt;<i> &gt; &lt;daTwitch&gt; ernel, then compile mono locally and link it as described
+</I>&gt;<i> &gt; &lt;daTwitch&gt; however, it may be that these effects would only be
+</I>&gt;<i> significant
+</I>&gt;<i> &gt; on 64bit O/S
+</I>&gt;<i> &gt; &lt;daTwitch&gt; that's about all I'm turning up of any significane
+</I>&gt;<i> &gt; &lt;daTwitch&gt; *significance
+</I>&gt;<i> &gt; &lt;nebadon&gt; hmm
+</I>&gt;<i> &gt; &lt;nebadon&gt; do you recall anything about compiling mono with --large page
+</I>&gt;<i> &gt; &lt;nebadon&gt; or large pages
+</I>&gt;<i> &gt; &lt;nebadon&gt; something like that
+</I>&gt;<i> &gt; &lt;nebadon&gt; someone was talking about it on -dev a while back
+</I>&gt;<i> &gt; &lt;nebadon&gt; they said it helped with memory stuff with mono
+</I>&gt;<i> &gt; &lt;nebadon&gt; i looked yesterday but couldnt find anything
+</I>&gt;<i> &gt; &lt;nebadon&gt; it wasnt  one of the regulars  on -dev channel though
+</I>&gt;<i> &gt; &lt;daTwitch&gt; that's what all the foregoing stuff is about
+</I>&gt;<i> &gt; &lt;nebadon&gt; they claimed it really helped alot
+</I>&gt;<i> &gt; &lt;ckrinke&gt; I dont see --large, but
+</I>&gt;<i> &gt; <A HREF="http://www.mono-project.com/Compiling_Monohas">http://www.mono-project.com/Compiling_Monohas</A> mention of a special Xen
+</I>&gt;<i> &gt; switch.
+</I>&gt;<i> &gt; &lt;nebadon&gt; at the time i was less interetsed in the topic though
+</I>&gt;<i> &gt; &lt;nebadon&gt; hmm
+</I>&gt;<i> &gt; &lt;daTwitch&gt; we were discussing it with JustinCC at the office hours y/d
+</I>&gt;<i> too
+</I>&gt;<i> &gt; &lt;nebadon&gt; yea
+</I>&gt;<i> &gt; &lt;nebadon&gt; i brought it up then
+</I>&gt;<i> &gt; &lt;nebadon&gt; i looked into it after the meeting
+</I>&gt;<i> &gt; &lt;nebadon&gt; and couldnt find anything
+</I>&gt;<i> &gt; &lt;daTwitch&gt; basically it comes down to this: the windows kernel allocates
+</I>&gt;<i> &gt; memory far differently than a unix kernel
+</I>&gt;<i> &gt; &lt;daTwitch&gt; and c#, as a result of being native to the platform, can take
+</I>&gt;<i> &gt; advantage of that to compress data as it does garbage collection
+</I>&gt;<i> &gt; &lt;daTwitch&gt; mono doesn't even try
+</I>&gt;<i> &gt; &lt;nebadon&gt;
+</I>&gt;<i> &gt; <A HREF="http://developer.amd.com/documentation/Articles/Pages/322006145.aspx">http://developer.amd.com/documentation/Articles/Pages/322006145.aspx</A>
+</I>&gt;<i> &gt; &lt;daTwitch&gt; compress is the term used, but is not technically correct
+</I>&gt;<i> &gt; &lt;nebadon&gt; heres talk about its use in Java
+</I>&gt;<i> &gt; &lt;daTwitch&gt; imagine your large page as a hard disk sector in need of
+</I>&gt;<i> &gt; defragging
+</I>&gt;<i> &gt; &lt;daTwitch&gt; in fact, that is an incredibly accurate metaphor
+</I>&gt;<i> &gt; &lt;daTwitch&gt; windows defragments the data in memory
+</I>&gt;<i> &gt; &lt;daTwitch&gt; mono doesnt
+</I>&gt;<i> &gt; &lt;nebadon&gt; yea
+</I>&gt;<i> &gt; &lt;nebadon&gt; i recall them saying that mono
+</I>&gt;<i> &gt; &lt;daTwitch&gt; for the same reasons as a hard disk defrag and wit hsimilar
+</I>&gt;<i> &gt; benefits
+</I>&gt;<i> &gt; &lt;nebadon&gt; wastes the space  if because it requires more blocks that
+</I>&gt;<i> needed
+</I>&gt;<i> &gt; or something
+</I>&gt;<i> &gt; &lt;nebadon&gt; and lots of memory is wasted
+</I>&gt;<i> &gt; &lt;daTwitch&gt; yes
+</I>&gt;<i> &gt; &lt;nebadon&gt; unless large  pages is specified
+</I>&gt;<i> &gt; &lt;daTwitch&gt; precisely
+</I>&gt;<i> &gt; &lt;daTwitch&gt; ok, so we are long overdue making a mono with large pages then
+</I>&gt;<i> -
+</I>&gt;<i> &gt; would that be a valid assertion?
+</I>&gt;<i> &gt; &lt;nebadon&gt; yea
+</I>&gt;<i> &gt; &lt;nebadon&gt; id like it see it tested
+</I>&gt;<i> &gt; &lt;nebadon&gt; if we can figure out how
+</I>&gt;<i> &gt; &lt;daTwitch&gt; I'm sooooo on it
+</I>&gt;<i> &gt; &lt;nebadon&gt; sweet
+</I>&gt;<i> &gt; &lt;daTwitch&gt; I can build any thing
+</I>&gt;<i> &gt; &lt;nebadon&gt; great
+</I>&gt;<i> &gt; &lt;daTwitch&gt; as long as I have enough ram
+</I>&gt;<i> &gt; &lt;nebadon&gt; i think it will be a big help to see where it takes us
+</I>&gt;<i> &gt; &lt;daTwitch&gt; ok, I'll be busy for a bit
+</I>&gt;<i> &gt; &lt;nebadon&gt; k
+</I>&gt;<i> &gt; &lt;nebadon&gt; thanks man
+</I>&gt;<i> &gt; &lt;daTwitch&gt; I'll keep y'all posted
+</I>&gt;<i> &gt; &lt;nebadon&gt; great
+</I>&gt;<i> &gt; &lt;ckrinke&gt; maybe its a ./configure option and is something like
+</I>&gt;<i> &gt; --memory=large
+</I>&gt;<i> &gt; &lt;daTwitch&gt; quite possibly
+</I>&gt;<i> &gt; &lt;nebadon&gt; yea its something like that
+</I>&gt;<i> &gt; &lt;nebadon&gt; i wish i took notes
+</I>&gt;<i> &gt; &lt;nebadon&gt; but like i said at the time
+</I>&gt;<i> &gt; &lt;nebadon&gt; i was less interested
+</I>&gt;<i> &gt; &lt;ckrinke&gt; do the mono guys have an irc channel on FreeNode?
+</I>&gt;<i> &gt; &lt;daTwitch&gt; no idea
+</I>&gt;<i> &gt; &lt;daTwitch&gt; pulling source now
+</I>&gt;<i> &gt; &lt;daTwitch&gt; will see if I can locate their IRC channel
+</I>&gt;<i> &gt; &lt;nebadon&gt; cool
+</I>&gt;<i> &gt; &lt;daTwitch&gt; gimpnet servers only at irc.gnome.org and irc.gimp.net
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #mono
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #monodev
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #mono-winforms
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #monodevelop
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #cocoa
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #mono-hispano
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #monouml
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #gendarme
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #mono-ally
+</I>&gt;<i> &gt; &lt;daTwitch&gt; #moonlight
+</I>&gt;<i> &gt; &lt;daTwitch&gt; moonlight == silverlight for mono
+</I>&gt;<i> &gt; &lt;nebadon&gt; nice
+</I>&gt;<i> &gt; &lt;daTwitch&gt; ok source is down, back to work
+</I>&gt;<i> &gt; &lt;Ter_Afk&gt; moonlight == loonmight?
+</I>&gt;<i> &gt; &lt;daTwitch&gt; heh
+</I>&gt;<i> &gt; &lt;daTwitch&gt; I dont even know what silverlight is, but I've heard
+</I>&gt;<i> discussion
+</I>&gt;<i> &gt; of it, so it was a point of interest
+</I>&gt;<i> &gt; &lt;Ter_Afk&gt; Microsoft's answer to Adobe Flash
+</I>&gt;<i> &gt; &lt;daTwitch&gt; ok, no mention whatsoever of a --large-pages option to the
+</I>&gt;<i> &gt; configuration
+</I>&gt;<i> &gt; &lt;daTwitch&gt; we have --large-heap
+</I>&gt;<i> &gt; &lt;daTwitch&gt; large_code
+</I>&gt;<i> &gt; &lt;Ter_Afk&gt; large_fire?
+</I>&gt;<i> &gt; &lt;Ter_Afk&gt; k, nuf with the word jokes.
+</I>&gt;<i> &gt; &lt;daTwitch&gt; does anyone know if it was large-pages, or large_pages?
+</I>&gt;<i> &gt; &lt;nebadon&gt; i dont recall
+</I>&gt;<i> &gt; &lt;nebadon&gt; i just remember the term large  pages being used some how
+</I>&gt;<i> &gt; &lt;daTwitch&gt; lol googling large pages turns up everything from beano to
+</I>&gt;<i> kirk
+</I>&gt;<i> &gt; douglas
+</I>&gt;<i> &gt; &lt;nebadon&gt; lol
+</I>&gt;<i> &gt; &lt;nebadon&gt; yea
+</I>&gt;<i> &gt; &lt;nebadon&gt; i had no luck on google
+</I>&gt;<i> &gt; &lt;nebadon&gt; nor the mono website
+</I>&gt;<i> &gt; &lt;daTwitch&gt; actually, I'm starting to think large_pages refers to a kernel
+</I>&gt;<i> &gt; setting
+</I>&gt;<i> &gt; &lt;nebadon&gt; well they said Compile Mono from source
+</I>&gt;<i> &gt; &lt;nebadon&gt; with the large pages switch
+</I>&gt;<i> &gt; &lt;nebadon&gt; i do remember that
+</I>&gt;<i> &gt; &lt;nebadon&gt; its probably related more to the compiler
+</I>&gt;<i> &gt; &lt;nebadon&gt; than mono
+</I>&gt;<i> &gt; &lt;nebadon&gt; so maybe we are looking in the wrong  places
+</I>&gt;<i> &gt; &lt;daTwitch&gt; hmmm
+</I>&gt;<i> &gt; &lt;daTwitch&gt; that's a clue
+</I>&gt;<i> &gt; &lt;daTwitch&gt; ok, I got configure to execute to completion very cleanly
+</I>&gt;<i> &gt; &lt;daTwitch&gt; gotta take 5 tho
+</I>&gt;<i> &gt; &lt;daTwitch&gt; bbiaf
+</I>&gt;<i> &gt; &lt;nebadon&gt; ok
+</I>&gt;<i> &gt; &lt;daTwitch&gt; ah needs mah gcc 4.2 doc
+</I>&gt;<i> &gt; &lt;daTwitch&gt; The Virtual Memory (VM) Subsystem
+</I>&gt;<i> &gt; &lt;daTwitch&gt; Most modern computer architectures support more than one
+</I>&gt;<i> memory
+</I>&gt;<i> &gt; page size. To illustrate, the IA-32 architecture supports either 4KB or
+</I>&gt;<i> 4MB
+</I>&gt;<i> &gt; pages. The 2.4 Linux kernel used to only utilize large pages for mapping
+</I>&gt;<i> the
+</I>&gt;<i> &gt; kernel image. In general, large page usage is primarily intended to
+</I>&gt;<i> provide
+</I>&gt;<i> &gt; performance improvements for high performance computing applications, as
+</I>&gt;<i> &gt; well as database applications that have large working sets. A
+</I>&gt;<i> &gt; &lt;daTwitch&gt; ny memory access intensive application that utilizes large
+</I>&gt;<i> &gt; amounts of virtual memory may obtain performance improvements by using
+</I>&gt;<i> large
+</I>&gt;<i> &gt; pages. Linux 2.6 can utilize 2MB or 4MB large pages, AIX uses 16MB large
+</I>&gt;<i> &gt; pages, whereas Solaris large pages are 4MB in size. The large page
+</I>&gt;<i> &gt; performance improvements are attributable to reduced translation
+</I>&gt;<i> lookaside
+</I>&gt;<i> &gt; buffer (TLB) misses. Large pages further improve the process of memory
+</I>&gt;<i> prefe
+</I>&gt;<i> &gt; &lt;daTwitch&gt; tching, by eliminating the necessity to restart prefetch
+</I>&gt;<i> &gt; operations on 4KB boundaries.
+</I>&gt;<i> &gt; &lt;daTwitch&gt; from: <A HREF="http://aplawrence.com/Linux/linux26_features.html">http://aplawrence.com/Linux/linux26_features.html</A>
+</I>&gt;<i> &gt; &lt;daTwitch&gt; it's a feature that must have support in the kernel, at the
+</I>&gt;<i> very
+</I>&gt;<i> &gt; least
+</I>&gt;<i> &gt; &lt;daTwitch&gt; though I can find neither build-time nor runtime configuration
+</I>&gt;<i> &gt; points that take advantage of it in either gcc nor mono at this point
+</I>&gt;<i> &gt; &lt;nebadon&gt; hmm
+</I>&gt;<i> &gt; &lt;daTwitch&gt; still looking though ;)
+</I>&gt;<i> &gt; &lt;nebadon&gt; sounds like the problem though
+</I>&gt;<i> &gt; &lt;daTwitch&gt; yes, think we are in the process of pinning it down
+</I>&gt;<i> &gt; &lt;nebadon&gt; nice
+</I>&gt;<i> &gt; &lt;daTwitch&gt; even if we arent doing things to precisely duplicate how
+</I>&gt;<i> things
+</I>&gt;<i> &gt; go under c#, this should yield a performancve gain that compensates
+</I>&gt;<i> &gt; &lt;daTwitch&gt; I keep seeing the figure 10%
+</I>&gt;<i> &gt; &lt;nebadon&gt; yea thats a good start
+</I>&gt;<i> &gt; &lt;daTwitch&gt; that is significant when we consider how much we pay in memory
+</I>&gt;<i> &gt; per-av
+</I>&gt;<i> &gt; &lt;daTwitch&gt; here is some additional good background info, but still does
+</I>&gt;<i> not
+</I>&gt;<i> &gt; complete the picture:
+</I>&gt;<i> &gt; <A HREF="http://findarticles.com/p/articles/mi_m0ISJ/is_2_44/ai_n14793331/pg_10">http://findarticles.com/p/articles/mi_m0ISJ/is_2_44/ai_n14793331/pg_10</A>
+</I>&gt;<i> &gt; &lt;daTwitch&gt; mysql can also benefit heavily from the use of large pages
+</I>&gt;<i> &gt; &lt;daTwitch&gt; combining the benefits of mysql on large pages with our
+</I>&gt;<i> various
+</I>&gt;<i> &gt; servers on large pages (actually, the UGAIM could possibly take a
+</I>&gt;<i> &gt; performance *hit* from large pages) might yield even greater than 10%
+</I>&gt;<i> &gt; performance increase
+</I>&gt;<i> &gt; &lt;daTwitch&gt; probably the large pages switch to start with is a kernel
+</I>&gt;<i> &gt; boot-time config point
+</I>&gt;<i> &gt; &lt;nebadon&gt; nice
+</I>&gt;<i> &gt; &lt;nebadon&gt; i would think though a program like mysql would already be
+</I>&gt;<i> &gt; compiled to such a thing
+</I>&gt;<i> &gt; &lt;daTwitch&gt; well, no, not necesarily
+</I>&gt;<i> &gt; &lt;nebadon&gt; so the goal i assume
+</I>&gt;<i> &gt; &lt;nebadon&gt; is 4mb page size?
+</I>&gt;<i> &gt; &lt;nebadon&gt; vs 4k
+</I>&gt;<i> &gt; &lt;daTwitch&gt; the underlying kernel has to be configured to support it, and
+</I>&gt;<i> if
+</I>&gt;<i> &gt; the application isn't sufficiently demanding, it actually will take a
+</I>&gt;<i> &gt; performance hit
+</I>&gt;<i> &gt; &lt;daTwitch&gt; yes
+</I>&gt;<i> &gt; &lt;daTwitch&gt; 4mI think 16mb is also supported in 2.6+ kernels, but I doubt
+</I>&gt;<i> we
+</I>&gt;<i> &gt; need it yet
+</I>&gt;<i> &gt; &lt;nebadon&gt; yea it sounds to me like any kernel thats 2.6 its already
+</I>&gt;<i> enabled?
+</I>&gt;<i> &gt; &lt;nebadon&gt; but the app needs to be told to use it?
+</I>&gt;<i> &gt; &lt;nebadon&gt; its amazing how useless google is for this topic
+</I>&gt;<i> &gt; &lt;nebadon&gt; hehe
+</I>&gt;<i> &gt; &lt;daTwitch&gt; well, it's a bit obscure, unless you know what you're looking
+</I>&gt;<i> for
+</I>&gt;<i> &gt; &lt;daTwitch&gt; this is really about kernel tweaking, not so much mono
+</I>&gt;<i> &gt; &lt;daTwitch&gt; the kernel needs to be told to support it at boot time -
+</I>&gt;<i> perhaps
+</I>&gt;<i> &gt; even needs to be compiled for it
+</I>&gt;<i> &gt; &lt;daTwitch&gt; but the support is in the source
+</I>&gt;<i> &gt; &lt;daTwitch&gt; plus, not too many folks need to do this
+</I>&gt;<i> &gt; &lt;daTwitch&gt; only high perf types with really demanding software
+</I>&gt;<i> &gt; &lt;daTwitch&gt; (that would be us lols)
+</I>&gt;<i> &gt; &lt;daTwitch&gt; the app does have to be told to utilise it somehow though
+</I>&gt;<i> &gt; &lt;nebadon&gt; yea
+</I>&gt;<i> &gt; &lt;nebadon&gt; opensim is definatly more demanding than say apache
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+
+-- 
+===================================
+The wind
+scours the earth for prayers
+The night obscures them
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080615/e0dd395c/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080615/e0dd395c/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001828.html">[Opensim-dev] Large page kernel tweaks for reduced memory prefetch penalties in high performance computing applications on linux
+</A></li>
+	<LI>Next message: <A HREF="001830.html">[Opensim-dev] Large page kernel tweaks for reduced	memoryprefetch penalties in high performance computing	applicationson linux
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1829">[ date ]</a>
+              <a href="thread.html#1829">[ thread ]</a>
+              <a href="subject.html#1829">[ subject ]</a>
+              <a href="author.html#1829">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

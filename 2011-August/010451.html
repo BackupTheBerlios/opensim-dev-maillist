@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Watchdog timeouts frequent on update to latest 0.7.2	dev?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Watchdog%20timeouts%20frequent%20on%20update%20to%20latest%0A%200.7.2%09dev%3F&In-Reply-To=%3C4E5840FE.2070607%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010450.html">
+   <LINK REL="Next"  HREF="010452.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Watchdog timeouts frequent on update to latest 0.7.2	dev?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Watchdog%20timeouts%20frequent%20on%20update%20to%20latest%0A%200.7.2%09dev%3F&In-Reply-To=%3C4E5840FE.2070607%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Watchdog timeouts frequent on update to latest 0.7.2	dev?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sat Aug 27 02:57:34 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010450.html">[Opensim-dev] Watchdog timeouts frequent on update to latest 0.7.2	dev?
+</A></li>
+        <LI>Next message: <A HREF="010452.html">[Opensim-dev] first run
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10451">[ date ]</a>
+              <a href="thread.html#10451">[ thread ]</a>
+              <a href="subject.html#10451">[ subject ]</a>
+              <a href="author.html#10451">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The AsyncLSLCmdHandlerThread is used by the script engine as the first step in handling inbound http/xmlrpc requests, 
+script timers, listeners, sensors and the data server.
+
+It doesn't process the requests directly but instead posts events that are then handled by other threads from the 
+XEngine threadpool (as controlled by the MinThreads/MaxThreads parameters in [XEngine].
+
+So I'm surprised to see the AsyncLSLCmdHandlerThread stalling.  Here, the watchdog eventually detects it has stopped 
+checking in and restarts it, but the delay is continually happening.
+
+So I'm not sure what the cause would be - it doesn't ring any bells with recent code changes.  I'm afraid it's a case of 
+git bisect.
+
+On 26/08/11 08:51, Ai Austin wrote:
+&gt;<i> I know we occasionally see watchdog timeouts... I see one or two every now and then. But something seems to have altered
+</I>&gt;<i> a lot as I am now seeing a constant flow on Openvue grid even when its idling with no users online, no activity, and
+</I>&gt;<i> nothing else running on the host involved. Just thought I would note it here rather Mantis it in case it rings any
+</I>&gt;<i> bellsfor changes made in last 2 to 5 days say? Sample set of log entries from half an hour this morning....
+</I>&gt;<i>
+</I>&gt;<i> 08:00:26 - [WATCHDOG]: Started tracking thread &quot;MapItemRequestThread&quot; (ID 16)
+</I>&gt;<i> 08:04:32 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 5101ms ago
+</I>&gt;<i> 08:04:39 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:04:52 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 7129ms ago
+</I>&gt;<i> 08:05:03 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:08:19 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 5320ms ago
+</I>&gt;<i> 08:08:19 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:11:48 - [WATCHDOG]: Timeout detected for thread &quot;MapItemRequestThread&quot;. ThreadState=Background, WaitSleepJoin. Last
+</I>&gt;<i> tick was 5211ms ago
+</I>&gt;<i> 08:11:49 - [WATCHDOG]: Started tracking thread &quot;MapItemRequestThread&quot; (ID 33)
+</I>&gt;<i> 08:20:46 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 6615ms ago
+</I>&gt;<i> 08:20:57 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:22:09 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 5507ms ago
+</I>&gt;<i> 08:22:15 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:23:10 - [WATCHDOG]: Timeout detected for thread &quot;MapItemRequestThread&quot;. ThreadState=Background, WaitSleepJoin. Last
+</I>&gt;<i> tick was 6224ms ago
+</I>&gt;<i> 08:23:10 - [WATCHDOG]: Started tracking thread &quot;MapItemRequestThread&quot; (ID 16)
+</I>&gt;<i> 08:28:11 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 7020ms ago
+</I>&gt;<i> 08:28:20 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:31:53 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 5632ms ago
+</I>&gt;<i> 08:31:59 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:32:10 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 5585ms ago
+</I>&gt;<i> 08:32:17 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:36:47 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 5928ms ago
+</I>&gt;<i> 08:36:47 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i> 08:39:12 - [WATCHDOG]: Timeout detected for thread &quot;AsyncLSLCmdHandlerThread&quot;. ThreadState=Background. Last tick was
+</I>&gt;<i> 7472ms ago
+</I>&gt;<i> 08:39:17 - [WATCHDOG]: Started tracking thread &quot;AsyncLSLCmdHandlerThread&quot; (ID 43)
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010450.html">[Opensim-dev] Watchdog timeouts frequent on update to latest 0.7.2	dev?
+</A></li>
+	<LI>Next message: <A HREF="010452.html">[Opensim-dev] first run
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10451">[ date ]</a>
+              <a href="thread.html#10451">[ thread ]</a>
+              <a href="subject.html#10451">[ subject ]</a>
+              <a href="author.html#10451">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

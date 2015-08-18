@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] osNPCxxx functions vs security
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20osNPCxxx%20functions%20vs%20security&In-Reply-To=%3C4FF5A526.7070209%40archimuh.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011269.html">
+   <LINK REL="Next"  HREF="011267.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] osNPCxxx functions vs security</H1>
+    <B>Argus</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20osNPCxxx%20functions%20vs%20security&In-Reply-To=%3C4FF5A526.7070209%40archimuh.de%3E"
+       TITLE="[Opensim-dev] osNPCxxx functions vs security">argus at archimuh.de
+       </A><BR>
+    <I>Thu Jul  5 16:31:02 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011269.html">[Opensim-dev] osNPCxxx functions vs security
+</A></li>
+        <LI>Next message: <A HREF="011267.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11271">[ date ]</a>
+              <a href="thread.html#11271">[ thread ]</a>
+              <a href="subject.html#11271">[ subject ]</a>
+              <a href="author.html#11271">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes, option 3 is easier to implement.
+
+  About the bad scripts, also testscript can be a danger were one forgot 
+to create an exit in a loop. When I tested the avarage osNPCTouches I 
+used a loop with a 10 second exit. The first touch script had a simple 
+llOwnerSay() in the touch event to see what delay the function was 
+creating. My viewer was entily blocked for about 14 secs because the 
+viewer was buzy handling all those llOwnerSay() from the touch event.
+
+@justin, could give a short comment on my last mantis post about the NPC 
+llDetetedType() implementation.
+
+Am 05.07.2012 01:32, schrieb Justin Clark-Casey:
+&gt;<i> I prefer option 3, since it would be identical to LSL functions and 
+</I>&gt;<i> hence in line with user expectations.   Like the LSL delays, these 
+</I>&gt;<i> would still be configurable.
+</I>&gt;<i>
+</I>&gt;<i> Option 3 is also simpler than option 2, which starts to involve 
+</I>&gt;<i> complicated record-keeping.  It also doesn't prejudice adding this in 
+</I>&gt;<i> the future if it proves really necessary.
+</I>&gt;<i>
+</I>&gt;<i> Without these limits, a large number of allowed OSSL functions could 
+</I>&gt;<i> be problematic, osNpcCreate for instance.  I think the most likely 
+</I>&gt;<i> scenario is badly written scripts.
+</I>&gt;<i>
+</I>&gt;<i> On 04/07/12 19:12, Argus wrote:
+</I>&gt;&gt;<i> Hi.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   Last week a new Patch was postet by Talun in mantis (6063) with a 
+</I>&gt;&gt;<i> new feature not implemented yet, osNPCToch which
+</I>&gt;&gt;<i> enables NPCs to trigger the touch-event in scripted object. As cool 
+</I>&gt;&gt;<i> as this first sounds, there are some security issues
+</I>&gt;&gt;<i> which should be adressed... or not
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   As justin pointed out, the discussion should best be made here and 
+</I>&gt;&gt;<i> not on mantis. I think the goal of the discussion
+</I>&gt;&gt;<i> should maybe be to end with a general security guidline for future 
+</I>&gt;&gt;<i> and current implementation of NPC's in lsl /ossl?
+</I>&gt;&gt;<i> This might also include some changes to the existing functions if a 
+</I>&gt;&gt;<i> general consensus is found.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Generaly NPC's and their functions need to be manualy enabled by the 
+</I>&gt;&gt;<i> region owner, which limits NPC security issues to
+</I>&gt;&gt;<i> those regions were NPC are allowed. However, it is thinkable that 
+</I>&gt;&gt;<i> griefers, neighbours or buggy scripts create security
+</I>&gt;&gt;<i> issues on a region which result in spam or even crash the 
+</I>&gt;&gt;<i> region/sim/server.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   In lsl the solution is to have a forced scriptdelays in functions 
+</I>&gt;&gt;<i> that could be used negativly, e.g. llInstantMessage
+</I>&gt;&gt;<i> with 2 seconds delay or limited amount of repeated use per minute.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>   In the case of osNPCTouch, we have 1 NPC which can touch over 1000 
+</I>&gt;&gt;<i> objects within 1 second. In this case NPCs can be
+</I>&gt;&gt;<i> used to block items from beeing touched or depending on the scripts 
+</I>&gt;&gt;<i> touched  might even crash a region/sim/server due to
+</I>&gt;&gt;<i> many active scripts doing some work.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> So should osNPCxxx functions generaly have limits were 
+</I>&gt;&gt;<i> griefing/crashes are possible and how should the limit be?
+</I>&gt;&gt;<i> Basicaly we have 3 option:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 1) we dont implement any limitation and accept that very seldomly 
+</I>&gt;&gt;<i> some griefing can happen. Worst case scenario means
+</I>&gt;&gt;<i> restoring some region backups after an attack...
+</I>&gt;&gt;<i> 2) we could limit the functions to max amount of uses per minute. 
+</I>&gt;&gt;<i> This allows the normal scripts to run fast untill the
+</I>&gt;&gt;<i> limit is reached. The limit is high enough for the normal uses, but 
+</I>&gt;&gt;<i> causes a silent failure after the limit is reached.
+</I>&gt;&gt;<i> 3) we could add a delay to functions. The script is always &quot;slow&quot; 
+</I>&gt;&gt;<i> even if not beeing used for griefing.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I personaly would prefer 2, limation per minute. This enables one to 
+</I>&gt;&gt;<i> give certain NPC rights to trusted parcelowners
+</I>&gt;&gt;<i> without the fear of some dispute between parcel neighbours ending in 
+</I>&gt;&gt;<i> a total server crash.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> regard
+</I>&gt;&gt;<i> Michelle
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011269.html">[Opensim-dev] osNPCxxx functions vs security
+</A></li>
+	<LI>Next message: <A HREF="011267.html">[Opensim-dev] Questions about Vehicle scripting calls
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11271">[ date ]</a>
+              <a href="thread.html#11271">[ thread ]</a>
+              <a href="subject.html#11271">[ subject ]</a>
+              <a href="author.html#11271">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

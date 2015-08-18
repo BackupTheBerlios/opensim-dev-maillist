@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Changes needed to DotNet engine to make use of	shared LSL and OSSL
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Changes%20needed%20to%20DotNet%20engine%20to%20make%20use%20of%0A%09shared%20LSL%20and%20OSSL&In-Reply-To=%3C6b9359640807012131w7bc2878dqc2cc745991a0c365%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002189.html">
+   <LINK REL="Next"  HREF="002201.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Changes needed to DotNet engine to make use of	shared LSL and OSSL</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Changes%20needed%20to%20DotNet%20engine%20to%20make%20use%20of%0A%09shared%20LSL%20and%20OSSL&In-Reply-To=%3C6b9359640807012131w7bc2878dqc2cc745991a0c365%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Changes needed to DotNet engine to make use of	shared LSL and OSSL">aerowolf at gmail.com
+       </A><BR>
+    <I>Wed Jul  2 06:31:50 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002189.html">[Opensim-dev] Changes needed to DotNet engine to make use of	shared LSL and OSSL
+</A></li>
+        <LI>Next message: <A HREF="002201.html">[Opensim-dev] Changes needed to DotNet engine to make use of shared LSL and OSSL
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2192">[ date ]</a>
+              <a href="thread.html#2192">[ thread ]</a>
+              <a href="subject.html#2192">[ subject ]</a>
+              <a href="author.html#2192">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>No matter what script languages are implemented, there are certain
+things that are going to have to be done by each call (certain
+permissions checked, certain object methods called, certain things
+changed, and only then the final 'commit' of the command).
+
+If I could inject a very small request, could the permissions and
+prerequisites for each script command be explicitly documented in
+comments?  If we're going to fork the implementations into different
+files, I'd very much like new script-language designers to know what
+actually needs to be done to verify that the appropriate permissions
+exist.  (The reason for this is because there are other languages,
+such as LISP and Scheme, that I'd like to see the ability to support.
+They change the rules of interpretation, compilation, and how they do
+various things -- enough that trying to support them without a
+well-defined permission policy for reference would cause them to open
+up security holes.)
+
+I work with a MUD software that implements two separate languages,
+implemented at two separate times, which have had some particularly
+and peculiarly disastrous security interactions.  If there's going to
+be some kind of implementation forking, I'd much rather put this
+particular knowledge (of the mistakes which have been made by others
+:<i>P) out for the OpenSim community to know about, learn from, and avoid
+</I>the mistakes of.
+
+-Kyle H
+
+On Tue, Jul 1, 2008 at 3:13 PM, Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+&gt;<i> Dear Kr:
+</I>&gt;<i>
+</I>&gt;<i> The key issue seems to be that the file LSL_BuiltIn_Commands.cs contained
+</I>&gt;<i> all our C# subroutine implementations for the 328 LSL commands. Now that
+</I>&gt;<i> file has been copied and morphed.
+</I>&gt;<i>
+</I>&gt;<i> So, my suggestion is to take the common parts of the existing file, and the
+</I>&gt;<i> copied and morphed file and put them into a third file. That third file
+</I>&gt;<i> might be LSL_Api.cs.
+</I>&gt;<i>
+</I>&gt;<i> In any case, it seems to me that whatever unique parts are appropriate for
+</I>&gt;<i> the new scriptengine implementation and unique parts for the existing script
+</I>&gt;<i> engine implementation then reference the namespace of the common file,
+</I>&gt;<i> whatever we wish to call it.
+</I>&gt;<i>
+</I>&gt;<i> In the common file are all the things like llSay(), llCeil(), llFloor() that
+</I>&gt;<i> just are wrappers around C# subroutines. In fact, 85% of the original
+</I>&gt;<i> LSL_BuiltIn_Commands.cs and the new, copied file are identical.
+</I>&gt;<i>
+</I>&gt;<i> So, I would say, lets have an interface, or a derived class, or whatever you
+</I>&gt;<i> feel comfortable with and just move forward.
+</I>&gt;<i>
+</I>&gt;<i> The most important thing to me in this whole controversy right now is to not
+</I>&gt;<i> have two identical copies of hundreds of little subroutines.
+</I>&gt;<i>
+</I>&gt;<i> Charles
+</I>&gt;<i>
+</I>&gt;<i> ----- Original Message ----
+</I>&gt;<i> From: krtaylor &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">krtaylor at linux.vnet.ibm.com</A>&gt;
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Sent: Tuesday, July 1, 2008 2:48:26 PM
+</I>&gt;<i> Subject: [Opensim-dev] Changes needed to DotNet engine to make use of shared
+</I>&gt;<i> LSL and OSSL
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> As per the discussion on irc earlier today, I agreed to summarize the
+</I>&gt;<i> plans to move forward with separating LSL from the current DotNet
+</I>&gt;<i> engine, to make use of the shared structures proposed with the new
+</I>&gt;<i> xengine. This isn't complete by any means, but meant to start an email
+</I>&gt;<i> discussion.
+</I>&gt;<i>
+</I>&gt;<i> The current DotNetEngine needs to be changed to make it able to process
+</I>&gt;<i> events and share LSL and other languages via API files:
+</I>&gt;<i>
+</I>&gt;<i> 1. Use the IScriptEngine and IScript interfaces to support a per
+</I>&gt;<i> instance object in the ScriptManager
+</I>&gt;<i> - changes to refactor IScript using the AppDomainObject (IScript) from
+</I>&gt;<i> Shared and to rescope the existing IScript to IScriptInstance and move
+</I>&gt;<i> outside AppDomain
+</I>&gt;<i>
+</I>&gt;<i> 2.Use  EventParams and DetectParams
+</I>&gt;<i>
+</I>&gt;<i> I have been toying with the idea of either patching the DotNet engine or
+</I>&gt;<i> just porting the DotNet enhanced functionality to a XEngine clone for a
+</I>&gt;<i> new DotNet base. Since we are already proposing isolating the languages
+</I>&gt;<i> there is certain advantages to the later. The former would leave some
+</I>&gt;<i> problems to fix, which have already been resolved in the XEngine. Either
+</I>&gt;<i> way, I think a fork to a 3rd engine would be the best approach. This
+</I>&gt;<i> would allow others to get involved, and retain both engines as they are
+</I>&gt;<i> today, and not break everyone all  by simply having a 3rd engine for a
+</I>&gt;<i> while.
+</I>&gt;<i>
+</I>&gt;<i> Comments?
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Kurt R Taylor (Kurt Stringer)
+</I>&gt;<i>
+</I>&gt;<i> Open Virtual Worlds Development
+</I>&gt;<i> <A HREF="http://opensimulator.org">http://opensimulator.org</A>  <A HREF="http://opensim.ibm.com">http://opensim.ibm.com</A>
+</I>&gt;<i> International Business Machines, Corp.
+</I>&gt;<i> (512) 838-2496    T/L:  678
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002189.html">[Opensim-dev] Changes needed to DotNet engine to make use of	shared LSL and OSSL
+</A></li>
+	<LI>Next message: <A HREF="002201.html">[Opensim-dev] Changes needed to DotNet engine to make use of shared LSL and OSSL
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2192">[ date ]</a>
+              <a href="thread.html#2192">[ thread ]</a>
+              <a href="subject.html#2192">[ subject ]</a>
+              <a href="author.html#2192">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

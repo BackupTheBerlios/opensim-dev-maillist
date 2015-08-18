@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Refactoring IClientAPI.Close and Friends
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Refactoring%20IClientAPI.Close%20and%20Friends&In-Reply-To=%3CBLU134-W21BFD257AB2AE897248E0AD5B10%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005272.html">
+   <LINK REL="Next"  HREF="005274.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Refactoring IClientAPI.Close and Friends</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Refactoring%20IClientAPI.Close%20and%20Friends&In-Reply-To=%3CBLU134-W21BFD257AB2AE897248E0AD5B10%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Refactoring IClientAPI.Close and Friends">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sun Feb 22 09:04:09 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005272.html">[Opensim-dev] Refactoring IClientAPI.Close and Friends
+</A></li>
+        <LI>Next message: <A HREF="005274.html">[Opensim-dev] Refactoring IClientAPI.Close and Friends
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5273">[ date ]</a>
+              <a href="thread.html#5273">[ thread ]</a>
+              <a href="subject.html#5273">[ subject ]</a>
+              <a href="author.html#5273">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+I know that part of why the Close() thing is so tangly is because we need to make sure certain packets have been sent before just killing the connection, and that some of them might need to wait for a response from the client. So it's a difference between Close() as in Dispose() and Close() as in 'shut down user connection correctly' afaicanrecall.
+
+ 
+
+Also, I think part of the confusion is a somewhat fuzzy diversion of responsibility between the client itself and the client manager.
+
+ 
+
+Ideally, all core code outside the manager and its clients should ask the Client Manager to close a Client correctly (as it should know how to remove references to clients, but also to interact with other system management resources) - the emptying of queues and actual closing down should probably be a private matter for the client class.
+
+ 
+
+The Client Thus probably would need to have a 'shutting down' flag, throwing non-essential packets, and it would signal to the client manager when it's done with its internal closing down work, so the manager can remove the references from the system. I believe that can be the origin of the event vs dispose bool. Which is ugly as hell, and I'm probably the one to introduce it.
+ 
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+
+
+ 
+
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Sun, 22 Feb 2009 02:21:05 -0500
+Subject: [Opensim-dev] Refactoring IClientAPI.Close and Friends
+
+
+
+
+
+Right now, we have four separate close methods for clients, enumerated they are (for LLClientView):
+ 
+-          Close(bool circuit)
+o   Either fires an event, or closes the connection depending on parameter[!?]
+-          Kick(string msg)
+o   Asks the client politely to quit. [!?]
+-          Stop()
+o   Initialises some shutdown cleanup
+-          Restart()
+o   Undo-&#8216;s the above
+-          Terminate()
+o   Stops processing packets for the user and removes their entry in the packet server
+ 
+I would like to propose changing this into three methods.
+ 
+-          Close(string msg) &#8211; Combines Kick, Terminate and Close into one method. We need to find out why Close branches onto the event when the parameter is true, or closes when false, and streamline it. Kick should automatically terminate the connection &#8211; there should be no &#8216;requests&#8217; involved, it should be a very straight forward &#8216;You are the weakest link. Goodbye.&#8217;
+-          Pause() &#8211; Equivilent to Stop() as it is now. Function described as &#8216;Suspend Packet Processing&#8217;
+-          Resume() &#8211; Equivilent to Restart() as it is now. Function described as &#8216;Resume Packet Processing&#8217;
+ 
+Adam
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090222/f6499ff7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090222/f6499ff7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005272.html">[Opensim-dev] Refactoring IClientAPI.Close and Friends
+</A></li>
+	<LI>Next message: <A HREF="005274.html">[Opensim-dev] Refactoring IClientAPI.Close and Friends
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5273">[ date ]</a>
+              <a href="thread.html#5273">[ thread ]</a>
+              <a href="subject.html#5273">[ subject ]</a>
+              <a href="author.html#5273">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

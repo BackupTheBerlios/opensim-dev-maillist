@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Upcoming work on alternative client stack
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Upcoming%20work%20on%20alternative%20client%20stack&In-Reply-To=%3C48A8C72F.1080902%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002587.html">
+   <LINK REL="Next"  HREF="002589.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Upcoming work on alternative client stack</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Upcoming%20work%20on%20alternative%20client%20stack&In-Reply-To=%3C48A8C72F.1080902%40t-data.com%3E"
+       TITLE="[Opensim-dev] Upcoming work on alternative client stack">melanie at t-data.com
+       </A><BR>
+    <I>Mon Aug 18 02:49:51 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002587.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+        <LI>Next message: <A HREF="002589.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2588">[ date ]</a>
+              <a href="thread.html#2588">[ thread ]</a>
+              <a href="subject.html#2588">[ subject ]</a>
+              <a href="author.html#2588">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+if the packets are structs/arrays, be careful of boxing issues. You 
+would have no advantage from that if you have to eat the boxing 
+overhead instead.
+
+Melanie
+(Who still thinks we don't need that development)
+
+
+Mike Mazur wrote:
+&gt;<i> Hi Adam,
+</I>&gt;<i> 
+</I>&gt;<i> On Sun, 17 Aug 2008 14:27:12 -0400
+</I>&gt;<i> &quot;Frisby, Adam&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Please be careful here.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I'm doing some work with the RealXtend guys to move their custom code
+</I>&gt;&gt;<i> into a set of Region Modules, however I need the SendPacket(Packet x)
+</I>&gt;&gt;<i> function on IClientAPI to do so.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Now admittedly there's only a few custom packets, and we could extend
+</I>&gt;&gt;<i> IClientAPI to support them - these are:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 1.       GenericMessagePacket - Rex has moved to using these to
+</I>&gt;&gt;<i> overload all their messages onto (so that the existing client ignores
+</I>&gt;&gt;<i> them safely), we don't have a IClientAPI.SendGenericMessage(string[]
+</I>&gt;&gt;<i> msg) equivalent yet. This could be one way we get around this.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 2.       Convert to SendPacket(Byte[] x), then run
+</I>&gt;&gt;<i> GenericMessagePacket.ToBytes() before passing it to IClientAPI?
+</I>&gt;<i> 
+</I>&gt;<i> I'm not sure I fully understand the issue.
+</I>&gt;<i> 
+</I>&gt;<i> My changes in IClientAPI is to replace Packet with object:
+</I>&gt;<i> 
+</I>&gt;<i> IClientAPI:
+</I>&gt;<i> -        void InPacket(Packet NewPack);
+</I>&gt;<i> +        void InPacket(object NewPack);
+</I>&gt;<i> 
+</I>&gt;<i> This way the interface doesn't dictate the datatype of the packet, but
+</I>&gt;<i> the implementing class does:
+</I>&gt;<i> 
+</I>&gt;<i> LLClientView (implements IClientAPI):
+</I>&gt;<i> -        public virtual void InPacket(Packet NewPack)
+</I>&gt;<i> +        public virtual void InPacket(object NewPack)
+</I>&gt;<i>          {
+</I>&gt;<i> -            m_PacketHandler.InPacket(NewPack);
+</I>&gt;<i> +            // Cast NewPack to Packet.
+</I>&gt;<i> +            m_PacketHandler.InPacket((Packet) NewPack);
+</I>&gt;<i>          }
+</I>&gt;<i> 
+</I>&gt;<i> Since the interface expects an object, anything can be passed around,
+</I>&gt;<i> be it byte[], Packet or GenericMessagePacket.
+</I>&gt;<i> 
+</I>&gt;<i> Does that still pose any issues for you?
+</I>&gt;<i> 
+</I>&gt;<i> Mike
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002587.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+	<LI>Next message: <A HREF="002589.html">[Opensim-dev] Upcoming work on alternative client stack
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2588">[ date ]</a>
+              <a href="thread.html#2588">[ thread ]</a>
+              <a href="subject.html#2588">[ subject ]</a>
+              <a href="author.html#2588">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

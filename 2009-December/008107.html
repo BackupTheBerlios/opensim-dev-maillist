@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Synchronous or Asynchronous.. Packet	handler	synchronicity
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Synchronous%20or%20Asynchronous..%20Packet%0A%09handler%09synchronicity&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE6647354DC5577B%40winxbeus19.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008106.html">
+   <LINK REL="Next"  HREF="008108.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Synchronous or Asynchronous.. Packet	handler	synchronicity</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Synchronous%20or%20Asynchronous..%20Packet%0A%09handler%09synchronicity&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE6647354DC5577B%40winxbeus19.exchange.xchg%3E"
+       TITLE="[Opensim-dev] Synchronous or Asynchronous.. Packet	handler	synchronicity">adam at deepthink.com.au
+       </A><BR>
+    <I>Sun Dec 13 09:54:57 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008106.html">[Opensim-dev] Synchronous or Asynchronous.. Packet handler	synchronicity
+</A></li>
+        <LI>Next message: <A HREF="008108.html">[Opensim-dev] Do we have any record of the patches applied to the	XMLRPC library?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8107">[ date ]</a>
+              <a href="thread.html#8107">[ thread ]</a>
+              <a href="subject.html#8107">[ subject ]</a>
+              <a href="author.html#8107">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Since we're defaulting to async - we should probably only make a list of what is known to run fast and what isn't.
+
+Just as a quick example - all the terrain packets require some heavyish number crunching and should all be async.
+
+Adam
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Teravus Ovares
+</I>&gt;<i> Sent: Sunday, 13 December 2009 12:08 AM
+</I>&gt;<i> To: opensim-dev
+</I>&gt;<i> Subject: [Opensim-dev] Synchronous or Asynchronous.. Packet handler
+</I>&gt;<i> synchronicity
+</I>&gt;<i> 
+</I>&gt;<i> Hello Again
+</I>&gt;<i> 
+</I>&gt;<i> I just wanted to update the people subscribed to opensim-dev about the
+</I>&gt;<i> current situation with regards to packet handler synchronicity and
+</I>&gt;<i> thread context.
+</I>&gt;<i> 
+</I>&gt;<i> The History:
+</I>&gt;<i> Shortly after OpenSimulator started, it was decided that each user
+</I>&gt;<i> should have it's own packet processing thread.  This worked well at
+</I>&gt;<i> the time, but limited concurrency because of lock and thread
+</I>&gt;<i> contention.   5 UDP connections = 5 dedicated threads that spent most
+</I>&gt;<i> of their time waiting(this got expensive when child agents were
+</I>&gt;<i> considered).
+</I>&gt;<i> 
+</I>&gt;<i> Recently:
+</I>&gt;<i> A few months ago, Intel provided some test results and provided a few
+</I>&gt;<i> developers to re-write the UDP server and client handling stack.
+</I>&gt;<i> One of the things that they did was make each UDP server use two
+</I>&gt;<i> threads.  One for the incoming packet processing and one for the
+</I>&gt;<i> outgoing packet processing, regardless of how many clients were
+</I>&gt;<i> connected to OpenSimulator.    Essentially, this made it 'one thread
+</I>&gt;<i> per network connection resource'.   This was great because it reduced
+</I>&gt;<i> the amount of threads that opensimulator uses quite significantly.
+</I>&gt;<i> There were some problems though.  Some code handling the upper level
+</I>&gt;<i> processing (Scene, SceneObjectGroup, SceneObjectPart..  etc.. )  of
+</I>&gt;<i> the data in the packet took long enough to process..   to cause the
+</I>&gt;<i> simulator to slowly come to a crawl over time and disconnect users.
+</I>&gt;<i> 
+</I>&gt;<i> Because the infrastructure wasn't in place to selectively delegate
+</I>&gt;<i> which packets are handled asynchronously and synchronously, the choice
+</I>&gt;<i> was made to process each packet on the threadpool so that a long
+</I>&gt;<i> running packet processor wouldn't cause the UDP server to get
+</I>&gt;<i> backlogged and cause all users connected to get disconnected.   This
+</I>&gt;<i> solution wasn't really optimal..    because a single client, moving
+</I>&gt;<i> around, causes ~15 AgentUpdate packets to be sent to the server per
+</I>&gt;<i> second.      15 packets means that up to 15 threadpool requests were
+</I>&gt;<i> happening a second per connected root agent.       There are various
+</I>&gt;<i> reasons why this isn't optimal, I won't go into them here :).
+</I>&gt;<i> 
+</I>&gt;<i> Now:
+</I>&gt;<i> I'm happy to announce, that the infrastructure for selectively
+</I>&gt;<i> delegating whether a packet will be processed synchronously or
+</I>&gt;<i> asynchronously is in place as of
+</I>&gt;<i> 4ef8dc7d96fa2d4efd992ff7d304b8894f004c4f.   You can find the way to
+</I>&gt;<i> set a packet handler as synchronous in
+</I>&gt;<i> OpenSim.Region.ClientStack.LindenUDP.LLClientView.RegisterLocalPacketHa
+</I>&gt;<i> ndler.
+</I>&gt;<i>       Note that packet handlers with 3 parameters with the third one
+</I>&gt;<i> set to 'false' means that the packet handler is synchronous.    Packet
+</I>&gt;<i> handlers in that method with 2 parameters or 3 parameters and the
+</I>&gt;<i> third one set to 'true' means that the packet is processed
+</I>&gt;<i> asynchronously on the threadpool using the method defined by
+</I>&gt;<i> async_call_method in OpenSim.ini
+</I>&gt;<i> 
+</I>&gt;<i> I've also taken the liberty of setting the AgentUpdate Packet, the
+</I>&gt;<i> ViewerEffect Packet, and a few others as synchronous.   The
+</I>&gt;<i> AgentUpdate Packet and ViewerEffect Packet are the two packets that
+</I>&gt;<i> are sent from the client the most often, so, these alone should reduce
+</I>&gt;<i> the threads required per client significantly.
+</I>&gt;<i> 
+</I>&gt;<i> Testers:
+</I>&gt;<i> What users and testers should look for, however, is the Simulator
+</I>&gt;<i> suddenly disconnecting all users.    If this occurs, then, likely, the
+</I>&gt;<i> UDP server is not moving fast enough to effectively process packets
+</I>&gt;<i> for the current amount of users.
+</I>&gt;<i> 
+</I>&gt;<i> Developers:
+</I>&gt;<i> It's time to look at the length of time it takes for packet processors
+</I>&gt;<i> to finish processing and decide if the packet handler should be
+</I>&gt;<i> executed synchronously or asynchronously.
+</I>&gt;<i> Any synchronously processed packet is processed in the thread context
+</I>&gt;<i> beginning with the UDPServer.
+</I>&gt;<i> 
+</I>&gt;<i> Hopefully, this will allow us to increase the number of concurrently
+</I>&gt;<i> connected users further.
+</I>&gt;<i> 
+</I>&gt;<i> Regards
+</I>&gt;<i> 
+</I>&gt;<i> Teravus
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008106.html">[Opensim-dev] Synchronous or Asynchronous.. Packet handler	synchronicity
+</A></li>
+	<LI>Next message: <A HREF="008108.html">[Opensim-dev] Do we have any record of the patches applied to the	XMLRPC library?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8107">[ date ]</a>
+              <a href="thread.html#8107">[ thread ]</a>
+              <a href="subject.html#8107">[ subject ]</a>
+              <a href="author.html#8107">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

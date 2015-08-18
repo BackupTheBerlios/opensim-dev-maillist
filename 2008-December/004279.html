@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim Comms
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20Comms&In-Reply-To=%3C4956F60A.5090303%40ics.uci.edu%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004294.html">
+   <LINK REL="Next"  HREF="004280.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim Comms</H1>
+    <B>Cristina Videira Lopes</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20Comms&In-Reply-To=%3C4956F60A.5090303%40ics.uci.edu%3E"
+       TITLE="[Opensim-dev] OpenSim Comms">lopes at ics.uci.edu
+       </A><BR>
+    <I>Sun Dec 28 04:44:10 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004294.html">[Opensim-dev] mantis svn linkage
+</A></li>
+        <LI>Next message: <A HREF="004280.html">[Opensim-dev] OpenSim Comms
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4279">[ date ]</a>
+              <a href="thread.html#4279">[ thread ]</a>
+              <a href="subject.html#4279">[ subject ]</a>
+              <a href="author.html#4279">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+As some of you know I've been working on improving the sim-sim 
+ChildUpdate message to include a lot more information than what it has 
+now. This is needed for a variety of purposes, including improving 
+region crossings and TPs, but not only. In talking to Melanie and 
+Teravus, we decided that since this improvement is going to break 
+sim-sim comms anyway, it wouldn't be a bad idea to try something radical 
+and do this over HTTP POST instead of remoting.
+
+The good news is that I have this working. But before I commit anything 
+to trunk, I'd like to hear from you about OpenSim comms in general, and 
+their future. But I don't want this topic to degenerate in the 
+conversation about standalone vs. grid. I think that issue is marginal 
+here, since this is about remote sim-sim comms, independent of the UGAIM 
+services.
+
+ From what I understand, everyone dislikes OGS1 for all sorts of 
+different reasons. From where I stand, Remoting in sim-sim comms is an 
+unnecessary tie to .Net. This HTTP POST method is really neat, I think, 
+and we could move all remote sim-sim comms to use HTTP POST, which will 
+make OpenSim  a lot more interoperable (yes, somebody might want to 
+write non-.Net simulator and have it talk to OpenSim :-).
+
+But the real question is: should we *replace* the remoting methods in 
+OGS1 with this other thing, or should someone do some plugin magic in 
+order to be able to configure OpenSim with different communication 
+components?
+
+To be very concrete. I started doing this new ChildAgentUpdate method as 
+a replacement of the existing one in OGS1. If I commit what I have, the 
+previous mechanism for ChildUpdates will disappear into svn history, and 
+this new one will pop up in the middle of Remoting (and XMLPRC, mind 
+you) methods. I'm not sure this is the right thing to do. An alternative 
+is to start another namespace called, say, OGS2, and rewrite all methods 
+that use remoting in OGS1 with methods in OGS2 that use HTTP POST. If I 
+do this, and without proper componentization, I'll have to do a similar 
+trick that I did for the HG, ie. make the comms configuration affect the 
+application classes themselves. But it's a little worse than for the HG, 
+because the data structures passed around are seriously intertwined 
+between Environment.Scenes and Comms. As we make improvements in those 
+data structures (as is the case in the ChildAgentUpdate message), we 
+need to change Environment.Scenes. Plus, regions using OGS1 won't work 
+with regions using OGS2.
+
+So the even more real question is this: do we really want to make Comms 
+a replaceable component? Something that can be completely replaced under 
+the hood? If so, then componentizing it is a must, and the question is 
+how. If not, replacing OGS1 with another thing that serves as references 
+implementation of a standard protocol might be ok.
+
+Thoughts?
+
+Crista
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004294.html">[Opensim-dev] mantis svn linkage
+</A></li>
+	<LI>Next message: <A HREF="004280.html">[Opensim-dev] OpenSim Comms
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4279">[ date ]</a>
+              <a href="thread.html#4279">[ thread ]</a>
+              <a href="subject.html#4279">[ subject ]</a>
+              <a href="author.html#4279">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

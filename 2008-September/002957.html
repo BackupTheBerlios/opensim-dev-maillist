@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Scripting and compatibility
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Scripting%20and%20compatibility&In-Reply-To=%3C48C4E51D.9050106%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002954.html">
+   <LINK REL="Next"  HREF="002948.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Scripting and compatibility</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Scripting%20and%20compatibility&In-Reply-To=%3C48C4E51D.9050106%40t-data.com%3E"
+       TITLE="[Opensim-dev] Scripting and compatibility">melanie at t-data.com
+       </A><BR>
+    <I>Mon Sep  8 10:41:01 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002954.html">[Opensim-dev] Scripting and compatibility
+</A></li>
+        <LI>Next message: <A HREF="002948.html">[Opensim-dev] Thoughts on Scripting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2957">[ date ]</a>
+              <a href="thread.html#2957">[ thread ]</a>
+              <a href="subject.html#2957">[ subject ]</a>
+              <a href="author.html#2957">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+that isn't possible. The event queue for other scripts will continue 
+running, but for the script executing the delayed call, it won't. 
+Scripts gave no concurrency, no event handler will be called while 
+another is in progress. This is guaranteed. It is what makes global 
+variables safe.
+Also, those scripts that use email dispatchers and such depend on 
+that script being totally blocked. Not blocking would be just as bad 
+as not delaying.
+
+Melanie
+
+Stefan Andersson wrote:
+&gt;<i> I have no beef with the delays at all. They were probably introduced for a very good reason by people who has the most working knowledge.
+</I>&gt;<i>  
+</I>&gt;<i> What I think is a bloody nuisance (if it still works that way) is that the event queue stops with the script, which means that if you have a post-back or an e-mail response you need to wait on the recieveing side before you send it - unless you split the code into two scripts.
+</I>&gt;<i>  
+</I>&gt;<i> So, Mel et al, what's your thoughts about having delays in, but keep the event queue responsive?Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Date: Mon, 8 Sep 2008 10:10:51 +0200&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] Scripting and compatibility&gt; &gt; &gt; Dahlia Trimble wrote:&gt; &gt; My $0.02 on the delays:&gt; &gt; &gt; &gt; Often they are necessary to protect the quality of the experience from&gt; &gt; the excessive zeal of aggressive or inexperienced scripters. For&gt; &gt; example, if the llEmail() delays were not there, some scripters could&gt; &gt; run a spam operation from a region and the region owner may be blamed.&gt; &gt; Other cases where limits are useful is in prim creation and motion,&gt; &gt; where if no throttling is available a region could easily be brought to&gt; &gt; it's knees by a script run amuck. Some delays could actually improve the&gt; &gt; perceived performance, such as in the case of prim motion where&gt; &gt; sufficient time is available to notify all observing clients that an&gt; &gt; object has moved before the next movement occurs.&gt; &gt; &gt; &gt; I vaguely remember some discussion about the necessity of t
+</I>he delays and&gt; &gt; I thought the consensus was that they would be configurable in some&gt; &gt; fashion,&gt; &gt; i thought so too. those delays seem to make sense if not from an LSL point of&gt; view then at the very least to protect against abuse.&gt; &gt; -- &gt; dr dirk husemann ---- virtual worlds research ---- ibm zurich research lab&gt; SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>&gt; RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002954.html">[Opensim-dev] Scripting and compatibility
+</A></li>
+	<LI>Next message: <A HREF="002948.html">[Opensim-dev] Thoughts on Scripting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2957">[ date ]</a>
+              <a href="thread.html#2957">[ thread ]</a>
+              <a href="subject.html#2957">[ subject ]</a>
+              <a href="author.html#2957">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

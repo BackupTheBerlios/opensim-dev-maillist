@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SOG/SOP
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SOG/SOP&In-Reply-To=%3C48B7F18F.2070706%40kyperjokki.fi%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002780.html">
+   <LINK REL="Next"  HREF="002797.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SOG/SOP</H1>
+    <B>Toni Alatalo</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SOG/SOP&In-Reply-To=%3C48B7F18F.2070706%40kyperjokki.fi%3E"
+       TITLE="[Opensim-dev] SOG/SOP">antont at kyperjokki.fi
+       </A><BR>
+    <I>Fri Aug 29 14:54:39 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002780.html">[Opensim-dev] SOG/SOP
+</A></li>
+        <LI>Next message: <A HREF="002797.html">[Opensim-dev] OpenSimulator 0.7 (was incorrectly 0.6) Roadmap
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2786">[ date ]</a>
+              <a href="thread.html#2786">[ thread ]</a>
+              <a href="subject.html#2786">[ subject ]</a>
+              <a href="author.html#2786">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Stefan Andersson wrote:
+
+&gt;<i> I still think that having an object that represents the object in 
+</I>&gt;<i> scene, as opposed to having ten scene objects magically linked on 
+</I>&gt;<i> 'root' id is a good idea - especially when considering stuff like 
+</I>&gt;<i> mesh-enabled objects, where 'child prims' simply does not apply.
+</I>
+i think mesh-enabled/using objects may well have children too, perhaps 
+even child prims, and certainly it is common in 3d modelling suites to 
+have it so that meshes can be children of other meshes (also there are 
+groups, arrays etc.). at least now when first thinking it i'd see the 
+questions a) whether an object is using prims or meshes and b) whether 
+there is some sort of hierarchical composition mechanism in place, as 
+independent, -- orthogonal even.
+ 
+&gt;<i> But this time, maybe we should get more discussion. I bid you all 
+</I>&gt;<i> ventilate your ideas. And references to other 3D models, and 
+</I>&gt;<i> suggestions incorporating how grid, region, scene, avatars, 
+</I>&gt;<i> attachments, mesh objects and linksets can work togehter in a single, 
+</I>&gt;<i> simple API paradigm are extra welcome.
+</I>
+i don't know what exactly the SOG/SOP design is currently like, but the 
+idea as outlined in your post of having some scene level object for 
+which attributes/properties like position are context independent, and 
+which can hide type specific implementation details of how the geometry 
+is constructed etc., sounds promising (if i understood correctly how 
+Adam's extended SOG for Rex meshes fits in the picture).
+
+i don't mean to go too deep into specifics of esoteric scene 
+construnction things in 3d modelling, which are far outside the scope of 
+current opensim development, but outline a couple examples in the 
+following the illustrate a bit what kind of mechanisms there are 
+elsewhere. hopefully that is helpful for further developing the OpenSim 
+model, perhaps so that things similar to the examples below will be 
+possible later if they prove sane for virtual worlds (i believe clever 
+instanciating of copies etc. would be good for performance while 
+allowing rich worlds)
+
+i'm mostly familiar with the Blender object model, and was thinking last 
+winter when working with Rex about how some lessons from there (and 3d 
+movie &amp; game making in general) could be brought to virtual world 
+content models. in Blender the basic design is that on the scene level 
+there are so called objects, which is an abstract notion of a 
+scenepresence with position, orientation and scale - then the concrete 
+geometry is implemented in the different object data types like mesh, 
+curve and text. for example text objects might be good to have in 
+virtual worlds too (it can be a can of worms though if you go deep into 
+kerning and all, you can see how it is in Blender from 
+<A HREF="http://wiki.blender.org/index.php/Manual/Text">http://wiki.blender.org/index.php/Manual/Text</A> )
+
+back to the issue of hierarchies, in modelling suites the relationships 
+that different objects in a scene can be of several kinds - for example 
+in the aforementioned manual page on text objects you can see how curves 
+can be used to shape how a text is laid out 
+(<A HREF="http://wiki.blender.org/index.php/Manual/Text#Examples_5">http://wiki.blender.org/index.php/Manual/Text#Examples_5</A> shows a text 
+on a circle) - so there a text object has a relationship of type 
+'TextOnCurve' to the circular curve object.
+
+another case is instanciating, arrays of objects or duplicating the same 
+object several times to e.g. make a wall of bricks. Blender has two 
+techniques for that now: 1. so-called dupliverts, where the vertices of 
+an invisible mesh are used to place instances of another object, 
+<A HREF="http://wiki.blender.org/index.php/Manual/PartXIII/DupliVerts">http://wiki.blender.org/index.php/Manual/PartXIII/DupliVerts</A> and 2. the 
+array modifier where copies of a given object are generated 
+parametrically to make e.g. walls, roads or chains, 
+<A HREF="http://wiki.blender.org/index.php/Manual/Array">http://wiki.blender.org/index.php/Manual/Array</A>
+
+arguably such things are too complex for the hopefully emerging standard 
+protocols for virtual worlds, and i can understand if they are ruled out 
+categorically and only simpler scene and object models are used (you can 
+always e.g. export curve-shaped text objects as meshes etc). just 
+thought this would be a good time to point them out 'cause think that 
+they can be very powerful too (e.g. for animating such shaping with 
+curves is great, you can then very lightly (in terms of changing data) 
+animate relatively complex objects by just moving the control points of 
+the invisible curve). for instanciating combining procedural things with 
+hand-made building blocks can be quite powerful, like giving the 
+positions of object instances in an array as a function etc., but that 
+goes even further out of the reach of current possibilities.
+
+&gt;<i> Stefan Andersson
+</I>&gt;<i> Tribal Media AB
+</I>
+Toni Alatalo
+Playsign, <A HREF="http://www.playsign.net/">http://www.playsign.net/</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002780.html">[Opensim-dev] SOG/SOP
+</A></li>
+	<LI>Next message: <A HREF="002797.html">[Opensim-dev] OpenSimulator 0.7 (was incorrectly 0.6) Roadmap
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2786">[ date ]</a>
+              <a href="thread.html#2786">[ thread ]</a>
+              <a href="subject.html#2786">[ subject ]</a>
+              <a href="author.html#2786">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

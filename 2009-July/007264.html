@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Threads, threads, threads and more threads
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Threads%2C%20threads%2C%20threads%20and%20more%20threads&In-Reply-To=%3Cd319543f0907301944q2b738ccas577cdcd3954495f4%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007263.html">
+   <LINK REL="Next"  HREF="007265.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Threads, threads, threads and more threads</H1>
+    <B>Nebadon Izumi</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Threads%2C%20threads%2C%20threads%20and%20more%20threads&In-Reply-To=%3Cd319543f0907301944q2b738ccas577cdcd3954495f4%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Threads, threads, threads and more threads">nebadon2025 at gmail.com
+       </A><BR>
+    <I>Fri Jul 31 04:44:53 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007263.html">[Opensim-dev] Threads, threads, threads and more threads
+</A></li>
+        <LI>Next message: <A HREF="007265.html">[Opensim-dev] Threads, threads, threads and more threads
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7264">[ date ]</a>
+              <a href="thread.html#7264">[ thread ]</a>
+              <a href="subject.html#7264">[ subject ]</a>
+              <a href="author.html#7264">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sort of a side note on this topic, we still have child agents rezzing as
+Root agents in the region your in..  since you poking around in this area
+you might see if you can take notice at to why this is happening, if you do
+not have a telehub installed you might not notice all child agents that are
+rezzing in your region up around 128/128/100..  These avatars seem to effect
+the physics scene as well.  no doubt generating even more threads.
+
+Neb
+
+On Thu, Jul 30, 2009 at 7:35 PM, Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; wrote:
+
+&gt;<i> Hey there
+</I>&gt;<i>
+</I>&gt;<i> I was just thinking..    does the child agent of an avatar actually
+</I>&gt;<i> /need/ a full thread?    I ask this because we're running up against
+</I>&gt;<i> the default thread limits of mono in situations where an instance is
+</I>&gt;<i> servicing your root agent and 8 additional child regions.     The
+</I>&gt;<i> LongPoll fix took the number of threads down by almost half, but,
+</I>&gt;<i> we've still got a lot more work to do to make it reasonable.     Would
+</I>&gt;<i> anyone object to having child agent worker threads that process more
+</I>&gt;<i> then one client on the LLUDP side?     This would reduce thread usage
+</I>&gt;<i> by at least 1/3rd over top of the savings that we already have from
+</I>&gt;<i> the long poll fix.    I also note that textures are always served from
+</I>&gt;<i> the region the avatar is a root agent in..  including textures in
+</I>&gt;<i> neighbor regions that the avatar sees into.
+</I>&gt;<i>
+</I>&gt;<i> A Scenario:
+</I>&gt;<i>
+</I>&gt;<i> An instance serves a 9 gridspace set of regions.  The avatar logs into
+</I>&gt;<i> the middle one and creates 1 root agent and 8 child agents on the
+</I>&gt;<i> instance.
+</I>&gt;<i> --------
+</I>&gt;<i> Before the LongPoll fix:
+</I>&gt;<i>
+</I>&gt;<i> Each avatar created 9 threads for LLUDP processing, 9 threads stuck in
+</I>&gt;<i> eventqueue processing, and several timer/threadpool threads.   This
+</I>&gt;<i> added up 'really' fast.
+</I>&gt;<i> For example..     at 14 users, there were 252 threads(14 root, 112
+</I>&gt;<i> child, and 126 in eventqueue) in use processing the udp stack and the
+</I>&gt;<i> eventqueue of the users.
+</I>&gt;<i>
+</I>&gt;<i> -----------
+</I>&gt;<i> After the LongPoll fix:
+</I>&gt;<i>
+</I>&gt;<i> Each avatar creates 9 threads for LLUDP processing.  There are a total
+</I>&gt;<i> of 4 threads dedicated to eventqueue processing total.
+</I>&gt;<i> For example..   at 14 users, there are 130 threads(14 root, 112 child,
+</I>&gt;<i> 4 in eventqueue) in use processing the udp stack and the eventqueue of
+</I>&gt;<i> the users.
+</I>&gt;<i>
+</I>&gt;<i> ------------
+</I>&gt;<i> If we set up worker threads for child agents:
+</I>&gt;<i>
+</I>&gt;<i> Each avatar creates 1 thread for LLUDP processing, There are a total
+</I>&gt;<i> of 4 threads dedicated to eventqueue processing.  And, there are (for
+</I>&gt;<i> this example, we'll say 2 threads per region to process child agents),
+</I>&gt;<i> 18 threads to process child agents.
+</I>&gt;<i> For example..   at 14 users, that's 36 threads in use processing the
+</I>&gt;<i> udp stack and the eventqueue of the users.
+</I>&gt;<i> ----------
+</I>&gt;<i>
+</I>&gt;<i> Can anyone think of issues with doing this?     I would /really/ love
+</I>&gt;<i> to reduce the thread usage down to 'reasonable' levels here.   36
+</I>&gt;<i> threads is WAY less then 252 threads!
+</I>&gt;<i>
+</I>&gt;<i> Regards
+</I>&gt;<i>
+</I>&gt;<i> Teravus
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+
+-- 
+Michael Emory Cerquoni - Nebadon Izumi @ <A HREF="http://osgrid.org">http://osgrid.org</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090730/ea4891da/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090730/ea4891da/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007263.html">[Opensim-dev] Threads, threads, threads and more threads
+</A></li>
+	<LI>Next message: <A HREF="007265.html">[Opensim-dev] Threads, threads, threads and more threads
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7264">[ date ]</a>
+              <a href="thread.html#7264">[ thread ]</a>
+              <a href="subject.html#7264">[ subject ]</a>
+              <a href="author.html#7264">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

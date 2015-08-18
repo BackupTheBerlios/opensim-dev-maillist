@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] further db thoughts
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20further%20db%20thoughts&In-Reply-To=%3Cd319543f0801132314p1d2d0bf2n7522a69688c56627%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000669.html">
+   <LINK REL="Next"  HREF="000672.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] further db thoughts</H1>
+    <B>Nebadon Izumi</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20further%20db%20thoughts&In-Reply-To=%3Cd319543f0801132314p1d2d0bf2n7522a69688c56627%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] further db thoughts">nebadon2025 at gmail.com
+       </A><BR>
+    <I>Mon Jan 14 08:14:40 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000669.html">[Opensim-dev] further db thoughts
+</A></li>
+        <LI>Next message: <A HREF="000672.html">[Opensim-dev] further db thoughts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#671">[ date ]</a>
+              <a href="thread.html#671">[ thread ]</a>
+              <a href="subject.html#671">[ subject ]</a>
+              <a href="author.html#671">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Just a heads up there have been a few on the IRC  channel who can not
+compile this with Mono 1.2.6 not a huge deal but i figured i would let you
+know.
+
+error looks like this:
+
+<A HREF="http://www.pastebin.ca/854357">http://www.pastebin.ca/854357</A>
+
+downgrading to Mono 1.2.5.1 seems to fix the problem.
+
+Nebadon
+
+On Jan 13, 2008 12:42 PM, Stefan Andersson &lt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:
+
+&gt;<i> Ok, I just committed /OpenSim/ThirdParty/Tribal/TribalMedia.Framework.Data
+</I>&gt;<i>
+</I>&gt;<i> This should be specialized into OpenSim.Framework.Data, which should do
+</I>&gt;<i> the following:
+</I>&gt;<i> * Specialize the FieldMapper ExpandField, GetValue and ConvertToDbType to
+</I>&gt;<i> accomodate LLVector3, LLQuaternion and LLUUID
+</I>&gt;<i> * Provide a set of TableMappers for all supported object types (I will try
+</I>&gt;<i> to commit primitivebaseshape, part and group soonish, but I'm a bit pressed
+</I>&gt;<i> for time at the mo)
+</I>&gt;<i> * DatabaseProviders for all supported database engines, ie
+</I>&gt;<i> OpenSim.Framework.Data.MySQL should subclass and extend the DatabaseMapper
+</I>&gt;<i>
+</I>&gt;<i> Alas, the code as it is committed five minutes ago, is kinda forcefully
+</I>&gt;<i> ripped out of its context, but I guess it's a work in progress.
+</I>&gt;<i>
+</I>&gt;<i> (For example, the DatabaseMapper is both connectionpool and querybuilder,
+</I>&gt;<i> which might not be ideal.)
+</I>&gt;<i>
+</I>&gt;<i> Ideally, basing our db layer on something like this should mean we never
+</I>&gt;<i> again should get out of synch on this or that database.
+</I>&gt;<i>
+</I>&gt;<i> Eagerly awaiting peer review and comments,
+</I>&gt;<i> /Stefan
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------
+</I>&gt;<i>
+</I>&gt;<i> &gt; Date: Sat, 12 Jan 2008 09:39:20 -0500
+</I>&gt;<i> &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>
+</I>&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; Subject: Re: [Opensim-dev] further db thoughts
+</I>&gt;<i>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On Fri, Jan 11, 2008 at 09:46:21PM +0100, Stefan Andersson wrote:
+</I>&gt;<i> &gt; &gt; Sean,
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; I know you're going to hate me for this, but before I post code, I
+</I>&gt;<i> just wanted to explain whats here 'on my own hard-disk' to see if it's
+</I>&gt;<i> anything like what you want to do:
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; * I have a DbConnectionPool that acts as a programmatic manager of
+</I>&gt;<i> connections (Subclassed into MySqlDbConnectionPool)
+</I>&gt;<i> &gt; &gt; * this is passed to a TableMapper which exposes it as a protected
+</I>&gt;<i> method WithConnection(delegate) for subclasses to access; they never access
+</I>&gt;<i> the connectionpool directly; the delegate approach lets the TableMapper
+</I>&gt;<i> lock, allocate, pre- and postprocess the connection securely and
+</I>&gt;<i> encapsulated. (kind of like a using clause)
+</I>&gt;<i> &gt; &gt; * The TableMapper is subclassed into a TableMapper&lt;TRowMapper&gt; that
+</I>&gt;<i> implements a CRUD interface by creating dynamic sql queries (the param
+</I>&gt;<i> prefix is pulled from the ConnectionPool) and populating them from a
+</I>&gt;<i> 'Schema'
+</I>&gt;<i> &gt; &gt; * A 'Schema' is a collection of FieldMapper&lt;T&gt;
+</I>&gt;<i> &gt; &gt; * FieldMapper&lt;TField&gt; is initialized with a field/param name (same for
+</I>&gt;<i> laziness sake), TField is the RowMapper field value type, a get delegate and
+</I>&gt;<i> a set delegate for the TField type object. It also does all the db/field
+</I>&gt;<i> type casting as well as expands things like Vector and Quaternion into
+</I>&gt;<i> several db fields.
+</I>&gt;<i> &gt; &gt; * The delegate approach keeps everything field related together, as
+</I>&gt;<i> opposed to a FromReader/ToReader method approach, which helps dodge
+</I>&gt;<i> inconsistencies.* The TRowMapper is mostly of type RowMapper&lt;TRowObject&gt;
+</I>&gt;<i> which just creates a class that has a member of TRowObject; this lets you
+</I>&gt;<i> subclass TRowMapper&lt;TRowObject&gt; and add db-specific extra-fields to it in
+</I>&gt;<i> order to manage hierarchies.
+</I>&gt;<i> &gt; &gt; * Upon operations, you create your rowmapper object (or just a plain
+</I>&gt;<i> object if there is no aux data) and either do FillObject( Schema, rowObject)
+</I>&gt;<i> or extract stuff by overrifing the FromReader(rowObject, DbReader) - the
+</I>&gt;<i> latter I use to populate a group from a part table (the select on the key
+</I>&gt;<i> field returns multiple rows, so i just PartMapper.FromReader() on each one
+</I>&gt;<i> to build the group.
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; - it does NOT auto-create tables, as I'm not interested in that
+</I>&gt;<i> approach as you know, but you already have the code for it and the data in
+</I>&gt;<i> the 'Schema' so it should be a piece of pie.
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; All in all, everything is explicit and compile-time; no cacheing,
+</I>&gt;<i> synchronization or double-buffering, no reflected and emitted code, but it
+</I>&gt;<i> works, and is quite efficient. It takes a while to get into the flow of how
+</I>&gt;<i> the various components work together, but after that I feel it's very
+</I>&gt;<i> conveniens and trustworthy.
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; Of course, it needs more work to get it going on all different
+</I>&gt;<i> database interfaces, but it's created from the start to be subclassed into
+</I>&gt;<i> differing databases.
+</I>&gt;<i> &gt; &gt;
+</I>&gt;<i> &gt; &gt; If this sounds like something we'd want, I'd be happy to make it
+</I>&gt;<i> &gt; &gt; available as a third-party BSD Licence lib within the project, my only
+</I>&gt;<i> &gt; &gt; demand is that it is called TribalMedia.Framework.Data and that the
+</I>&gt;<i> &gt; &gt; BSD header remains intact.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I think it is definitely a promissing approach. If you wanted to check
+</I>&gt;<i> &gt; it in under TribalMedia/Framework/Data I'll definitely check it out. If
+</I>&gt;<i> &gt; it turns out to not work out, we can just remove it down the road.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; -Sean
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; --
+</I>&gt;<i> &gt; __________________________________________________________________
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Sean Dague Mid-Hudson Valley
+</I>&gt;<i> &gt; sean at dague dot net Linux Users Group
+</I>&gt;<i> &gt; <A HREF="http://dague.net">http://dague.net</A> <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; There is no silver bullet. Plus, werewolves make better neighbors
+</I>&gt;<i> &gt; than zombies, and they tend to keep the vampire population down.
+</I>&gt;<i> &gt; __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080114/26c8890b/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080114/26c8890b/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000669.html">[Opensim-dev] further db thoughts
+</A></li>
+	<LI>Next message: <A HREF="000672.html">[Opensim-dev] further db thoughts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#671">[ date ]</a>
+              <a href="thread.html#671">[ thread ]</a>
+              <a href="subject.html#671">[ subject ]</a>
+              <a href="author.html#671">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] .net serialization of SOGs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.net%20serialization%20of%20SOGs&In-Reply-To=%3C4CB1F6E4.5070905%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009628.html">
+   <LINK REL="Next"  HREF="009630.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] .net serialization of SOGs</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.net%20serialization%20of%20SOGs&In-Reply-To=%3C4CB1F6E4.5070905%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] .net serialization of SOGs">diva at metaverseink.com
+       </A><BR>
+    <I>Sun Oct 10 19:24:52 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009628.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+        <LI>Next message: <A HREF="009630.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9629">[ date ]</a>
+              <a href="thread.html#9629">[ thread ]</a>
+              <a href="subject.html#9629">[ subject ]</a>
+              <a href="author.html#9629">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I can see good arguments on both sides. On the one hand we (in OpenSim) 
+need to have complete, and immediate control over this code, in order to 
+be able to do things such as what I'm doing right now -- adding more 
+information to those external data representations.
+
+On the other hand, control, in OpenSim, often comes with entanglement. 
+SOG serialization, for example, is horribly tangled with Scenes at the 
+moment, and that is a major block for fixing things like having the 
+Library work as a service, etc. -- not to mention enabling 3rd party 
+tools for manipulating content in a sane manner. So, in that sense, I 
+really like the idea of having this code in a separate library, far away 
+from OpenSim Scenes, which should merely be clients of such library.
+
+We have a place for it: OpenSim.Framework.Serialization. If we're to 
+copy-paste-change libomv, I'll have to bring in the entire 
+OpenMetaverse.Assets namespace, which is where all the serialization 
+goodies are.
+
+Is there a middle ground?
+
+On 10/10/2010 8:30 AM, Melanie wrote:
+&gt;<i> Copy/Paste/Change please.
+</I>&gt;<i>
+</I>&gt;<i> it's been a discussed and stated goal to reduce use of OMV classes
+</I>&gt;<i> not in the &quot;Types&quot; dll.
+</I>&gt;<i> Making ourselves dependent on OMV code for something as critical as
+</I>&gt;<i> this isn't right.
+</I>&gt;<i> There are lots of fields that will need to be added, from simple
+</I>&gt;<i> ones like sit data to complex ones like vehicle physics.
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;<i> After thinking about it, I think I know the way out of our dependence on
+</I>&gt;&gt;<i> .net serialization. I'm planning to do this [today], so if anyone has
+</I>&gt;&gt;<i> concerns, please speak up.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The main problem with what we have is that the serialization is being
+</I>&gt;&gt;<i> done automagically by .net via reflection, leaving us completely out of
+</I>&gt;&gt;<i> the loop and at the mercy of the nasty .net serialization restrictions.
+</I>&gt;&gt;<i> So the smooth transition out of this is to reproduce the serialization
+</I>&gt;&gt;<i> strings that .net is producing, but via our own code. That will be stage
+</I>&gt;&gt;<i> 1, and will ensure 100% compatibility with the data that already exists.
+</I>&gt;&gt;<i> But that will give us the ground to then do the right things with
+</I>&gt;&gt;<i> serialization, like adding a MIME type and a version number to whatever
+</I>&gt;&gt;<i> is being serialized.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Luckily jhurliman has already done most of it in libomv, probably as a
+</I>&gt;&gt;<i> consequence of him pulling his hair when he encountered the SOG
+</I>&gt;&gt;<i> serialization in OpenSim... I'm undecided on whether to reuse that code
+</I>&gt;&gt;<i> as-is or copy-paste-change it, since I'm planning to add more fields,
+</I>&gt;&gt;<i> and context, to the SOG serializations. Without getting into flame wars
+</I>&gt;&gt;<i> between OpenSim and libomv, any thoughts on this, from a pragmatic point
+</I>&gt;&gt;<i> of view?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 10/9/2010 12:39 PM, Dahlia Trimble wrote:
+</I>&gt;&gt;&gt;<i> How about the various OSD serializations in libomv? They seem to be
+</I>&gt;&gt;&gt;<i> pretty robust these days.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On Sat, Oct 9, 2010 at 11:05 AM,&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;&gt;  wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      Dear devs,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      I'm pulling my hair here with the serialization of scene objects.
+</I>&gt;&gt;&gt;<i>      This is horrible! Using .Net serialization for something as
+</I>&gt;&gt;&gt;<i>      important as this is the worst idea ever. We're completely frozen.
+</I>&gt;&gt;&gt;<i>      I'm trying to add an additional field for the creator info, and I'm
+</I>&gt;&gt;&gt;<i>      stuck in all sorts of ways: I can't compute the value of that field
+</I>&gt;&gt;&gt;<i>      at serialization-time, and then there are the issues of
+</I>&gt;&gt;&gt;<i>      compatibility with previous versions of the SOP class.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      I'd like to understand all the implications of doing an entirely
+</I>&gt;&gt;&gt;<i>      different serialization procedure, one that does not use reflection,
+</I>&gt;&gt;&gt;<i>      and that allows for processing-during-serialization. What will
+</I>&gt;&gt;&gt;<i>      break, and therefore needs fixing?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      I understand all archiving related to previous versions will break,
+</I>&gt;&gt;&gt;<i>      so we need to keep supporting the existing serialization 'disease'
+</I>&gt;&gt;&gt;<i>      for the foreseeable future. I also understand that TPs/crossings
+</I>&gt;&gt;&gt;<i>      between sims that talk different SOG serializations will break, but
+</I>&gt;&gt;&gt;<i>      that's not so bad.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      Anything else I should be aware of before I go off and redo this?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      Diva / Crista
+</I>&gt;&gt;&gt;<i>      _______________________________________________
+</I>&gt;&gt;&gt;<i>      Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i>      <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;&gt;<i>      <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009628.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+	<LI>Next message: <A HREF="009630.html">[Opensim-dev] .net serialization of SOGs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9629">[ date ]</a>
+              <a href="thread.html#9629">[ thread ]</a>
+              <a href="subject.html#9629">[ subject ]</a>
+              <a href="author.html#9629">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

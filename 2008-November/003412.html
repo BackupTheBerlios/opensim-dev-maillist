@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] FYI: Mono's SIMD Support: Making Mono safe for Gaming
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20FYI%3A%20Mono%27s%20SIMD%20Support%3A%20Making%20Mono%20safe%20for%20Gaming&In-Reply-To=%3C20081104133724.GQ11434%40leitl.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003403.html">
+   <LINK REL="Next"  HREF="003414.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] FYI: Mono's SIMD Support: Making Mono safe for Gaming</H1>
+    <B>Eugen Leitl</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20FYI%3A%20Mono%27s%20SIMD%20Support%3A%20Making%20Mono%20safe%20for%20Gaming&In-Reply-To=%3C20081104133724.GQ11434%40leitl.org%3E"
+       TITLE="[Opensim-dev] FYI: Mono's SIMD Support: Making Mono safe for Gaming">eugen at leitl.org
+       </A><BR>
+    <I>Tue Nov  4 14:37:24 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003403.html">[Opensim-dev] grid/user specific items: bug or feature?
+</A></li>
+        <LI>Next message: <A HREF="003414.html">[Opensim-dev] FYI: Mono's SIMD Support: Making Mono safe for	Gaming
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3412">[ date ]</a>
+              <a href="thread.html#3412">[ thread ]</a>
+              <a href="subject.html#3412">[ subject ]</a>
+              <a href="author.html#3412">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+<A HREF="http://tirania.org/blog/archive/2008/Nov-03.html">http://tirania.org/blog/archive/2008/Nov-03.html</A>
+
+Mono's SIMD Support: Making Mono safe for Gaming
+
+This week at the Microsoft PDC we introduced a new feature in the Mono virtual machine that we have been working on quietly and will appear in our upcoming Mono 2.2 release (due in early December).
+
+I believe we are the first VM for managed code that provides an object-oriented API to the underlying CPU SIMD instructions.
+
+In short, this means that developers will be able to use the types in the Mono.Simd library and have those mapped directly to efficient vector operations on the hardware that supports it.
+
+With Mono.Simd, the core of a vector operations like updating the coordinates on an existing vector like the following example will go from 40-60 CPU instructions into 4 or so SSE instructions.
+
+Vector4f Move (Vector4f [] pos, ref Vector4f delta)
+{
+	for (int i = 0; i &lt; pos.Length; i++)
+		pos [i] += delta;
+}
+	
+
+Which in C# turns out to be a call into the method Vector4f.operator + (Vector4f a, Vector4f b) that is implemented like this:
+
+Vector3f static operator + (Vector3f a, Vector3f b)
+{
+	return new Vector3f (a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);
+}
+	
+
+The core of the operation is inlined in the `Move' method and it looks like this:
+
+movups (%eax),%xmm0
+movups (%edi),%xmm1
+addps  %xmm1,%xmm0
+movups %xmm0,(%eax)
+	
+etc.
+
+-- 
+Eugen* Leitl &lt;a href=&quot;<A HREF="http://leitl.org">http://leitl.org</A>&quot;&gt;leitl&lt;/a&gt; <A HREF="http://leitl.org">http://leitl.org</A>
+______________________________________________________________
+ICBM: 48.07100, 11.36820 <A HREF="http://www.ativel.com">http://www.ativel.com</A> <A HREF="http://postbiota.org">http://postbiota.org</A>
+8B29F6BE: 099D 78BA 2FD3 B014 B08A  7779 75B0 2443 8B29 F6BE
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003403.html">[Opensim-dev] grid/user specific items: bug or feature?
+</A></li>
+	<LI>Next message: <A HREF="003414.html">[Opensim-dev] FYI: Mono's SIMD Support: Making Mono safe for	Gaming
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3412">[ date ]</a>
+              <a href="thread.html#3412">[ thread ]</a>
+              <a href="subject.html#3412">[ subject ]</a>
+              <a href="author.html#3412">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Terrain ---&gt; Height field code || altering ODE.dll to	remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Terrain%20---%3E%20Height%20field%20code%20%7C%7C%20altering%20ODE.dll%20to%0A%09remove%20the%20%28%28nMinX%20%3C%20nMaxX%20%7C%7C%20nMinZ%20%3C%20nMaxZ%29%29%20error&In-Reply-To=%3C34cc66250711030941re0e4451p32f4bc90531f219%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000350.html">
+   <LINK REL="Next"  HREF="000331.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Terrain ---&gt; Height field code || altering ODE.dll to	remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Terrain%20---%3E%20Height%20field%20code%20%7C%7C%20altering%20ODE.dll%20to%0A%09remove%20the%20%28%28nMinX%20%3C%20nMaxX%20%7C%7C%20nMinZ%20%3C%20nMaxZ%29%29%20error&In-Reply-To=%3C34cc66250711030941re0e4451p32f4bc90531f219%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Terrain ---&gt; Height field code || altering ODE.dll to	remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error">teravus at gmail.com
+       </A><BR>
+    <I>Sat Nov  3 17:41:31 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000350.html">[Opensim-dev] Asset Server Rest Interface
+</A></li>
+        <LI>Next message: <A HREF="000331.html">[Opensim-dev] Terrain ---&gt; Height field code || altering	ODE.dll to remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#325">[ date ]</a>
+              <a href="thread.html#325">[ thread ]</a>
+              <a href="subject.html#325">[ subject ]</a>
+              <a href="author.html#325">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dan
+
+Looking at the ODE stability issue..      Excessive forces cause an error in
+int dCollideHeightfield( dxGeom *o1, dxGeom *o2, int flags, dContactGeom*
+contact, int skip ) in heightfield.cpp in ODE.
+
+The error occurs on line 1741.
+
+However..   looking at the code in heightfield.cpp, nMinX nMaxX, nMinZ and
+nMaxZ are derived from the terrain.   So, next steps on this bug parhaps are
+to find out if our terrain--&gt; heightfield code has errors, or if there's
+some kind of error in heightfield.cpp that we can simply ignore and continue
+by returning an int 0, for number of collisions.
+
+CodeSample from heightfield.cpp;
+
+    nMinX = int(dFloor(o2-&gt;aabb[0] * terrain-&gt;m_p_data-&gt;m_fInvSampleWidth));
+    nMaxX = int(dFloor(o2-&gt;aabb[1] * terrain-&gt;m_p_data-&gt;m_fInvSampleWidth))
++ 1;
+    nMinZ = int(dFloor(o2-&gt;aabb[4] * terrain-&gt;m_p_data-&gt;m_fInvSampleDepth));
+    nMaxZ = int(dFloor(o2-&gt;aabb[5] * terrain-&gt;m_p_data-&gt;m_fInvSampleDepth))
++ 1;
+
+    if ( !wrapped )
+    {
+        nMinX = dMAX( nMinX, 0 );
+        nMaxX = dMIN( nMaxX, terrain-&gt;m_p_data-&gt;m_nWidthSamples - 1 );
+        nMinZ = dMAX( nMinZ, 0 );
+        nMaxZ = dMIN( nMaxZ, terrain-&gt;m_p_data-&gt;m_nDepthSamples - 1 );
+
+        dIASSERT ((nMinX &lt; nMaxX) || (nMinZ &lt; nMaxZ))   // &lt;---- Generates
+the error
+
+
+    }
+
+
+
+Best Regards
+
+Teravus
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071103/53dc0cb9/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071103/53dc0cb9/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000350.html">[Opensim-dev] Asset Server Rest Interface
+</A></li>
+	<LI>Next message: <A HREF="000331.html">[Opensim-dev] Terrain ---&gt; Height field code || altering	ODE.dll to remove the ((nMinX &lt; nMaxX || nMinZ &lt; nMaxZ)) error
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#325">[ date ]</a>
+              <a href="thread.html#325">[ thread ]</a>
+              <a href="subject.html#325">[ subject ]</a>
+              <a href="author.html#325">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

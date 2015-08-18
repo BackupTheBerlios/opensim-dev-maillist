@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Hey all, Grid Comms, border crossings, Request for comments, red regions and toler
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Hey%20all%2C%20Grid%20Comms%2C%20border%20crossings%2C%0A%20Request%20for%20comments%2C%20red%20regions%20and%20toler&In-Reply-To=%3CBLU134-W282AE5EA286D43103E76EFD5380%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000698.html">
+   <LINK REL="Next"  HREF="000699.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Hey all, Grid Comms, border crossings, Request for comments, red regions and toler</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Hey%20all%2C%20Grid%20Comms%2C%20border%20crossings%2C%0A%20Request%20for%20comments%2C%20red%20regions%20and%20toler&In-Reply-To=%3CBLU134-W282AE5EA286D43103E76EFD5380%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Hey all, Grid Comms, border crossings, Request for comments, red regions and toler">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Jan 24 09:34:04 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000698.html">[Opensim-dev] Hey all, Grid Comms, border crossings,	Request for comments, red regions and tolerance to network failure.
+</A></li>
+        <LI>Next message: <A HREF="000699.html">[Opensim-dev] Exception: System.Data.DBConcurrencyException:	Concurrency violation: the UpdateCommand affected 0 records.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#710">[ date ]</a>
+              <a href="thread.html#710">[ thread ]</a>
+              <a href="subject.html#710">[ subject ]</a>
+              <a href="author.html#710">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>*general enthusiasm regarding implementing more and stable protocol*
+/Stefan
+
+
+
+&gt;<i> Date: Fri, 18 Jan 2008 18:26:14 -0500&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] Hey all, Grid Comms, border crossings, Request for comments, red regions and tolerance to network failure.&gt; &gt; Hi everyone&gt; &gt; People are practically begging for more reliable grid comms. So,&gt; naturally, I want to give it to them. I really want to do it with&gt; the least amount of work/turnaround time as possible. We've all got&gt; only so much time to work on something.&gt; &gt; So, at least with border crossings, I've observed a few phenomena&gt; &gt; 1. Fly off into infinity&gt; 2. Get put arbitrarily in a spot in the region you were previously in&gt; and get stuck there&gt; &gt; Item one is almost exclusively from child agent disconnects (where a&gt; region that you're a child agent in says, 'close was called' but you&gt; didn't actually want it to). Eventually the region will turn red on&gt; your minimap.&gt; &gt; Item number two seems to be corruption of some kind. It could be a&gt; race condition or lack of synchronization with the client.&gt; &gt; Fact: When a region disconnects on your minimap in llsimulators, the&gt; region will appear again.&gt; &gt; If you watch the console you'll see that the region that you're a root&gt; agent in sends the 'disable simulator' message and then the 'enable&gt; simulator' message.&gt; &gt; This implies that when you get disconnected as a child agent from the&gt; region you're a child in, 'that region' mentions the fact that 'it&gt; lost you' to the region you're a root agent in. Then the region&gt; you're a root agent in sends the 'disable simulator message' and then&gt; sends the 'enable simulator' message to reconnect you to that region.&gt; &gt; Fact: When a region goes red on your minimap with opensim, the region&gt; will never be available again until you relog and when you try to&gt; cross the border, you will fly off into infinity. Even if the region&gt; hasn't turned red *yet*, you will still fly off into infinity.&gt; &gt; So, MW suggested I post a request for comments on this topic since it&gt; has some potential to affect everyone.&gt; &gt; Here's what I propose&gt; &gt; When sending a child agent notification, the current region is also&gt; included so that, when a child agent disconnects, the region can tell&gt; the neighbor that the child is a root agent in to re-inform the agent&gt; of the neighbor.&gt; &gt; Add a routine that the clientview.close method calls in the scene&gt; which checks for a child agent and sends a 'I lost em' message to the&gt; region the agent came from. From there the simulator with the root&gt; agent in it can make the choice to send the child the reconnect&gt; messages or not.&gt; &gt; This will ensure that a child agent connection is established.&gt; &gt; Ensuring that a child agent connection is established will make border&gt; crossings more successful and less of Item one from above will occur.&gt; &gt; I'm not looking to re-do the protocol entirely. I want to make it&gt; more tolerant to the inevitable network failure. I'm not looking to&gt; change much.&gt; &gt; I also don't really want to change any of the existing protocol stuff.&gt; We need a child agent data update anyway.. and it's half&gt; implemented already in the OSG1 code(for a month now).&gt; &gt; The child agent data update contains things like.. child throttles..&gt; so the neighbor sims don't flood the avatar, where the avatar is in&gt; world and what their draw distance is so that we can enable sending&gt; prim to agents in other regions.&gt; &gt; I'm not looking to make OSG2 here. I'm looking to make OSG1 work better.&gt; &gt; With that.. comments anyone?&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080124/4b0496a9/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080124/4b0496a9/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000698.html">[Opensim-dev] Hey all, Grid Comms, border crossings,	Request for comments, red regions and tolerance to network failure.
+</A></li>
+	<LI>Next message: <A HREF="000699.html">[Opensim-dev] Exception: System.Data.DBConcurrencyException:	Concurrency violation: the UpdateCommand affected 0 records.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#710">[ date ]</a>
+              <a href="thread.html#710">[ thread ]</a>
+              <a href="subject.html#710">[ subject ]</a>
+              <a href="author.html#710">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

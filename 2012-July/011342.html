@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] TimerEvent to slow, do/while faster.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20TimerEvent%20to%20slow%2C%20do/while%20faster.&In-Reply-To=%3C500A5367.4010406%40kayaker.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011321.html">
+   <LINK REL="Next"  HREF="011307.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] TimerEvent to slow, do/while faster.</H1>
+    <B>Mike Higgins</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20TimerEvent%20to%20slow%2C%20do/while%20faster.&In-Reply-To=%3C500A5367.4010406%40kayaker.net%3E"
+       TITLE="[Opensim-dev] TimerEvent to slow, do/while faster.">mike at kayaker.net
+       </A><BR>
+    <I>Sat Jul 21 08:59:51 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011321.html">[Opensim-dev] TimerEvent to slow, do/while faster.
+</A></li>
+        <LI>Next message: <A HREF="011307.html">[Opensim-dev] Create user and spaces in the first and last names
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11342">[ date ]</a>
+              <a href="thread.html#11342">[ thread ]</a>
+              <a href="subject.html#11342">[ subject ]</a>
+              <a href="author.html#11342">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>     So I finally got around to playing with not_at_target. As R.Gunther 
+noted, timer is too slow and not_at_target is too fast.
+I tried putting a sleep(0.1) in at the start of not_at_target, but the 
+motion was jerky. I tried putting it in at the end, still very uneven.
+
+Then I tried the scheme in the following code. Where it says &quot;move your 
+critter&quot; I have 100+ lines to make the decision of where to move next, 
+with vector and rotation calculations.
+
+     What worked for me was accumulating llGetAndResetTime() until 
+enough time has passed for the next move. With expected delays, checking 
+for 0.05 seconds or more typically takes around twice that long, which 
+is a respectable 0.1 or 10 moves a second. The movement of a single 
+critter was quite smooth, so I released 10 of them. They still moved 
+reasonably well! I feared that this much script activity would lag the 
+sim, but my FPS barely budged. (I have a script that drops the FPS from 
+56 to 30 when just one of them is running. And it is not my fault! I 
+submitted it as a bug. Mantis # 0006080). Top scripts shows this 
+not_at_target script up at the top, so this is not the perfect solution 
+yet. But the best I've seen so far!
+
+     I left them running overnight and by morning they had all stopped 
+moving. I wondered if my llTarget call had timed out, so I put another 
+call to llTarget inside not_at_target to refresh it every time. Same 
+problem, they all stopped moving by the next morning. I have scripts 
+with timers that have been running for months and survived server SIM 
+restarts. So I put a call to llTarget inside a timer to wake them back 
+up when the not_at_target stops getting calls. I just started them 
+ticking, I will find out tomorrow if this keeps them going. I should 
+probably report the failure of not_at_target as a bug in Open Simulator!
+
+//not_at_target mover
+float step=0.05;     //how often to move in seconds (typically takes 
+twice this long)
+float time=0.0;     //global to count time passed since last move
+
+default
+{
+     state_entry()
+     {
+         llGetAndResetTime();
+         llTarget(&lt;300,300,0&gt;,1.0);
+         llSetTimerEvent(30.0);      //use timer to refresh llTarget
+     } //state_entry
+
+     timer()
+     {
+         llTarget(&lt;300,300,0&gt;,1.0);  //refresh this every 30 seconds
+     } //timer
+
+     not_at_target()
+     {
+         time+=llGetAndResetTime();
+         if (time&lt;step) return;      //ignore system if calls me too soon
+         time=0.0;
+//move your critter here. I use 
+llSetLinkPrimitiveParamsFast(LINK_THIS,[...]) at the end
+     } //not_at_timer
+
+}
+
+On 7/17/12 4:45 PM, R.Gunther wrote:
+&gt;<i> On 2012-07-18 01:31, Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> If you want to increase timer resolution the current thing to do 
+</I>&gt;&gt;<i> would be to change
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> cmdHandlerThreadCycleSleepms = 100;
+</I>&gt;&gt;<i> Intressting, then i get the question why it seems the event &quot; 
+</I>&gt;&gt;<i> not_at_target&quot; seems to have o restriction.
+</I>&gt;<i> with that function i always get some sort if filled query. 
+</I>&gt;<i> not_at_target can fire at the same speed as do/while
+</I>&gt;<i> It looks like its getting faster called then processed. i think 
+</I>&gt;<i> &quot;timerevent&quot; is right now to slow and &quot;not_at_target&quot;
+</I>&gt;<i> is way to fast and seems to require lots of lsl time.
+</I>&gt;<i>
+</I>&gt;<i> The whole event triggering is sometimes tricky.
+</I>&gt;<i>
+</I>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20120720/9129e20c/attachment-0001.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20120720/9129e20c/attachment-0001.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011321.html">[Opensim-dev] TimerEvent to slow, do/while faster.
+</A></li>
+	<LI>Next message: <A HREF="011307.html">[Opensim-dev] Create user and spaces in the first and last names
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11342">[ date ]</a>
+              <a href="thread.html#11342">[ thread ]</a>
+              <a href="subject.html#11342">[ subject ]</a>
+              <a href="author.html#11342">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

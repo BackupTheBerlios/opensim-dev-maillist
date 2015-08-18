@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Organization and naming patterns of commands on	the	console
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Organization%20and%20naming%20patterns%20of%20commands%20on%0A%09the%09console&In-Reply-To=%3COFB37A7458.97B5ACAE-ON85257553.0073867E-85257553.00748CAE%40us.ibm.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004903.html">
+   <LINK REL="Next"  HREF="004913.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Organization and naming patterns of commands on	the	console</H1>
+    <B>Gary Chernega</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Organization%20and%20naming%20patterns%20of%20commands%20on%0A%09the%09console&In-Reply-To=%3COFB37A7458.97B5ACAE-ON85257553.0073867E-85257553.00748CAE%40us.ibm.com%3E"
+       TITLE="[Opensim-dev] Organization and naming patterns of commands on	the	console">chernega at us.ibm.com
+       </A><BR>
+    <I>Wed Feb  4 22:13:05 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004903.html">[Opensim-dev] Organization and naming patterns of commands on the	console
+</A></li>
+        <LI>Next message: <A HREF="004913.html">[Opensim-dev] Organization and naming patterns of commands on the	console
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4904">[ date ]</a>
+              <a href="thread.html#4904">[ thread ]</a>
+              <a href="subject.html#4904">[ subject ]</a>
+              <a href="author.html#4904">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>A common parsing routine that used keywords as commands and triggered off 
+of those would work best.
+
+show users:     &gt;&gt; users module receives: show
+        The parser would be looking for the module level first (users 
+etc), and since it is the 2nd word, it would strip it, and pass the 
+remaining text to the users module.
+
+users show:     &gt;&gt; users module receives: show
+        The parser stripped module (users) from beginning, and passed 
+remainder of text line
+
+region load oar \filespec -x 123 -y 234:        &gt;&gt; region module would 
+receive: load oar \filespec -x 123 -y 234
+
+Parser only parses off the module, and the command module decides what to 
+do with what it gets.
+
+So -&gt;   help region  is functionally the same as  region help
+Or -&gt;    region load oar zzyy == load oar region zzyy  ==  load oar zzyy 
+region   (since region is stripped out no matter where it is, and 
+remainder is passed to region command handler)
+
+Am I clear enough in plain text?
+
+
+
+
+
+Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; 
+Sent by: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+02/04/2009 03:50 PM
+Please respond to
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+
+
+To
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+cc
+
+Subject
+[Opensim-dev] Organization and naming patterns of commands on the console
+
+
+
+
+
+
+Hello,
+
+I want to add more commands to the archiving module but I want to do this 
+within the module itself rather than adding 
+any specific logic to core.
+
+The terrain module already has a 'module commander' to help do this, but 
+this prefixes all commands with the word 
+terrain (e.g. terrain fill, terrain load, etc.)
+
+For consistency purposes, eventually I think that all console commands 
+should largely follow the same pattern.  If we 
+the terrain module scheme, then we get the following kinds of changes (if 
+we assume that commands from different modules 
+can actually share the same initial 'keyword')
+
+backup                           =&gt; region backup
+create user              =&gt; user create
+create-region            =&gt; region create
+help users               =&gt; user help (for user commands)
+show assets              =&gt; assets show
+show users               =&gt; user show
+load-xml                 =&gt; region xml load (?)
+load-oar                 =&gt; region oar load (?)
+kickuser                 =&gt; user kick
+
+I think that the pros of this approach are that it makes it easy to avoid 
+name collisions and easy to distribute 
+commands to the right module.  The console seem to include the fact that 
+it's not very intuitive (e.g. show users seems 
+easier to remember than user show) and it involves more typing in some 
+cases (e.g. region xml load rather than load-xml 
+or load xml).
+
+Any thoughts on this?  Just kind of thinking about it at this stage - part 
+of me prefers typing things like &quot;show users&quot; 
+or &quot;help terrain&quot; while another part of my mind likes the 'tidiness' of 
+prefixing every module command with the same 
+word (e.g. terrain fill or region oar load).
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090204/61c22a3e/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090204/61c22a3e/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004903.html">[Opensim-dev] Organization and naming patterns of commands on the	console
+</A></li>
+	<LI>Next message: <A HREF="004913.html">[Opensim-dev] Organization and naming patterns of commands on the	console
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4904">[ date ]</a>
+              <a href="thread.html#4904">[ thread ]</a>
+              <a href="subject.html#4904">[ subject ]</a>
+              <a href="author.html#4904">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

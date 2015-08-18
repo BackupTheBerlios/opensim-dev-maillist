@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Improved OSSearch &amp; OSProfile
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Improved%20OSSearch%20%26%20OSProfile&In-Reply-To=%3C4EA508E1.8090900%40ve3syb.ca%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010692.html">
+   <LINK REL="Next"  HREF="010695.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Improved OSSearch &amp; OSProfile</H1>
+    <B>Kevin Cozens</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Improved%20OSSearch%20%26%20OSProfile&In-Reply-To=%3C4EA508E1.8090900%40ve3syb.ca%3E"
+       TITLE="[Opensim-dev] Improved OSSearch &amp; OSProfile">kevin at ve3syb.ca
+       </A><BR>
+    <I>Mon Oct 24 08:42:41 CEST 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010692.html">[Opensim-dev] Improved OSSearch &amp; OSProfile
+</A></li>
+        <LI>Next message: <A HREF="010695.html">[Opensim-dev] Improved OSSearch &amp; OSProfile
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10693">[ date ]</a>
+              <a href="thread.html#10693">[ thread ]</a>
+              <a href="subject.html#10693">[ subject ]</a>
+              <a href="author.html#10693">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 11-10-23 09:28 AM, Argus wrote:
+&gt;<i> - Added the inworld search for classiefieds to the Profile Module as the
+</I>&gt;<i>  Classifieds are created and saved by the Profile Module.
+</I>
+Thanks for the changes. I'll take a closer look when I have more time. It 
+has been a while since I looked at the search and profile code. It is
+not that easy to see what changes you made as you provided a modified copy
+of the original source trees. A unified diff of the changes would have made
+the review process easier.
+
+Search by keywords in the profile module sounds good. I don't quite see the
+need for the change to the database structure for regions. When an OS
+instance shuts down the entry in the hostsregister table should be removed. 
+IIRC, when the search parser wants to retrieve data for a given entry in the 
+hostsregister table, it deletes all data for that host before adding the 
+current data.
+
+Rather than adding a date you could use the failcounter field in the
+hostsregister table. If an OS instance listed in that table &quot;goes away&quot; the
+failcounter will keep incrementing and the data for that host would remain 
+in the tables until the OS instance becomes available.
+
+IIRC, the parsing routine will stop checking a region after the failcounter 
+reaches a given value. If it doesn't, it could be easily updated to do so 
+and when that limit is reached, the host entry and associated data could be 
+removed automatically. This might be the better approach and no special 
+clean up would be required as it would happen automatically.
+
+Removing the classifieds table from one of the modules isn't the right thing
+to do. One would expect typical OS install to have both search and profile 
+modules but each module can work without the other.
+
+An external web page (for example) could create classifieds to be seached 
+without the need for the profile module. On the other hand, someone could 
+create classifieds using the profile section in their viewer that would be 
+searched via a web page if the search module wasn't installed.
+
+You might be seeing a problem with the modules if you are using a separate 
+databases. While it would be possible to do so, it would need some changes 
+to the code to avoid difficulties when it comes to creation/searching of 
+classifieds. In the &quot;First time installation&quot; section of the README in the 
+ossearch module source tree I mention that you should use the same database 
+for osprofile and ossearch.
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010692.html">[Opensim-dev] Improved OSSearch &amp; OSProfile
+</A></li>
+	<LI>Next message: <A HREF="010695.html">[Opensim-dev] Improved OSSearch &amp; OSProfile
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10693">[ date ]</a>
+              <a href="thread.html#10693">[ thread ]</a>
+              <a href="subject.html#10693">[ subject ]</a>
+              <a href="author.html#10693">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

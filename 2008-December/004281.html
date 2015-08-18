@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim Comms
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20Comms&In-Reply-To=%3C49575D0D.8050500%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004280.html">
+   <LINK REL="Next"  HREF="004283.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim Comms</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20Comms&In-Reply-To=%3C49575D0D.8050500%40t-data.com%3E"
+       TITLE="[Opensim-dev] OpenSim Comms">melanie at t-data.com
+       </A><BR>
+    <I>Sun Dec 28 12:03:41 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004280.html">[Opensim-dev] OpenSim Comms
+</A></li>
+        <LI>Next message: <A HREF="004283.html">[Opensim-dev] OpenSim Comms
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4281">[ date ]</a>
+              <a href="thread.html#4281">[ thread ]</a>
+              <a href="subject.html#4281">[ subject ]</a>
+              <a href="author.html#4281">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+I have made my view widely known already:
+
+I'm for REST and the idea about making it choose the most efficient 
+format sounds like a winner to me.
+
+I would like to see comms become a region module instead of the 
+tightly tied OGS1 we have now, or a replacement OGS2. That way, any 
+method of communication can be implemented, including a null method 
+for local operation only, and it can be done easily and without 
+messing with existing code at that point.
+
+Melanie
+
+
+Cristina Videira Lopes wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> As some of you know I've been working on improving the sim-sim 
+</I>&gt;<i> ChildUpdate message to include a lot more information than what it has 
+</I>&gt;<i> now. This is needed for a variety of purposes, including improving 
+</I>&gt;<i> region crossings and TPs, but not only. In talking to Melanie and 
+</I>&gt;<i> Teravus, we decided that since this improvement is going to break 
+</I>&gt;<i> sim-sim comms anyway, it wouldn't be a bad idea to try something radical 
+</I>&gt;<i> and do this over HTTP POST instead of remoting.
+</I>&gt;<i> 
+</I>&gt;<i> The good news is that I have this working. But before I commit anything 
+</I>&gt;<i> to trunk, I'd like to hear from you about OpenSim comms in general, and 
+</I>&gt;<i> their future. But I don't want this topic to degenerate in the 
+</I>&gt;<i> conversation about standalone vs. grid. I think that issue is marginal 
+</I>&gt;<i> here, since this is about remote sim-sim comms, independent of the UGAIM 
+</I>&gt;<i> services.
+</I>&gt;<i> 
+</I>&gt;<i>  From what I understand, everyone dislikes OGS1 for all sorts of 
+</I>&gt;<i> different reasons. From where I stand, Remoting in sim-sim comms is an 
+</I>&gt;<i> unnecessary tie to .Net. This HTTP POST method is really neat, I think, 
+</I>&gt;<i> and we could move all remote sim-sim comms to use HTTP POST, which will 
+</I>&gt;<i> make OpenSim  a lot more interoperable (yes, somebody might want to 
+</I>&gt;<i> write non-.Net simulator and have it talk to OpenSim :-).
+</I>&gt;<i> 
+</I>&gt;<i> But the real question is: should we *replace* the remoting methods in 
+</I>&gt;<i> OGS1 with this other thing, or should someone do some plugin magic in 
+</I>&gt;<i> order to be able to configure OpenSim with different communication 
+</I>&gt;<i> components?
+</I>&gt;<i> 
+</I>&gt;<i> To be very concrete. I started doing this new ChildAgentUpdate method as 
+</I>&gt;<i> a replacement of the existing one in OGS1. If I commit what I have, the 
+</I>&gt;<i> previous mechanism for ChildUpdates will disappear into svn history, and 
+</I>&gt;<i> this new one will pop up in the middle of Remoting (and XMLPRC, mind 
+</I>&gt;<i> you) methods. I'm not sure this is the right thing to do. An alternative 
+</I>&gt;<i> is to start another namespace called, say, OGS2, and rewrite all methods 
+</I>&gt;<i> that use remoting in OGS1 with methods in OGS2 that use HTTP POST. If I 
+</I>&gt;<i> do this, and without proper componentization, I'll have to do a similar 
+</I>&gt;<i> trick that I did for the HG, ie. make the comms configuration affect the 
+</I>&gt;<i> application classes themselves. But it's a little worse than for the HG, 
+</I>&gt;<i> because the data structures passed around are seriously intertwined 
+</I>&gt;<i> between Environment.Scenes and Comms. As we make improvements in those 
+</I>&gt;<i> data structures (as is the case in the ChildAgentUpdate message), we 
+</I>&gt;<i> need to change Environment.Scenes. Plus, regions using OGS1 won't work 
+</I>&gt;<i> with regions using OGS2.
+</I>&gt;<i> 
+</I>&gt;<i> So the even more real question is this: do we really want to make Comms 
+</I>&gt;<i> a replaceable component? Something that can be completely replaced under 
+</I>&gt;<i> the hood? If so, then componentizing it is a must, and the question is 
+</I>&gt;<i> how. If not, replacing OGS1 with another thing that serves as references 
+</I>&gt;<i> implementation of a standard protocol might be ok.
+</I>&gt;<i> 
+</I>&gt;<i> Thoughts?
+</I>&gt;<i> 
+</I>&gt;<i> Crista
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004280.html">[Opensim-dev] OpenSim Comms
+</A></li>
+	<LI>Next message: <A HREF="004283.html">[Opensim-dev] OpenSim Comms
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4281">[ date ]</a>
+              <a href="thread.html#4281">[ thread ]</a>
+              <a href="subject.html#4281">[ subject ]</a>
+              <a href="author.html#4281">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

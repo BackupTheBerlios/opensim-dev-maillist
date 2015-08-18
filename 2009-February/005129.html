@@ -1,0 +1,357 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Please do not revert fixes without	careful	comtemplation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Please%20do%20not%20revert%20fixes%20without%0A%09careful%09comtemplation&In-Reply-To=%3C499AC114.50306%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005121.html">
+   <LINK REL="Next"  HREF="005131.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Please do not revert fixes without	careful	comtemplation</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Please%20do%20not%20revert%20fixes%20without%0A%09careful%09comtemplation&In-Reply-To=%3C499AC114.50306%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Please do not revert fixes without	careful	comtemplation">jjustincc at googlemail.com
+       </A><BR>
+    <I>Tue Feb 17 14:52:20 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005121.html">[Opensim-dev] Please do not revert fixes without	careful	comtemplation
+</A></li>
+        <LI>Next message: <A HREF="005131.html">[Opensim-dev] Please do not revert fixes	without	careful	comtemplation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5129">[ date ]</a>
+              <a href="thread.html#5129">[ thread ]</a>
+              <a href="subject.html#5129">[ subject ]</a>
+              <a href="author.html#5129">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Charles Krinke wrote:
+&gt;<i> Well, it really doesnt matter what one calls them. Binary data, text, 
+</I>&gt;<i> whatever.
+</I>&gt;<i> 
+</I>&gt;<i> The point is that we have a number of issues with our assets table in 
+</I>&gt;<i> OpenSim that a bit of thought would help.
+</I>&gt;<i> 
+</I>&gt;<i> 1. We have a significant number of assets whose name is &quot;blank&quot; that are 
+</I>&gt;<i> created with a default constructor. And I suspect are never accessible.
+</I>
+Unfortunately this is not true.  There are various mechanisms that create assets without giving them 'names'.
+
+In fact, this field has always seemed redundant to me since the user only ever manipulates assets by their inventory 
+name, which is entirely separate from the asset name.  The asset name is never visible to the user (and afaik is not 
+used anywhere else in the code).
+
+At one point I thought about proposing to remove it.  Possibly this issue should be revisited.
+
+&gt;<i> 2. We have a significant number of assets of each and every edit of 
+</I>&gt;<i> terrain, where only the very last one is accessible.
+</I>
+Yes, this does seem wasteful to me since old terrain assets are not used by anything, afaik.
+
+&gt;<i> 3. We have a significant number of assets of each and every text edit 
+</I>&gt;<i> for each and every textual assets. Where only the last one should be 
+</I>&gt;<i> accessible.
+</I>
+Unfortunately, this is not the case.  For instance, imagine that you create a script in your inventory.  You drag this 
+script into a region object.  At this point, both the entry in your inventory and the entry in the region point to the 
+same textual asset.
+
+But then you edit the script in your inventory.  After the edit it points to a new asset containing the edited text. 
+However, the region object is still pointing to the old script asset.  So we need to keep both the old and new textual 
+assets.
+
+However, you're right in that textual assets which are never used elsewhere (i.e. are intermediate edits that never get 
+dragged into an object, given to someone else, or otherwise transmitted) might possibly be eliminated with some 
+sufficiently careful scheme.
+
+&gt;<i> 
+</I>&gt;<i> Its a bit like collecting every scrap of paper ever written with either 
+</I>&gt;<i> text or binary glyphs and putting them in a big filing cabinet.
+</I>&gt;<i> 
+</I>&gt;<i> After a while, finding the ones that are &quot;interesting&quot; in a &quot;timely&quot; 
+</I>&gt;<i> manner starts to get a little &quot;challenging&quot;.
+</I>&gt;<i> 
+</I>&gt;<i> Charles
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> *From:* Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;<i> *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> *Sent:* Monday, February 16, 2009 4:43:53 PM
+</I>&gt;<i> *Subject:* Re: [Opensim-dev] Please do not revert fixes without careful 
+</I>&gt;<i> comtemplation
+</I>&gt;<i> 
+</I>&gt;<i> Yes, I did forget sounds. Probably because they never reached
+</I>&gt;<i> critical mass on any system I have anything to do with. Though, a
+</I>&gt;<i> lot seem to exist, judged by the number of gestures.
+</I>&gt;<i> As for images, I call them all &quot;textures&quot;, because any image could
+</I>&gt;<i> be used as a texture. They are all jp2 steams, so even though they
+</I>&gt;<i> may have a different purpose from covering prims, they are
+</I>&gt;<i> technically identical in storage format and type of content, and
+</I>&gt;<i> would be handled the same.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;<i>  &gt; Melanie wrote:
+</I>&gt;<i>  &gt;&gt; No. Terrain images are textures. They are assets referring to jp2
+</I>&gt;<i>  &gt;&gt; streams. That makes them textures. And, AFAIK, all other assets are
+</I>&gt;<i>  &gt;&gt; text.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Other non-text assets are images that aren't textures and sounds.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;&gt;
+</I>&gt;<i>  &gt;&gt; Melanie
+</I>&gt;<i>  &gt;&gt;
+</I>&gt;<i>  &gt;&gt; Charles Krinke wrote:
+</I>&gt;<i>  &gt;&gt;&gt; I am so sorry that we are having communications difficulties.
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; Terrain Images, are, I believe, neither &quot;textual&quot; nor &quot;text&quot;.
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; That was just an example.
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; The point is that we need to be careful and consider all the 
+</I>&gt;<i> various assets which include a lot more then textures and scripts.
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; Charles
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; ________________________________
+</I>&gt;<i>  &gt;&gt;&gt; From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt; Sent: Monday, February 16, 2009 8:23:16 AM
+</I>&gt;<i>  &gt;&gt;&gt; Subject: Re: [Opensim-dev] Please do not revert fixes without 
+</I>&gt;<i> careful comtemplation
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; Hello,
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; that was a typo. The correct word was &quot;textual&quot;. All asset types
+</I>&gt;<i>  &gt;&gt;&gt; besides textures are text.
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; Melanie
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; Charles Krinke wrote:
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Sorry, the other assets are not just &quot;small texture data&quot;. We have 
+</I>&gt;<i> terrainImages, amongst other things.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Our assets table in OpenSim contains lots of things including the 
+</I>&gt;<i> infamouse &quot;blank&quot;, so lets look at it in total and not just from the 
+</I>&gt;<i> script viewpoint.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Course with scripts themselves, we have every edited version of 
+</I>&gt;<i> every edited script in addition to every change of every other asset 
+</I>&gt;<i> complicating the problem.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Charles
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; ________________________________
+</I>&gt;<i>  &gt;&gt;&gt;&gt; From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Sent: Monday, February 16, 2009 4:44:56 AM
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Subject: Re: [Opensim-dev] Please do not revert fixes without 
+</I>&gt;<i> careful comtemplation
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Again, I'd like to stress that I believe this is too dangerous to do
+</I>&gt;<i>  &gt;&gt;&gt;&gt; for anything other than textures.
+</I>&gt;<i>  &gt;&gt;&gt;&gt; It is also not really needed for things other than textures, since
+</I>&gt;<i>  &gt;&gt;&gt;&gt; the other assets are comparatively small, textural data.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; I would not want to risk even the smallest chance of a hash
+</I>&gt;<i>  &gt;&gt;&gt;&gt; collision on script source.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Melanie
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Stefan Andersson wrote:
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Coming in a bit from the side here,
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; we have, for some time, discussed to separate out the binary blog 
+</I>&gt;<i> out of the metadata for an entirely different reason, namely to be able 
+</I>&gt;<i> to weed out binary duplicates.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; If there was a way for us to separate out the binary parts, into 
+</I>&gt;<i> something like 'binaryassetId, hashData[256], binarydata' and then just 
+</I>&gt;<i> have the asset table referencing that row, I think it would help a lot.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; I realize it's a separate discussion, just chipping in my two cents.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Best regards,
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Stefan Andersson
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Tribal Media AB
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Date: Sat, 14 Feb 2009 17:49:22 +0200
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A> 
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; CC: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A> 
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Subject: Re: [Opensim-dev] Please do not revert fixes without 
+</I>&gt;<i> careful comtemplation
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Hello,
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; On second though we could keep the current structure and expose 
+</I>&gt;<i> all fields also through AssetBase properties. Then we could save / load 
+</I>&gt;<i> the AssetBase with nhibernate as a single object and leave out the 
+</I>&gt;<i> Metadata  property from NHibernate mapping. Does this sound good?
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; regards,
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Tommi
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; On Sat, Feb 14, 2009 at 5:06 PM, Mike Mazur &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A> 
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Hi,
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; On Sat, Feb 14, 2009 at 4:05 PM, Tommi Laukkanen
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A> 
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;&gt; I was talking with mikkopa and he suggested we should create two 
+</I>&gt;<i> tables to
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;&gt; cover AssetBase to solve this issue properly. Namely 
+</I>&gt;<i> AssetMetadata for
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;&gt; metadata information and AssetData for blobs to avoid situation 
+</I>&gt;<i> where we end
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;&gt; up accessing also the blob data just to read metadata.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; I was hoping not to have to do that.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; It should be straightforward to support the current
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; AssetBase/AssetMetadata composition in the existing OpenSim data
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; layers, but as sdague warned me earlier, by mapping multiple classes
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; to one table I was entering a world of pain. Seems that's exactly
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; what's happening with NHibernate.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; The reason I introduced the AssetMetadata class is to supply metadata
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; information only for some requests that Cable Beach, the new asset
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; server, supports. Now I realize that this was probably a premature
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; optimization.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Instead of modifying the DB schema, we could have AssetBase inherit
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; from AssetMetadata, as I outlined before[1]. Alternatively, we could
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; get rid of AssetMetadata altogether and store everything in AssetBase
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; as before, splitting out the metadata sometime in the future when a
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; use case warrants it.
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; What do you think?
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Thanks,
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Mike
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; [1] 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2009-February/004918.html">https://lists.berlios.de/pipermail/opensim-dev/2009-February/004918.html</A>
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>  &gt;&gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;<i>  &gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;&gt;&gt; _______________________________________________
+</I>&gt;<i>  &gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>  &gt;&gt;&gt;
+</I>&gt;<i>  &gt;&gt;&gt; _______________________________________________
+</I>&gt;<i>  &gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;&gt; _______________________________________________
+</I>&gt;<i>  &gt;&gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>  &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;&gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005121.html">[Opensim-dev] Please do not revert fixes without	careful	comtemplation
+</A></li>
+	<LI>Next message: <A HREF="005131.html">[Opensim-dev] Please do not revert fixes	without	careful	comtemplation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5129">[ date ]</a>
+              <a href="thread.html#5129">[ thread ]</a>
+              <a href="subject.html#5129">[ subject ]</a>
+              <a href="author.html#5129">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

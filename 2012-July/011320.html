@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] TimerEvent to slow, do/while faster.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20TimerEvent%20to%20slow%2C%20do/while%20faster.&In-Reply-To=%3CCAAQTD4VzpQ_oEvwe_DS%3DDcnH-42z%2B03NqcV-mKgVd5YCyDs1Sw%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011315.html">
+   <LINK REL="Next"  HREF="011321.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] TimerEvent to slow, do/while faster.</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20TimerEvent%20to%20slow%2C%20do/while%20faster.&In-Reply-To=%3CCAAQTD4VzpQ_oEvwe_DS%3DDcnH-42z%2B03NqcV-mKgVd5YCyDs1Sw%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] TimerEvent to slow, do/while faster.">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Wed Jul 18 21:02:07 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011315.html">[Opensim-dev] TimerEvent to slow, do/while faster.
+</A></li>
+        <LI>Next message: <A HREF="011321.html">[Opensim-dev] TimerEvent to slow, do/while faster.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11320">[ date ]</a>
+              <a href="thread.html#11320">[ thread ]</a>
+              <a href="subject.html#11320">[ subject ]</a>
+              <a href="author.html#11320">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>There's a setting which can be added to the [XEngine] section of the
+OpenSim.ini file:
+MinTimerInterval = 0.5
+
+Note that if you have high speed timers and you do scene updates with them,
+you will likely overflow queues in many places and cause all sorts of
+problems. I seem to not have too many problems  with it set at 0.1 and with
+just a couple scripts with timers that fast.
+
+Note also that doing scene updates (moving objects) sends at least one
+packet to each client connected to the sim and you really never want to
+send updates faster than they can be displayed. If you send 100 packets per
+second to each viewer, and most viewers are running about 30 FPS, you are
+sending 70 scene updates to each viewer that cant even be displayed. If
+your goal is smooth motion this will probably work against you as you will
+likely have a lot of packet loss and the lazy send queues in llClientView
+will send the state of the prim when the packet is sent, not as it was when
+the timer event occurred, which means you could get a bunch of packets in a
+row that send the same position. So, in essence, you are making the sim do
+more work and probably causing instability in many areas while not
+accomplishing your desired goal.
+
+Using not_at_target() is probably the best event as it likely wouldn't send
+any updates any faster than they can change in the simulator. I suspect
+even using not_at_target could cause issues when lots of clients are in the
+sim and/or lots of prims are moving/changing at the same time.
+
+Also be aware that if you are changing the shape of prims, it's probably
+best to make them phantom while doing many quick shape changes in a row,
+otherwise the code which creates physics shapes may not be able to keep up
+and you could run into memory problems as each shape is stored.
+
+Hopefully eventually OpenSimulator will have implemented
+llSetKeyFrameMotion() which would be a much more efficient way of doing
+smoothly moving objects.
+
+
+On Tue, Jul 17, 2012 at 5:05 PM, Justin Clark-Casey &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+
+&gt;<i> not_at_target is currently triggered through the main scene rather than in
+</I>&gt;<i> the aync lsl command thread.  So it will fire at least every 1/11 of a
+</I>&gt;<i> second.  For some reason, the target check is also performed at
+</I>&gt;<i> SceneObjectGroup.**ScheduleGroupForUpdate() so it may fire even more
+</I>&gt;<i> often.
+</I>&gt;<i>
+</I>&gt;<i> Looking briefly at the web, sources only mention that not_at_target may
+</I>&gt;<i> fire multiple times before reaching a target. They say nothing about the
+</I>&gt;<i> periodicity of such firing.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 18/07/12 00:45, R.Gunther wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> On 2012-07-18 01:31, Justin Clark-Casey wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> If you want to increase timer resolution the current thing to do would
+</I>&gt;&gt;&gt;<i> be to change
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> cmdHandlerThreadCycleSleepms = 100;
+</I>&gt;&gt;&gt;<i> Intressting, then i get the question why it seems the event &quot;
+</I>&gt;&gt;&gt;<i> not_at_target&quot; seems to have o restriction.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> with that function i always get some sort if filled query. not_at_target
+</I>&gt;&gt;<i> can fire at the same speed as do/while
+</I>&gt;&gt;<i> It looks like its getting faster called then processed. i think
+</I>&gt;&gt;<i> &quot;timerevent&quot; is right now to slow and &quot;not_at_target&quot;
+</I>&gt;&gt;<i> is way to fast and seems to require lots of lsl time.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The whole event triggering is sometimes tricky.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  in AsyncCommandManager.**ReadConfig().  It appears that configurability
+</I>&gt;&gt;&gt;<i> was disabled almost 4 years ago for reasons
+</I>&gt;&gt;&gt;<i> unknown.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> The fact that it's 100 means that you can never get timers that fire
+</I>&gt;&gt;&gt;<i> less than 100ms apart.  Moreover, timers are tied
+</I>&gt;&gt;&gt;<i> into the general AsyncCommandManager.**DoOneCmdHandlerPass(), which
+</I>&gt;&gt;&gt;<i> performs operations for listeners, sensors and
+</I>&gt;&gt;&gt;<i> dataserver events as well as timers.  So the resolution will be even
+</I>&gt;&gt;&gt;<i> less accurate.  At some point I think it may be
+</I>&gt;&gt;&gt;<i> good to do some of these in separate threads to reduce the variability
+</I>&gt;&gt;&gt;<i> of performance.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> However, even if these issues were to go away, the timer events would
+</I>&gt;&gt;&gt;<i> still have to be fired through the event
+</I>&gt;&gt;&gt;<i> mechanism.  I'm not sure how efficient firing lots of timers is, or what
+</I>&gt;&gt;&gt;<i> impact it would have on other scripts in the
+</I>&gt;&gt;&gt;<i> region.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On 16/07/12 15:13, R.Gunther wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> I work on some project that move prims.
+</I>&gt;&gt;&gt;&gt;<i> Right now i do it with small do/while loop. thats the fastest way to
+</I>&gt;&gt;&gt;&gt;<i> move a prim smooth.
+</I>&gt;&gt;&gt;&gt;<i> But have technical some problems.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> If i move the prim with timer event. and i have set it to 0.01 because
+</I>&gt;&gt;&gt;&gt;<i> its anyway not seems todo much below 0.5
+</I>&gt;&gt;&gt;&gt;<i> not sure whats the lowest working setting. And thats also the problem.
+</I>&gt;&gt;&gt;&gt;<i> the object moves way slower != smooth compared to
+</I>&gt;&gt;&gt;&gt;<i> do/while loop.
+</I>&gt;&gt;&gt;&gt;<i> Would be nice if there's option to speed the timer event up. But need
+</I>&gt;&gt;&gt;&gt;<i> to agree i dont know the effects.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> A timer thats doing lets say 0.01 sounds better then a do/while loopt
+</I>&gt;&gt;&gt;&gt;<i> thats running 20 meters with steps of 0.5 meters.
+</I>&gt;&gt;&gt;&gt;<i> would be nice if the timers where a bit faster. But maby i make a
+</I>&gt;&gt;&gt;&gt;<i> thinking error to.  Still dont see why i cant get the
+</I>&gt;&gt;&gt;&gt;<i> same result with both ways.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20120718/668f5142/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20120718/668f5142/attachment.html</A>&gt;
+</PRE>
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011315.html">[Opensim-dev] TimerEvent to slow, do/while faster.
+</A></li>
+	<LI>Next message: <A HREF="011321.html">[Opensim-dev] TimerEvent to slow, do/while faster.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11320">[ date ]</a>
+              <a href="thread.html#11320">[ thread ]</a>
+              <a href="subject.html#11320">[ subject ]</a>
+              <a href="author.html#11320">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

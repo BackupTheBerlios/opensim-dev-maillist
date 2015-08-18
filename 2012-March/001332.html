@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> No subject
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.8.1331736295.7835.opensim-dev%40lists.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001331.html">
+   <LINK REL="Next"  HREF="001334.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>No subject</H1>
+    <B></B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.8.1331736295.7835.opensim-dev%40lists.berlios.de%3E"
+       TITLE="No subject">
+       </A><BR>
+    <I>Wed Mar 14 15:44:31 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001331.html">No subject
+</A></li>
+        <LI>Next message: <A HREF="001334.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1332">[ date ]</a>
+              <a href="thread.html#1332">[ thread ]</a>
+              <a href="subject.html#1332">[ subject ]</a>
+              <a href="author.html#1332">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&nbsp;&lt;BR&gt;
+* Overly complex (the configuration seem to, in themselves, be on par with =
+actually coding generic mappers)&lt;BR&gt;
+* Mandating major changes in our object structure (opening up for encapsula=
+tion violations or forcing dependencies on hibernate)&lt;BR&gt;
+* Totally invasive (as in, in practice demanding its storage philosophy to =
+be acommodated for and&nbsp;coded into core objects)&lt;BR&gt;
+&nbsp;&lt;BR&gt;
+It has been proven a very bad thing to let objects take care of their own d=
+b serialization. More often than not, the object cannot be serialized from =
+within its own context (it might not have data like 'parent' needed for rel=
+ational storage) - and the object itself should not know about any given se=
+rialization method.&lt;BR&gt;
+&nbsp;&lt;BR&gt;
+It IS a very bad thing to rely on 'storage' as a prime db serialization con=
+cept -&nbsp;you want 'changes':&nbsp;the first thing we need to do when we =
+get to optimize the db layer, is to introduce more fine-grained update call=
+s, like 'ChangeOwner' and 'StoreTextures' instead of 'store object, with pr=
+ims, textures and shapes'. I have asked several times how this would be acc=
+omodated in nhibernate, but have got no answers.&lt;BR&gt;
+&nbsp;&lt;BR&gt;
+Now, I've been asking for some kind of overview of the wins with this and w=
+hat the drawbacks are, but have so far got none that gives me any idea of w=
+hat impact this has on our modular approach or on performance.&lt;BR&gt;
+&nbsp;&lt;BR&gt;
+If we're not going to let it 'hibernate' objects, as in 'let the objects th=
+emselves store themselves' and if we have to set up config files detailing =
+out the mappings, why simply not just CODE the thing and get&nbsp;the granu=
+larity,&nbsp;performance and&nbsp;customizability (as in, being able to let=
+ the objects be serialized according to their different internal structures=
+) that comes with it?&lt;BR&gt;
+&nbsp;&lt;BR&gt;
+Best,&lt;BR&gt;
+/Stefan&lt;BR&gt;&lt;BR&gt;
+&lt;BLOCKQUOTE&gt;
+&lt;HR id=3DEC_stopSpelling&gt;
+Date: Fri, 4 Apr 2008 10:23:33 +0200&lt;BR&gt;From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&lt;BR&gt;To: open=
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sim-dev at lists.berlios.de</A>&lt;BR&gt;Subject: Re: [Opensim-dev] nhibernate progress,=
+ baby steps&lt;BR&gt;&lt;BR&gt;Hello everyone:&lt;BR&gt;&lt;BR&gt;I hadn't any time to &quot;nhibernatin=
+g&quot; opensim (as I told months ago) but the code I did is there.&lt;BR&gt;&lt;BR&gt;Sean =
+I know my code may be &quot;complicated&quot; when starting, that's for the use of fa=
+ctories and DAO's. My intention was to convert every nhibernate object in a=
+ DAO, so they will know how to save, update, delete... themselves (a simple=
+ call to AssetDAO.Save(id) for example). Well, for testing your approach is=
+ better if you don't have enough experience with hibernate.&lt;BR&gt;&lt;BR&gt;Second, =
+my approach was to not modify the current objects, mapping them to nhiberna=
+te classes. Of course the better idea is to use the libsl-hibernatized obje=
+cts (with getters and setters) throughout the code w/o intermediate mapping=
+ classes. I think the advantages of having &quot;intelligent&quot; getters and setter=
+s where we could put validations, or even classes than can serialize (to XM=
+L or whatever) are more than the &quot;overload and memory use&quot; disadvantages.&lt;B=
+R&gt;&lt;BR&gt;Third (fuck, I'm making a list) the ID question: do not use the &quot;auto=
+&quot; ids (generated by nhibernate). Let opensim create them. The overhead of l=
+etting hibernate create these ids is higher than the CoCreateId call opensi=
+m does. If you want to use a byte array for storing ids (due to better perf=
+ormance), use it; hibernate hasn't any problem with it (the &quot;recommended id=
+&quot; is an integer because hibernate is often used in &quot;enterprise environments=
+&quot;, there isn't any other reason).&lt;BR&gt;&lt;BR&gt;Four, I tested my previous code (a=
+part from .NET) with mono + SQLite + nhibernate w/o &quot;touching&quot; anything (I =
+used the included sqlite drivers included with opensim). I can't help you h=
+ere.&lt;BR&gt;&lt;BR&gt;Five, instead of using the hbm.xml files you can use mapping at=
+tributes (that was the point where I stopped). The same with the hibernate.=
+cfg.xml, you can set its properties &quot;programatically&quot;. The advantages: if y=
+ou change one data object you don't have to change the xml file too; and le=
+ss files in the bin directory as well.&lt;BR&gt;&lt;BR&gt;Six, you can generate the db =
+schemma automatically (I think I provided an example), it's db independent.=
+ If you are using mapping attributes instead of hbm.xml just serialize the =
+objects (there are some examples looking for &quot;nhibernate mapping attributes=
+&quot; in google). It works...&lt;BR&gt;&lt;BR&gt;Seven, sorry. I wanted to help you develop=
+ing a hibernate base but I had only 1 &quot;relatively&quot; free week to did it. May=
+be in the future.&lt;BR&gt;&lt;BR&gt;Greetings and good luck&lt;BR&gt;&lt;BR&gt;Impalah &quot;busy guy&quot; =
+Shenzhou&lt;BR&gt;&lt;BR&gt;&lt;BR&gt;&lt;BR&gt;&lt;BR&gt;
+&lt;DIV&gt;&lt;SPAN class=3DEC_gmail_quote&gt;2008/4/3, Stefan Andersson &lt;&lt;A href=3D=
+&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&lt;/A&gt;&gt;:&lt;/SPAN&gt;=20
+&lt;BLOCKQUOTE class=3DEC_gmail_quote style=3D&quot;PADDING-LEFT: 1ex&quot;&gt;
+&lt;DIV&gt;Yeah, well; I'm not saying it IS, just that we need to check on it.&lt;BR=
+&gt;<i>&lt;BR&gt;I glimpsed that as I was trying to find out what the 'best practice' f=
+</I>or storing guids in MySQL databases was; I actually didn't find any good in=
+fo on that.&lt;BR&gt;&nbsp;&lt;BR&gt;/Stefan&lt;BR&gt;&lt;BR&gt;&lt;BR&gt;
+&lt;HR&gt;
+&lt;BR&gt;&gt; Subject: RE: [Opensim-dev] nhibernate progress, baby steps&lt;BR&gt;&gt;=
+ From: &lt;A href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&lt;/A&gt;&lt;BR&gt;&amp;g=
+t; To: &lt;A href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&lt;/A&gt;&lt;B=
+R&gt;&gt; CC: &lt;A href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at list</A>=
+s.berlios.de&lt;/A&gt;&lt;BR&gt;&gt; Date: Thu, 3 Apr 2008 13:04:37 -0500=20
+&lt;DIV&gt;&lt;SPAN class=3DEC_e id=3DEC_q_119157af9feec1a2_1&gt;&lt;BR&gt;&gt; &lt;BR&gt;&gt; &lt;BR&gt;=
+&gt;<i> Ouch. That's not good. &lt;BR&gt;&gt; &lt;BR&gt;&gt; &lt;BR&gt;&gt; On Thu, 2008-04-03 a=
+</I>t 19:55 +0200, Stefan Andersson wrote:&lt;BR&gt;&gt; &gt; It seems the MySQL conn=
+ector for .net assumes the db field is a&lt;BR&gt;&gt; &gt; string for its intern=
+al MySqlDataReader.GetGuid() implementation.&lt;BR&gt;&gt; &gt; &lt;BR&gt;&gt; &gt; (I =
+could have been looking at source for an old revision of the&lt;BR&gt;&gt; &gt; c=
+onnector, but that needs to be checked out anyway)&lt;BR&gt;&gt; &gt; &lt;BR&gt;&gt; &amp;g=
+t; So, that might mean that going binary could wreck stuff like&lt;BR&gt;&gt; &amp;gt=
+; nhibernate, if that's using a DataReader.&lt;BR&gt;&gt; &gt; &lt;BR&gt;&gt; &gt; Best=
+,&lt;BR&gt;&gt; &gt; /Stefan&lt;BR&gt;&gt; &gt; &lt;BR&gt;&gt; &gt; &lt;BR&gt;&gt; &gt; &lt;BR&gt;&gt; &amp;g=
+t; &lt;BR&gt;&gt; &gt; &lt;BR&gt;&gt; &gt; ____________________________________________=
+__________________________&lt;BR&gt;&gt; &gt; &lt;BR&gt;&gt; &gt; &gt; Date: Thu, 3 Apr=
+ 2008 13:49:03 -0400&lt;BR&gt;&gt; &gt; &gt; From: &lt;A href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.n</A>=
+et&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&lt;/A&gt;&lt;BR&gt;&gt; &gt; &gt; To: &lt;A href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terra</A>=
+box.com&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&lt;/A&gt;; &lt;A href=3D&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berli</A>=
+os.de&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&lt;/A&gt;&lt;BR&gt;&gt; &gt; &gt; Subject: Re: [Ope=
+nsim-dev] nhibernate progress, baby steps&lt;BR&gt;&gt; &gt; &gt; &lt;BR&gt;&gt; &gt; &amp;=
+gt; On Thu, Apr 03, 2008 at 11:19:58AM -0500, Brian Wolfe wrote:&lt;BR&gt;&gt; &amp;g=
+t; &gt; &gt; *nod* sounds good to me as well. I just have one request since=
+&lt;BR&gt;&gt; &gt; we'll be&lt;BR&gt;&gt; &gt; &gt; &gt; changing things up at this le=
+vel. Can we shoot for UUIDs being&lt;BR&gt;&gt; &gt; stored as&lt;BR&gt;&gt; &gt; &gt; =
+&gt;<i> a byte[16] in order to gain the 10x speedup in SQL&lt;BR&gt;&gt; &gt; indexi=
+</I>ng/storage vs&lt;BR&gt;&gt; &gt; &gt; &gt; string(32|36) ?&lt;BR&gt;&gt; &gt; &gt; &lt;BR&gt;=
+&gt;<i> &gt; &gt; That's definitely an option. It did however seem like there =
+</I>was some&lt;BR&gt;&gt; &gt; &gt; speedup on LLUUID processing if we kept strings.=
+ I'm not sure where&lt;BR&gt;&gt; &gt; the&lt;BR&gt;&gt; &gt; &gt; two end up colliding=
+ on speedup effects.&lt;BR&gt;&gt; &gt; &gt; &lt;BR&gt;&gt; &gt; &gt; -Sean&lt;BR&gt;&gt; &amp;gt=
+; &gt; &lt;BR&gt;&gt; &gt; &gt; -- &lt;BR&gt;&gt; &gt; &gt; ___________________________=
+_______________________________________&lt;BR&gt;&gt; &gt; &gt; &lt;BR&gt;&gt; &gt; &amp;gt=
+; Sean Dague Mid-Hudson Valley&lt;BR&gt;&gt; &gt; &gt; sean at dague dot net Linu=
+x Users Group&lt;BR&gt;&gt; &gt; &gt; &lt;A href=3D&quot;<A HREF="http://dague.net/">http://dague.net/</A>&quot; target=3D_bla=
+nk&gt;<A HREF="http://dague.net&lt;/A">http://dague.net&lt;/A</A>&gt; &lt;A href=3D&quot;<A HREF="http://mhvlug.org/">http://mhvlug.org/</A>&quot; target=3D_blank&gt;http=
+:<i>//mhvlug.org&lt;/A&gt;&lt;BR&gt;&gt; &gt; &gt; &lt;BR&gt;&gt; &gt; &gt; There is no silver b=
+</I>ullet. Plus, werewolves make better neighbors&lt;BR&gt;&gt; &gt; &gt; than zombie=
+s, and they tend to keep the vampire population down.&lt;BR&gt;&gt; &gt; &gt; ___=
+_______________________________________________________________&lt;BR&gt;&gt; &amp;gt=
+; &lt;BR&gt;&gt; &lt;BR&gt;&lt;BR&gt;&lt;/SPAN&gt;&lt;/DIV&gt;&lt;/DIV&gt;&lt;BR&gt;_________________________________=
+______________&lt;BR&gt;Opensim-dev mailing list&lt;BR&gt;&lt;A href=3D&quot;mailto:Opensim-dev=
+@lists.berlios.de&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;/A&gt;&lt;BR&gt;&lt;A href=3D&quot;<A HREF="https://l=">https://l=</A>
+ists.berlios.de/mailman/listinfo/opensim-dev&quot; target=3D_blank&gt;<A HREF="https://lists=">https://lists=</A>
+.berlios.de/mailman/listinfo/opensim-dev&lt;/A&gt;&lt;BR&gt;&lt;BR&gt;&lt;/BLOCKQUOTE&gt;&lt;/DIV&gt;&lt;BR&gt;=
+&lt;/BLOCKQUOTE&gt;&lt;/body&gt;
+&lt;/html&gt;=
+
+--_3e0aae69-b7da-4b90-ae8a-20bc57d06fce_--
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001331.html">No subject
+</A></li>
+	<LI>Next message: <A HREF="001334.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1332">[ date ]</a>
+              <a href="thread.html#1332">[ thread ]</a>
+              <a href="subject.html#1332">[ subject ]</a>
+              <a href="author.html#1332">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

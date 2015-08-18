@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Uniqueness in MySQL useraccounts ('Name' field)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Uniqueness%20in%20MySQL%20useraccounts%20%28%27Name%27%20field%29&In-Reply-To=%3C4F573779.7010105%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010936.html">
+   <LINK REL="Next"  HREF="010938.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Uniqueness in MySQL useraccounts ('Name' field)</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Uniqueness%20in%20MySQL%20useraccounts%20%28%27Name%27%20field%29&In-Reply-To=%3C4F573779.7010105%40t-data.com%3E"
+       TITLE="[Opensim-dev] Uniqueness in MySQL useraccounts ('Name' field)">melanie at t-data.com
+       </A><BR>
+    <I>Wed Mar  7 11:24:57 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010936.html">[Opensim-dev] Uniqueness in MySQL useraccounts ('Name' field)
+</A></li>
+        <LI>Next message: <A HREF="010938.html">[Opensim-dev] Uniqueness in MySQL useraccounts ('Name' field)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10937">[ date ]</a>
+              <a href="thread.html#10937">[ thread ]</a>
+              <a href="subject.html#10937">[ subject ]</a>
+              <a href="author.html#10937">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Actually, it's the combination FirstName, LastName and ScopeID that
+needs to be kept unique as different scopes may well contain users
+with identical names.
+
+Such a change would break some existing code (web interfaces
+mostly). Opensim allows you to modify the database, so if you
+add/change this on your system opensim will still work. This may be
+a better and faster solution for you.
+
+Melanie
+
+On 07/03/2012 07:16, Kevin Buckley wrote:
+&gt;<i> I have a question/request which was being discussed on the Opensim Users
+</I>&gt;<i> list and Justin suggested it might be better handled here?
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> As a developer of an Opensim member/user system I need to maintain the
+</I>&gt;<i> attribute that the combination of FirstName and LastName is unique within an
+</I>&gt;<i> individual Opensim implementation.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> To achieve that, on a server which supports multiple, concurrent signups,
+</I>&gt;<i> the best way is to have a unique, composite key in the useraccounts table
+</I>&gt;<i> which includes FirstName and LastName and then trap MySQL error 1062
+</I>&gt;<i> (duplicate entry) when attempting to create a new user record.  This avoids
+</I>&gt;<i> the situation where the code checks for uniqueness in step-1 and then, if it
+</I>&gt;<i> satisfies that, writes the new user record in step-2; with the risk that
+</I>&gt;<i> another process writes a duplicate record between those steps.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> There are other ways to deal with this but they introduce their own issues
+</I>&gt;<i> and they're not as efficient as the method above.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> The Opensim setup process already goes to the trouble of creating such a
+</I>&gt;<i> composite key, called 'Name'.  However, it doesn't give it the UNIQUE
+</I>&gt;<i> attribute.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> So, currently (as an easy fix and to avoid having to remember to manually
+</I>&gt;<i> edit the database index every time I upgrade Opensim) my code forces 'Name'
+</I>&gt;<i> to be UNIQUE every time a new user subscribes.  But clearly this is a large
+</I>&gt;<i> and mostly pointless overhead as it actually only needs to do it once.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> So my question/request is: is it possible to modify subsequent Opensim
+</I>&gt;<i> releases so that 'Name' is given the UNIQUE attribute by default (probably a
+</I>&gt;<i> one line code change I imagine)?
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> I can't see any downside to this and, unless I'm missing something, it seems
+</I>&gt;<i> a logical thing to do?
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> Kevin
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010936.html">[Opensim-dev] Uniqueness in MySQL useraccounts ('Name' field)
+</A></li>
+	<LI>Next message: <A HREF="010938.html">[Opensim-dev] Uniqueness in MySQL useraccounts ('Name' field)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10937">[ date ]</a>
+              <a href="thread.html#10937">[ thread ]</a>
+              <a href="subject.html#10937">[ subject ]</a>
+              <a href="author.html#10937">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

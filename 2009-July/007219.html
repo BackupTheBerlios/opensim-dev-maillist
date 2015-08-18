@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] The state of content tools
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20The%20state%20of%20content%20tools&In-Reply-To=%3C4A69F60D.5010508%40liferain.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007217.html">
+   <LINK REL="Next"  HREF="007220.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] The state of content tools</H1>
+    <B>Shack Dougall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20The%20state%20of%20content%20tools&In-Reply-To=%3C4A69F60D.5010508%40liferain.com%3E"
+       TITLE="[Opensim-dev] The state of content tools">shack at liferain.com
+       </A><BR>
+    <I>Fri Jul 24 19:57:33 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007217.html">[Opensim-dev] The state of content tools
+</A></li>
+        <LI>Next message: <A HREF="007220.html">[Opensim-dev] The state of content tools
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7219">[ date ]</a>
+              <a href="thread.html#7219">[ thread ]</a>
+              <a href="subject.html#7219">[ subject ]</a>
+              <a href="author.html#7219">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+&gt;<i> What is the state of the art for converting pre-existing 3D content into 
+</I>&gt;<i> SL-OpenSim prims/sculpties? I'm thinking AutoCAD, Maya, Sketchup, among 
+</I>&gt;<i> others. I'm involved in a project that really needs this kind of content.
+</I>&gt;<i>   
+</I>I'm the creator of Prim Composer for 3ds Max.
+
+It would be helpful to hear more details about the requirements of your 
+project.  For example:
+
+1) Which platforms do you need to support: OpenSim, Second Life, both?
+2) has the project already identified 3D assets that it wants to use or 
+is it planning to create those assets?
+3) What environment were the assets created in and/or what format is the 
+data in?
+4) Do the assets have UV maps and textures/materials already applied 
+that the project would like to transfer into Second Life? 
+5) What is the time frame in which the project needs to move these 
+assets into Second Life?
+6) Could you provide examples of the kinds of models that the project 
+would like to use? 
+   6a) Are we talking about buildings or organic structures? 
+   6b) Do the models have many extruded surfaces like the branches of a 
+tree or are they more box-like such as a car or building?
+   6c) Do the models have many holes in them, like windows, doors, etc. 
+or are they composed mostly of unbroken surfaces?
+
+To my knowledge, there is no current tool that does a good job of 
+converting arbitrary 3D meshes to OpenSim/Second Life sculpties.  It is 
+a hard problem to solve in the general case, but probably not impossible.
+
+Many moons ago, Chip Midnight published a tutorial for creating 
+sculpties from arbitrary meshes using the Projection modifier in 3ds Max 
+(<A HREF="http://home.comcast.net/~pixelforgeltd/Tutorial.htm">http://home.comcast.net/~pixelforgeltd/Tutorial.htm</A>).  This method has 
+been used successfully to make sculpties from pieces of existing 3D 
+models such as heads, legs, etc.
+
+Two lessens can be learned from this technique.
+1) If sculpties are going to be used to represent a pre-existing 3D 
+model, then in many cases, more than one sculptie will be needed.
+2) When the resulting sculptie is inferior to the original model, a 
+baked texture with baked shadows in it can go a long way to hiding the 
+imperfections of the sculptie.
+
+An algorithm for converting a 3D model into sculpties would probably 
+need to perform the following steps:
+
+1) Analyze the 3D model to determine where transitions or levels of 
+detail require additional sculpties.
+2) Slice up the model using the results of Step 1.  Generate sculpties 
+from each of the pieces.
+3) If an existing UV map and texture is on the model, then some 
+additional work will be required to create new UV maps on the sculpties 
+so that they will maintain the original texturing.
+
+During this process, several different techniques could be used.  Oblong 
+sculpts allow sculpties to be created in different resolutions and 
+aspect ratios.  So, if a piece of the model doesn't require 1024 faces 
+(the standard sculptie resolution), then a smaller resolution could be 
+used.  Also, the technique of snailing could be used where one sculptie 
+mesh is used to model disconnected geometry.
+
+Then, at the end of this, all of the sculpties that make up the 3D model 
+will need to be scaled so that their edges match perfectly.  If this 
+step is skipped, then places in the model where two sculpties meet will 
+not be seamless and might have small gaps.  This happens because of 
+rounding errors when the vertex coordinates are converted to 24-bit 
+colors in the sculptmap.
+
+It's not a trivial process, but I think it can be done.
+
+In Prim Composer, the only part of this that I've implemented so far is 
+the last step.  That is, Prim Composer has the ability to create a 
+single mesh that is composed of multiple sculpties and when this object 
+is exported to Second Life, the edges of the sculpties match 
+seamlessly.  There is a video here 
+(<A HREF="http://liferain.com/downloads/primcomposer/tutorials/">http://liferain.com/downloads/primcomposer/tutorials/</A>) called 
+&quot;Composite Sculpties in 1.2&quot; that demonstrates this feature.  However, 
+this doesn't allow you to convert a pre-existing mesh into multiple 
+sculpties; it only allows you to create a new mesh that gets exported as 
+multiple sculpties.  I believe that Domino Marama is working on or has 
+implemented a similar feature in his Blender plugin.
+
+One additional wrinkle in this is prim size.  If the pieces of your 
+model (the individual sculpies) would need to be larger than 10m in 
+size, then the only way to do this in *Second Life* is to use 
+megaprims.  And that adds a whole other set of complexities into the mix 
+because megaprims cannot be created; they can only be rezzed from 
+inventory.  This has huge consequences for an automated uploading system 
+because the uploader cannot simply create the megaprim.  Instead, the 
+system has to find an existing megaprim that is the needed size--either 
+in the user's inventory or using some kind of a service such as SALT.  
+It's a major kludge and Prim Composer doesn't yet support it.  I keep 
+hoping that LL will come to their senses and increase the maximum prim 
+size to something reasonable such as 100m.
+
+So, those are my thoughts on converting 3D models to Second Life.  I 
+don't have any immediate plans to implement what I've talked about, but 
+I do have the time if an organization wanted to fund such an effort.
+
+I apologize for the length of this, but I want to mention a couple of 
+general things about Prim Composer before I close.
+
+Prim Composer stores its data on disk using the Hierarchical Prim 
+Archive format (<A HREF="https://liferain.com/projects/hpa">https://liferain.com/projects/hpa</A>).  This is a general 
+purpose, fully documented standard which defines the XML format and 
+project directory structure for a build.  I have published the HPA spec 
+in the hope that it might be useful to other tool makers as a data 
+interchange format.
+
+Finally, I want to mention that a primary focus of Prim Composer is 
+large scale builds, i.e., builds with thousands of prims or sim-sized 
+builds.  Tools are under development that make it easier to manipulate 
+and construct builds on this scale.  For example, Prim Composer can rez 
+builds in-world or package the build into a single-prim rezzer.  In the 
+near future, it will also be able to automatically insert LSL scripts 
+into the build so that it can be manipulated in a way similar to 
+Builder's Buddy or Rez Foo.  And I'm hoping to include in the LSL system 
+the ability to manipulate prims that are grouped into hierarchical 
+groups that are nested to arbitrary depth.  This would allow you to 
+select by name a large group of related linksets and then move and 
+manpulate them as a unit.
+
+For more information on Prim Composer: 
+<A HREF="http://liferain.com/downloads/primcomposer/">http://liferain.com/downloads/primcomposer/</A>
+
+Hope this helps!
+
+--Shack
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007217.html">[Opensim-dev] The state of content tools
+</A></li>
+	<LI>Next message: <A HREF="007220.html">[Opensim-dev] The state of content tools
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7219">[ date ]</a>
+              <a href="thread.html#7219">[ thread ]</a>
+              <a href="subject.html#7219">[ subject ]</a>
+              <a href="author.html#7219">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

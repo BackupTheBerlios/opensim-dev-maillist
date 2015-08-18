@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] New Asset/Inventory server
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20New%20Asset/Inventory%20server&In-Reply-To=%3C20090216121259.74c6ce2a%40sumo%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005080.html">
+   <LINK REL="Next"  HREF="005082.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] New Asset/Inventory server</H1>
+    <B>Mike Mazur</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20New%20Asset/Inventory%20server&In-Reply-To=%3C20090216121259.74c6ce2a%40sumo%3E"
+       TITLE="[Opensim-dev] New Asset/Inventory server">mmazur at gmail.com
+       </A><BR>
+    <I>Mon Feb 16 04:12:59 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005080.html">[Opensim-dev] opensim 8392 breaks build of modularex
+</A></li>
+        <LI>Next message: <A HREF="005082.html">[Opensim-dev] New Asset/Inventory server
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5079">[ date ]</a>
+              <a href="thread.html#5079">[ thread ]</a>
+              <a href="subject.html#5079">[ subject ]</a>
+              <a href="author.html#5079">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+In SVN r8407-8435 you will find the new Asset/Inventory server in the
+OpenSim trunk. I don't recommend using any revision between 8407-8435,
+they will likely not compile.
+
+If you want to jump in and use it right away, here's how:
+
+1. Compile as usual
+2. Copy bin/AssetInventoryServer.ini.example to
+   bin/AssetInventoryServer.ini and edit it accordingly
+3. Instead of running OpenSim.Grid.AssetServer.exe, run
+   OpenSim.Grid.AssetInventoryServer.exe
+4. Use at your own risk, there may still be bugs
+
+Hopefully the AssetInventoryServer.ini.example file has clear enough
+comments to answer most configuration questions.
+
+Also, please note that the inventory portion is, for all intents and
+purposes, *not implemented*. Please read on for more details.
+
+What is Currently Implemented
+
+Currently the AssetInventoryServer can be used as a drop-in replacement
+for the existing AssetServer. No configuration changes are needed to
+the rest of the grid servers.
+
+In addition to that there are a handful of plugins included that
+provide additional functionality, such as browsing the assets via your
+web browser. Actually, the code is there, but it's not &quot;turned on&quot;,
+which brings us to the next section...
+
+The plugin system was converted from ExtensionLoader to Mono.Addins.
+
+What is Missing
+
+There are a few things I commented out in the interest of getting the
+code into core:
+
+- Cookie &amp; SSL support is commented out until the HttpServer in OpenSim
+  supports these features. If it already does, then it should be easy
+  to turn those features on again.
+- Regex HTTP handlers. Some of the frontends[1][2] support HTTP
+  handlers defined as regular expressions to match a UUID. As far as I
+  could tell this didn't work with the HTTP server in OpenSim.
+- The AssetStorage plugins provide a ForEach() method that iterates
+  over a set of assets. See OpenSimAssetStorage[3] for an example. This
+  used SQL that's not currently implemented in OpenSim's storage
+  backends, so it's commented out.
+- Some of the extensions in the Cable Beach SVN[4] are also not
+  included, such as the OpenID authentication and Amazon S3 or Memcached
+  storage backends.
+
+These missing features can be supported once the underlying
+infrastructure in OpenSim (HttpServer, DB storage) support the features
+they require.
+
+Also the Inventory section is completely commented out. This is because
+there's a larger number of functions to map to the existing inventory
+storage than with assets; there are only two asset operations (fetch
+and create), while there are many with inventory (fetch item, folder,
+folder and contents, create item, folder, delete item, folder etc).
+These can be implemented over time.
+
+To Wrap Up
+
+Thanks to John Hurliman and all the other contributors for their work
+on Cable Beach.
+
+Please test, give feedback, file bugs (if you must) and have fun!
+
+Thanks,
+Mike
+
+
+[1]
+<A HREF="http://opensimulator.org/cgi-bin/viewcvs.cgi/trunk/OpenSim/Grid/AssetInventoryServer/Plugins/ReferenceFrontendPlugin.cs?revision=8435&amp;view=markup&amp;pathrev=8435#l_105">http://opensimulator.org/cgi-bin/viewcvs.cgi/trunk/OpenSim/Grid/AssetInventoryServer/Plugins/ReferenceFrontendPlugin.cs?revision=8435&amp;view=markup&amp;pathrev=8435#l_105</A>
+[2]
+<A HREF="http://opensimulator.org/cgi-bin/viewcvs.cgi/trunk/OpenSim/Grid/AssetInventoryServer/Plugins/BrowseFrontendPlugin.cs?revision=8435&amp;view=markup&amp;pathrev=8435#l_101">http://opensimulator.org/cgi-bin/viewcvs.cgi/trunk/OpenSim/Grid/AssetInventoryServer/Plugins/BrowseFrontendPlugin.cs?revision=8435&amp;view=markup&amp;pathrev=8435#l_101</A>
+[3]
+<A HREF="http://opensimulator.org/cgi-bin/viewcvs.cgi/trunk/OpenSim/Grid/AssetInventoryServer/Plugins/OpenSim/OpenSimAssetStoragePlugin.cs?revision=8435&amp;view=markup&amp;pathrev=8435#l_116">http://opensimulator.org/cgi-bin/viewcvs.cgi/trunk/OpenSim/Grid/AssetInventoryServer/Plugins/OpenSim/OpenSimAssetStoragePlugin.cs?revision=8435&amp;view=markup&amp;pathrev=8435#l_116</A>
+[4]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2F">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2F</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005080.html">[Opensim-dev] opensim 8392 breaks build of modularex
+</A></li>
+	<LI>Next message: <A HREF="005082.html">[Opensim-dev] New Asset/Inventory server
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5079">[ date ]</a>
+              <a href="thread.html#5079">[ thread ]</a>
+              <a href="subject.html#5079">[ subject ]</a>
+              <a href="author.html#5079">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

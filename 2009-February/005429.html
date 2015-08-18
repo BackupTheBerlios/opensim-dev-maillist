@@ -1,0 +1,498 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Comms Manager
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C49A671A2.1070309%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005428.html">
+   <LINK REL="Next"  HREF="005430.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Comms Manager</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C49A671A2.1070309%40t-data.com%3E"
+       TITLE="[Opensim-dev] Comms Manager">melanie at t-data.com
+       </A><BR>
+    <I>Thu Feb 26 11:40:34 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005428.html">[Opensim-dev] Comms Manager
+</A></li>
+        <LI>Next message: <A HREF="005430.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5429">[ date ]</a>
+              <a href="thread.html#5429">[ thread ]</a>
+              <a href="subject.html#5429">[ subject ]</a>
+              <a href="author.html#5429">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>What Adam said.
+
+That is precisely what I am thinking of, and what we all, in a bog 
+discussion, already once agreed on, when Diva asked and we decided 
+that interregion comms should be a module.
+
+I believe the comms needs of an application plugin are different 
+from a region module's needs. I see no issue in haveinf _different_ 
+comms code in different places.
+
+I do agree that code duplication should be avoided.
+
+But I'm also taking a firm stand on CommsManager. CommsManager, as 
+it is, needs tremendous effort to extend, and non-core code can not 
+ever hook into it, because it has a fixed set of interfaces linked 
+in. That is badness.
+
+So, I think I have a solution:
+
+Refactor all services currently in comms manager into region modules 
+_or_ application plugins, depending on where it's used. Basically, 
+everything that is only used by regions should be a region module.
+
+Rewrite comms manager as a registry of intefaces, that application 
+plugins can register services with.
+This will be those comms manager services that are truly application 
+level, means, are used by things other than regions, before regiosn 
+are started, or in instances without regions.
+
+Now, each application module gets an event on creation of a scene 
+anyway. So, thay can Scene.RegisterModuleInteferce&lt;IWhatever&gt;(this) 
+with each new scene created, and offer their services to Scenes as well.
+
+If code was originally written as a region module, but is later 
+found to be useful without regions (XMLRPC RemoteAdmin is one that 
+comes to mind!), it can easily be moved to this interface and then 
+publish itself to regions to provide region comms as well.
+
+In the case of RemoteAdmin, it's comms code (yes, a StreamHandler!) 
+would be in an application plugin, exposing an IRemoteRegionAdmin to 
+each region connected. A region module that does the region part of 
+the work would grab that interface to access the underlying 
+communications.
+That would also provide a very clean separation, as the application 
+plugin can't execute anything on Scenes, because it has IScene only 
+and doesn't ref Scene itself at all. Therefore it would be comms 
+only, and the region module talking to it would be no comms at all.
+This seems logical because that way an instance with no active 
+regions could still execute a create region command... that would be 
+unavailable if no region was loaded at all!
+As Homer goes to refactor region loading and region modules, this 
+will become more important.
+
+Again, I'm -1000 on having a monolithic component that requires core 
+code edits to extend, but open to a solution as described above, 
+which, IMHO, combines all that was said so far in a neat package.
+
+Melanie
+
+
+Stefan Andersson wrote:
+&gt;<i> I think that's what Melanie is leaning towards, but that would mean every module would have to be connected to at least one scene.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> I do believe that you would have modules doing stuff already from a setting where there is no scenes loaded.
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> The regionLoader, for example. :D
+</I>&gt;<i>  
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Stefan Andersson
+</I>&gt;<i> Tribal Media AB
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>
+</I>&gt;<i> Date: Thu, 26 Feb 2009 05:21:48 -0500
+</I>&gt;<i> Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Do we need the comms manager?
+</I>&gt;<i>  
+</I>&gt;<i> Can&#8217;t we just register them individually via Scene.RegisterModuleInterface, then pull what we want when we need it?
+</I>&gt;<i>  
+</I>&gt;<i> Adam
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Stefan Andersson
+</I>&gt;<i> Sent: Thursday, 26 February 2009 2:10 AM
+</I>&gt;<i> To: Michael Wright; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;<i>  
+</I>&gt;<i> Actually, I think the various 'module types' should bee seen as reflecting on what system resources will be made available to those modules - both as a conveniense (better suited API entrypoints) and for security (being able to set policies on modules)
+</I>&gt;<i> 
+</I>&gt;<i> Also, I very much see these repository functions that we are looking at as taking care of 'configuration' - ie, to make sure that the module code don't have to take care of, or know anyhting about, the configuration of other parts of the system.
+</I>&gt;<i> 
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Stefan Andersson
+</I>&gt;<i> Tribal Media AB
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Date: Thu, 26 Feb 2009 10:05:46 +0000
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> PS. One issue that I don't  like about a lot of the Region to UGAIM code that is currently in some of the region modules, is how the network/transport code is mixed up with the handling of some basic features like friends, presences etc. I do think we should have separate transport modules.
+</I>&gt;<i> 
+</I>&gt;<i> So maybe a IPresenceTransportService, then we could have PresenceOGS1Module that implements that. And the PresenceModule uses that interface for talking to and from the UGAIM servers. Rather than network code being mixed in with logic code in a single module.
+</I>&gt;<i> 
+</I>&gt;<i> Now if these are region modules or Global/comms modules is a different question. I just think we should have more specialisation in the modules so we can easily change the network protocols without replacing the whole sub system of a feature.
+</I>&gt;<i> 
+</I>&gt;<i> --- On Thu, 26/2/09, MW &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt; wrote:
+</I>&gt;<i> From: MW &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt;
+</I>&gt;<i> Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Date: Thursday, 26 February, 2009, 9:44 AM
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Well I agree the name CommsManager is a bad choice and I'm all for changing/getting rid of that. I don't see this as a Manager but just another registery of modules. My proposal certainly isn't about making/keeping all the comms code centralised. I totally agree that we should have modules, and break up the current classes/interfaces in the Comms Manager.
+</I>&gt;<i> 
+</I>&gt;<i> The main differences between my proposal for comms modules and region modules are comms modules are initialised before regions/scenes are created and have no direct references to the scenes (although of course scene/region modules could register to events on them etc). But even that no direct reference could be changed. 
+</I>&gt;<i> 
+</I>&gt;<i> Also having this separate module system would also allow it to use the modules from the Grid,User and messaging servers (and maybe later the inventory/asset servers), which I think could help a lot to cut down the duplications we have between standalone and grid servers.
+</I>&gt;<i> 
+</I>&gt;<i> But my main issue with this concept (the comms modules and registery) is there isn't really that much difference between these and region modules. So is there any point in having the two systems/registeries. My concept is basically a Shared module and registery but more at the application level rather than the region level. 
+</I>&gt;<i> 
+</I>&gt;<i> I'm not actually really against having all the comms in region modules. But do think it brings up some issues. I don't actually agree that app level code/plugins shouldn't be able to access the comms to the UGAIM servers without going through regions or duplicating the comms handling code. And I know some of the other devs have even more issues with all the comms code being in region modules. So we need to find a solution that we are all happy with.
+</I>&gt;<i> 
+</I>&gt;<i> Maybe the solution is to work on separating the shared region modules out, so they are a actual different class/interface to the normal region modules and maybe a different registery(?). As has been talked about in irc a lot recently. But I guess these would still be accessed through regions/scenes? So really no different from a usage point of view to what we have now.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> --- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;<i> From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;<i> Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Date: Thursday, 26 February, 2009, 4:33 AMHi,
+</I>&gt;<i> 
+</I>&gt;<i>     
+</I>&gt;<i> 
+</I>&gt;<i> I'm against a CommsManager class, on the grounds I'm against most 
+</I>&gt;<i> 
+</I>&gt;<i> other *Manager classes.
+</I>&gt;<i> 
+</I>&gt;<i> They serve as holders for stuff that seems straightforward 
+</I>&gt;<i> 
+</I>&gt;<i> initially, but soon become monolithic molochs that make a simple 
+</I>&gt;<i> 
+</I>&gt;<i> change, like adding a
+</I>&gt;<i> 
+</I>&gt;<i>  single method on a single interface, a task of 
+</I>&gt;<i> 
+</I>&gt;<i> changing 37 files.
+</I>&gt;<i> 
+</I>&gt;<i>     
+</I>&gt;<i> 
+</I>&gt;<i> I don't think that any of the region comms currently in region 
+</I>&gt;<i> 
+</I>&gt;<i> modules will need to be accessed from application plugins, since 
+</I>&gt;<i> 
+</I>&gt;<i> they are region specific.
+</I>&gt;<i> 
+</I>&gt;<i>     
+</I>&gt;<i> 
+</I>&gt;<i> I would envision a system of application plugins similar to region 
+</I>&gt;<i> 
+</I>&gt;<i> plugins, that would expose their own comms interfaces to do the sort 
+</I>&gt;<i> 
+</I>&gt;<i> of comms the application, rather than a region, needs to do.
+</I>&gt;<i> 
+</I>&gt;<i>     
+</I>&gt;<i> 
+</I>&gt;<i> Forcing region comms to go through some CommsManager seems wrong.
+</I>&gt;<i> 
+</I>&gt;<i>     
+</I>&gt;<i> 
+</I>&gt;<i> Here, I see that specialization is about to be discarded for 
+</I>&gt;<i> 
+</I>&gt;<i> convenience, and I don't agree. Region comms, like teleport comms, 
+</I>&gt;<i> 
+</I>&gt;<i> don't belong in an application level comms broker, they belong in 
+</I>&gt;<i> 
+</I>&gt;<i> region modules. So do most other comms I'm aware of. Take users, fir 
+</I>&gt;<i> 
+</I>&gt;<i> instance. The application never talks about users, regions do. The 
+</I>&gt;<i> 
+</I>&gt;<i> user server comms really should be a shared region module. 
+</I>&gt;<i> 
+</I>&gt;<i> Modularisation is the
+</I>&gt;<i> 
+</I>&gt;<i>  key here, not centralisation.
+</I>&gt;<i> 
+</I>&gt;<i>     
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i>     
+</I>&gt;<i> 
+</I>&gt;<i>     
+</I>&gt;<i> 
+</I>&gt;<i> MW wrote:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> More and more of the Region to UGAIM comms and Region to Region comms, is
+</I>&gt;<i> 
+</I>&gt;<i> being moved out of the Comms Manager and into region modules. Is this a process
+</I>&gt;<i> 
+</I>&gt;<i> we should continue and move everything out of there and into Region modules? 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> I'm a bit torn on that issue, and I think a few other people are too.
+</I>&gt;<i> 
+</I>&gt;<i> We all know the current comms manager system is not the best :)  And its a real
+</I>&gt;<i> 
+</I>&gt;<i> pain to customise. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> One issue with having it all in region modules, is that everything has to
+</I>&gt;<i> 
+</I>&gt;<i> go through regions to be able to use those interfaces. Making it harder for app
+</I>&gt;<i> 
+</I>&gt;<i> plugins to do any comms related work. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> So if we decide to stick with a separate comms system (rather than moving
+</I>&gt;<i> 
+</I>&gt;<i> it to region modules), how can we improve it?
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> I think the first two tasks are:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> * to improve the interfaces/make it easier to
+</I>&gt;<i> 
+</I>&gt;<i>  extend.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> * and to make it so its loaded from plugins/dlls. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> One simple way of allowing plugins to create and setup the Comms Manager
+</I>&gt;<i> 
+</I>&gt;<i> would be making some small changes to the IApplicationPlugin interface:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> * Add a PostInitialise method to that interface. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> * Then changing the LoadRegionsPlugin so that it created the regions in
+</I>&gt;<i> 
+</I>&gt;<i> the IApplicationPlugin.PostInitialise call. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> * Which would allow us to create some SetupCommsManagerPlugins which could
+</I>&gt;<i> 
+</I>&gt;<i> do its work in the IApplicationPlugin.Initialise() call.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> [Note that brings up another issue that I want to deal with in another
+</I>&gt;<i> 
+</I>&gt;<i> email soon... of how do we define which plugins are loaded. And also if there
+</I>&gt;<i> 
+</I>&gt;<i> are multiple plugins, of the same type, in a single dll, how do we make some of
+</I>&gt;<i> 
+</I>&gt;<i> them get loaded but not others?]
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> The next task would be to improve the interfaces of the Comms Manager and
+</I>&gt;<i> 
+</I>&gt;<i> allow it to be
+</I>&gt;<i> 
+</I>&gt;<i>  expanded easier.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> The current set of interfaces in the Comms manager are:
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> public class CommunicationsManager
+</I>&gt;<i> 
+</I>&gt;&gt;<i> {
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public IUserService UserService
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public IMessagingService MessageService;
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public IGridServices GridService
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public UserProfileCacheService UserProfileCacheService
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public IAvatarService AvatarService
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public IAssetCache AssetCache
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public NetworkServersInfo NetworkServersInfo     
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public IUserAdminService UserAdminService'    
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         public BaseHttpServer HttpServer;
+</I>&gt;<i> 
+</I>&gt;&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> I propose making it so the CommsManager also implements the
+</I>&gt;<i> 
+</I>&gt;<i> IGridServiceCore interface which I've added to the User/Grid/Messaging
+</I>&gt;<i> 
+</I>&gt;<i> servers, as part of the process of modulising them.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> public interface IGridServiceCore
+</I>&gt;<i> 
+</I>&gt;&gt;<i>  {
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         T
+</I>&gt;<i> 
+</I>&gt;<i>  Get&lt;T&gt;();
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         void RegisterInterface&lt;T&gt;(T iface);
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         bool TryGet&lt;T&gt;(out T iface);
+</I>&gt;<i> 
+</I>&gt;&gt;<i>         BaseHttpServer GetHttpServer();
+</I>&gt;<i> 
+</I>&gt;&gt;<i>  }
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Then the components of the CommsManager can register themselves with that,
+</I>&gt;<i> 
+</I>&gt;<i> and request other interfaces/Components. At the moment it would still need the
+</I>&gt;<i> 
+</I>&gt;<i> old interfaces to be assigned, as external code use them. But over time, we
+</I>&gt;<i> 
+</I>&gt;<i> should then change the external code so they use the TryGet&lt;T&gt;(out T
+</I>&gt;<i> 
+</I>&gt;<i> iface) call when they want one of the interfaces/Components. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> So eventually the CommsManager will basically just be that interface and a
+</I>&gt;<i> 
+</I>&gt;<i> set of &quot;modules&quot; loaded and registered with it. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> This brings the CommsManager more in line with the Region module system
+</I>&gt;<i> 
+</I>&gt;<i> and the IClientCore and soon to be in use UGM servers system. We could even make
+</I>&gt;<i> 
+</I>&gt;<i> it so it could load the same modules as the UGM servers use if we
+</I>&gt;<i> 
+</I>&gt;<i>  wanted to. 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> So thoughts, comments, bad fruit being thrown wanted.
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i>       
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> 
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> 
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> 
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  _______________________________________________
+</I>&gt;<i> 
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005428.html">[Opensim-dev] Comms Manager
+</A></li>
+	<LI>Next message: <A HREF="005430.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5429">[ date ]</a>
+              <a href="thread.html#5429">[ thread ]</a>
+              <a href="subject.html#5429">[ subject ]</a>
+              <a href="author.html#5429">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

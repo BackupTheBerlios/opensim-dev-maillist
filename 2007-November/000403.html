@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] forcing some load, kicking the tires
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20forcing%20some%20load%2C%20kicking%20the%20tires&In-Reply-To=%3C20071109153109.GM29566%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000408.html">
+   <LINK REL="Next"  HREF="000404.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] forcing some load, kicking the tires</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20forcing%20some%20load%2C%20kicking%20the%20tires&In-Reply-To=%3C20071109153109.GM29566%40dague.net%3E"
+       TITLE="[Opensim-dev] forcing some load, kicking the tires">sean at dague.net
+       </A><BR>
+    <I>Fri Nov  9 16:31:09 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000408.html">[Opensim-dev] [Opensim-commits] r2309 -	trunk/OpenSim/Region/ClientStack
+</A></li>
+        <LI>Next message: <A HREF="000404.html">[Opensim-dev] forcing some load, kicking the tires
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#403">[ date ]</a>
+              <a href="thread.html#403">[ thread ]</a>
+              <a href="subject.html#403">[ subject ]</a>
+              <a href="author.html#403">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>First off, to anyone randomly reading this, realize that OpenSim is in
+very active development, so the below observations are point in time,
+and probably won't be the case any more once you read this email.  If
+you are reading this email more than 7 days after I posted it, it's
+wrong, and doesn't hold any more.  (I can't make that clear enough, as I
+don't want to see people arguing with me in 6 months saying that OpenSim
+can only do X AVs &amp; Y Prims because of this email.)
+
+That being said, I've got some interesting point in time information on
+OpenSim based on an in Sim meeting that I hosted yesterday.
+
+The environment:
+
+ * svn head as of yesterday morning
+ * standalone (but with 4x2 region grid, though most of the action
+   happened in a single region)
+ * mono 1.2.4
+ * ubuntu 7.10 on a 2x3.6 Ghz P4 with 4 GB ram
+
+In the environment we have:
+ * ODE enabled for physics
+ * ~ 200 prims
+ 
+The prims in the environment are flags as follows:
+count(*)|objectflags
+159     |268632492
+28      |268632493   &lt;-- Physical
+9       |268633516   &lt;-- Phantom
+
+After we got about ~20 Avatars on the region the environment was
+completely pegged.  Those avatars were creating some content, though not
+huge amounts.  
+
+CPU for the process (via top) showed it to be at 140% (100% == all of
+one CPU).  There were massive amounts of Sending Terse Update messages
+on the console logs in a pretty continuous stream.  The environment grew
+to about 1.5 GB of memory (though about 1/2 of that was swapped out,
+presumably waiting for garbage collection, as I had plenty of ram free.)
+
+Once we pegged, new users could no longer connect to the environment.
+The event queues definitely were taking a pounding as well, as chat
+messages took a solid 5 seconds or more to get get through.  People
+could still walk and move, but it was quite laggy.  Even after the storm
+died down new users couldn't get in.  I had to recycle the sim for new
+connections to work.
+
+That being said, the machine still had more to give.  Even at the worst
+of it we were only at 60% user space utilization, 35% idle (neglible sys
+/ wait, which is actually very good in some respects.  If we were using
+sys and wait time, we'd have more issues to deal with).
+
+Out of this I think we need to start to be mindful of a few things:
+
+ * How brutal are we being on the network side of things?  I have a
+   feeling we are being far to brutal.  I'm going to dig in soon
+   (hopefully today) and figure out a way to get some stats out of there
+
+ * We need to change the way Terse Updates out of the physics engine
+   works.  (Teravus already committed code here, see the email is out of
+   date already!)
+ 
+ * Rethink leaning on C# events for physics, which was the prefered
+   approach after this week's office hours.  The event infrastructure
+   ends up degrading in funny ways once you peg a CPU, which is
+   acceptable for things like Chat, but would be a disaster for physics.
+
+Anyway, hopefully this is some good data to start pondering.  I'm hoping
+by the next time I do one of these to have some more statistics
+gathering built in so we can get more detail out of the environment to
+see where we do naive things.
+
+While this may seem a bit constrained right now, realize, that physics
+only started working a week ago in any reliable sense.  I had folks in
+world hanging out for 5 hours (1 hour of real peak usage), and the Sim
+never went down.  It did stop accepting new users at one point, but no
+crash, no exceptions of note on the command line.  We've come a long way
+in the last 4 months. :)  I can't wait to see how much better we are in
+4 months from now.
+
+      -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071109/36ae3498/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071109/36ae3498/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000408.html">[Opensim-dev] [Opensim-commits] r2309 -	trunk/OpenSim/Region/ClientStack
+</A></li>
+	<LI>Next message: <A HREF="000404.html">[Opensim-dev] forcing some load, kicking the tires
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#403">[ date ]</a>
+              <a href="thread.html#403">[ thread ]</a>
+              <a href="subject.html#403">[ subject ]</a>
+              <a href="author.html#403">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

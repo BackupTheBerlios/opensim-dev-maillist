@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Change the OnDeRezObject event
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Change%20the%20OnDeRezObject%20event&In-Reply-To=%3C840803.31501.qm%40web23005.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007132.html">
+   <LINK REL="Next"  HREF="007094.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Change the OnDeRezObject event</H1>
+    <B>MW</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Change%20the%20OnDeRezObject%20event&In-Reply-To=%3C840803.31501.qm%40web23005.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Proposal: Change the OnDeRezObject event">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Fri Jul 10 18:17:45 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007132.html">[Opensim-dev] mono *.exe crashes if screen is smaller	than	created...
+</A></li>
+        <LI>Next message: <A HREF="007094.html">[Opensim-dev] Proposal: Change the OnDeRezObject event
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7093">[ date ]</a>
+              <a href="thread.html#7093">[ thread ]</a>
+              <a href="subject.html#7093">[ subject ]</a>
+              <a href="author.html#7093">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yeah this might be going over the top, doing proposals down to this level, but its good pratice anyway :)
+
+--- On Fri, 10/7/09, Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+
+From: Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt;
+Subject: Re: [Opensim-dev] Proposal: Change the OnDeRezObject event
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Friday, 10 July, 2009, 4:44 PM
+
+Dear Mw:
+
+Thank you for sharing your technical thoughts as you work through them. It is my fervent hope that others will share similarly so that some of us 'lesser wizards' may learn a bit more by reading how OpenSim is evolving.
+
+Charles
+
+From: MW &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Sent: Friday, July 10, 2009 7:39:06 AM
+Subject: [Opensim-dev] Proposal: Change the
+ OnDeRezObject event
+
+
+In the current OnDeRezObject event, only a single localID of a prim is passed at a time.
+
+So if multiple objects are DeRezzed in one action, even though all the ids are sent in a single packet. We have code in the ClientView that loops through that list and for each id triggers the OnDeRezObject event.
+
+I propose moving that loop into the Scene handling of the action (Scene.DeRezObject(...))&#160; so that the event is only triggered once per packet and if there are multiple prims to derezz in a packet, the scene code can loop through them and deal with them as required.
+
+So current the delegate of the OnDeRezObject event is :
+
+&#160;public delegate
+ void DeRezObject(
+&#160;&#160;&#160;&#160;&#160;&#160;&#160; IClientAPI remoteClient, uint localID, UUID groupID, DeRezAction action, UUID destinationID);
+
+I propose changing it
+ to:
+
+public delegate void DeRezObject(
+&#160;&#160;&#160;&#160;&#160;&#160;&#160; IClientAPI remoteClient, List&lt;uint&gt; localIDs, UUID groupID, DeRezAction action, UUID destinationID);
+
+It has to be better to have only one event triggering rather than possibly hundreds for the same user action. 
+
+My next step (which I'm currently in the middle of in my local version) is to handle the taking of those multiple prims into inventory and only making a single inventory item, rather than the current method of a separate inventory item for each prim. But that will be detailed in a different proposal..
+
+
+
+
+
+      
+-----Inline Attachment Follows-----
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+      
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090710/b8f8e7a7/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090710/b8f8e7a7/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007132.html">[Opensim-dev] mono *.exe crashes if screen is smaller	than	created...
+</A></li>
+	<LI>Next message: <A HREF="007094.html">[Opensim-dev] Proposal: Change the OnDeRezObject event
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7093">[ date ]</a>
+              <a href="thread.html#7093">[ thread ]</a>
+              <a href="subject.html#7093">[ subject ]</a>
+              <a href="author.html#7093">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

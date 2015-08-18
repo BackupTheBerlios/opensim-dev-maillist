@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Concerning recent grid instability and inconsistency
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Concerning%20recent%20grid%20instability%20and%20inconsistency&In-Reply-To=%3C170fa1780802270959p20459d2dod8e375c3307a206%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000948.html">
+   <LINK REL="Next"  HREF="000957.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Concerning recent grid instability and inconsistency</H1>
+    <B>James Stallings II</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Concerning%20recent%20grid%20instability%20and%20inconsistency&In-Reply-To=%3C170fa1780802270959p20459d2dod8e375c3307a206%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Concerning recent grid instability and inconsistency">james.stallings at gmail.com
+       </A><BR>
+    <I>Wed Feb 27 18:59:40 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000948.html">[Opensim-dev] Voice Module
+</A></li>
+        <LI>Next message: <A HREF="000957.html">[Opensim-dev] Concerning recent grid instability and	inconsistency
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#940">[ date ]</a>
+              <a href="thread.html#940">[ thread ]</a>
+              <a href="subject.html#940">[ subject ]</a>
+              <a href="author.html#940">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Early this morning there was (yet another) instance where certain regions
+could be readily accessed by some and could not be accessed at all by
+others.
+
+This led to an insightfull discussion on IRC this morning, which I will
+attach for your convenience.
+
+Here are some high points:
+
+[image: :arrow:] Various users were able to access WP reliably last night
+while others were completely unable to do so. The consistent relevant factor
+was a high ping time from the affected clients to the region server in
+question. A properly executed traceroute revealed that the network fault lay
+with level3 networks, between the affected clients and the region server in
+question.
+
+[image: :arrow:] recently I was graced with the company of many new
+neighbors on the grid. With the new neighbors came complete instability with
+respect to my region server. Some of the instabilities were my own doing.
+Fixing them did not completely address the problem. A subsequent relocation
+to a neighbor-free location on the grid did.
+
+[image: :arrow:] one of our newer contributors has audited much of the
+low-level packet handling code and found it to be in want of some
+rearchitecting in the interest of efficiency. This is a salient point; if
+the communications code upon which the grid relies for region&lt;&gt;region and
+client&lt;&gt;region communications is not optimum, we cannot count on operations
+to be optimum. This also has profound implications for troubleshooting, as
+all diagnostic data arrives via the conduits implemented by this low-level
+comms code.
+
+[image: :arrow:] adjacent misconfigured regions have been demonstrated to
+have a significant impact on a given region's stability. Something needs to
+be done to address this.
+
+I will present some talking points in terms of these roles and their goals.
+
+The set of roles and goals of the OSGrid may be summarized as a brief mission
+statement which I characterise as follows:
+
+OSGrid exists as a multirole support operation supporting and conducting
+testing pursuant to the development of OpenSim virtual reality/telepresence
+software. Further, it exists to provide a free parking service for the
+development and testing community, both for pure testing and content
+hosting. Finally, OSGrid exists to develop and drive development of
+grid-related tools and/or code, whether as freestanding utilities or source
+for contribution to the codebase of OpenSim.
+
+
+
+Pursuant to fulfillment of these roles, a course of action needs be devised
+which facilitates all of these objectives simultaneously. Here is a plan
+which seeks to accomplish this. Note that some key points are short term;
+others, less so:
+
+[image: :idea:] Packet handling technology critique. Involve directly those
+who have worked on this code in the past with those who are interested in
+carrying the work forward. Get either a commitment from it's original
+authors to return to active development, or alternatively an informal
+hand-off of the work to this group. Then perform a systematic audit on this
+code, as a group. Document it as we go. Explaining how code works to a piece
+of paper can show up just as many flaws as a trial run. There's the side
+benefit of generating thorough documentation.
+
+One sequence of events currently in progress with respect to this, is that
+several of our commercial contributors are about to introduce a major set of
+stability and load balancing patches. This set of patches might well replace
+or repair the affected code, so this may in fact become a non-issue.
+
+This does not mean we can afford to sit and wait for them to make the drop.
+What we can take immediate action on, is to prepare to profile the
+performance impact in quantitative ways once this code has been dropped. In
+this interest, ChrisD will be placing some regions alongside mine out in the
+open; our intention is to maintain a seperate 'island', where we can
+excercise fine-grained control over who our neighbors are (and more
+importantly, fine-grained control of the neighbor configuration) for testing
+purposes.
+
+We also hope to be able to prove our theory about brokenly configured
+adjacent regions. If you bring up a region adjacent to us, we will likely
+ask you to move it or remove it ourselves if we are unable to reach you.
+
+[image: :idea:] Set up an automated vetting process for incoming regions on
+the grid. Say, submit region xml files via HTTP/POST, and have them
+programatically checked for syntactical correctness, geographical
+collisions, network reachability, port configuration consistency,
+completness of information, etc. before allowing a final connection with
+grid services.
+
+This also introduces a logical point for a payment collection/verification
+process for that day when we have a salable service, for those who are
+interested in providing for-pay grid services at that time.
+
+[image: :idea:] Establish an effective heartbeat mechanism between region
+servers and grid server. If the heartbeat goes away, the region table entry
+is appropriately updated to reflect the region state, and except for
+geographic purposes and region heartbeat response, the region would be
+ignored by grid services (as if it were not there). If/when the region
+produces new signs of life, it would then be returned to active
+participation with grid services. This could be taken a step further with
+longterm monitoring of the region heartbeat.
+
+Logic is implied that after some configurable long period without a
+heartbeat the region could be made available for purging from the tables
+completely, either automatically or with operator intervention. The benefits
+in bandwidth and cycles recovered from retry requests and threads locked
+while waiting on unresponsive regions would far exceed the relatively minor
+hit taken in producing and servicing a heartbeat.
+
+
+The balance of the material posted here is offered to the group in the
+interest of stimulating conversation about these observations. None of this
+is authorative, except in the sense that it represents my observations and
+what I think can be done about them. I (and others) are eager to hear from
+you on these matters to the extent you are willing and able to participate
+in resolving them. Note that I dont claim to represent any one else in this
+post, but I suspect that my views are somewhat parallel with at least some
+in the community.
+
+Please jump in and let us know what you think [image: 8-)]
+
+Cheers!
+Hiro Protagonist
+-- 
+===================================
+The wind
+scours the earth for prayers
+The night obscures them
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080227/2709b880/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080227/2709b880/attachment.html</A>&gt;
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: ImpromptuGridOpsMeeting
+Type: application/octet-stream
+Size: 18025 bytes
+Desc: not available
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080227/2709b880/attachment.obj">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080227/2709b880/attachment.obj</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000948.html">[Opensim-dev] Voice Module
+</A></li>
+	<LI>Next message: <A HREF="000957.html">[Opensim-dev] Concerning recent grid instability and	inconsistency
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#940">[ date ]</a>
+              <a href="thread.html#940">[ thread ]</a>
+              <a href="subject.html#940">[ subject ]</a>
+              <a href="author.html#940">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim on Mac G5
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20on%20Mac%20G5&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D4A691C2B%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003691.html">
+   <LINK REL="Next"  HREF="003693.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim on Mac G5</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20on%20Mac%20G5&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D4A691C2B%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] OpenSim on Mac G5">john.hurliman at intel.com
+       </A><BR>
+    <I>Sun Nov 23 22:13:39 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003691.html">[Opensim-dev] OpenSim on Mac G5
+</A></li>
+        <LI>Next message: <A HREF="003693.html">[Opensim-dev] User/Agent/Avatar (again) and multiple logins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3692">[ date ]</a>
+              <a href="thread.html#3692">[ thread ]</a>
+              <a href="subject.html#3692">[ subject ]</a>
+              <a href="author.html#3692">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>OSX uses .dylib files for unmanaged (non-.NET) code, not .dll or .so. I would say make sure you have libopenjpeg-2.1.3.0-dotnet-1.dylib (or something like that) but the fact that Mono is trying to access openjpeg-dotnet.dll means the DllMap seems to have failed. Make sure you have OpenMetaverse.dll.config in that directory, and that it contains a DllMap entry from openjpeg-dotnet.dll to the actual .dylib binary in your bin/ directory.
+
+On a side note, I've been looking into a fully managed JPEG2000 codec. It's quite a ways from complete right now (and certainly slower than unmanaged code), but might prove useful for certain specific tasks.
+
+John
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Charles Krinke
+Sent: Sunday, November 23, 2008 11:34 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] OpenSim on Mac G5
+
+To amplify a tiny bit, the exception says basically:
+
+System.DllNotFoundException: openjpeg-dotnet.dll.
+
+The issue right now seems to be that an &quot;ls open* -la&quot; shows this file exists and is marked executable. So, I think there may be an underlying .so that is non existent at this point.
+
+$ ls open*.dll -la
+-rwxrwxr-x 1 ckrinke ckrinke 196608 2008-11-23 11:03 openjpeg-dotnet.dll
+[
+
+On a functioning x86 server, I can see libopenjpeg-1.0.0.so and other files that are not on this Mac G5 in our opensim/bin/ directory. I did try copying the the files from /usr/lib that appear to be concerned with jpeg to our opensim/bin directory like this:
+
+$ cp /usr/lib/libjp*.so* .
+
+And the region still has the same System.DllNotFoundException.
+
+So, anyone that can shed a little light on this puzzle would help me get some additional testing setup.
+
+Charles
+
+
+________________________________
+From: Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Sent: Sunday, November 23, 2008 11:26:18 AM
+Subject: [Opensim-dev] OpenSim on Mac G5
+I have a Mac G5 available for testing for a little while and have installed Fedora 9 on it.
+
+I can get OpenSim.exe compiled and the region up on OSGrid. There are a couple of issues. One solved, one not solved.
+
+ODE: Using our wiki, I was able to make ODE. I observe that we seem to need to initialize ODE even when ODE is not specified in the OpenSim.ini file. We might want to eliminate that dependency.
+
+The region does come up, but has a jpeg exception which is at the end of this email. At this point, I am a little puzzled with our various jpeg .so, .dll and such that are in svn. Looks like we are supplying an x86 version binary from svn.
+
+In any case, a little help in getting past this jpeg exception would let me get to where we can test a bit more on a 64bit Mac G5.
+
+10:47:04 - [MAPTILE]: Generating Maptile Step 1: Terrain
+10:47:04 - [MAPTILE]: Generating Maptile Step 1: Done in 82 ms
+10:47:04 - [MAPTILE]: Generating Maptile Step 2: Object Volume Profile
+10:47:04 - [MAPTILE]: Generating Maptile Step 2: Done in 21 ms
+Failed generating terrain map: System.DllNotFoundException: openjpeg-dotnet.dll
+  at (wrapper managed-to-native) OpenMetaverse.Imaging.OpenJPEG:DotNetAllocDecoded (OpenMetaverse.Imaging.OpenJPEG/MarshalledImage&amp;)
+  at OpenMetaverse.Imaging.OpenJPEG.Encode (OpenMetaverse.Imaging.ManagedImage image, Boolean lossless) [0x00000]
+  at OpenMetaverse.Imaging.OpenJPEG.EncodeFromImage (System.Drawing.Bitmap bitmap, Boolean lossless) [0x00000]
+  at OpenSim.Region.Environment.Modules.World.WorldMap.MapImageModule.WriteJpeg2000Image (System.String gradientmap) [0x000bb] in /home/ckrinke/svn/opensim/OpenSim/Region/Environment/Modules/World/WorldMap/MapImageModule.cs:119
+10:47:04 - [OGS1 GRID SERVICES]: Attempting to register region Mac Land with grid at <A HREF="http://osgrid.org:8001">http://osgrid.org:8001</A>
+10:47:05 - [OGS1 GRID SERVICES]: Region Mac Land successfully registered with grid at <A HREF="http://osgrid.org:8001">http://osgrid.org:8001</A>
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081123/da45a70d/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081123/da45a70d/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003691.html">[Opensim-dev] OpenSim on Mac G5
+</A></li>
+	<LI>Next message: <A HREF="003693.html">[Opensim-dev] User/Agent/Avatar (again) and multiple logins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3692">[ date ]</a>
+              <a href="thread.html#3692">[ thread ]</a>
+              <a href="subject.html#3692">[ subject ]</a>
+              <a href="author.html#3692">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

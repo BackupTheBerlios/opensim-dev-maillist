@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Suggestion for project organization.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Suggestion%20for%20project%20organization.&In-Reply-To=%3Ce94c3d810906291951u2028563fte5e2d8b59198fa9c%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006916.html">
+   <LINK REL="Next"  HREF="006918.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Suggestion for project organization.</H1>
+    <B>Michael Cortez</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Suggestion%20for%20project%20organization.&In-Reply-To=%3Ce94c3d810906291951u2028563fte5e2d8b59198fa9c%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Suggestion for project organization.">mcortez at gmail.com
+       </A><BR>
+    <I>Tue Jun 30 04:51:46 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006916.html">[Opensim-dev] explanation of services
+</A></li>
+        <LI>Next message: <A HREF="006918.html">[Opensim-dev] Suggestion for project organization.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6917">[ date ]</a>
+              <a href="thread.html#6917">[ thread ]</a>
+              <a href="subject.html#6917">[ subject ]</a>
+              <a href="author.html#6917">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'd like to make a suggestion about how the OpenSim project is setup
+in trunk for building and get some feedback from ya'll.
+
+Currently if a developer would like to work on a new module for
+OpenSim, they have to first decide if they want to work inside trunk
+(building their module along with OpenSim in the same build) or if
+they want to create a completely separate project that just links to
+the DLLs produced from OpenSim's trunk.  I don't know about others,
+but I personally tend to want to build and debug using the entire
+trunk.
+
+So my new module experience is usually something along the following lines:
+
+* Checkout trunk
+* Prebuild
+* Load up the project in Visual Studio, add a new project, or simply
+add a new file to one of the existing projects (Core or Optional
+Modules)
+* Add any additional references to the existing or new project that
+are needed for my new code
+* Work on my code for a while.
+* Copy out the relevant files to my own separate code repository
+
+Then at some point I end up updating the checkout with latest trunk,
+running prebuild, load up the solution file and cuss because the extra
+bits I added for my project are no longer present in the solution
+(were overwritten by prebuild.)  At this point I usually then go
+modify the huge (and growing) prebuild.xml file to add my own project
+in there, so it'll be generated along with the trunk projects each
+time I prebuild.
+
+I've also noticed a lot of feature creep of things into trunk of
+things that are really optional and not required for either building
+or running of OpenSim by a lot of people utilizing trunk -=- but they
+are things being worked on by the core developers and are definitely
+&quot;nice to have&quot; things.
+
+Here is my suggestion:
+
+1) Create a new top level directory in at /trunk/OpenSimModules to
+contain individual module projects that are not required/core modules
+
+2) Create an empty Modules directory at /trunk/OpenSim/Modules/ where
+nested SVN projects can be checked out to
+
+3) Each module that is optional, and not truly required for every
+OpenSim instance can slowly be migrated into /trunk/OpenSimModules/
+for example /trunk/OpenSimModules/FlotsamAssetCache  -- each of these
+modules would have their own mini, self contained, prebuild included
+in their project directory
+
+4) Patch prebuild so that it allows a wildcard to be specified in the
+include path, so the following would be valid:  &lt;? include
+file=&quot;modules/*/prebuild.xml&quot; ?&gt;  [Note: I have a working hack/patch
+that would allow this]
+
+5) Modify the main prebuild.xml file located at
+/trunk/OpenSim/prebuild.xml to use this new expanded include
+directive.
+
+
+To use the repository in this new configuration, you would first
+checkout a copy of trunk/OpenSim -- or a stable build of your choice
+-- you then look through the list of modules within
+trunk/OpenSimModules for modules that you would like to use with your
+OpenSim instance.  You then do a nested checkout of those individual
+modules into your local working directory at /OpenSim/Modules/* {svn
+fully supports nested working copies like this.}  You then run
+prebuild as normal, which will now scan the OpenSimModules directory
+and automatically add any found projects to the nant and Visual Studio
+solution/build files.  You then run nant or open the Visual Studio
+solution file as normal.
+
+
+What does this accomplish?
+
+*  It separates out optional modules so that we would be working in an
+environment that is more like a &quot;base kernel&quot; with &quot;modules&quot; that you
+add in to make distributions, aka the &quot;Linux Distribution model.&quot;
+
+* Separating out all the non-required modules makes the core
+trunk/OpenSim code easier to understand by new developers.
+
+* This separation will also create a clear dividing line between what
+is &quot;core&quot; and what isn't
+
+* It will be easier to &quot;drop-in&quot; 3rd party modules that are not stored
+in trunk, for compilation and debugging.  GForge projects could simply
+be directly checked out into the /OpenSim/Modules/ folder and would
+automatically be included during prebuild with no further
+configuration other then just running prebuild again.
+
+* All default builds of OpenSim directly out of trunk/OpenSim will be
+slim/light weight distributions because the optional stuff won't be
+there.
+
+* Individual modules could now be tagged and assigned version numbers.
+ They are also separately checked out and updated, thus making it a
+lot easier to update individual modules from the main SVN repository
+without also pulling down updates to the core or other modules and
+vice'versa {for example if you know the latest AssetCacheX is broken,
+but you want to retrieve a core update, you can update core without
+also updating that particular cache.}
+
+
+The downsides?
+
+I could only think of two, so this is where I need the most feedback.
+The first being that it requires a little more effort on the part of
+developers because you have to do multiple SVN checkouts to get a
+&quot;full featured&quot; copy of OpenSim's source.   The second being the
+migration of the existing code, and the inevitable discovery of some
+code that's too highly coupled to move and the re-factoring necessary
+to do so.
+
+
+Parting notes:
+
+I'd also suggest doing the same for all the Grid &amp; Stand-alone related
+components, leaving only the bare essentials in trunk/OpenSim
+necessary to make a grid attached instance along with the core
+components needed by all modules and grid services.  Thus we would
+have something like trunk/OpenSimServers or trunk/OpenSimServices
+where the grid services (Asset Server, User Server, etc) would be
+moved to, and they in-turn would be checked out into a
+trunk/OpenSim/Server/ directory.
+
+
+Thoughts, comments?
+--
+Michael Cortez
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006916.html">[Opensim-dev] explanation of services
+</A></li>
+	<LI>Next message: <A HREF="006918.html">[Opensim-dev] Suggestion for project organization.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6917">[ date ]</a>
+              <a href="thread.html#6917">[ thread ]</a>
+              <a href="subject.html#6917">[ subject ]</a>
+              <a href="author.html#6917">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

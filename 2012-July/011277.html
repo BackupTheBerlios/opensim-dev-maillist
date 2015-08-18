@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] osNPCxxx functions vs security
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20osNPCxxx%20functions%20vs%20security&In-Reply-To=%3C4FF75CC5.1010909%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011274.html">
+   <LINK REL="Next"  HREF="011278.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] osNPCxxx functions vs security</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20osNPCxxx%20functions%20vs%20security&In-Reply-To=%3C4FF75CC5.1010909%40googlemail.com%3E"
+       TITLE="[Opensim-dev] osNPCxxx functions vs security">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Jul  6 23:46:45 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011274.html">[Opensim-dev] osNPCxxx functions vs security
+</A></li>
+        <LI>Next message: <A HREF="011278.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11277">[ date ]</a>
+              <a href="thread.html#11277">[ thread ]</a>
+              <a href="subject.html#11277">[ subject ]</a>
+              <a href="author.html#11277">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>If there is the possibility of abuse, then you're right in that the more general problem lies with any avatar.  An 
+external libomv bot can also touch anything in the simulator its logged into as rapidly as it can punch the requests 
+over to the simulator.
+
+I hear that this kind of event overloading shouldn't be possible in the event mechanism.  If there is a problem, then 
+from the scripting perspective I would rather see us try to solve it in the first instance with simple configurable 
+script delays (as already done in LSL) rather than create more complicated mechanisms.  Keep it simple!
+
+General limiting of events is a more complicated issue that can be tackled at some other time if required. I think.
+
+Regarding npc touch duration, this certainly could be added as an option to an overloaded osNpcTouch() in the future.
+
+On 05/07/12 16:34, Bob Wellman wrote:
+&gt;<i> This thread has started me thinking more generally about the timings of repeat osNPCTouch commands causing event
+</I>&gt;<i> overloading.
+</I>&gt;<i>
+</I>&gt;<i> When a real avatar touches an object he left clicks on an object and sometime later he releases the left click button.
+</I>&gt;<i> In other words his touch has a certain duration to it. This triggers a number of LSL events as show in this excerpt from
+</I>&gt;<i> the LSL wiki
+</I>&gt;<i>
+</I>&gt;<i> *Event:*	*Triggered:*	*Triggered multiple times:*
+</I>&gt;<i> touch &lt;<A HREF="http://lslwiki.net/lslwiki/wakka.php?wakka=touch">http://lslwiki.net/lslwiki/wakka.php?wakka=touch</A>&gt;()	/while/ a user is clicking on the object.	YES
+</I>&gt;<i> touch_start()	when a user /starts/ clicking on the object.	NO
+</I>&gt;<i> touch_end &lt;<A HREF="http://lslwiki.net/lslwiki/wakka.php?wakka=touch_end">http://lslwiki.net/lslwiki/wakka.php?wakka=touch_end</A>&gt;()	when a user /stops/ clicking on the object.	NO
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> The time gap between start and end is sometimes used to control how the touch object behaves. For instance in a golf
+</I>&gt;<i> script the longer the touch the harder the golf ball is hit.
+</I>&gt;<i>
+</I>&gt;<i> I can foresee that some time in the future we may wish to add a &quot;duration&quot; parameter to the osNPCTouch command so NPCs
+</I>&gt;<i> can use these kind of touchable objects. As the touch event is triggered multiple times during a long touch that could
+</I>&gt;<i> also lead to misuse.
+</I>&gt;<i>
+</I>&gt;<i> However whether or not we implement osNPCTouch or not we have a problem. A real avatar (or a bot) can still do a long
+</I>&gt;<i> touch on an object containing a script such as this &quot;golf&quot; script and cause many touch events to fire very rapidly
+</I>&gt;<i> unless we limit them in some way.
+</I>&gt;<i>
+</I>&gt;<i> So maybe we should first look at how to prevent that and extend it to NPCs doing very rapid repeat touches as well.
+</I>&gt;<i> Remember Bots can generate touches as fast as NPCs.
+</I>&gt;<i>
+</I>&gt;<i> My first thoughts is a opensim.ini configuration parameter max_touch_events_per_second that limits how frequently the
+</I>&gt;<i> touch event can be fired in a script regardless of who (avatar or NPC or bot) is doing the touching. Next we need to
+</I>&gt;<i> control the rate of repeat firing of the touch event during a long touch. I take it that LL has some mechanism to
+</I>&gt;<i> control how frequently the touch event is fired between the touch_start and touch-end event. Some study of how they do
+</I>&gt;<i> this may help with a solution to limiting repeat touches too.
+</I>&gt;<i>
+</I>&gt;<i> So in this way we stop scripts processing touch events too rapidly protecting them from abuse by avatar or NPC or bot.
+</I>&gt;<i> Scripts can then not be driven so hard that they crash the sim.
+</I>&gt;<i>
+</I>&gt;<i> However from something Dahlia mentioned I believe event triggers are queued pending sending to the script for
+</I>&gt;<i> processing. So, if we did this limiting how often events can be accepted by a script, I would then assume rapid touching
+</I>&gt;<i> abuse by an NPC (or a bot) would now cause a queue of touch events pending to build up. So we would maybe also have to
+</I>&gt;<i> limit the number of touch events pending that could be queued too in some way.
+</I>&gt;<i>
+</I>&gt;<i> My suggestion would be an opensim.ini configuration parameter max_touch_events_queued to limit the size of this queue.
+</I>&gt;<i> Once the queue limit is reached further touches are ignored until the queue empties a bit.
+</I>&gt;<i>
+</I>&gt;<i> Basically I am saying:
+</I>&gt;<i> 1) Get the script to protect itself from abuse from events coming off the event queue too fast (pushing the problem back
+</I>&gt;<i> to the event queue).
+</I>&gt;<i> 2) Get the event queue to protect itself from too many events entering the event queue faster that we can clear them.
+</I>&gt;<i>
+</I>&gt;<i> Just my thoughts... hope it makes sense... feel free to disagree.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------------------------------------------------------------------------------------------------
+</I>&gt;<i> Date: Thu, 5 Jul 2012 14:18:17 +0100
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">wanderingcodesmith at yahoo.co.uk</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: [Opensim-dev] osNPCxxx functions vs security
+</I>&gt;<i>
+</I>&gt;<i> Sorry this is probably out of the original thread, i just joined the list!
+</I>&gt;<i>
+</I>&gt;<i> I think that any large delay on the osNpcTouch function would not be right, at least 10 touches a second should be
+</I>&gt;<i> allowed, i can easily click that fast for several seconds  at a time.
+</I>&gt;<i>
+</I>&gt;<i> Also the NPC should be allowed to click its own/owners objects at any speed, and others objects at any reduced rate that
+</I>&gt;<i> may be decided upon. For &quot;own&quot; items it is just another method of script comms, no different to chat on a non  zero chat
+</I>&gt;<i> channel and that is not restricted, but this allows third party scripts written around touch events to be used without
+</I>&gt;<i> alteration.
+</I>&gt;<i>
+</I>&gt;<i> NPC functions are already threat level high and NPCs have to be intentionaly configured in addition to specifically
+</I>&gt;<i> allowing OSSL in the first place
+</I>&gt;<i>
+</I>&gt;<i> If you want to disable certain OSSL functions there are the Allow_osxxx = false settings in OpenSim.ini, the options
+</I>&gt;<i> give a big choice in how you restrict OSSL use.
+</I>&gt;<i>
+</I>&gt;<i> Talun
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________ Opensim-dev mailing list <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011274.html">[Opensim-dev] osNPCxxx functions vs security
+</A></li>
+	<LI>Next message: <A HREF="011278.html">[Opensim-dev] llDetectedType and NPC's
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11277">[ date ]</a>
+              <a href="thread.html#11277">[ thread ]</a>
+              <a href="subject.html#11277">[ subject ]</a>
+              <a href="author.html#11277">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

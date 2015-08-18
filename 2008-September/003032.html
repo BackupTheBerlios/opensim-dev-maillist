@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Local assets in Grid mode
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Local%20assets%20in%20Grid%20mode&In-Reply-To=%3CBLU146-W34C2D221E3D2D285ACBDC9DC510%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003035.html">
+   <LINK REL="Next"  HREF="003037.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Local assets in Grid mode</H1>
+    <B>Mircea Filipescu</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Local%20assets%20in%20Grid%20mode&In-Reply-To=%3CBLU146-W34C2D221E3D2D285ACBDC9DC510%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Local assets in Grid mode">mircea_the_kitsune at hotmail.com
+       </A><BR>
+    <I>Fri Sep 12 18:48:47 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003035.html">[Opensim-dev] BaseHttpServer interface: And of course the following	new file...
+</A></li>
+        <LI>Next message: <A HREF="003037.html">[Opensim-dev] Local assets in Grid mode
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3032">[ date ]</a>
+              <a href="thread.html#3032">[ thread ]</a>
+              <a href="subject.html#3032">[ subject ]</a>
+              <a href="author.html#3032">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>(resent as it seems the original didn't get through the maillist the first time)
+
+Hello everyone. Just for the note as I'm using this mailing list for
+the first time, I'm Mircea / Taoki from #opensim and the other OS
+channels on IRC. I decided to mail this to the opensim-dev list after a
+chat I had with Nebadon two days ago about an issue with opensim (or
+maybe a feature request would be more correct) regarding the problems
+with running local assets in grid mode which we thought I should write
+a summary up for here and probably list my suggestions about. I made a
+few mantises and topics on the OSGrid forum about this in the past so I
+hope this isn't something that's getting too old or anything. Also be
+warned this is a long email so I apologise for having to write so much.
+
+First
+of all, many wonder why someone would want to use local assets in grid
+mode. My own personal reasons are that I want to keep my sim whole and
+be able to start it up in standalone or on other grids other then
+OSGrid too. Grid assets make a sim dependent of that specific grid and
+unusable anywhere else (unless running it with gray textures and
+without sounds and scripts can be counted). Alongside that I kind of
+don't feel like I'm owning my entire region while my assets are
+somewhere else, which is why I want to keep my assets too and feel like
+I'm owning the sim I run and not just half of it. Probably there are
+others who feel the same way so I hope this doesn't sound too silly or
+anything.
+
+The problem with a region running local assets on a
+grid however is that no one from another region can receive any of the
+assets on that sim until they cross inside it, so if a client clears
+its cache it sees that sim all gray and without sculpties and scripts
+until the avatar crosses in. And obviously nothing you take in your
+inventory from the local asset region is ever available anywhere else
+(not even landmarks which makes them completely pointless in this
+situation). Worse, I heard (and also experienced) that an avatar
+crossing into a local assets sim looses inventory functionality until
+next login. Because of this, running my sim on local assets seems to
+have caused more trouble then not running it at all, but I'm still not
+sure what to do (I already have a lot of assets so if I'm to switch I'd
+need to transfer them all). I heard about the save-oar and load-oar
+commands but I never used them before and heard they also render
+inventory entries useless due to changing each asset's UUID on use.
+
+I
+thought to suggest a few solutions again and some ideas I had about
+what could be done to allow a sim to run local assets on grids and have
+everything loading up to the other sims too. My main ideas about this
+were:
+
+- Allow an owner to specify both local assets and grid
+assets in opensim.ini... in other words use both asset storages at the
+same time but not quite. In this situation, a sim would normally start
+up using Grid assets but whenever someone sitting on that sim uploads
+something or makes an asset, that asset goes -both- into grid assets
+and that sim's local assets. The only issues with this are
+double-uploads and upload times though that shouldn't be too much of a
+problem, but the worst problem is double UUIDs as Neb noticed which
+could cause a bunch of issues. I don't fully see how that could cause
+UUID conflicts still as no one has any reason to copy the same sim with
+the same assets and run it on the same grid in many instances, nor is a
+UUID coincidence very likely. Either way, in this situation a region is
+using grid assets, but their assetstorage.db also gets updated with
+what they upload and use on that sim. So if the user ever wants to lets
+say start the sim in standalone, they just select local assets and
+start it up like nothing happened without requireing any other type of
+transfer. If this method is implemented, it should also have an option
+to allow importing / exporting assets between grid and local ones for
+those who didn't get to sync them.
+
+- The second method I had in
+mind if the above isn't good is something a bit more complicated.
+Basically, a region using local assets in grid would &quot;project&quot; its
+assets on the entire grid at startup, and allow all simulators on the
+grid to get the local assets of that sim, no matter what other sim they
+are sitting on. For this however, every asset would also need to have a
+simulator UUID with it so when an asset is requested the server knows
+where to grab it from. The only issues with this idea is that too many
+people from all over a grid requesting your local assets could badly
+slow down your region (though its the owners choice to enable this if
+they have good bandwitch) and that the assets won't be available while
+that region is down.
+
+- My third idea is similar to the one
+above, just that instead of allowing the local assets region to stretch
+its assets all over the grid, the simulator would temporarily upload
+all its local assets into the grid assets at startup and use them from
+there, and (probably) remove them at shutdown. In this situation we
+would once again need an upload to go into both asset storages, and
+we'd have a new issue where obviously, it would take very long and
+stress the grid server a lot for a starting up sim to upload entire
+megas of assets each time. And once again the assets would be
+unavailable while the sim is down... unless we could make the sim
+upload the local assets to grid ones -only- if they aren't already
+there (eg: can't find an asset with the same uuid in grid assets). That
+would only cause big startup times firts time the sim would start.
+
+So
+yeah that's mainly it. Not sure how good my ideas are but I really
+believe something needs to be done for local assets users too so they
+can run their sims normally in grid mode. An old mantis I have can be
+found here <A HREF="http://opensimulator.org/mantis/view.php?id=1124">http://opensimulator.org/mantis/view.php?id=1124</A> if anyone
+can make use of it. I hope someone can find a solution for this... feel
+free to reply me at this same email address as its mine (though ill be
+subscribing to the mailing list) so I hope to see something going on
+about this :)
+_________________________________________________________________
+Connect to the next generation of MSN Messenger&#160;
+<A HREF="http://imagine-msn.com/messenger/launch80/default.aspx?locale=en-us&amp;source=wlmailtagline">http://imagine-msn.com/messenger/launch80/default.aspx?locale=en-us&amp;source=wlmailtagline</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080912/c49ced53/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080912/c49ced53/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003035.html">[Opensim-dev] BaseHttpServer interface: And of course the following	new file...
+</A></li>
+	<LI>Next message: <A HREF="003037.html">[Opensim-dev] Local assets in Grid mode
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3032">[ date ]</a>
+              <a href="thread.html#3032">[ thread ]</a>
+              <a href="subject.html#3032">[ subject ]</a>
+              <a href="author.html#3032">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

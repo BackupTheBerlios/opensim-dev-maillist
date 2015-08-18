@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Inventory and assets
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Inventory%20and%20assets&In-Reply-To=%3CBAY102-W15AE0E64B4A29261C24C1AC8A50%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000178.html">
+   <LINK REL="Next"  HREF="000241.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Inventory and assets</H1>
+    <B>Tleiades Lauridsen</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Inventory%20and%20assets&In-Reply-To=%3CBAY102-W15AE0E64B4A29261C24C1AC8A50%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Inventory and assets">tleiades at hotmail.com
+       </A><BR>
+    <I>Tue Oct  9 11:51:46 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000178.html">[Opensim-dev] Inventory and assets
+</A></li>
+        <LI>Next message: <A HREF="000241.html">[Opensim-dev] Inventory and assets
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#182">[ date ]</a>
+              <a href="thread.html#182">[ thread ]</a>
+              <a href="subject.html#182">[ subject ]</a>
+              <a href="author.html#182">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Well, Maybe I'm getting ahead of my self here. We could store the assets as binary blobs, just like we do today, but then we still have to face a number of issues:
+
+1) Everytime any minor property in an asset changes, we have to store the complete set of aspects of the new asset, even aspects which hasn't changed, e.g. the name change of the texture in my sample below.
+2)If my read of the code is correct, the sim is more or less ignorant of the various aspects of an asset, it simply shuttles the complete asset blob on to the viewer. In the long run this strategy cannot work, since the script engine needs the ability to modify aspects on an asset.
+
+The above two changes will likely lead to scenario where storing an asset as a binary blob is no longer viable, leading to a change in the format of assets on the database backend, the question then arises, how to convert from the &quot;old&quot; blob format to the new one.
+
+/Tleiades
+
+&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tleiades at hotmail.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Date: Mon, 8 Oct 2007 23:16:04 +0200
+</I>&gt;<i> Subject: [Opensim-dev] Inventory and assets
+</I>&gt;<i> 
+</I>&gt;<i> Hi
+</I>&gt;<i> 
+</I>&gt;<i> As some of you might know, I have been working on a grid wide inventory 
+</I>&gt;<i> system. Actually I have a more or less complete implementation on my own 
+</I>&gt;<i> computers, but for various reasons, I have decided to release the code in 
+</I>&gt;<i> small incremental chunks.
+</I>&gt;<i> 
+</I>&gt;<i> Today I had a small setback. It turns out - or I had forgotten - that the 
+</I>&gt;<i> asset server isn't operational, all assets are stored locally on the running 
+</I>&gt;<i> sim. One way of thinking of the inventory, is to consider it a means for the 
+</I>&gt;<i> user to point to assets, i.e. an item in the inventory points to an asset in 
+</I>&gt;<i> the asset server. Consequently a grid wide inventory doesn't make much sense 
+</I>&gt;<i> until we have grid wide assets.
+</I>&gt;<i> 
+</I>&gt;<i> Consequently I am thinking about putting the inventory aside, and start 
+</I>&gt;<i> working on a grid wide asset server. Once we have that in place, I intend to 
+</I>&gt;<i> go back to the inventory.
+</I>&gt;<i> 
+</I>&gt;<i> I think that assets will be a big task, and quite complex, when considering 
+</I>&gt;<i> the ultimate goal for this project, so I aim for a first implementation, 
+</I>&gt;<i> wich will be functional, then we can pickup and refine that implementation 
+</I>&gt;<i> in a later iteration.
+</I>&gt;<i> 
+</I>&gt;<i> My thinking goes along the following lines:
+</I>&gt;<i> 
+</I>&gt;<i> 1) Create a functional asset server Using the REST methods sketched out in 
+</I>&gt;<i> the asset server code
+</I>&gt;<i> 2) Implement an asset cache on the sim, based on a reference counting 
+</I>&gt;<i> principle, the logic begin something like this:
+</I>&gt;<i>     On Rez
+</I>&gt;<i>         if(asset is in cache)
+</I>&gt;<i>             increment reference count
+</I>&gt;<i>         else
+</I>&gt;<i>             get asset from asset server
+</I>&gt;<i>             store asset in sim cache
+</I>&gt;<i>             set reference count to 1
+</I>&gt;<i>         end if
+</I>&gt;<i> 
+</I>&gt;<i>     On Derez
+</I>&gt;<i>         Decrement reference count
+</I>&gt;<i>         if(reference count=0)
+</I>&gt;<i>             remove asset from cache
+</I>&gt;<i> 
+</I>&gt;<i>     When avatar enters sim
+</I>&gt;<i>         Rez all attachments
+</I>&gt;<i> 
+</I>&gt;<i>     When avatar leaves sim
+</I>&gt;<i>         Derez all attachments
+</I>&gt;<i> 
+</I>&gt;<i> The only real big question now remains, what is an asset?
+</I>&gt;<i> From the outset, it can be seen as a file, containing either a binary stream 
+</I>&gt;<i> representing an image, sound bytes, scriptcode, prim shape definition. But 
+</I>&gt;<i> What happens when a scripted object is rez'ed, the code modifies the state 
+</I>&gt;<i> of the script or prim or the inventory of the object? If a script modifies 
+</I>&gt;<i> the link chain of a set of prims, changes the texture or any other mutable 
+</I>&gt;<i> property on a prim, do we have a new asset? if it is a new asset, do we copy 
+</I>&gt;<i> the textures into this new asset? Is the complete &quot;file&quot; changed, or only 
+</I>&gt;<i> parts of the file?
+</I>&gt;<i> 
+</I>&gt;<i> I know there is a huge debate on this going on on the sldev mailing list, 
+</I>&gt;<i> but I'd prefer to go for something resonably simple and practical, as a 
+</I>&gt;<i> first implementation.
+</I>&gt;<i> 
+</I>&gt;<i> My suggestion is based on the concept of triplets, much like the triplets in 
+</I>&gt;<i> RDF.
+</I>&gt;<i> 
+</I>&gt;<i> Basically an asset can be seen as a collection of values, each value 
+</I>&gt;<i> consists of three properties:
+</I>&gt;<i> 
+</I>&gt;<i> &lt;assetid&gt;, &lt;type&gt;, &lt;value&gt;
+</I>&gt;<i> 
+</I>&gt;<i> to give some examples
+</I>&gt;<i> 
+</I>&gt;<i> texture:
+</I>&gt;<i> 329AE20F-38C1-43fb-BDA0-6B13E569FCDF, Type, Texture
+</I>&gt;<i> 329AE20F-38C1-43fb-BDA0-6B13E569FCDF, Name, &quot;Green grass&quot;
+</I>&gt;<i> 329AE20F-38C1-43fb-BDA0-6B13E569FCDF, Width, 256
+</I>&gt;<i> 329AE20F-38C1-43fb-BDA0-6B13E569FCDF, Height, 256
+</I>&gt;<i> 329AE20F-38C1-43fb-BDA0-6B13E569FCDF, Image, 
+</I>&gt;<i> 44BD483173EC206D130B5F775B2B31D.........
+</I>&gt;<i> 329AE20F-38C1-43fb-BDA0-6B13E569FCDF, Owner, 
+</I>&gt;<i> 61AEA4D9-19CE-4fac-8E44-DFA24903BFB8
+</I>&gt;<i> 
+</I>&gt;<i> prim
+</I>&gt;<i> 61AEA4D9-19CE-4fac-8E44-DFA24903BFB8, Type, Primitive
+</I>&gt;<i> 61AEA4D9-19CE-4fac-8E44-DFA24903BFB8, Shape, Box
+</I>&gt;<i> 61AEA4D9-19CE-4fac-8E44-DFA24903BFB8, Position, 
+</I>&gt;<i> 8D45A164-52B1-4dab-A7BE-53A7078CA50B
+</I>&gt;<i> 8D45A164-52B1-4dab-A7BE-53A7078CA50B, X, 125.7
+</I>&gt;<i> 8D45A164-52B1-4dab-A7BE-53A7078CA50B, Y, 10
+</I>&gt;<i> 8D45A164-52B1-4dab-A7BE-53A7078CA50B, Z, 19
+</I>&gt;<i> 61AEA4D9-19CE-4fac-8E44-DFA24903BFB8, Size, 
+</I>&gt;<i> EA7254C0-D692-436a-949C-ADFE500E85EF
+</I>&gt;<i> EA7254C0-D692-436a-949C-ADFE500E85EF, Width, 10
+</I>&gt;<i> EA7254C0-D692-436a-949C-ADFE500E85EF, Height, 2
+</I>&gt;<i> EA7254C0-D692-436a-949C-ADFE500E85EF, Depth, 0.1
+</I>&gt;<i> 61AEA4D9-19CE-4fac-8E44-DFA24903BFB8, Name, &quot;My plywood box&quot;
+</I>&gt;<i> 
+</I>&gt;<i> On first inspection this seems to be too complex, but this scheme can easily 
+</I>&gt;<i> be extended to handle versioning, so in case somebody renames our texture in 
+</I>&gt;<i> the above example, this can be handled quite easily, by storing this 
+</I>&gt;<i> information:
+</I>&gt;<i> 
+</I>&gt;<i> texture
+</I>&gt;<i> 0CDE3656-D5A1-4ac2-819C-F8285680BC28, Parent, 
+</I>&gt;<i> 329AE20F-38C1-43fb-BDA0-6B13E569FCDF
+</I>&gt;<i> 0CDE3656-D5A1-4ac2-819C-F8285680BC28, Name, &quot;Dark green grass&quot;
+</I>&gt;<i> 
+</I>&gt;<i> in essence, this has created a new asset, called 
+</I>&gt;<i> &quot;0CDE3656-D5A1-4ac2-819C-F8285680BC28&quot;, which inherits most of it's values 
+</I>&gt;<i> from &quot;329AE20F-38C1-43fb-BDA0-6B13E569FCDF&quot;.
+</I>&gt;<i> 
+</I>&gt;<i> This is the strategy, which I'd suggest as a first go for assets, I would 
+</I>&gt;<i> welcome any and all comments
+</I>&gt;<i> 
+</I>&gt;<i> /Tleiades
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+_________________________________________________________________
+Discover the new Windows Vista
+<A HREF="http://search.msn.com/results.aspx?q=windows+vista&amp;mkt=en-US&amp;form=QBRE">http://search.msn.com/results.aspx?q=windows+vista&amp;mkt=en-US&amp;form=QBRE</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071009/2730ef27/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071009/2730ef27/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000178.html">[Opensim-dev] Inventory and assets
+</A></li>
+	<LI>Next message: <A HREF="000241.html">[Opensim-dev] Inventory and assets
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#182">[ date ]</a>
+              <a href="thread.html#182">[ thread ]</a>
+              <a href="subject.html#182">[ subject ]</a>
+              <a href="author.html#182">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

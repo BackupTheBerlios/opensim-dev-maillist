@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Proposal] New software architecture
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BProposal%5D%20New%20software%20architecture&In-Reply-To=%3C4A16C7F0.2000200%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006601.html">
+   <LINK REL="Next"  HREF="006606.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Proposal] New software architecture</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BProposal%5D%20New%20software%20architecture&In-Reply-To=%3C4A16C7F0.2000200%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] [Proposal] New software architecture">diva at metaverseink.com
+       </A><BR>
+    <I>Fri May 22 17:42:40 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006601.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+        <LI>Next message: <A HREF="006606.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6603">[ date ]</a>
+              <a href="thread.html#6603">[ thread ]</a>
+              <a href="subject.html#6603">[ subject ]</a>
+              <a href="author.html#6603">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thank you Justin. I added your suggestions to the page. Wasn't sure 
+about the &quot;closing&quot; date, so I just made it up.
+
+Justin Clark-Casey wrote:
+&gt;<i> 3.  Are the details of the protocol between client and server side really invisible to the service clients?  The awkward 
+</I>&gt;<i> case here is between local 'in process' and remote servers, I think.  For instance, on IAssetService there is a method
+</I>&gt;<i> 
+</I>&gt;<i> Get(string id, Object sender, AssetRetrieved handler)
+</I>&gt;<i> [...]
+</I>&gt;<i> All this perhaps is a little unfair since this problem and the one below are not at all new.  I'd like to know what you 
+</I>&gt;<i> think about this.
+</I>
+Sure! This is a very old and always interesting problem. And a very 
+important one for unit tests ;-)
+
+The semantics is not asset return on the same thread vs on another 
+thread. That's an operational detail that is/should be invisible to the 
+caller.
+The semantics of this operation is &quot;Thank you for your call, I'll return 
+the asset to you when I have it, if I find it, or a null if I don't find 
+it&quot;.
+In the Local Connector case, the current implementation happens to 
+return the asset on the same thread, before the actual return of the 
+call. It's like the receiver was so efficient that it completed the job 
+  even before the call was over. But that's an implementation detail. It 
+could very well return it later on another thread, which is what happens 
+in the case where remote calls are involved.
+The caller should not assume anything about threads; if anything, it 
+should assume that the return of the asset will be at some other point 
+in time that does not coincide with the return of the call -- can be 
+before or after the return itself.
+
+As opposed to the synchronous form:
+
+AssetBase Get(string id);
+
+whose semantics is &quot;Thank you and stay on the line. Upon return of 
+calling me you are guaranteed to have the asset, if it exists, or a null 
+if it doesn't exist&quot;.
+
+So just a minor change of the semantic model (timing semantics vs thread 
+semantics), and things are consistent.
+
+&gt;<i> 4.  In particular on IAssetService, there appears to be a purely synchronous get methods, e.g.
+</I>&gt;<i> 
+</I>&gt;<i> AssetBase Get(string id);
+</I>&gt;<i> 
+</I>&gt;<i> I know these also existed in the past, but are they a good idea in a world where the callers are not meant to know 
+</I>&gt;<i> whether the underlying service is local or remote?  
+</I>
+See above.
+
+
+&gt;<i> 5.  At the very least, interfaces need proper documentation if the caller is not meant to have to know what is happening 
+</I>&gt;<i> inside.  This documentation needs to be in the proper XML style so that it shows up in generated documentation.
+</I>
+Yes, they definitely will.
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006601.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+	<LI>Next message: <A HREF="006606.html">[Opensim-dev] [Proposal] New software architecture
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6603">[ date ]</a>
+              <a href="thread.html#6603">[ thread ]</a>
+              <a href="subject.html#6603">[ subject ]</a>
+              <a href="author.html#6603">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

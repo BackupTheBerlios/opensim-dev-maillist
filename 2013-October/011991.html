@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Needing%20Mono.Security.dll%20on%20Windows%20at%0A%09PostgreSQL%20module&In-Reply-To=%3CCAPAActdMeW8XO7usX_Vca_TDSBhL31aO1Sv8xzfZmJCLmYCC5w%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011990.html">
+   <LINK REL="Next"  HREF="011992.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module</H1>
+    <B>Sean McNamara</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Needing%20Mono.Security.dll%20on%20Windows%20at%0A%09PostgreSQL%20module&In-Reply-To=%3CCAPAActdMeW8XO7usX_Vca_TDSBhL31aO1Sv8xzfZmJCLmYCC5w%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module">smcnam at gmail.com
+       </A><BR>
+    <I>Wed Oct 16 19:18:23 CEST 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011990.html">[Opensim-dev] Needing Mono.Security.dll on Windows at PostgreSQL module
+</A></li>
+        <LI>Next message: <A HREF="011992.html">[Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11991">[ date ]</a>
+              <a href="thread.html#11991">[ thread ]</a>
+              <a href="subject.html#11991">[ subject ]</a>
+              <a href="author.html#11991">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Wed, Oct 16, 2013 at 12:35 PM, Justin Clark-Casey
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+&gt;<i> A small point - can this be in the directory bin/lib/.NET/ rather than
+</I>&gt;<i> Windows/?  This makes it clear that it's a library directory and only
+</I>&gt;<i> required under .NET (since you can theoretically run Mono in Windows, though
+</I>&gt;<i> admittedly probably pretty much nobody does this).
+</I>
+And now that you brought that up, the obvious follow-up question is,
+can we reliably detect whether OpenSim is being run under Mono or the
+.NET Framework? As you pointed out, Mono runs on Windows, and it is
+possible that someone running OpenSim under Mono on Windows would
+*pass* the Win32 platform check and get our shipped Mono.Security.dll
+loaded, which would conflict with the Mono.Security.dll shipped with
+the user's Mono version and perhaps cause exceptions.
+
+So the condition for loading the bin/lib/.NET/*.dll would be: on Win32
+AND running the Microsoft .NET Framework (or, by implication, NOT
+Mono)
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 16/10/13 12:49, Fernando Francisco de Oliveira wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Yesterday I tested my code, and already patched it to load the
+</I>&gt;&gt;<i> Mono.Security.dll from bin/windows folder only when the
+</I>&gt;&gt;<i> program was running on windows.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It was put at first attempt to load it from PGSQL module. and it worked
+</I>&gt;&gt;<i> fine at windows. I didn't tested on linux yet.
+</I>&gt;&gt;<i> and still need to test also on Robust.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The implementation was exacly what Sean described, an event that is fired
+</I>&gt;&gt;<i> when any assembly isnt found at default
+</I>&gt;&gt;<i> directories, then I verify if it is running Mono environment and only use
+</I>&gt;&gt;<i> Assembly.Load when it's not. The librarie is
+</I>&gt;&gt;<i> stored at bin/windows folder, so the program don't load it unless for this
+</I>&gt;&gt;<i> code.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Fernando Oliveira
+</I>&gt;&gt;<i> <A HREF="http://oliveira.eti.br">http://oliveira.eti.br</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> <A HREF="http://twitter.com/oliveira_lands">http://twitter.com/oliveira_lands</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> 2013/10/16 Latif Khalifa &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">latifer at streamgrid.net</A>
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">latifer at streamgrid.net</A>&gt;&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     We used to ship  Mono.Security.dll with libopenmetaverse. It caused
+</I>&gt;&gt;<i>     all sorts of trouble for Linux users, because mono on startup will
+</I>&gt;&gt;<i>     load the one from cwd preferably. So shipping it in bin/windows that
+</I>&gt;&gt;<i>     mono will not know about is the only way to go.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     I wish we thought of this approach back then ;)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     On Wed, Oct 16, 2013 at 5:08 AM, Fernando Francisco de Oliveira
+</I>&gt;&gt;<i>     &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">fernando at oliveira.eti.br</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">fernando at oliveira.eti.br</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>      &gt; Hello
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt; I was investigating the bug
+</I>&gt;&gt;<i>      &gt; (<A HREF="http://opensimulator.org/mantis/view.php?id=6803">http://opensimulator.org/mantis/view.php?id=6803</A>) found that
+</I>&gt;&gt;<i>      &gt; Mono.Security.dll which is packaged with Npgsql.dll library is
+</I>&gt;&gt;<i> needed on
+</I>&gt;&gt;<i>      &gt; Windows, but can't be distributed on Linux, because mono already
+</I>&gt;&gt;<i> have it and
+</I>&gt;&gt;<i>      &gt; gives conflicts error.
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt; I would like to discuss about distributing the Mono.Security.dll on
+</I>&gt;&gt;<i> a folder
+</I>&gt;&gt;<i>      &gt; above bin like &quot;bin/windows&quot; folder, which could contains the
+</I>&gt;&gt;<i> libraries that
+</I>&gt;&gt;<i>      &gt; only is needed on windows.
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt; I did a change on PGSQL project to load dynamicaly Mono.Security
+</I>&gt;&gt;<i> only if
+</I>&gt;&gt;<i>      &gt; it's running on Windows, and from that folder.
+</I>&gt;&gt;<i>      &gt; If it running on Mono, it load it from GAC (if available) and don't
+</I>&gt;&gt;<i> load the
+</I>&gt;&gt;<i>      &gt; windows dll.
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt; <A HREF="http://pastebin.com/WdzfmbSr">http://pastebin.com/WdzfmbSr</A>
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt; Let's talk about it ?
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt; Fernando Oliveira
+</I>&gt;&gt;<i>      &gt; <A HREF="http://oliveira.eti.br">http://oliveira.eti.br</A>
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt;
+</I>&gt;&gt;<i>      &gt; _______________________________________________
+</I>&gt;&gt;<i>      &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     _______________________________________________
+</I>&gt;&gt;<i>     Opensim-dev mailing list
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> OSVW Consulting
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I></PRE>
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011990.html">[Opensim-dev] Needing Mono.Security.dll on Windows at PostgreSQL module
+</A></li>
+	<LI>Next message: <A HREF="011992.html">[Opensim-dev] Needing Mono.Security.dll on Windows at	PostgreSQL module
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11991">[ date ]</a>
+              <a href="thread.html#11991">[ thread ]</a>
+              <a href="subject.html#11991">[ subject ]</a>
+              <a href="author.html#11991">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

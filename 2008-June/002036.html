@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Module/Plugin Loading
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3CBLU134-W46702ECDFD9BB87B95AA90D5A00%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002035.html">
+   <LINK REL="Next"  HREF="002037.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Module/Plugin Loading</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Module/Plugin%20Loading&In-Reply-To=%3CBLU134-W46702ECDFD9BB87B95AA90D5A00%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Module/Plugin Loading">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Jun 25 21:58:12 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002035.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+        <LI>Next message: <A HREF="002037.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2036">[ date ]</a>
+              <a href="thread.html#2036">[ thread ]</a>
+              <a href="subject.html#2036">[ subject ]</a>
+              <a href="author.html#2036">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Well, I know one way, and that would be to have the Mono-Addin enabled classes and interfaces be subclasses of a base Non-Mono-Addin Module classes and interfaces.
+ 
+Ie, we have our own simple module interface(s) and then mono addin subclasses can decorate those.
+ 
+This would mean that each mono addin would exist in two separate dlls.
+ 
+Which, in the case of distributed repos, wouldn't be all that bad. It would actually be a very neat abstraction between core functionality and deployment environment.
+ 
+But if the core modules are all supposed to be in separate dlls (which one surely can debate) it will double the number of projects. Which would probably be absurd.
+I would really see a clear case of us gaining something specific from using the Mono addins before trying to solve swallowing the whole deal?
+ 
+(No this is not trying to not use addins, merely to approach the problem constructively. Use cases!)
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+Date: Wed, 25 Jun 2008 20:08:36 +0100From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.ukTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: Re: [Opensim-dev] Module/Plugin LoadingYes those are great if we can acheive them. I'm just not sure how we create a &quot;clean&quot; wrapper that is independant of Mono.addins, as it uses various attributes to define the interfaces and plugins (TypeExtensionPoint, Extension, etc) . So those classes need references to mono.addins. Like for example our current IApplicationPlugin:using Mono.Addins;[assembly : AddinRoot(&quot;OpenSim&quot;, &quot;0.5&quot;)]namespace OpenSim{    [TypeExtensionPoint(&quot;/OpenSim/Startup&quot;)]    public interface IApplicationPlugin    {        void Initialise(OpenSimBase openSim);        void Close();    }}and to implement a Application plugin:assembly : Addin][assembly : AddinDependency(&quot;OpenSim&quot;, &quot;0.5&quot;)][assembly : AddinDependency(&quot;RegionProxy&quot;, &quot;0.1&quot;)]namespace OpenSim.ApplicationPlugins.LoadBalancer{    [Extension(&quot;/OpenSim/Startup&quot;)]    public class LoadBalancerPlugin : IApplicationPlugin    {So if we had more classes that used were loaded by mono.addins, we would need the interfaces to have a TypeExtensionPoint attribute and the implementations to have the Extension. Tthe only other way I saw for Mono.addings to load plugins without those attributes, is by using its xml manifest files. And one of our requirements is listed as that we don't use third party config files.I most likely haven't dug deep enough into mono.addins and there could well be a method to do cut out the attributes and not require manifest files. But anyway my point is that I believe a implied effect of those requirements is that we don't have references to Mono.addins in the core opensim assemblys. (OpenSim.Framework.X , etc) Dr Scofield &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">DrScofield at xyzzyxyzzy.net</A>&gt; wrote:
+Stefan Andersson wrote:&gt; Just to get this straight, is what we're saying&gt; &gt; 1) Yes, we will have a common loader architecture&gt; 2) Yes, it will be implemented as a set of interfaces&gt; 3) Yes, we will create one implementation as a wrapper around Mono.Addins&gt; 4) Yes, we will aim at having a common setup file structure for &gt; OpenSim, not depend on lots of different third-party components config.&gt;&gt; That sounds excellent to me.+1&gt;&gt; Best regards,&gt; Stefan Andersson&gt; Tribal Media AB&gt; &gt; Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>&gt; &gt;&gt;&gt;&gt; ------------------------------------------------------------------------&gt;&gt; &gt; Date: Wed, 25 Jun 2008 10:16:34 -0400&gt; &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; &gt; Subject: Re: [Opensim-dev] Module/Plugin Loading&gt; &gt;&gt; &gt; On Wed, Jun 25, 2008 at 03:12:45PM +0100, Melanie wrote:&gt; &gt; &gt; I believe that we should use a plugin loader that allows us to&gt; &gt; &gt; configure plugin loading completely within our own .ini files. I&gt; &gt; &gt; think that a requirement to tweak complex XML based mono/.NET config&gt; &gt; &gt; files to get a plugin loaded will put running OpenSim out fo reach&gt; &gt; &gt; of many users.&gt; &gt; &gt;&gt; &gt; &gt; That said, I'm all for a standardized way to load a plugin. I just&gt; &gt; &gt; think it shouldn't be required to edit conifg files outside of&gt; &gt; &gt; OpenSim's own.&gt; &gt;&gt; &gt; +1. I think that ryan's plugin loader approach will give us that (at&gt; &gt; least from what I've seen in his patch and description). I'm looking&gt; &gt; forward to that work.&gt; &gt;&gt; &gt; -Sean&gt; &gt;&gt; &gt; --&gt; &gt; __________________________________________________________________&gt; &gt;&gt; &gt; Sean Dague Mid-Hudson Valley&gt; &gt; sean at dague dot net Linux Users Group&gt; &gt; <A HREF="http://dague.net">http://dague.net</A> <A HREF="http://mhvlug.org">http://mhvlug.org</A>&gt; &gt;&gt; &gt; There is no silver bullet. Plus, werewolves make better neighbors&gt; &gt; than zombies, and they tend to keep the vampire population down.&gt; &gt; __________________________________________________________________&gt;&gt; ------------------------------------------------------------------------&gt;&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; -- dr dirk husemann ---- virtual worlds research ---- ibm zurich research labSL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/RL:">http://xyzzyxyzzy.net/RL:</A> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/_______________________________________________Opensim-dev">http://www.zurich.ibm.com/~hud/_______________________________________________Opensim-dev</A> mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.dehttps</A>://lists.berlios.de/mailman/listinfo/opensim-dev
+
+
+Not happy with your email address? Get the one you really want - millions of new email addresses available now at Yahoo!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080625/3a2265bb/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080625/3a2265bb/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002035.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+	<LI>Next message: <A HREF="002037.html">[Opensim-dev] Module/Plugin Loading
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2036">[ date ]</a>
+              <a href="thread.html#2036">[ thread ]</a>
+              <a href="subject.html#2036">[ subject ]</a>
+              <a href="author.html#2036">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Nasty exception in Scene.cs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Nasty%20exception%20in%20Scene.cs&In-Reply-To=%3C475E44F5.3030200%40gwala.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000514.html">
+   <LINK REL="Next"  HREF="000520.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Nasty exception in Scene.cs</H1>
+    <B>Adam Frisby</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Nasty%20exception%20in%20Scene.cs&In-Reply-To=%3C475E44F5.3030200%40gwala.net%3E"
+       TITLE="[Opensim-dev] Nasty exception in Scene.cs">adam at gwala.net
+       </A><BR>
+    <I>Tue Dec 11 09:06:13 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000514.html">[Opensim-dev] Nasty exception in Scene.cs
+</A></li>
+        <LI>Next message: <A HREF="000520.html">[Opensim-dev] Nasty exception in Scene.cs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#517">[ date ]</a>
+              <a href="thread.html#517">[ thread ]</a>
+              <a href="subject.html#517">[ subject ]</a>
+              <a href="author.html#517">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Modules &amp; Plugins will need access to this.
+
+Maybe we can make a self-locking property to replace it.
+
+Rename Entities to m_entities, then make:
+
+List&lt;Entity&gt; Entities {
+	get {
+		lock(m_entities) {
+			return m_entities;
+		}
+	}
+}
+
+Regards,
+
+Adam
+
+Sean Dague wrote:
+&gt;<i> I got a nasty exception in Scene.cs during the Update() call as follows:
+</I>&gt;<i> 
+</I>&gt;<i> [SCENE] [12-10 04:02:11] Failed with exception
+</I>&gt;<i> System.InvalidOperationException: out of sync
+</I>&gt;<i>   at
+</I>&gt;<i>   System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].VerifyState
+</I>&gt;<i>   () [0x00000] 
+</I>&gt;<i>   at
+</I>&gt;<i>   System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].CurrentSlot
+</I>&gt;<i>   () [0x00000] 
+</I>&gt;<i>   at
+</I>&gt;<i>   System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].get_Current
+</I>&gt;<i>   () [0x00000] 
+</I>&gt;<i>   at
+</I>&gt;<i>   System.Collections.Generic.Dictionary`2+ValueCollection+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].get_Current
+</I>&gt;<i>   () [0x00000] 
+</I>&gt;<i>   at
+</I>&gt;<i>   System.Collections.Generic.Dictionary`2+ValueCollection[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].CopyTo
+</I>&gt;<i>   (OpenSim.Region.Environment.Scenes.EntityBase[] , Int32 ) [0x00000] 
+</I>&gt;<i>   at
+</I>&gt;<i>   System.Collections.Generic.List`1[OpenSim.Region.Environment.Scenes.EntityBase].AddCollection
+</I>&gt;<i>   (ICollection`1 ) [0x00000] 
+</I>&gt;<i>   at
+</I>&gt;<i>   System.Collections.Generic.List`1[OpenSim.Region.Environment.Scenes.EntityBase]..ctor
+</I>&gt;<i>   (IEnumerable`1 ) [0x00000] 
+</I>&gt;<i>   at OpenSim.Region.Environment.Scenes.InnerScene.UpdateEntities ()
+</I>&gt;<i>   [0x00000] 
+</I>&gt;<i>   at OpenSim.Region.Environment.Scenes.Scene.Update () [0x00000] 
+</I>&gt;<i> 
+</I>&gt;<i> Upon further inspection, the issue here appears to be that we give
+</I>&gt;<i> public access to m_InnerScene.Entities, which is a dictionary, which is
+</I>&gt;<i> something that we need to be able to lock and iterate over inside the
+</I>&gt;<i> Scene.  This problem can't be fixed with locks.
+</I>&gt;<i> 
+</I>&gt;<i> Who needs direct access to that entities list outside of Scene?  Is
+</I>&gt;<i> there some safer interface we can give them for what they really need?
+</I>&gt;<i> 
+</I>&gt;<i>     -Sean
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000514.html">[Opensim-dev] Nasty exception in Scene.cs
+</A></li>
+	<LI>Next message: <A HREF="000520.html">[Opensim-dev] Nasty exception in Scene.cs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#517">[ date ]</a>
+              <a href="thread.html#517">[ thread ]</a>
+              <a href="subject.html#517">[ subject ]</a>
+              <a href="author.html#517">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] User services refactoring status
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20services%20refactoring%20status&In-Reply-To=%3C4B436179.1010604%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008168.html">
+   <LINK REL="Next"  HREF="008173.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] User services refactoring status</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20services%20refactoring%20status&In-Reply-To=%3C4B436179.1010604%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] User services refactoring status">diva at metaverseink.com
+       </A><BR>
+    <I>Tue Jan  5 16:57:45 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008168.html">[Opensim-dev] User services refactoring status
+</A></li>
+        <LI>Next message: <A HREF="008173.html">[Opensim-dev] User services refactoring status
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8169">[ date ]</a>
+              <a href="thread.html#8169">[ thread ]</a>
+              <a href="subject.html#8169">[ subject ]</a>
+              <a href="author.html#8169">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm neutral about keeping support for SQLite in core. For me, it's all a 
+matter of someone taking the lead on maintaining it. Honestly, I agree 
+with Justin, and that's the reason why I'm not doing that maintenance 
+work myself. Having a no-installation OpenSim is very nice just to make 
+it work and to have a feel for what OpenSim can do, but I think that the 
+particular implementation of that concept -- with SQLite -- is quite 
+deceiving. No one in his/her right mind would use SQLite as the DB for 
+serious uses of OpenSim, just like no one uses it as the backend to web 
+applications (there are always exceptions to every rule, of course!).
+
+As such, starting off with SQLite, liking OpenSim, and then discovering 
+that one needs to migrate the data from SQLite to another DB system is 
+not situation that we should induce people into.
+
+In order to implement the no-installation concept, which is a good 
+concept, I'd much rather have an in-memory DB layer with no persistence 
+at all. All data would disappear once the sim shuts down. That way it 
+would be very clear to everyone that if they want persistence they need 
+to think and research about which database system works for them. In 
+some rare cases, people may come to the conclusion that SQLite is what 
+works best for them. Those people should take the lead on maintaining 
+the SQLite OpenSim connector.
+
+Justin Clark-Casey wrote:
+&gt;<i> Daniel Smith wrote:
+</I>&gt;&gt;<i> As a developer of other things, but a user of OpenSim, I would say 'keep 
+</I>&gt;&gt;<i> sqlite'.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Keep the barriers to entry as low as possible.  If someone wants to try out
+</I>&gt;&gt;<i> OpenSim, make it easy for them.  Put your end-user hat on for a moment.
+</I>&gt;<i> 
+</I>&gt;<i> I would usually make the same argument and this was why I did feel a preference keeping sqlite.
+</I>&gt;<i> 
+</I>&gt;<i> However, on reflection, I'm not sure whether it actually helps that much.  OpenSim is always going 
+</I>&gt;<i> to be somewhat complicated to set up and run so the added necessity to install a database as well 
+</I>&gt;<i> doesn't seem too onerous to me.  Mysql is a pretty simple install on all platforms.
+</I>&gt;<i> 
+</I>&gt;<i> We also quite often seem to get situations where someone has started off with sqlite and later 
+</I>&gt;<i> realizes that they need to convert everything to mysql in order to grow.  This can be an awkward 
+</I>&gt;<i> process.  In addition, we already have a situation where some things are not implemented in sqlite 
+</I>&gt;<i> (afaik, attachment persistence still isn't implemented there).  It might be better if we don't make 
+</I>&gt;<i> the end-user suffer these issues.
+</I>&gt;<i> 
+</I>&gt;<i> Anyway, as Diva said, all this really depends on people stepping up to make the necessary code 
+</I>&gt;<i> changes for sqlite.  If people do then it will remain in the codebase.  If nobody does then I think 
+</I>&gt;<i> that we may be better off removing it for now.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> cheers,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Daniel
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Mon, Jan 4, 2010 at 11:57 AM, Robert Martin &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">robertltux at gmail.com</A> 
+</I>&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">robertltux at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Just adding my thoughts given that XAMP is very easy to setup (heck it
+</I>&gt;&gt;<i>     would be simple to just have a pre-setup XAMP module as an add-on
+</I>&gt;&gt;<i>     download) sqlite is not really needed.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     side question i have a diva install where the DB crashed midway during
+</I>&gt;&gt;<i>     the first  migration stage do i need to dump the tables and start
+</I>&gt;&gt;<i>     over??
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     --
+</I>&gt;&gt;<i>     Robert L Martin
+</I>&gt;&gt;<i>     _______________________________________________
+</I>&gt;&gt;<i>     Opensim-dev mailing list
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -- 
+</I>&gt;&gt;<i> Daniel Smith - Sonoma County, California
+</I>&gt;&gt;<i> <A HREF="http://daniel.org/resume">http://daniel.org/resume</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008168.html">[Opensim-dev] User services refactoring status
+</A></li>
+	<LI>Next message: <A HREF="008173.html">[Opensim-dev] User services refactoring status
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8169">[ date ]</a>
+              <a href="thread.html#8169">[ thread ]</a>
+              <a href="subject.html#8169">[ subject ]</a>
+              <a href="author.html#8169">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

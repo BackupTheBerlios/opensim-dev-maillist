@@ -1,0 +1,1032 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Comms Manager
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C49A6EB36.8000800%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005466.html">
+   <LINK REL="Next"  HREF="005468.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Comms Manager</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C49A6EB36.8000800%40t-data.com%3E"
+       TITLE="[Opensim-dev] Comms Manager">melanie at t-data.com
+       </A><BR>
+    <I>Thu Feb 26 20:19:18 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005466.html">[Opensim-dev] Comms Manager
+</A></li>
+        <LI>Next message: <A HREF="005468.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5467">[ date ]</a>
+              <a href="thread.html#5467">[ thread ]</a>
+              <a href="subject.html#5467">[ subject ]</a>
+              <a href="author.html#5467">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Can I give you +10000?
+
+I don't know about these annotations and how to read them, but 
+obviously there is a way and that would be extremely elegant, 
+because annotation can be used without adding code that may ref 
+things we don't want to ref.
+
+Yes, there would be such an application level registry, which 
+modules and the application can access, but regions can't, as an 
+analogue to Scene.RegisterModuleInterface&lt;T&gt;(T module).
+
+Maybe something on OpenSimBase that can be used to query that app 
+level registry.
+
+Details would have to come from you, since I don't know how to use 
+these annotations.
+
+Melanie
+
+Justin Clark-Casey wrote:
+&gt;<i> MW wrote:
+</I>&gt;&gt;<i> I'm not actually bothered about the interface per se. What I require is 
+</I>&gt;&gt;<i> to be able to dynamically load generic modules that no where in that 
+</I>&gt;&gt;<i> module does it know about IScene/Scene.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I actually see your approach as complex because it demands they need to 
+</I>&gt;&gt;<i> know how to register to a scene themselves when these types shouldn't 
+</I>&gt;&gt;<i> need to know. The types of modules I mean are ones where they just want 
+</I>&gt;&gt;<i> to register with the Core/Application and be accessed from anywhere in 
+</I>&gt;&gt;<i> the application.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Of course this module type doesn't fit all needs, but thats what I'm 
+</I>&gt;&gt;<i> saying its not right to try to find a single solution that fits all 
+</I>&gt;&gt;<i> needs and turns out to be more complex than some modules require. And we 
+</I>&gt;&gt;<i> shouldn't rule out such generic modules.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Now we could still do meet the above requirement with you system, but it 
+</I>&gt;&gt;<i> would mean doing some automagic in a ApplicationPlugin (or whatever 
+</I>&gt;&gt;<i> interface they used) loader.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> As the loader would have to provide its own IServiceCore implementation, 
+</I>&gt;&gt;<i> that it passed to the IServiceModules that it loaded, then it would need 
+</I>&gt;&gt;<i> to as your examples show handle scene creation and register the all the 
+</I>&gt;&gt;<i> IServiceModules with those.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> This it does get complex, where the simply solution and the one I favour 
+</I>&gt;&gt;<i> is to just have a sharedRegistry that scenes can access. The whole 
+</I>&gt;&gt;<i> automagic came from me trying to find a compromise that met your ideas. 
+</I>&gt;&gt;<i> I really dislike it though, but we just need to find a compromise as we 
+</I>&gt;&gt;<i> both have slighly different ideas and requirements.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thats why I would like to hear from other people.
+</I>&gt;<i> 
+</I>&gt;<i> Okay, it seems to me that the chief problem now is that MW would like to exposed service module methods to regions 
+</I>&gt;<i> without having to put any IScene methods in the module code, allowing it to be used for both the region server and grid 
+</I>&gt;<i> servers.
+</I>&gt;<i> 
+</I>&gt;<i> This is possible if all the service methods are exposed to the region.  However, Melanie doesn't like this because it 
+</I>&gt;<i> will expose some methods that regions should arguably not be able to get at (such as 
+</I>&gt;<i> IInventoryService.CreateNewUserInventory()).
+</I>&gt;<i> 
+</I>&gt;<i> I would tend to think that we shouldn't expose such service methods to regions.
+</I>&gt;<i> 
+</I>&gt;<i> Neither side likes automagic by the core code, but I think a little bit of it will help here.  Instead of having methods 
+</I>&gt;<i> such as
+</I>&gt;<i> 
+</I>&gt;<i> void RegisterInterfaceToAllRegistries&lt;T&gt;(T iface);
+</I>&gt;<i> 
+</I>&gt;<i> we instead annotate service modules with [RegionModule] and region interfaces with [RegionInterface].  Grid modules 
+</I>&gt;<i> which can also provide region services are annotated in this way.  When the core code goes to load them, the 
+</I>&gt;<i> [RegionInterface] tagged interfaces are automatically registered with the region registry.  This replaces 
+</I>&gt;<i> RegisterModuleInterface().
+</I>&gt;<i> 
+</I>&gt;<i> It also requires that IServiceModule and IRegionModule are collapsed together, by removing the IScene references in 
+</I>&gt;<i> IRegionModule.  Instead, these are passed in via the OnNewScene() event talked about earlier.
+</I>&gt;<i> 
+</I>&gt;<i> In this way, service/application modules that aren't interested in scenes don't need to do any extra work apart from 
+</I>&gt;<i> tagging the module/interfaces appropriately, avoiding the boilerplate of separately registering the interface to each 
+</I>&gt;<i> region.  The regions still don't have access to inter-service/non-region interfaces.
+</I>&gt;<i> 
+</I>&gt;<i> This does require a separate service registry hidden from the Region/Scene so that services can communicate among 
+</I>&gt;<i> themselves (e.g. the user service needs to call the inventory service to create new user inventories).  There would be 2 
+</I>&gt;<i> registries in total.
+</I>&gt;<i> 
+</I>&gt;<i> Please excuse me if I haven't fully grokked all the previous posts on this thread.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> --- On *Thu, 26/2/09, Melanie /&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;/* wrote:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     Date: Thursday, 26 February, 2009, 5:28 PM
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     I'm not objecting to your module. if IGridServiceCore then has the 
+</I>&gt;&gt;<i>     registry, then that is fone. I'm not dead set on IApplicationModule, 
+</I>&gt;&gt;<i>     it is simply the only one I know at that level.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     So, define:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     IGridServiceCore
+</I>&gt;&gt;<i>     {
+</I>&gt;&gt;<i>     ...
+</I>&gt;&gt;<i>     void RegisterModuleInterface&lt;T&gt;(T module);
+</I>&gt;&gt;<i>     void UnregisterModuleInterface&lt;T&gt;();
+</I>&gt;&gt;<i>     T RequesModuleInterface&lt;T&gt;();
+</I>&gt;&gt;<i>     ...
+</I>&gt;&gt;<i>     }
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     and the make IRegionLoader be one of those interfaces, and have
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     IRegionLoader
+</I>&gt;&gt;<i>     {
+</I>&gt;&gt;<i>     ...
+</I>&gt;&gt;<i>     event NewScene OnNewScene;
+</I>&gt;&gt;<i>     event RemoveScene OnRemoveScene;
+</I>&gt;&gt;<i>     ...
+</I>&gt;&gt;<i>     }
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     so you can use:
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     PostInitialise()
+</I>&gt;&gt;<i>     {
+</I>&gt;&gt;<i>     IRegionLoader loader = core.RequestModuleInterface&lt;IRegionLoader&gt;();
+</I>&gt;&gt;<i>     loader.OnNewScene += NewScene;
+</I>&gt;&gt;<i>     }
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     private void NewScene(IScene scene)
+</I>&gt;&gt;<i>     {
+</I>&gt;&gt;<i>     }
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     and that
+</I>&gt;&gt;<i>      will solve it.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     I am objecting only to the attempts to create a complex solution for 
+</I>&gt;&gt;<i>     a simple problem, when the above is the simple solution we already 
+</I>&gt;&gt;<i>     mostly have.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     Melanie
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>     MW wrote:
+</I>&gt;&gt;<i>     &gt; Well I still want to be able to have a module that implements a very
+</I>&gt;&gt;<i>     simple generic interface something like: 
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt;   public interface IGridServiceModule
+</I>&gt;&gt;<i>     &gt;     {
+</I>&gt;&gt;<i>     &gt;         void Close();
+</I>&gt;&gt;<i>     &gt;         void Initialise(IGridServiceCore core);
+</I>&gt;&gt;<i>     &gt;         void PostInitialise();
+</I>&gt;&gt;<i>     &gt;     }
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; And all it has to do is call a register function on IGridServiceCore that
+</I>&gt;&gt;<i>     makes it available to the application and scene. I don't want to have to
+</I>&gt;&gt;<i>     have a separate IApplicationPlugin wrapper around all these modules. But I guess
+</I>&gt;&gt;<i>     we could do some &quot;hacking&quot; in a IApplicationPlugin based module loader
+</I>&gt;&gt;<i>     (for these IGridServiceModule types). Its just not very clean to have to do
+</I>&gt;&gt;<i>     extra trickery in a
+</I>&gt;&gt;<i>      loader to be able to load and register modules that
+</I>&gt;&gt;<i>     don't need to have references to IScene.
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; --- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;<i>     &gt; From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     &gt; Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt; Date: Thursday, 26 February, 2009, 5:05 PM
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; In my (much simpler) design, the IScene won't even need to be on the
+</I>&gt;&gt;<i>     &gt; interface. All that is needed is for the core (Scene loader) to provide
+</I>&gt;&gt;<i>     the
+</I>&gt;&gt;<i>     &gt; OnNewScene and OnRemoveScene events. In my example, I placed those on the
+</I>&gt;&gt;<i>     &gt; interface, that was actually not needed at all.
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; I do believe that the registration to scenes should be done by a piece of
+</I>&gt;&gt;<i>     &gt; boilerplate code int he module itself, and not automagically. The
+</I>&gt;&gt;<i>     automagical
+</I>&gt;&gt;<i>     &gt; registration leaves no room to expose a _different_ interface to the
+</I>&gt;&gt;<i>      scene
+</I>&gt;&gt;<i>     from
+</I>&gt;&gt;<i>     &gt; what is exposed to the application. Since many application level methods
+</I>&gt;&gt;<i>     would
+</I>&gt;&gt;<i>     &gt; be useless to Scenes and may be harmful, and vice versa, the two-interface
+</I>&gt;&gt;<i>     &gt; approach I outlined seems cleaner.
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; In the simplest case:
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; MyApplicationModule : IApplicationPlugin
+</I>&gt;&gt;<i>     &gt; {
+</I>&gt;&gt;<i>     &gt; IApplicationPlugin members
+</I>&gt;&gt;<i>     &gt; ....
+</I>&gt;&gt;<i>     &gt; }
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; Nothing special there, clean and simple
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; Then, if we want to be notified about scenes to register to them, grab the
+</I>&gt;&gt;<i>     &gt; region loader interface:
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; IRegionLoader loader =
+</I>&gt;&gt;<i>     &gt; application.RequestModuleInterface&lt;IRegionLoader&gt;();
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; and _then_ hook from there:
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; loader.OnNewScene += OnNewSceneHandler
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; Which doesn't have to be on any interface.
+</I>&gt;&gt;<i>     &gt; It would just be a class member:
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; private void OnNewSceneHandler(IScene scene)
+</I>&gt;&gt;<i>     &gt; {
+</I>&gt;&gt;<i>     &gt;
+</I>&gt;&gt;<i>      }
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; and that could then call the interface registration method
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; That is clean, doesn't push Scenes into modules that don't want
+</I>&gt;&gt;<i>     them,
+</I>&gt;&gt;<i>     &gt; allows exposing interfaces to Scenes with a minimum of boilerplate, and
+</I>&gt;&gt;<i>     has no
+</I>&gt;&gt;<i>     &gt; automagic that is hard to understand or brittle.
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; Melanie
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; MW wrote:
+</I>&gt;&gt;<i>     &gt;&gt; I still think we should have a SharedRegistry that all Scenes have
+</I>&gt;&gt;<i>     access
+</I>&gt;&gt;<i>     &gt; to. Some of the current shared RegionModules could move to using it as
+</I>&gt;&gt;<i>     well. And
+</I>&gt;&gt;<i>     &gt; I know some of the other devs want one to; Adam and Stefan were talking
+</I>&gt;&gt;<i>     about
+</I>&gt;&gt;<i>     &gt; one in IRC the other day.
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; But if we all agree that we actually don't want one of them. Then
+</I>&gt;&gt;<i>     a
+</I>&gt;&gt;<i>     &gt; possible compromise might be adding a extra RegisterToAllRegistries method
+</I>&gt;&gt;<i>     to
+</I>&gt;&gt;<i>     &gt; the core Global registry interface so something like:
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; public
+</I>&gt;&gt;<i>      interface IGridServiceCore
+</I>&gt;&gt;<i>     &gt;&gt;      {
+</I>&gt;&gt;<i>     &gt;&gt;          T Get&lt;T&gt;();
+</I>&gt;&gt;<i>     &gt;&gt;         void RegisterInterface&lt;T&gt;(T iface);
+</I>&gt;&gt;<i>     &gt;&gt;         void RegisterInterfaceToAllRegistries&lt;T&gt;(T iface);
+</I>&gt;&gt;<i>     &gt;&gt;          bool TryGet&lt;T&gt;(out T iface);
+</I>&gt;&gt;<i>     &gt;&gt;      }
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; This would add the interface to a list, that then is
+</I>&gt;&gt;<i>     &quot;copied&quot; to
+</I>&gt;&gt;<i>     &gt; each region that starts up, so a kind of auto registration. Without the
+</I>&gt;&gt;<i>     modules
+</I>&gt;&gt;<i>     &gt; having to be given scene references if the interface type they are using
+</I>&gt;&gt;<i>     &gt; doesn't support that. 
+</I>&gt;&gt;<i>     &gt;&gt; So all we would be doing is making OpenSimBase implement that
+</I>&gt;&gt;<i>     interface
+</I>&gt;&gt;<i>     &gt; and provide the support for the &quot;auto registration&quot; to Scenes
+</I>&gt;&gt;<i>     with
+</I>&gt;&gt;<i>     &gt; RegisterInterfaceToAllRegistries. Any module/plugin using 
+</I>&gt;&gt;<i>     RegisterInterface
+</I>&gt;&gt;<i>     &gt; would only register with the Global/Application registry that wouldn't
+</I>&gt;&gt;<i>     be
+</I>&gt;&gt;<i>     &gt; accessable from regions.
+</I>&gt;&gt;<i>      Of course they could then manually register
+</I>&gt;&gt;<i>     themselves
+</I>&gt;&gt;<i>     &gt; with the regions.
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; I just really dislike trying Scene/IScene into all the plugin
+</I>&gt;&gt;<i>     interfaces.
+</I>&gt;&gt;<i>     &gt; I'm fine with plugins being able to access them via a
+</I>&gt;&gt;<i>     IApplicationPlugin if
+</I>&gt;&gt;<i>     &gt; thats the way the plugin creator did things. But I also want a more
+</I>&gt;&gt;<i>     generic
+</I>&gt;&gt;<i>     &gt; module type that can still offer services to regions/scenes. Most likely
+</I>&gt;&gt;<i>     using
+</I>&gt;&gt;<i>     &gt; the plugin loader approach I mentioned earlier. If this extra plugin
+</I>&gt;&gt;<i>     loading was
+</I>&gt;&gt;<i>     &gt; done by a ApplicationPlugin then anyone who didn't want to support
+</I>&gt;&gt;<i>     those
+</I>&gt;&gt;<i>     &gt; types could easily remove that loader.
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; --- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;<i>     &gt;&gt; From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     &gt;&gt; Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     &gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt; Date: Thursday,
+</I>&gt;&gt;<i>      26 February, 2009, 2:40 PM
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; I think that would introduce a layer of complexity in core, where i
+</I>&gt;&gt;<i>     think
+</I>&gt;&gt;<i>     &gt; that
+</I>&gt;&gt;<i>     &gt;&gt; complexity (e.g. registering to scenes) s better off distributed
+</I>&gt;&gt;<i>     inside
+</I>&gt;&gt;<i>     &gt; the
+</I>&gt;&gt;<i>     &gt;&gt; modules that actually need it. Keep it simple. I believe my approach
+</I>&gt;&gt;<i>     is
+</I>&gt;&gt;<i>     &gt; what
+</I>&gt;&gt;<i>     &gt;&gt; will work with the least amount of core code, and provide the greatest
+</I>&gt;&gt;<i>     &gt;&gt; flexibility.
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; Melanie
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; MW wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt; I know I said we should wait for other people to give some input,
+</I>&gt;&gt;<i>     but
+</I>&gt;&gt;<i>     &gt; just
+</I>&gt;&gt;<i>     &gt;&gt; one last suggestion.
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Maybe we should have three registeries. A
+</I>&gt;&gt;<i>     ApplicationServiceRegistry
+</I>&gt;&gt;<i>     &gt; that
+</I>&gt;&gt;<i>     &gt;&gt; is only accessable from the application level), A
+</I>&gt;&gt;<i>     SharedServiceRegistry
+</I>&gt;&gt;<i>     &gt; that is
+</I>&gt;&gt;<i>     &gt;&gt; accessable from the application and all scenes/regions. And then the
+</I>&gt;&gt;<i>     &gt;
+</I>&gt;&gt;<i>      current
+</I>&gt;&gt;<i>     &gt;&gt; Registry in Scene.
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Then its upto the modules/components/plugins to which registries
+</I>&gt;&gt;<i>     they
+</I>&gt;&gt;<i>     &gt; want
+</I>&gt;&gt;<i>     &gt;&gt; to register.
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; And certain plugin types might only get references allowing them
+</I>&gt;&gt;<i>     to
+</I>&gt;&gt;<i>     &gt;&gt; register to certain registeries. 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; --- On Thu, 26/2/09, MW &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt; wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt; From: MW &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt;
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     &gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Date: Thursday, 26 February, 2009, 1:48 PM
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Well actually my suggestion of supporting multiple plugin
+</I>&gt;&gt;<i>     interfaces
+</I>&gt;&gt;<i>     &gt;&gt; allowed both approaches and left everything up to the module creator. 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; But I think we should wait for input from others now as we
+</I>&gt;&gt;<i>     aren't
+</I>&gt;&gt;<i>     &gt;&gt; really getting anywhere on the fine details. I
+</I>&gt;&gt;<i>      think we have the basis
+</I>&gt;&gt;<i>     of
+</I>&gt;&gt;<i>     &gt; a
+</I>&gt;&gt;<i>     &gt;&gt; system just need to get other peope's input so we can work out
+</I>&gt;&gt;<i>     those
+</I>&gt;&gt;<i>     &gt; small
+</I>&gt;&gt;<i>     &gt;&gt; details. Like the main one being should the global registry be
+</I>&gt;&gt;<i>     accessable
+</I>&gt;&gt;<i>     &gt; from
+</I>&gt;&gt;<i>     &gt;&gt; regions. And if we decide it shouldn't, is it okay for it be in
+</I>&gt;&gt;<i>     the
+</I>&gt;&gt;<i>     &gt; short
+</I>&gt;&gt;<i>     &gt;&gt; term so we can refactor comms manager easiest. ie comms manager
+</I>&gt;&gt;<i>     becomes
+</I>&gt;&gt;<i>     &gt; the
+</I>&gt;&gt;<i>     &gt;&gt; global registry for now. 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; --- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt; From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Subject: Re:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     &gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Date: Thursday, 26 February, 2009, 1:36 PM
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; If you want to be more flexible, then my approach is better. In
+</I>&gt;&gt;<i>     your
+</I>&gt;&gt;<i>     &gt;&gt; model, a global module has not
+</I>&gt;&gt;<i>      way to _prevent_ being accessed by
+</I>&gt;&gt;<i>     Scene.
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; I believe Scene has no business holding a ref to the application,
+</I>&gt;&gt;<i>     or
+</I>&gt;&gt;<i>     &gt;&gt; accessing the global registry.
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; In my design, each module has the power to decide whether it wants
+</I>&gt;&gt;<i>     to
+</I>&gt;&gt;<i>     &gt; be
+</I>&gt;&gt;<i>     &gt;&gt; accessible from Scene and what methods it exposes to it. Your method
+</I>&gt;&gt;<i>     &gt; reduces
+</I>&gt;&gt;<i>     &gt;&gt; that duality into a single interface and makes all scenes be able to
+</I>&gt;&gt;<i>     &gt; access all
+</I>&gt;&gt;<i>     &gt;&gt; methods on all interfaces. That leaves no room for isolation, even if
+</I>&gt;&gt;<i>     a
+</I>&gt;&gt;<i>     &gt; module
+</I>&gt;&gt;<i>     &gt;&gt; writer would want it.
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; I believe the modules _should_ indeed register with each scene in
+</I>&gt;&gt;<i>     a
+</I>&gt;&gt;<i>     &gt;&gt; callback, and that would actually let them register only to specific
+</I>&gt;&gt;<i>     &gt; scenes if
+</I>&gt;&gt;<i>     &gt;&gt; they wanted to. More flexibility
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  yet.
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;
+</I>&gt;&gt;<i>      Melanie
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; MW wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Hmm, I never suggested anything that would mean one scene be
+</I>&gt;&gt;<i>     able
+</I>&gt;&gt;<i>     &gt; to
+</I>&gt;&gt;<i>     &gt;&gt;&gt; directly access another.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; I see the GlobalRegistry as a very basic interface something
+</I>&gt;&gt;<i>     like:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;  public interface IGridServiceCore
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;     {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;         T Get&lt;T&gt;();
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;         void RegisterInterface&lt;T&gt;(T iface);
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;         bool TryGet&lt;T&gt;(out T iface);
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;     }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;  [Which would be in OpenSim.Framework or wherever]
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; So if we did want a Scene to be able to access it, all it
+</I>&gt;&gt;<i>     would
+</I>&gt;&gt;<i>     &gt; need
+</I>&gt;&gt;<i>     &gt;&gt; on
+</I>&gt;&gt;<i>     &gt;&gt;&gt; creation is pass a IGridServiceCore reference in its parameters.
+</I>&gt;&gt;<i>     So it
+</I>&gt;&gt;<i>     &gt;&gt;&gt; doesn't actually change
+</I>&gt;&gt;<i>      anything compared to how things are
+</I>&gt;&gt;<i>     now
+</I>&gt;&gt;<i>     &gt; with
+</I>&gt;&gt;<i>     &gt;&gt; the
+</I>&gt;&gt;<i>     &gt;&gt;&gt; shared modules.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; I just am still not sure that GlobalServices should have to
+</I>&gt;&gt;<i>     &gt;&gt; indivudally
+</I>&gt;&gt;<i>     &gt;&gt;&gt; register with the Scenes even if they want to provide services to
+</I>&gt;&gt;<i>     &gt; region
+</I>&gt;&gt;<i>     &gt;&gt;&gt; modules. I see the
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  module that handled User server comms as a global service but
+</I>&gt;&gt;<i>     &gt;&gt;&gt; don't think it should have to register with all regions.
+</I>&gt;&gt;<i>     I'm
+</I>&gt;&gt;<i>     &gt; more
+</I>&gt;&gt;<i>     &gt;&gt; in
+</I>&gt;&gt;<i>     &gt;&gt;&gt; mind that it should just register with the global registry and
+</I>&gt;&gt;<i>     then
+</I>&gt;&gt;<i>     &gt; region
+</I>&gt;&gt;<i>     &gt;&gt;&gt; modules than access that.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; And yes nothing I have suggested stops a ApplicationModule and
+</I>&gt;&gt;<i>     a
+</I>&gt;&gt;<i>     &gt;&gt;&gt; RegionModule from sharing a dll, and the ApplicationModule starts
+</I>&gt;&gt;<i>     up
+</I>&gt;&gt;<i>     &gt; and
+</I>&gt;&gt;<i>     &gt;&gt;&gt; registers the RegionModule or whatever. I just
+</I>&gt;&gt;<i>      don't think its
+</I>&gt;&gt;<i>     the
+</I>&gt;&gt;<i>     &gt;&gt; solution
+</I>&gt;&gt;<i>     &gt;&gt;&gt; for everything. So am trying to think of way of being more
+</I>&gt;&gt;<i>     flexible.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; --- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Date: Thursday, 26 February, 2009, 1:14 PM
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Hi,
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; one of the paradigms is that no Scene should directly access
+</I>&gt;&gt;<i>     &gt; another
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Scene.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Therefore, providing a clear path to the global registry from
+</I>&gt;&gt;<i>     the
+</I>&gt;&gt;<i>     &gt; DLL
+</I>&gt;&gt;<i>     &gt;&gt; Scene is in would break that isolation.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Really, global modules
+</I>&gt;&gt;<i>      that want/need to be accessed from
+</I>&gt;&gt;<i>     Scene
+</I>&gt;&gt;<i>     &gt; can
+</I>&gt;&gt;<i>     &gt;&gt; register an interface there.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Also, processing will probably need to be broken up into a
+</I>&gt;&gt;<i>     part
+</I>&gt;&gt;<i>     &gt; that
+</I>&gt;&gt;<i>     &gt;&gt; has the Scene type and a part that doesn't.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; This is where I think a global module and a region module as
+</I>&gt;&gt;<i>     well
+</I>&gt;&gt;<i>     &gt; as
+</I>&gt;&gt;<i>     &gt;&gt; the interfaces used between them can share a dll.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; The global module would register that interface on the region,
+</I>&gt;&gt;<i>     and
+</I>&gt;&gt;<i>     &gt; the
+</I>&gt;&gt;<i>     &gt;&gt; region modules uses it.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; That is much cleaner.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Melanie
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; MW wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Well I hadn't really thought out all the details but
+</I>&gt;&gt;<i>     what
+</I>&gt;&gt;<i>     &gt; I
+</I>&gt;&gt;<i>     &gt;&gt; meant
+</I>&gt;&gt;<i>     &gt;&gt;&gt; is
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; we
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; can have a IApplicationPlugin
+</I>&gt;&gt;<i>      that can load other plugin
+</I>&gt;&gt;<i>     types
+</I>&gt;&gt;<i>     &gt;&gt; itself.
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; So if we look at the code in OpenSimBase that loads
+</I>&gt;&gt;<i>     &gt;&gt;&gt; IApplicationplugins it
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; is:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;  protected virtual void LoadPlugins()
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             PluginLoader&lt;IApplicationPlugin&gt; loader
+</I>&gt;&gt;<i>     =
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;                 new
+</I>&gt;&gt;<i>     PluginLoader&lt;IApplicationPlugin&gt;(new
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; ApplicationPluginInitialiser(this));
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             loader.Load(&quot;/OpenSim/Startup&quot;);
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             m_plugins = loader.Plugins;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; and the plugin initialiser is :
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;   public class ApplicationPluginInitialiser :
+</I>&gt;&gt;<i>     &gt;&gt; PluginInitialiserBase
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;     {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         private OpenSimBase
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  server;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         public ApplicationPluginInitialiser (OpenSimBase
+</I>&gt;&gt;<i>     s) {
+</I>&gt;&gt;<i>     &gt;&gt; server =
+</I>&gt;&gt;<i>     &gt;&gt;&gt; s;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         public override void Initialise (IPlugin plugin)
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             IApplicationPlugin p = plugin as
+</I>&gt;&gt;<i>     &gt; IApplicationPlugin;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             p.Initialise (server);
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;     }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; so there is no reason why inside a ApplicationPlugin we
+</I>&gt;&gt;<i>     &gt; can't
+</I>&gt;&gt;<i>     &gt;&gt; do
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; something like:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;  public void Initialise(OpenSimBase openSim)
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;    LoadGridServiceModules(openSim);
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Protected
+</I>&gt;&gt;<i>      virtual void LoadGridServiceModules(OpenSimBase
+</I>&gt;&gt;<i>     &gt;&gt; openSimBase)
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             PluginLoader&lt;IGridServiceModule&gt; loader
+</I>&gt;&gt;<i>     =
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;                 new
+</I>&gt;&gt;<i>     PluginLoader&lt;IGridServiceModule&gt;(new
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; GridServicePluginInitialiser(openSimBase.GlobalRegistry));
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             loader.Load(&quot;/OpenSim/GridService&quot;);
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;            
+</I>&gt;&gt;<i>      m_plugins = loader.Plugins;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;   public class GridServicePluginInitialiser :
+</I>&gt;&gt;<i>     &gt;&gt; PluginInitialiserBase
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;     {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         private IGridServiceCore m_core;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         public ApplicationPluginInitialiser (IGridService
+</I>&gt;&gt;<i>     &gt; core) {
+</I>&gt;&gt;<i>     &gt;&gt;&gt; m_core =
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; core;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         public override void Initialise (IPlugin plugin)
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             IGridServiceModule p = plugin as
+</I>&gt;&gt;<i>     &gt; IGridServiceModule;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;             p.Initialise (m_core);
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;         }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;     }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; So its then loaded the IGridServiceModules and passed them
+</I>&gt;&gt;<i>     &gt; only a
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; reference to the GlobalRegistry (from OpenSimBase).
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; And for plugins/modules that want to register with scenes,
+</I>&gt;&gt;<i>     we
+</I>&gt;&gt;<i>     &gt;&gt; could
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; either have another plugin type and loader, or just use
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; IApplicationPlugin directly for them.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Of course this opens up the question if at any point the
+</I>&gt;&gt;<i>     &gt;&gt;&gt;
+</I>&gt;&gt;<i>      GlobalRegistry
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; should be accessable from scenes. If we are going to go
+</I>&gt;&gt;<i>     with
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  the
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; approach that modules that should be accessable from
+</I>&gt;&gt;<i>     scenes
+</I>&gt;&gt;<i>     &gt; should
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; register with them then I guess the answer is no. But I
+</I>&gt;&gt;<i>     can
+</I>&gt;&gt;<i>     &gt; see
+</I>&gt;&gt;<i>     &gt;&gt; people
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; wanting to be able to access the GlobalRegistry from
+</I>&gt;&gt;<i>     Region
+</I>&gt;&gt;<i>     &gt;&gt; modules
+</I>&gt;&gt;<i>     &gt;&gt;&gt; and
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; trying to do hacks so they can.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; --- On Thu, 26/2/09, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Date: Thursday, 26 February, 2009, 12:50 PM
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; I'd have to see that, but it sounds good.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Can you illustrate?
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Melanie
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; MW wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; Just a though,t but maybe we are trying to be too
+</I>&gt;&gt;<i>     generic
+</I>&gt;&gt;<i>     &gt; in
+</I>&gt;&gt;<i>     &gt;&gt;&gt; finding a
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; single interface that meets all needs. We have a plugin
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  loader
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; (Mono.addins)
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; that can quite easily load different plugin types. So by
+</I>&gt;&gt;<i>     using
+</I>&gt;&gt;<i>     &gt; the
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; IApplicationPlugin system, we can have them also loading
+</I>&gt;&gt;<i>     other
+</I>&gt;&gt;<i>     &gt;&gt; plugin
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; types. 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; If basically we are saying that we want two different
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Module/Interface
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; registeries (Global and Scene), then there
+</I>&gt;&gt;<i>      is no reason
+</I>&gt;&gt;<i>     that
+</I>&gt;&gt;<i>     &gt; as
+</I>&gt;&gt;<i>     &gt;&gt; long
+</I>&gt;&gt;<i>     &gt;&gt;&gt; as
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; all the
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; plugins only register interfaces with those registeries
+</I>&gt;&gt;<i>     why we
+</I>&gt;&gt;<i>     &gt;&gt;&gt; can't
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; have
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; the multiple plugin types. So we have a type (and loader)
+</I>&gt;&gt;<i>     that
+</I>&gt;&gt;<i>     &gt; is
+</I>&gt;&gt;<i>     &gt;&gt; able
+</I>&gt;&gt;<i>     &gt;&gt;&gt; to
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; register event handlers so it can be informed about
+</I>&gt;&gt;<i>     scenes.
+</I>&gt;&gt;<i>     &gt; And we
+</I>&gt;&gt;<i>     &gt;&gt; a
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; loader that
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; can load the modules from the Grid servers directly. 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; The loaders would be minor things basically just using
+</I>&gt;&gt;<i>     &gt;&gt;&gt; PluginLoader to
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; load the plugins. 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; We could say this increases
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  the complexity, but I actually think
+</I>&gt;&gt;<i>     &gt;&gt;&gt; by
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      having
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; initialisation interfaces that are right for the task that
+</I>&gt;&gt;<i>     the
+</I>&gt;&gt;<i>     &gt;&gt; modules
+</I>&gt;&gt;<i>     &gt;&gt;&gt; are
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; going
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; to do makes sense.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; --- On Thu, 26/2/09, Melanie
+</I>&gt;&gt;<i>     &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     &gt; wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; From: Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; Subject: Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; Date: Thursday, 26 February, 2009, 12:36 PM
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; I don't think Grid and Asset modules need to load
+</I>&gt;&gt;<i>     into
+</I>&gt;&gt;<i>     &gt;&gt; region servers, and vice versa. At least not by the same interface.
+</I>&gt;&gt;<i>     That
+</I>&gt;&gt;<i>     &gt;&gt; interchangeability makes other things that are useful almost
+</I>&gt;&gt;<i>     impossibly
+</I>&gt;&gt;<i>     &gt; complex.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; Melanie
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; Stefan Andersson wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; No, didn't notice that, but I question why
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  Grid or Asset
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; server
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; modules should even be aware of that, regardless of
+</I>&gt;&gt;<i>     how
+</I>&gt;&gt;<i>     &gt; the
+</I>&gt;&gt;<i>     &gt;&gt; IScene
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; interface
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; looks or what types that, in turn, pulls in.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; Best regards,
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; Stefan Andersson
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; Tribal Media AB
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Date: Thu, 26 Feb 2009 12:29:19 +0000
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Subject:
+</I>&gt;&gt;<i>      Re: [Opensim-dev] Comms Manager
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Hi,
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; note that I used IScene sxclusively?
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Melanie
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Stefan Andersson wrote:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; Um, yeah, having 'Scene' as a
+</I>&gt;&gt;<i>     type in
+</I>&gt;&gt;<i>     &gt;&gt;&gt; anyhting
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; outside
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  of
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; the Region will lead to grief.
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; &gt; Suggestion:
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; &gt; &gt; --- OpenSim.Framework: ---
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; &gt; &gt; IGenericModule
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt;
+</I>&gt;&gt;<i>      Initialise();
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; PostInitialise();
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; &gt; &gt; ---
+</I>&gt;&gt;<i>     OpenSim.Region.Framework:
+</I>&gt;&gt;<i>     &gt; ---
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; &gt;
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; IRegionModule : IGenericModule
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; {
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; OnNewScene();
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; OnSceneRemoved();
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; }
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; &gt; &gt; &gt; Best regards,
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; Stefan Andersson
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; &gt; Tribal Media AB
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>     &gt;&gt;&gt;
+</I>&gt;&gt;<i>     &gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt;       
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      
+</I>&gt;&gt;<i>     &gt;&gt;
+</I>&gt;&gt;<i>     ------------------------------------------------------------------------
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;       
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;
+</I>&gt;&gt;<i>     &gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i>      _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt;       
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;
+</I>&gt;&gt;<i>     ------------------------------------------------------------------------
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;
+</I>&gt;&gt;<i>      _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Opensim-dev mailing
+</I>&gt;&gt;<i>     &gt;&gt;&gt;  list
+</I>&gt;&gt;<i>     &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;       _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt;       
+</I>&gt;&gt;<i>     &gt;&gt;&gt;
+</I>&gt;&gt;<i>     &gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i>     &gt;&gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt;&gt;
+</I>&gt;&gt;<i>      <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;       
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt;
+</I>&gt;&gt;<i>     ------------------------------------------------------------------------
+</I>&gt;&gt;<i>     &gt;&gt; 
+</I>&gt;&gt;<i>     &gt;&gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt;       
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i>     &gt; 
+</I>&gt;&gt;<i>     &gt; _______________________________________________
+</I>&gt;&gt;<i>     &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i>     &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>     _______________________________________________
+</I>&gt;&gt;<i>     Opensim-dev mailing
+</I>&gt;&gt;<i>      list
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005466.html">[Opensim-dev] Comms Manager
+</A></li>
+	<LI>Next message: <A HREF="005468.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5467">[ date ]</a>
+              <a href="thread.html#5467">[ thread ]</a>
+              <a href="subject.html#5467">[ subject ]</a>
+              <a href="author.html#5467">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

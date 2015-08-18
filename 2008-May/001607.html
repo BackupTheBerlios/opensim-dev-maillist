@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Interrelated difficult problems related to asset	portability
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Interrelated%20difficult%20problems%20related%20to%20asset%0A%09portability&In-Reply-To=%3C6b9359640805220934y2a31eb43m2bb457bcd957848d%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001597.html">
+   <LINK REL="Next"  HREF="001612.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Interrelated difficult problems related to asset	portability</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Interrelated%20difficult%20problems%20related%20to%20asset%0A%09portability&In-Reply-To=%3C6b9359640805220934y2a31eb43m2bb457bcd957848d%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Interrelated difficult problems related to asset	portability">aerowolf at gmail.com
+       </A><BR>
+    <I>Thu May 22 18:34:50 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001597.html">[Opensim-dev] Avatar Appearance Persistence.....
+</A></li>
+        <LI>Next message: <A HREF="001612.html">[Opensim-dev] Interrelated difficult problems related to asset	portability
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1607">[ date ]</a>
+              <a href="thread.html#1607">[ thread ]</a>
+              <a href="subject.html#1607">[ subject ]</a>
+              <a href="author.html#1607">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>There are a set of difficult (though I can't call them 'hard')
+problems related to asset portability that need to be addressed.  Some
+are explicitly technical, some are explicitly social, and some are in
+between.
+
+First, the problem of asset location.  If the UUID (LLUUID or
+whatever) is going to remain the predominant asset identification
+mechanism, and if UUID-identified assets can be located on different
+machines, then there needs to be some means of locating the assets
+identified.  I would look at a distributed hash table, with all the
+asset servers participating.  I would not, however, simply allow for
+any asset server to request any asset from any other asset server.
+
+It's possible to design with the concept of 'assets are owned'.  See,
+in any foreign-grid asset request, there are really two entities
+represented by the one request.  First is the entity which has
+authority to grant access (the user who owns the assets on their local
+assetserver), second is the foreign assetserver (which manages the
+assets for the foreign grid that it's connected to).  This leads me to
+a question: why can't the foreign grid have its own OpenID?  If it
+does, then it becomes a standard &quot;trust delegation&quot; issue -- &quot;if you
+log into this grid, you will give this grid access to your inventory.
+(cancel) (cannot modify inventory) (can only add to inventory) (can
+fully control inventory)&quot;.  That can be implemented on the asset
+server as the basic SQL-like privileges -- Select, Insert,
+Update/Delete.  (I like the 'can only add to inventory' concept for
+being able to purchase stuff on a foreign grid.)
+
+Then, the ID granted permission is stored in the local assetserver.
+(Since the permission would (in this idea) be per-grid-per-user, the
+foreign assetserver's OpenID could occur multiple times in the local
+assetserver's foreign-permission table.)
+
+Next, the problem of asset ownership.  DRM is a long, dark, ugly road
+to nowhere; however, this does not mean that nothing can be done.  I
+have an idea for something that doesn't require any kind of secret to
+be kept, doesn't require the computer to try to mediate access
+decisions based on evidence of ownership or license to use, which
+expects malice and can work even when all but one instance of one
+component on the entire network is malicious, which provides much more
+content protection within the classic contours of copyright law
+(predating the DMCA) than any DRM scheme, and doesn't even need the
+application of criminal sanction to punish violations.  I'll be
+writing another email on this.
+
+Following that, the problem of asset storage-on-creation.  I think the
+'default assetserver' idea should be a per-avatar choice, and all
+creation done on the default assetserver.  (More specifically, I think
+that all regions should cache what they need on their local
+assetservers, and the 'original' should be stored on the default
+assetserver.  This way, if the avatar deletes the asset from the
+region's scene, it can expire gracefully from that region's
+assetserver.  If the avatar creates the asset and leaves it in the
+region's scene, that region's assetserver will have a copy of it even
+if the avatar never logs in again.  This can be implemented by
+reference counts, if nothing else.)
+
+Then the problem of asset caching policies.  Having an unreachable
+texture just kinda sucks.
+
+-Kyle H
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001597.html">[Opensim-dev] Avatar Appearance Persistence.....
+</A></li>
+	<LI>Next message: <A HREF="001612.html">[Opensim-dev] Interrelated difficult problems related to asset	portability
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1607">[ date ]</a>
+              <a href="thread.html#1607">[ thread ]</a>
+              <a href="subject.html#1607">[ subject ]</a>
+              <a href="author.html#1607">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

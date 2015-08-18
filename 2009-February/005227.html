@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region: CoreModules/Avatar/InstantMessage Framework/Interfaces
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r8496%20-%20in%0A%20trunk/OpenSim/Region%3A%20CoreModules/Avatar/InstantMessage%0A%20Framework/Interfaces&In-Reply-To=%3C499D8A23.5070809%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005224.html">
+   <LINK REL="Next"  HREF="005232.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region: CoreModules/Avatar/InstantMessage Framework/Interfaces</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BOpensim-commits%5D%20r8496%20-%20in%0A%20trunk/OpenSim/Region%3A%20CoreModules/Avatar/InstantMessage%0A%20Framework/Interfaces&In-Reply-To=%3C499D8A23.5070809%40googlemail.com%3E"
+       TITLE="[Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region: CoreModules/Avatar/InstantMessage Framework/Interfaces">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Feb 19 17:34:43 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005224.html">[Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region: CoreModules/Avatar/InstantMessage Framework/Interfaces
+</A></li>
+        <LI>Next message: <A HREF="005232.html">[Opensim-dev] WG:  oddities with asset storage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5227">[ date ]</a>
+              <a href="thread.html#5227">[ thread ]</a>
+              <a href="subject.html#5227">[ subject ]</a>
+              <a href="author.html#5227">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Melanie wrote:
+&gt;<i> I see an issue there.
+</I>&gt;<i> 
+</I>&gt;<i> Currently we use simple events. AN event calls all it's handlers in 
+</I>&gt;<i> no particular order, and if the handler is defined as having a 
+</I>&gt;<i> return value, the value returned from the event invocation is the 
+</I>&gt;<i> return value of the last handler, whichever that happened to be.
+</I>&gt;<i> There are no guarantees as to which handler runs first, although I 
+</I>&gt;<i> know that both current implementations call the handler in the order 
+</I>&gt;<i> they were registered. This behavior can not be depended upon.
+</I>
+Ah good point.  I didn't realize that preserving registration order as call order wasn't part of the standard.
+
+&gt;<i> 
+</I>&gt;<i> So, to make this work with return values, it would require a huge 
+</I>&gt;<i> code mess (like Scene.Permissions), with a boatload of code written 
+</I>&gt;<i> for each event, or, if it's done through generics or dictionaries, a 
+</I>&gt;<i> severe performance hit.
+</I>&gt;<i> 
+</I>&gt;<i> Therefore, despite my prior +1 to the concept as such, it's not 
+</I>&gt;<i> doable in that way. There has to be a way, there always is. It just 
+</I>&gt;<i> needs to be found.
+</I>&gt;<i> 
+</I>&gt;<i> I think it could be done by creating a new class, ModuleEvent&lt;T&gt;. T 
+</I>&gt;<i> would be the delegate type, so you would instantiate the class in 
+</I>&gt;<i> EventManager like so:
+</I>&gt;<i> 
+</I>&gt;<i> public delegate bool DoSomethingDelegate(whatever parms);
+</I>&gt;<i> 
+</I>&gt;<i> public static ModuleEvent&lt;DoSomethingDelegate&gt; DoSomething;
+</I>&gt;<i> 
+</I>&gt;<i> and used like so:
+</I>&gt;<i> 
+</I>&gt;<i> DoSomething.AddHandler(T);
+</I>&gt;<i> DoSomething.RemoveHandler(T);
+</I>&gt;<i> 
+</I>&gt;<i> DoSomething.Handler(whatever parms);
+</I>&gt;<i> 
+</I>&gt;<i> where Handler is public T Handler {get;}
+</I>&gt;<i> 
+</I>&gt;<i> Would that be feasible?
+</I>&gt;<i> 
+</I>&gt;<i> The point is to reduce implementing a new event to adding 2 lines, 
+</I>&gt;<i> rather than 20.
+</I>&gt;<i> 
+</I>&gt;<i> This intrigues me, I'm going to try that :)
+</I>
+Sounds like a good thing to explore :)
+
+&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mw at opensimulator.org</A> wrote:
+</I>&gt;&gt;&gt;<i> Author: mw
+</I>&gt;&gt;&gt;<i> Date: 2009-02-19 04:38:17 -0800 (Thu, 19 Feb 2009)
+</I>&gt;&gt;&gt;<i> New Revision: 8496
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Modified:
+</I>&gt;&gt;&gt;<i>    trunk/OpenSim/Region/CoreModules/Avatar/InstantMessage/MessageTransferModule.cs
+</I>&gt;&gt;&gt;<i>    trunk/OpenSim/Region/Framework/Interfaces/IMessageTransferModule.cs
+</I>&gt;&gt;&gt;<i> Log:
+</I>&gt;&gt;&gt;<i> reverted last revision, until we decide how to handle capturing IM's
+</I>&gt;&gt;<i> mw, was this in support of the jabber/xmpp bridge that you've coded?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> If so, I encountered a similar problem while doing the parallel selves message bridge.  My 'solution' was to entirely 
+</I>&gt;&gt;<i> replace the MessageTransfer (and chat) modules, which is just nasty.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> My thoughts for a long term solution were to
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> a) Make some event calls such as those on EventManager.OnIncomingInstantMessage require a boolean to be returned by each 
+</I>&gt;&gt;<i> call (which I believe is possible in c#).  This boolean would signal that the message has already been completely 
+</I>&gt;&gt;<i> handled, and that it shouldn't be passed on to other modules.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> b) Define an 'order' in which modules are loaded in some config file.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> With these two things, an xmpp bridge module could be loaded before the 'ordinary' im module.  If it gets an incoming im 
+</I>&gt;&gt;<i> which it can handle, then it handles it and returns true (to signal that it shouldn't be passed on to any other module). 
+</I>&gt;&gt;<i>   If it can't handle it then it simply returns false and the message goes through to the next module on the list (in 
+</I>&gt;&gt;<i> this case, the 'ordinary' module).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I like this solution because I think that it allows composibility - you can load lots of different 
+</I>&gt;&gt;<i> OnIncomingInstantMessage handling modules without any of them having to be aware of any other.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> What do you (or others) think?  Are there better approaches?
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005224.html">[Opensim-dev] [Opensim-commits] r8496 - in trunk/OpenSim/Region: CoreModules/Avatar/InstantMessage Framework/Interfaces
+</A></li>
+	<LI>Next message: <A HREF="005232.html">[Opensim-dev] WG:  oddities with asset storage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5227">[ date ]</a>
+              <a href="thread.html#5227">[ thread ]</a>
+              <a href="subject.html#5227">[ subject ]</a>
+              <a href="author.html#5227">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Event Queue
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Event%20Queue&In-Reply-To=%3CBLU134-W269894643B6F1FB08CC45BD5030%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003764.html">
+   <LINK REL="Next"  HREF="003765.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Event Queue</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Event%20Queue&In-Reply-To=%3CBLU134-W269894643B6F1FB08CC45BD5030%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Event Queue">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Dec  3 22:05:41 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003764.html">[Opensim-dev] Event Queue
+</A></li>
+        <LI>Next message: <A HREF="003765.html">[Opensim-dev] Event Queue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3766">[ date ]</a>
+              <a href="thread.html#3766">[ thread ]</a>
+              <a href="subject.html#3766">[ subject ]</a>
+              <a href="author.html#3766">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+EQ definitively should live in the Client Stack. +1 from me if anybody wants to have a look at it.Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Date: Wed, 3 Dec 2008 12:49:25 -0500&gt; Subject: Re: [Opensim-dev] Event Queue&gt; &gt; I've suggested on a few occasions to move it into ClientStack - that's where this belongs.&gt; &gt; EventQueue messages should be sent/received the exact same way that UDP ones are.&gt; &gt; SendXYZMessage() on ClientStack, and OnXYZRecieved events also on clientstack.&gt; &gt; Adam&gt; &gt; &gt; -----Original Message-----&gt; &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Cristina Videira Lopes&gt; &gt; Sent: Wednesday, 3 December 2008 9:40 AM&gt; &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; &gt; Subject: [Opensim-dev] Event Queue&gt; &gt;&gt; &gt; Apologies in advance for bringing up everyone's favorite hate topic,&gt; &gt; but&gt; &gt; having spent most of yesterday tracking TP/crossing problems (again), I&gt; &gt; can't help but bringing this up to a wider audience. I know everyone&gt; &gt; hates the EQ. As it stands, there are several broken elements with the&gt; &gt; EQ in OpenSim, beyond the obvious bugs caused by its management. I'm&gt; &gt; just wondering if there is something here that I'm completely missing,&gt; &gt; or if this is really this bad:&gt; &gt;&gt; &gt; 1) It's implemented as an optional region module (!!!), configurable in&gt; &gt; OpenSim.ini (!!!). That explains why, for example, I could not&gt; &gt; reproduce&gt; &gt; crashes that other people have reported with older viewers. It turns&gt; &gt; out&gt; &gt; that those people are not just using older viewers; they are using&gt; &gt; OpenSim servers configured with EventQueue=false. A complete&gt; &gt; miscommunication.&gt; &gt;&gt; &gt; 2) It's implemented as an optional region module -- the sequel. It is&gt; &gt; being considered a [optional] part of the Region Environment, something&gt; &gt; a region may or may not do. I'm afraid, this is the incorrect model.&gt; &gt; The&gt; &gt; server side doesn't have any choice on this, if it wants to interact&gt; &gt; with the current version of the LL viewer. The EQ should be hand-in-&gt; &gt; hand&gt; &gt; with LLClientView. After all, it's the new channel of communications&gt; &gt; between a server and the LL viewer. Things that used to go over UDP are&gt; &gt; now sent via the EQ, period, no choice. Region Environment should be&gt; &gt; completely oblivious to that change. As it is now, this pattern occurs&gt; &gt; all over Region Environment classes:&gt; &gt;&gt; &gt; IEventQueue eq =&gt; &gt; [scene.]RequestModuleInterface&lt;IEventQueue&gt;();&gt; &gt; if (eq != null)&gt; &gt; {&gt; &gt; // send the event over EQ&gt; &gt; }&gt; &gt; else&gt; &gt; {&gt; &gt; // call the right IClientAPI method to send the event&gt; &gt; [over UDP]&gt; &gt; }&gt; &gt;&gt; &gt; This is infecting the server side with things that should be purely&gt; &gt; client side. It's a horrendous way of getting at the question &quot;what&gt; &gt; version of the LL viewer are you supporting in your region?&quot;. If there&gt; &gt; is such a thing as a wrong question to ask, this is one of them. If we&gt; &gt; want to support viewers with older communication stacks, then let's&gt; &gt; make&gt; &gt; that explicit in OpenSim and subclass LLClientView for the N previous&gt; &gt; versions of the LL viewer's communications stack. Region Environment,&gt; &gt; and the whole of the OpenSim framework, should be insulated from that&gt; &gt; mess, that's what the IClientAPI is there for. No OpenSim.ini&gt; &gt; configuration variables, other than the already existing one:&gt; &gt; clientstack_plugin=&quot;OpenSim.Region.ClientStack.LindenUDP.dll&quot;&gt; &gt;&gt; &gt; What will happen when Rex comes along? ... what version of the LL&gt; &gt; viewer&gt; &gt; is that based on? ...&gt; &gt;&gt; &gt; Sorry for venting! I'm just sending this out to find the answer to&gt; &gt; these&gt; &gt; three questions:&gt; &gt;&gt; &gt; a) Am I missing something?&gt; &gt;&gt; &gt; b) Are there any objections to placing EQ under&gt; &gt; OpenSim.Region.ClientStack.LindenUDP? (besides that name now being&gt; &gt; somewhat incorrect)&gt; &gt;&gt; &gt; c) Should OpenSim be backwards compatible with viewers forked off from&gt; &gt; older LL viewers *for the specific aspect of communications*? If so,&gt; &gt; what design pattern should be used?, subclassing or alternative code&gt; &gt; paths inside methods?&gt; &gt;&gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081203/630f78ee/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081203/630f78ee/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003764.html">[Opensim-dev] Event Queue
+</A></li>
+	<LI>Next message: <A HREF="003765.html">[Opensim-dev] Event Queue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3766">[ date ]</a>
+              <a href="thread.html#3766">[ thread ]</a>
+              <a href="subject.html#3766">[ subject ]</a>
+              <a href="author.html#3766">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

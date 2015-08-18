@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Technical assessment of Cable Beach asset server
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Technical%20assessment%20of%20Cable%20Beach%20asset%20server&In-Reply-To=%3C20090115141013.7fc67a3d%40sumo%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004434.html">
+   <LINK REL="Next"  HREF="004418.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Technical assessment of Cable Beach asset server</H1>
+    <B>Mike Mazur</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Technical%20assessment%20of%20Cable%20Beach%20asset%20server&In-Reply-To=%3C20090115141013.7fc67a3d%40sumo%3E"
+       TITLE="[Opensim-dev] Technical assessment of Cable Beach asset server">mmazur at gmail.com
+       </A><BR>
+    <I>Thu Jan 15 06:10:13 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004434.html">[Opensim-dev] RFC: Proposed Image Request flow/chart
+</A></li>
+        <LI>Next message: <A HREF="004418.html">[Opensim-dev] Technical assessment of Cable Beach asset server
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4417">[ date ]</a>
+              <a href="thread.html#4417">[ thread ]</a>
+              <a href="subject.html#4417">[ subject ]</a>
+              <a href="author.html#4417">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+I'd like to present my analysis of the Cable Beach[1] design &amp; code,
+with the aim to eventually use it as the official OpenSim asset and
+inventory server.
+
+In this email I'll give a brief summary describing why this project was
+developed, describe how it works and highlight a few concerns.
+
+For more information, please refer to the Asset Server Proposal[2],
+Client Documentation[3] and Developer Documentation[4] prepared by John
+Hurliman on the OpenSim wiki.
+
+
+Short Summary of Motivation
+===========================
+
+Currently assets can only be accessed by logging into a region on the
+particular grid the assets exist on. The main motivation for this new
+asset server is to empower the user to access their assets in any way.
+
+With the built-in authentication capabilities in Cable Beach, regions in
+other grids, or HyperGrid regions, could access assets and inventory
+without the assets or inventory being openly available to anyone on the
+Internet. External applications, such as texture or script editors,
+capable of pushing to the asset server directly become feasible.
+
+Future viewer clients can access assets directly from the asset server.
+Removing asset traffic from the region server results in improved
+region server performance.
+
+
+How It Works
+============
+
+The main asset server executable[5]:
+
+1. defines a set of interfaces,
+2. reads a config file,
+3. loads plugins, specified in the config file, which implement the
+   interfaces,
+4. starts an HTTP server, and
+5. starts loaded plugins.
+
+Interfaces
+----------
+
+The interfaces[6] are:
+
+- IStorageProvider
+- IInventoryProvider
+- IAuthenticationProvider
+- IAuthorizationProvider
+- IMetricsProvider
+
+IStorageProvider declares methods for accessing and creating
+(modifying?) asset data and metadata. How the data is stored depends on
+the storage provider. Current storage provider plugins include:
+
+- SimpleStorage[7], stores assets to disk
+- OpenSimMySQLStorage[8], compatible with the current core OpenSim
+  MySQL asset storage
+- AmazonS3Storage[9], stores assets in Amazon's S3 cloud solution
+
+IInventoryProvider declares methods for interacting with inventory.
+Current inventory plugins include:
+
+- SimpleInventory[10], stores inventory information to disk
+- OpenSimMySQLInventory[11], compatible with the current core OpenSim
+  MySQL inventory storage
+
+IAuthenticationProvider declares methods for managing authenticated
+users/sessions in the asset server.
+
+IAuthorizationProvider declares methods for determining access to
+assets and inventory. Currently only the AuthorizeAll[12] plugin exists,
+which allows all access.
+
+IMetricsProvider declares methods to collect access statistics.
+
+Config File
+-----------
+
+The asset server uses Nini to read an INI config file[13]. The config
+file allows control over basic things like the port the asset server
+should listen on or the DB connection string for the OpenSimMySQL*
+plugins. Plugins implementing the various interfaces are listed as well.
+
+Loading Plugins
+---------------
+
+The asset server uses ExtensionLoader[14] for loading the plugins at
+runtime. Currently the plugins to load are specified in the config
+file. If any of the interfaces are not implemented, an exception is
+thrown and the server does not start.
+
+Starting HTTP Server and Plugins
+--------------------------------
+
+The HTTP server in the LibOMV codebase is used[15]. After the HTTP
+server has started, each of the plugins is started. 
+
+The frontend plugins will register handlers with the HTTP server
+according to the services they provide. For example, the
+OpenSimFrontend[16] registers a GET and POST handler at /assets/, which
+provide asset retrieval and creation, respectively.
+
+The backend plugins also perform setup actions. The SimpleStorage[7]
+plugin, for instance, will load asset metadata from disk into memory, or
+create the storage directory if it doesn't already exist. The MySQL
+plugins will first check that a valid connection to the DB can be
+established.
+
+On start, the plugins are passed a reference to the main asset server
+object through which they communicate. For example, when a request for
+an asset arrives at the /assets/&lt;UUID&gt;?texture handler of the
+HttpServer, the OpenSimFrontend[16] will access the asset through the
+StoragerProvider, whichever it may be, as follows:
+
+  Metadata metadata;
+  byte[] assetData;
+  server.StorageProvider.TryFetchDataMetadata(assetID,
+                                              out metadata,
+                                              out assetData);
+
+
+Concerns and Thoughts
+=====================
+
+After going through the code and testing the asset server in my
+(admittedly non-production) development environment, I like where this
+thing is going. I would like to see the concepts included in OpenSim.
+
+Not everything currently in the Cable Beach SVN needs to be brought in.
+For starters, the main asset server along with the OpenSim-specific
+plugins and dummy authentication/authorization plugins are all that's
+required. Additional plugins can be available on Forge. This subset of
+the Cable Beach codebase shouldn't duplicate any existing code that
+isn't meant to be replaced.
+
+Storage Backends
+----------------
+
+Currently only MySQL is supported. Additional storage plugins will have
+to be written to support SQLite, MSSQL, NHibernate and Null storage
+backends. Another alternative could be writing one plugin that uses
+OpenSim's IAssetProviderPlugin interface to support the various
+backends.
+
+ExtensionLoader and Mono Addins
+-------------------------------
+
+ExtensionLoader, used for loading plugins at runtime, duplicates Mono
+Addins functionality and adds another dependency. The path of least
+resistance is probably to have the asset server use Mono Addins
+instead, though I'm not sure what the workload would be like to achieve
+this.
+
+Alternatively, if ExtensionLoader is superior to Mono Addins, it may be
+beneficial to have both in the tree for the time being, and slowly
+convert the plugin architecture to standardize on ExtensionLoader.
+Further investigation is necessary here.
+
+Config Files
+------------
+
+The asset server configuration will change from the familiar
+AssetServer_Config.xml file identical in format to all the other UGAI
+server config files to an INI file. This can increase support requests
+by users which are unaware that there is a new asset server.
+
+Support issues can be minimized with good documentation that's widely
+publicized and with a long transition period where both asset servers
+are available in the tree. Once most users are comfortable with the new
+asset server, the old one can be removed.
+
+
+Next Steps
+==========
+
+At this stage, let's discuss. Please ask your questions, raise
+concerns, and we'll work through this.
+
+Thank you for reading,
+Mike
+
+
+References
+==========
+
+[1] <A HREF="http://forge.opensimulator.org/gf/project/assetserver/">http://forge.opensimulator.org/gf/project/assetserver/</A>
+[2] <A HREF="http://opensimulator.org/wiki/AssetServerProposal">http://opensimulator.org/wiki/AssetServerProposal</A>
+[3] <A HREF="http://opensimulator.org/wiki/AssetServerProposal/ClientDocs">http://opensimulator.org/wiki/AssetServerProposal/ClientDocs</A>
+[4] <A HREF="http://opensimulator.org/wiki/AssetServerProposal/DeveloperDocs">http://opensimulator.org/wiki/AssetServerProposal/DeveloperDocs</A>
+[5]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FAssetServer.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FAssetServer.cs&amp;view=markup</A>
+[6]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FInterfaces.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FInterfaces.cs&amp;view=markup</A>
+[7]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FSimple%2FSimpleStorage.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FSimple%2FSimpleStorage.cs&amp;view=markup</A>
+[8]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FOpenSimMySQL%2FOpenSimMySQLStorage.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FOpenSimMySQL%2FOpenSimMySQLStorage.cs&amp;view=markup</A>
+[9]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FAmazonS3%2FAmazonS3Storage.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FAmazonS3%2FAmazonS3Storage.cs&amp;view=markup</A>
+[10]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FSimple%2FSimpleInventory.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FSimple%2FSimpleInventory.cs&amp;view=markup</A>
+[11]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FOpenSimMySQL%2FOpenSimMySQLInventory.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FOpenSimMySQL%2FOpenSimMySQLInventory.cs&amp;view=markup</A>
+[12]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FAuthorizeAll.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FAuthorizeAll.cs&amp;view=markup</A>
+[13] An example INI file, well documented:
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2Fbin%2FAssetServer.ini&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2Fbin%2FAssetServer.ini&amp;view=markup</A>
+[14] <A HREF="http://code.google.com/p/extensionloader/">http://code.google.com/p/extensionloader/</A>
+[15] <A HREF="http://openmetaverse.org/svn/misc/HttpServer/">http://openmetaverse.org/svn/misc/HttpServer/</A>
+[16]
+<A HREF="http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FOpenSimFrontend.cs&amp;view=markup">http://forge.opensimulator.org/gf/project/assetserver/scmsvn/?action=browse&amp;path=%2Ftrunk%2FAssetServer%2FExtensions%2FOpenSimFrontend.cs&amp;view=markup</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004434.html">[Opensim-dev] RFC: Proposed Image Request flow/chart
+</A></li>
+	<LI>Next message: <A HREF="004418.html">[Opensim-dev] Technical assessment of Cable Beach asset server
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4417">[ date ]</a>
+              <a href="thread.html#4417">[ thread ]</a>
+              <a href="subject.html#4417">[ subject ]</a>
+              <a href="author.html#4417">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] .NET 4 Teething Problems
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.NET%204%20Teething%20Problems&In-Reply-To=%3C528D5826.5040308%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="012075.html">
+   <LINK REL="Next"  HREF="012083.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] .NET 4 Teething Problems</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.NET%204%20Teething%20Problems&In-Reply-To=%3C528D5826.5040308%40googlemail.com%3E"
+       TITLE="[Opensim-dev] .NET 4 Teething Problems">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Nov 21 01:47:34 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="012075.html">[Opensim-dev] .NET 4 Teething Problems
+</A></li>
+        <LI>Next message: <A HREF="012083.html">[Opensim-dev] .NET 4 Teething Problems
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12080">[ date ]</a>
+              <a href="thread.html#12080">[ thread ]</a>
+              <a href="subject.html#12080">[ subject ]</a>
+              <a href="author.html#12080">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After looking at references such as [1], I believe that the best course of action is to add &lt;loadFromRemoteSources 
+enabled=&quot;true&quot;/&gt; to all config files.
+
+This is because the intention of the existing loads within OpenSimulator are not to sandbox the code.  If the user 
+downloads a separate DLL add-on, then they have already made the decision to trust it.  Making them uncheck an extra box 
+won't achieve much and will generate a lot of painful support issues which we are not in a position to handle.
+
+Code Access Security appears never to have been completely implemented in Mono (and so presumably not enabled) so this 
+does not apply there.
+
+[1] <A HREF="http://blogs.msdn.com/b/shawnfa/archive/2009/05/22/sandboxing-in-net-4-0.aspx">http://blogs.msdn.com/b/shawnfa/archive/2009/05/22/sandboxing-in-net-4-0.aspx</A>
+[2] <A HREF="http://tirania.org/blog/archive/2007/Aug-08.html">http://tirania.org/blog/archive/2007/Aug-08.html</A>
+
+On 19/11/13 05:27, Zadark Portal wrote:
+&gt;<i> Included the following with Mantis 6853
+</I>&gt;<i>
+</I>&gt;<i> Information relating to exception:
+</I>&gt;<i> An attempt was made to load an assembly from a network location which
+</I>&gt;<i> would have caused the assembly to be sandboxed in previous versions of
+</I>&gt;<i> the .NET Framework.
+</I>&gt;<i>
+</I>&gt;<i> Attachment Manager included in Microsoft Windows attaches security policies
+</I>&gt;<i> to files downloaded from a network location. Normally this effects only files
+</I>&gt;<i> contained in compressed zip format (.zip) though other file types can be affected depending on the local computer group
+</I>&gt;<i> security policies (thinking machines registered to a domain though not exclusively)
+</I>&gt;<i>
+</I>&gt;<i> The effect of the policy can be observed by opening the properties dialogue for a downloaded file, under the 'General'
+</I>&gt;<i> tab (default) and towards the lower section of the dialogue an additional button is displayed 'Unblock'. Click this
+</I>&gt;<i> button and exit the dialogue using the 'ok' button.
+</I>&gt;<i>
+</I>&gt;<i> This procedure effectively changes all the files within the zip. If however the
+</I>&gt;<i> unzipped contents are used prior to the procedure, the each file will require 'Unblock' to be selected.
+</I>&gt;<i>
+</I>&gt;<i> Changing this policy would be a significant security reduction, so best policy is, any file downloaded be inspected
+</I>&gt;<i> using the procedure above.
+</I>&gt;<i>
+</I>&gt;<i> Issue coming to light now is due to CAS policy changes within .NET 4
+</I>&gt;<i>
+</I>&gt;<i> It would be useful if people evaluating this procedure reported their findings.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 18 November 2013 16:15, Ai Austin &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ai.ai.austin at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ai.ai.austin at gmail.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     From: Zadark Portal &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">zadarkportal at gmail.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">zadarkportal at gmail.com</A>&gt;&gt;
+</I>&gt;<i>
+</I>&gt;<i>         Further to my previous email, and to ensure the existing solution is clean
+</I>&gt;<i>         can you from within the opensim solution directory (same as compile.bat)
+</I>&gt;<i>         run:
+</I>&gt;<i>
+</I>&gt;<i>         C:\Windows\Microsoft.NET\__Framework64\v4.0.30319\msbuild OpenSim.sln /t:clean
+</I>&gt;<i>         C:\Windows\Microsoft.NET\__Framework64\v4.0.30319\msbuild OpenSim.sln /t:rebuild
+</I>&gt;<i>         C:\Windows\Microsoft.NET\__Framework64\v4.0.30319\msbuild OpenSim.sln
+</I>&gt;<i>
+</I>&gt;<i>         Amend the Microsoft.NET path accordingly.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     Okay, got it. Zadark. Understood now.
+</I>&gt;<i>
+</I>&gt;<i>     On my Win 8.1 84 bit setup I did that to a fresh download of r/24051 without adding the extra line to the
+</I>&gt;<i>     &lt;resources&gt; section of the Robust.exe.config file.
+</I>&gt;<i>
+</I>&gt;<i>     Then just amended the password for the database connection string in to make a Robust.ini file, and startup up
+</I>&gt;<i>     Robust.exe with that.
+</I>&gt;<i>
+</I>&gt;<i>     I get exactly the same error about the addin scan ... so for some reason the remote assembly load extra line in
+</I>&gt;<i>     Robust.exe.config (and openSim.exe.config) seem to be required in all my environments (Vista 34 bit, Win7 32 bit,
+</I>&gt;<i>     Win7 64 bit and Win8.1 64 bit)
+</I>&gt;<i>     _________________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/__mailman/listinfo/opensim-dev">https://lists.berlios.de/__mailman/listinfo/opensim-dev</A> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="012075.html">[Opensim-dev] .NET 4 Teething Problems
+</A></li>
+	<LI>Next message: <A HREF="012083.html">[Opensim-dev] .NET 4 Teething Problems
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12080">[ date ]</a>
+              <a href="thread.html#12080">[ thread ]</a>
+              <a href="subject.html#12080">[ subject ]</a>
+              <a href="author.html#12080">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

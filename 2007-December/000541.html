@@ -1,0 +1,237 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Towards 0.5, what's left?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Towards%200.5%2C%20what%27s%20left%3F&In-Reply-To=%3Cc5851bcf0712131106r4be83956p37f32265b76b77b6%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000540.html">
+   <LINK REL="Next"  HREF="000605.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Towards 0.5, what's left?</H1>
+    <B>Impalah</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Towards%200.5%2C%20what%27s%20left%3F&In-Reply-To=%3Cc5851bcf0712131106r4be83956p37f32265b76b77b6%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Towards 0.5, what's left?">impalah at gmail.com
+       </A><BR>
+    <I>Thu Dec 13 20:06:08 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000540.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+        <LI>Next message: <A HREF="000605.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#541">[ date ]</a>
+              <a href="thread.html#541">[ thread ]</a>
+              <a href="subject.html#541">[ subject ]</a>
+              <a href="author.html#541">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi everyone,
+
+I don't know OS enough &quot;internally&quot; to tell you how to do it but , from the
+point of view of a &quot;Utility developer&quot; I think the 3rd point of Sean's list
+is the most interesting. Yeah, maybe is a egoist point of view but just ask
+you if you want a really Open (and not only open source) server.
+
+Actually I am developing a xml format for my Henshin project (CAD/3D to SL).
+It's not perfect, and maybe it is much &quot;Second Life dependant&quot; but maybe
+could serve you as a start point. I have developed a DOM .NET object to have
+easy access to the data I want.
+
+Ah, and remember, OS can use it's own xml format, the translation to Collada
+is made with a single XSLT. The only thing we need is to have the
+information accesible (for example, string paths for textures, xml
+attributes or elements for modifiers... please, don't use byte arrays and
+similars...).
+
+Here is the first version of the DTD I am using... Forget the layer
+information, it's only for Autocad compatibility and add a LINK list with
+every object.
+
+
+&lt;?xml encoding=&quot;UTF-8&quot;?&gt;
+&lt;!ELEMENT slxml (primdef, layers)&gt;
+
+    &lt;!ELEMENT primdef (primitive+)&gt;
+        &lt;!ELEMENT primitive (dimensions+, modifiers*)&gt;
+        &lt;!ATTLIST primitive
+        name ID #REQUIRED
+        type (BOX|CYLINDER|PRISM|SPHERE|TORUS|TUBE|RING|SCULPT) #REQUIRED
+        &gt;
+        &lt;!ELEMENT dimensions (size,rotation)&gt;
+            &lt;!ELEMENT size (#PCDATA)&gt;
+            &lt;!ELEMENT rotation (#PCDATA)&gt;
+            &lt;!ATTLIST rotation
+            spec (VECTOR|QUATERNION) #REQUIRED
+            &gt;
+        &lt;!ELEMENT modifiers (modifier*)&gt;
+            &lt;!ELEMENT modifier EMPTY&gt;
+            &lt;!ATTLIST modifier
+            name
+(CUT|HOLLOW|TWIST|TAPER|TOPSHEAR|DIMPLE|HOLESIZE|PROFILECUT|REVOLUTIONS|RADIUSOFFSET|SKEW|SCULPTEXTURE|SCULPTSHAPE|OBJECTNAME)
+#REQUIRED
+            value CDATA #REQUIRED
+            &gt;
+
+
+    &lt;!ELEMENT layers (layer+)&gt;
+        &lt;!ELEMENT layer (textures*,objects*)&gt;
+        &lt;!ATTLIST layer
+        name ID #REQUIRED
+        visible (YES|NO) #REQUIRED
+        &gt;
+            &lt;!ELEMENT textures (texture+)&gt;
+                &lt;!ELEMENT texture EMPTY&gt;
+                &lt;!ATTLIST texture
+                side (ALL|0|1|2|3|4|5|6) #REQUIRED
+                key CDATA #REQUIRED
+                name CDATA #REQUIRED
+                transparency CDATA #IMPLIED
+                fullbright (YES|NO) #IMPLIED
+                mapping (DEFAULT|PLANAR) #IMPLIED
+                shininess (NONE|LOW|MEDIUM|HIGH) #IMPLIED
+                bumpiness
+(NONE|BRIGHTNESS|DARKNESS|WOODGRAN|BARK|BRICKS|CHECKER) #IMPLIED
+                rotation CDATA #IMPLIED
+                repeats CDATA #IMPLIED
+                offset CDATA #IMPLIED
+                &gt;
+
+
+            &lt;!ELEMENT objects (object+)&gt;
+                &lt;!ELEMENT object EMPTY&gt;
+                &lt;!ATTLIST object
+                name ID #REQUIRED
+                type IDREF #REQUIRED
+                position CDATA #REQUIRED
+                size CDATA #REQUIRED
+                rotation_vector CDATA #IMPLIED
+                rotation_quaternion CDATA #IMPLIED
+                &gt;
+
+
+
+
+
+2007/12/13, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt;:
+&gt;<i>
+</I>&gt;<i> On Thu, Dec 13, 2007 at 03:43:04PM +0000, Justin Clark-Casey wrote:
+</I>&gt;<i> &gt; So to take up the webpage analogy, the serialization you're talking
+</I>&gt;<i> &gt; about is just the pure 'html'?  The various bits of binary data which
+</I>&gt;<i> &gt; make up the page/prim (e.g. pngs and gifs for webpages, textures,
+</I>&gt;<i> &gt; scripts and sounds for second life), are represented by uris/asset ids
+</I>&gt;<i> &gt; in the exported xml.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Just as in a 'full' webpage format, a full sl export would also export
+</I>&gt;<i> &gt; those resources in a separate 'package'/'region'/'directory' to which
+</I>&gt;<i> &gt; the asset ids could resolve.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Was actual texture data exported in byte[] format before the libsl
+</I>&gt;<i> &gt; change?  I apologise for my ignorance on this point.
+</I>&gt;<i>
+</I>&gt;<i> Well, two issues.  First off, yes the Texture field is coming out as a
+</I>&gt;<i> byte[].  But that is just the texturing description.  The asset
+</I>&gt;<i> representing actually used textures is in asset land, and isn't
+</I>&gt;<i> exported.
+</I>&gt;<i>
+</I>&gt;<i> My recent thoughts on the save/load model is the following.
+</I>&gt;<i>
+</I>&gt;<i> 1.  It should be a seperate program, OpenSimDump.exe (or something), so
+</I>&gt;<i>     that you can run it while OpenSim is running, or when OpenSim isn't
+</I>&gt;<i>     running, and have no fear that OpenSim might alter the data in some
+</I>&gt;<i>     way while it is coming up.
+</I>&gt;<i>
+</I>&gt;<i> 2.  It should read OpenSim.ini for the data sources for assets and
+</I>&gt;<i>     primstorage.  This would let you use 2 different OpenSim.ini files
+</I>&gt;<i>     to dump from sqlite and move everything to mysql (for instance).
+</I>&gt;<i>
+</I>&gt;<i> 3.  It should create what it does in an on disk directory, that would
+</I>&gt;<i>     look something like:
+</I>&gt;<i>
+</I>&gt;<i>     dump/
+</I>&gt;<i>         prims.xml
+</I>&gt;<i>         assets.xml
+</I>&gt;<i>         UUID-UUID-UUID.jp2
+</I>&gt;<i>         UUID-UUID-UUID.xyz
+</I>&gt;<i>
+</I>&gt;<i>     Basically, appropriate metadata would end up in xml files.  When
+</I>&gt;<i>     dealing with binary data we translate back to appropriate binary
+</I>&gt;<i>     files named by UUID.
+</I>&gt;<i>
+</I>&gt;<i> 4.  It should support a mode that dumps ALL assets, or one that dumps
+</I>&gt;<i>     only assets referenced by prims.
+</I>&gt;<i>
+</I>&gt;<i> For right now, there will be no guaruntee of compatibility between
+</I>&gt;<i> OpenSim revisions.  I think it will take a couple of iterations before
+</I>&gt;<i> we get an at rest definition that makes sense.  I really doubt collada
+</I>&gt;<i> is that right at rest definition, as it seems pretty heavy for what we
+</I>&gt;<i> need (though supporting a collada import in the future would be
+</I>&gt;<i> definitely interesting).
+</I>&gt;<i>
+</I>&gt;<i> I'm going to start hacking on this tomorrow, though it likely won't
+</I>&gt;<i> finish prior to me heading away for vacation.  I'll check in stuff daily
+</I>&gt;<i> if not more frequently so other folks can look and help if they are
+</I>&gt;<i> interested.
+</I>&gt;<i>
+</I>&gt;<i>         -Sean
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> Sean Dague                                       Mid-Hudson Valley
+</I>&gt;<i> sean at dague dot net                            Linux Users Group
+</I>&gt;<i> <A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;<i>
+</I>&gt;<i> There is no silver bullet.  Plus, werewolves make better neighbors
+</I>&gt;<i> than zombies, and they tend to keep the vampire population down.
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> -----BEGIN PGP SIGNATURE-----
+</I>&gt;<i> Version: GnuPG v1.4.6 (GNU/Linux)
+</I>&gt;<i>
+</I>&gt;<i> iD8DBQFHYXtlSamXem9TdyYRAo6eAKCvkydQjGNPNIXipeh58rCempPgSwCgoZxv
+</I>&gt;<i> E3tStYFPqvw1jxVGeHGFn8I=
+</I>&gt;<i> =3Xqj
+</I>&gt;<i> -----END PGP SIGNATURE-----
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071213/049f950e/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071213/049f950e/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000540.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+	<LI>Next message: <A HREF="000605.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#541">[ date ]</a>
+              <a href="thread.html#541">[ thread ]</a>
+              <a href="subject.html#541">[ subject ]</a>
+              <a href="author.html#541">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

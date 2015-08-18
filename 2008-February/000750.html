@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Search server DB schema
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Search%20server%20DB%20schema&In-Reply-To=%3C970c50810802040059p6d7389dav6b6dc6db80154f37%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000758.html">
+   <LINK REL="Next"  HREF="000751.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Search server DB schema</H1>
+    <B>Dalien Talbot</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Search%20server%20DB%20schema&In-Reply-To=%3C970c50810802040059p6d7389dav6b6dc6db80154f37%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Search server DB schema">dalienta at gmail.com
+       </A><BR>
+    <I>Mon Feb  4 09:59:37 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000758.html">[Opensim-dev] Search server DB schema
+</A></li>
+        <LI>Next message: <A HREF="000751.html">[Opensim-dev] Opensim-dev Digest, Vol 6, Issue 5
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#750">[ date ]</a>
+              <a href="thread.html#750">[ thread ]</a>
+              <a href="subject.html#750">[ subject ]</a>
+              <a href="author.html#750">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>David,
+
+just curious - have you played with the non-relational methods of doing the
+search ?
+
+I've had a very good success with Xapian library - and it has bindings for
+anything and everything (although - yick. this would mean one more native
+code lib in the code base).
+
+But the upside is that it would allow for more flexible &quot;google-like&quot;
+searches, imho - which is the very big plus. And you can allow quite a few
+custom tags to be included into boolean search - even though it is not very
+fast to index, the convenience of working with it was extremely pleasing.
+
+Another interesting beast is sphinx - I did not test it personally, but from
+what they write here:
+
+<A HREF="http://www.mysqlperformanceblog.com/2007/07/23/sphinx-going-beyond-full-text-search/">http://www.mysqlperformanceblog.com/2007/07/23/sphinx-going-beyond-full-text-search/</A>
+
+It looks quite promising scalability-wise.
+
+An engine which was theoretically very good (at least according to the
+benchmarks that I've read) was zettair. However, playing with the code
+showed the quality of it is really &quot;alpha&quot; - sprinkled with assert's - and
+not without a few bugs too :-) - so probably more of theoretical  interest.
+
+/d
+
+
+
+
+On Feb 3, 2008 7:19 PM, David Wendt JR. &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dcrkid at yahoo.com</A>&gt; wrote:
+
+&gt;<i> Hello, OpenSim developers.
+</I>&gt;<i>
+</I>&gt;<i>     I have recently taken up OpenSim development. I'm writing plugins to
+</I>&gt;<i> allow Search to work. I need your opinion on a database schema for storing
+</I>&gt;<i> the indexed search information for a hypothetical (so far) new grid service
+</I>&gt;<i> &quot;SearchServer&quot;.
+</I>&gt;<i>
+</I>&gt;<i>     I figure out for searching &quot;Places&quot;, &quot;Popular Places&quot;, and &quot;Land
+</I>&gt;<i> Sales&quot; we will need the following fields: Parcel UUID, Name, Description,
+</I>&gt;<i> LandArea, Traffic, Region UUID, Region Maturity Flag, Region Parent Estate
+</I>&gt;<i> ID, Loc X, Loc Y, Loc Z, Image UUID, ForSaleStatus, Category, ForSalePrice,
+</I>&gt;<i> AuctionID, Owner UUID, OwnerIsGroup Flag. Some of these fields won't be
+</I>&gt;<i> implemented for a long time (especially ParentEstates) but it's good to have
+</I>&gt;<i> those anyway.
+</I>&gt;<i>
+</I>&gt;<i>     The &quot;Classifieds&quot; search tab requires these fields: Entry UUID, Name,
+</I>&gt;<i> Description, Publisher UUID, Publisher Parent Estate ID, Image UUID,
+</I>&gt;<i> ClassifiedPrice, AutoRenewFlag, Category, Region UUID, Loc X, Loc Y, Loc Z,
+</I>&gt;<i> MatureFlag.
+</I>&gt;<i>
+</I>&gt;<i>     The &quot;Events&quot; calendar search tab requires these fields: Event UUID,
+</I>&gt;<i> Name, Description, Publisher UUID, Publisher Parent Estate ID, Mature
+</I>&gt;<i> Content Flag, Event Date, Event Length, Region UUID, Loc X, Loc Y, Loc Z,
+</I>&gt;<i> Cover Charge. The Event calendar also supports notifying people who opt-in,
+</I>&gt;<i> so it would also require another table with Event UUID and Subscribing
+</I>&gt;<i> Avatar UUID.
+</I>&gt;<i>
+</I>&gt;<i>     New Search (which I don't forsee being able to implement until way
+</I>&gt;<i> later) also requires sim object data. Object UUID, Parent Parcel UUID, Name,
+</I>&gt;<i> ForSaleStatus, ForSalePrice, Loc X, Loc Y, Loc Z seem to be good enough.
+</I>&gt;<i>
+</I>&gt;<i>     Now I need your opinion on this schema. Is it a good idea to have each
+</I>&gt;<i> type of searchable object in a separate table? Or would it be more feasible
+</I>&gt;<i> to have all the relevant fields in a single table &quot;search&quot; with an
+</I>&gt;<i> &quot;objecttype&quot; enum to differentiate between the types?
+</I>&gt;<i>
+</I>&gt;<i> From,
+</I>&gt;<i>     KMeist Hax
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------
+</I>&gt;<i> Be a better friend, newshound, and know-it-all with Yahoo! Mobile. Try it
+</I>&gt;<i> now.&lt;<A HREF="http://us.rd.yahoo.com/evt=51733/*http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ">http://us.rd.yahoo.com/evt=51733/*http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080204/4c13fe39/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080204/4c13fe39/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000758.html">[Opensim-dev] Search server DB schema
+</A></li>
+	<LI>Next message: <A HREF="000751.html">[Opensim-dev] Opensim-dev Digest, Vol 6, Issue 5
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#750">[ date ]</a>
+              <a href="thread.html#750">[ thread ]</a>
+              <a href="subject.html#750">[ subject ]</a>
+              <a href="author.html#750">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

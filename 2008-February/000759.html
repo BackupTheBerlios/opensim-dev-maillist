@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Search server DB schema
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Search%20server%20DB%20schema&In-Reply-To=%3C680326.69058.qm%40web58302.mail.re3.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000756.html">
+   <LINK REL="Next"  HREF="000760.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Search server DB schema</H1>
+    <B>David Wendt JR.</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Search%20server%20DB%20schema&In-Reply-To=%3C680326.69058.qm%40web58302.mail.re3.yahoo.com%3E"
+       TITLE="[Opensim-dev] Search server DB schema">dcrkid at yahoo.com
+       </A><BR>
+    <I>Mon Feb  4 23:40:24 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000756.html">[Opensim-dev] Opensim-dev Digest, Vol 6, Issue 7
+</A></li>
+        <LI>Next message: <A HREF="000760.html">[Opensim-dev] Search server DB schema
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#759">[ date ]</a>
+              <a href="thread.html#759">[ thread ]</a>
+              <a href="subject.html#759">[ subject ]</a>
+              <a href="author.html#759">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello again, Opensim-dev
+
+    I'm agreeing with Dalien Talbot. Authoritative parcel data should be on the region, not the grid, since it doesn't need to be shared grid-wide for the base functionality to work. However, SearchServer will have to have a copy of the parcel data that's fairly recent for it to function. Otherwise, the server would have to pull data from every region for every search request, and we don't want that. 
+
+    I've thought about search some more and realized that, when we implement the HTTP-based search, we'll be able to arbitrarily extend the search capabilities to whatever we want. In Old Search when searching for land, you only had a few options: &quot;Max. Price&quot;, &quot;Min. Area&quot;, the type of land sale (Auction, Mainland Sale, or Estate Sale), and the location of the land (PG or Mature). In HTTP search we can add all kinds of search constraints. What I'm getting at, is what should we be putting into the SearchServer database schema. For old search we just need enough data to fulfill the viewer request. However if we're going to add extra constraints in HTTP search, we will need extra fields. I'm wondering if it would be prudent to just have a column for everything the sim stores.
+
+    I know Dalien Talbot asked if I had considered non-relational searches. I myself haven't played with non-relational databases. But for now I think we should stick with a relational storage backend.
+
+    SearchServer will actually be handling four separate types of searchable data. Parcels, Objects, Classifieds, and the Events calendar. While Justin Clark-Casey wanted to join these altogether into one table, I doubt that would help much. Sure we wouldn't have duplicate fields, but we'd have many more rows that mysql would have to go through in order to find matching ones. There's not much overhead to having each table have a few columns that are the same.
+
+    Also another thing I just realized, how are we gonna search Users and (when we support them) Groups? I don't think we should assume that UserServer and SearchServer are accessing the same datastore. I.E. we shouldn't just have SearchServer query the users table. We could have the sim query UserServer directly. I already see AvatarPickerRequest-related searcher code in the UserServer which we could leverage directly without going thrugh SearchServer.
+
+    But I'm getting off-topic here. I need to start working on an actual DB schema (SQL code) and propose it sometime. Also can anyone tell me what's the maximum length of a name and description field in Second Life? I'm going to assume name == varchar(63) and description == varchar(127), but it might be easier to just set everything to varchar(255) for flexibility.
+
+    From,
+        KMeist Hax.
+
+
+
+
+      ____________________________________________________________________________________
+Never miss a thing.  Make Yahoo your home page. 
+<A HREF="http://www.yahoo.com/r/hs">http://www.yahoo.com/r/hs</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080204/37f34c55/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080204/37f34c55/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000756.html">[Opensim-dev] Opensim-dev Digest, Vol 6, Issue 7
+</A></li>
+	<LI>Next message: <A HREF="000760.html">[Opensim-dev] Search server DB schema
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#759">[ date ]</a>
+              <a href="thread.html#759">[ thread ]</a>
+              <a href="subject.html#759">[ subject ]</a>
+              <a href="author.html#759">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

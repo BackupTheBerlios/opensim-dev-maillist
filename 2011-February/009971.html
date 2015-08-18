@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Best approach for Vanilla Opensim region module to	create and manipulate scene objects.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Best%20approach%20for%20Vanilla%20Opensim%20region%20module%0A%20to%09create%20and%20manipulate%20scene%20objects.&In-Reply-To=%3C4D49E035.2070209%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009945.html">
+   <LINK REL="Next"  HREF="009943.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Best approach for Vanilla Opensim region module to	create and manipulate scene objects.</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Best%20approach%20for%20Vanilla%20Opensim%20region%20module%0A%20to%09create%20and%20manipulate%20scene%20objects.&In-Reply-To=%3C4D49E035.2070209%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Best approach for Vanilla Opensim region module to	create and manipulate scene objects.">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed Feb  2 23:52:37 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009945.html">[Opensim-dev] Best approach for Vanilla Opensim region module	to	create and manipulate scene objects.
+</A></li>
+        <LI>Next message: <A HREF="009943.html">[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9971">[ date ]</a>
+              <a href="thread.html#9971">[ thread ]</a>
+              <a href="subject.html#9971">[ subject ]</a>
+              <a href="author.html#9971">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>That's good to hear.
+
+At some point this stuff should be more documented, but it's a big task and there's no formal API - here you're just 
+interacting with what happens to be OpenSim's internals.
+
+On 02/02/11 09:51, Gould, Simon wrote:
+&gt;<i> Hi Justin,
+</I>&gt;<i>
+</I>&gt;<i> Got it working. I am using the 0.7.0.2 release of the code so had to
+</I>&gt;<i> make some changes, but you help was invaluable, thanks for the pointer
+</I>&gt;<i> to the tests too.
+</I>&gt;<i>
+</I>&gt;<i> Thanks again
+</I>&gt;<i>
+</I>&gt;<i> Simon
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin
+</I>&gt;<i> Clark-Casey
+</I>&gt;<i> Sent: 01 February 2011 00:44
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Best approach for Vanilla Opensim region
+</I>&gt;<i> module to create and manipulate scene objects.
+</I>&gt;<i>
+</I>&gt;<i> On 31/01/11 14:33, Gould, Simon wrote:
+</I>&gt;&gt;<i> Hi All,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I am new to Opensim development and was hoping I could &quot;pick your
+</I>&gt;<i> brains&quot; about how to best go about creating a region
+</I>&gt;&gt;<i> module, using the Vanilla Opensim c# API, that will create and
+</I>&gt;<i> manipulate objects within a scene.
+</I>&gt;<i>
+</I>&gt;<i> API is rather strong at this point, but the internals have been stable
+</I>&gt;<i> for quite some time.  However, this isn't
+</I>&gt;<i> guaranteed to be the case in the future.
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I have taken a look at the documentation and also seen the Python
+</I>&gt;<i> Modrex visualisation of a Software project from source
+</I>&gt;&gt;<i> control. Unfortunately I am not very familiar with the Opensim API or
+</I>&gt;<i> Python and we want to avoid complicating the
+</I>&gt;&gt;<i> project by adding in extensions.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> What we have is a simple region module based on the Hello world
+</I>&gt;<i> example (I couldn't get the updated mechanism to work).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Where I am struggling is with the loading and copying of the objects.
+</I>&gt;<i> What we want is to have a set of persistent
+</I>&gt;&gt;<i> defined objects stored somewhere, then to create a number of these in
+</I>&gt;<i> the scene e.g. ObjA, ObjB and ObjC are stored
+</I>&gt;&gt;<i> somewhere, we create 3 objAs and 2 objBs and connect them together
+</I>&gt;<i> using ObjCs.
+</I>&gt;<i>
+</I>&gt;<i> The technique I usually use is to place ObjA, ObjB and ObjC in another
+</I>&gt;<i> prim's inventory.  Then I rez them by retrieving
+</I>&gt;<i> them by name, with code like the following.
+</I>&gt;<i>
+</I>&gt;<i>               SceneObjectPart part;
+</I>&gt;<i>               Scene scene;
+</I>&gt;<i>               Vector3 rezPos;
+</I>&gt;<i>
+</I>&gt;<i>               TaskInventoryItem item =
+</I>&gt;<i> part.Inventory.GetInventoryItems(objAName)[0];
+</I>&gt;<i>
+</I>&gt;<i>               SceneObjectGroup so =
+</I>&gt;<i> part.Inventory.GetRezReadySceneObject(item);
+</I>&gt;<i>
+</I>&gt;<i>               scene.AddNewSceneObject(so, true, rezPos, so.Rotation,
+</I>&gt;<i> Vector3.Zero);
+</I>&gt;<i>
+</I>&gt;<i> If you need to link then programatically that's another issue.  There is
+</I>&gt;<i> some test code in
+</I>&gt;<i> OpenSim/Region/Framework/Scenes/Tests/SceneObjectLinkTests.cs that
+</I>&gt;<i> should prove useful.
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009945.html">[Opensim-dev] Best approach for Vanilla Opensim region module	to	create and manipulate scene objects.
+</A></li>
+	<LI>Next message: <A HREF="009943.html">[Opensim-dev] RFC: Moving default inventory creation from InventoryService to UserAccountService for viewer 2 initial appearance code
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9971">[ date ]</a>
+              <a href="thread.html#9971">[ thread ]</a>
+              <a href="subject.html#9971">[ subject ]</a>
+              <a href="author.html#9971">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

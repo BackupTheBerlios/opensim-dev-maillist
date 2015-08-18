@@ -1,0 +1,272 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim dll for use by other programs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20dll%20for%20use%20by%20other%20programs&In-Reply-To=%3C288401.66569.qm%40web23005.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005691.html">
+   <LINK REL="Next"  HREF="005707.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim dll for use by other programs</H1>
+    <B>MW</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20dll%20for%20use%20by%20other%20programs&In-Reply-To=%3C288401.66569.qm%40web23005.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] OpenSim dll for use by other programs">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Sat Mar 14 12:38:14 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005691.html">[Opensim-dev] OpenSim dll for use by other programs
+</A></li>
+        <LI>Next message: <A HREF="005707.html">[Opensim-dev] OpenSim dll for use by other programs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5697">[ date ]</a>
+              <a href="thread.html#5697">[ thread ]</a>
+              <a href="subject.html#5697">[ subject ]</a>
+              <a href="author.html#5697">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Good questions. 
+
+While OpenSim.Framework should be a general framework/library that can be used in other programs, it has very much turned out to be more of a internal framework for building the various opensim servers. 
+
+Also there is a question of if opensim.framework should actually have service classes like your rest sending, or be more for the base classes and data structures. 
+
+I really dislike the OpenSim.Framework.Communications project, as its turned out to really be a place where a lot of things have been dumped when we wasn't sure where else to put them. And I really want to split that up and cut it down. A lot of it will be moved out once I finish with moving the comms manager stuff to modules.
+
+So I think the best solution from where we find ourselves is to go with another namespace. Either OpenSim.Lib or OpenSim.Services. I've been thinking of a services namespace a little bit recently as there are a number of service classes/modules that could be shared between regions and UGAIM servers. So don't fit into either's namespace, but don't really fit in any of the existing framework namespaces either. Although I did also think of a OpenSim.Framework.Services namespace.
+
+Anyway I'm not sure about using OpenSimLib though, as all the rest of the namespaces have the OpenSim.XXXX format. So think we most likely should keep to that. So OpenSim.Lib?
+
+Hmm, also there is the opensim-lib part of svn where we keep things like our modifications to libomv. So is there going to be confusion with that?
+
+--- On Fri, 13/3/09, Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+From: Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+Subject: Re: [Opensim-dev] OpenSim dll for use by other programs
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Friday, 13 March, 2009, 11:50 PM
+
+
+
+
+  
+Here's a suggestion.
+
+
+
+We could have another project under OpenSim called
+
+OpenSimLib
+
+This would be a place for putting things that are meant to be used both
+by OpenSim and by other programs.
+
+We could start with
+
+OpenSimLib.Communications
+
+OpenSimLib.Meshes
+
+
+
+I suspect several data structures would move there.
+
+
+
+But this raises the question about OpenSim.Framework -- is it supposed
+to be _that_ OpenSimLib? I see some of that, but it's mostly assuming
+that the &quot;other programs&quot;, other than OpenSim.exe, are exactly the 5 U
+G A I M servers. I'm now thinking that clients (all sorts of clients)
+will want to use some of that too.
+
+
+
+Yeah, maybe OpenSim.Framework is the right place to put this kind of
+code? What do you think? Should I move the sending side functions of
+RESTComms to OpenSim.Framework.Communications?
+
+
+
+
+
+
+
+Diva Canto wrote:
+
+  
+Cool, I'm glad to see there are more cases.
+
+In my case, this piece of comm needs stuff from OpenSim.Framework
+(RegionInfo, AgentCircuitData) and other data structures from other
+places in opensim (Region.Framework.Scenes.AgentData), which is a bit
+of a mess that needs to be cleaned up too.
+
+  
+
+[RegionInfo, btw, is E.V.I.L -- I've wasted several hours over the past
+several months fighting with the ExternalEndPoint property. I always
+get it wrong. If we are to expose something like that to other fellow
+humans, I'll probably define another, much simpler, data structure.]
+
+  
+
+  
+
+Dahlia Trimble wrote:
+  I had a similar intention with Primmesher. Currently there
+is a primmesher.dll project on forge which is a dll containing the 2
+files Primmesher.cs and Sculptmesh.cs. My intent was to have a single
+dll file which could be used by both OpenSim and viewer projects
+wishing to implement prims and sculpties. In order to make this a
+standalone dll I had to create internal types for quaternions and
+vectors, and the associated methods and operators. In this case it is a
+small duplication of code in other modules in OpenSim, but it's
+probably ok as I needed to extend those types while coding Primmesher
+anyway. The code on forge and in OpenSim are identical and one could
+easily delete those 2 files from OpenSim and just use the dll file from
+forge. This was my intent but I ran into some difficulties with
+prebuild.xml and the location of the dll file in the physics folder in
+the OpenSim tree, as it would not build successfully on some systems.
+So for now I am maintaining both source trees and keeping the code in
+sync.
+
+    
+
+    On Fri, Mar 13, 2009 at 1:50 PM, Diva
+Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+wrote:
+
+    I
+need more architectural advice.
+
+      
+
+I'm working on a client that has all the control over the agents. For
+
+that, it uses the sending part of the RESTInterregionComms module that I
+
+did a couple of months ago -- a module which now is clearly out of
+
+place. That module is not about interregion comms; it's about comms
+
+involving regions, but not necessarily *between* regions. In my case,
+
+it's between the client and the region. I'm &quot;using
+
+OpenSim.Region.CoreModules.Communications.REST&quot; in my client --
+horrible.
+
+      
+
+So, I want to break it down into 2 parts, sending and receiving. The
+
+question is: where should I place these two parts? The receiving part
+
+can continue to be a region module in CoreModules -- that's perfectly
+
+fine. But how about the sending part?
+
+      
+
+The sending part needs to be in a dll that can be used by other programs
+
+out there, just like my client. This is, in fact, what will make OpenSim
+
+interoperable from the &#160;outside -- its use API, as opposed to the
+
+wonderful extension API provided by region modules. Should these things
+
+be in OpenSim.Framework.*? I was tempted to think so, but then I looked
+
+at what's in there, and it's clearly facing the internals. Should it be
+
+in OpenSim.Region.Communications.*?
+
+OpenSim.Region.CoreModules.Communications.REST with sending and
+
+receiving parts as separate modules? (but then the importers of this
+
+will get all the other CoreModules as a dll, which doesn't feel right)
+
+      
+
+Your thoughts appreciated. Just think of what makes sense from a program
+
+that wants to use OpenSim libraries.
+
+      
+
+_______________________________________________
+
+Opensim-dev mailing list
+
+      <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+
+      <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+    
+    
+    
+
+    
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+  
+  
+  
+
+  
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+  
+
+
+
+ 
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+      
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090314/c5640504/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090314/c5640504/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005691.html">[Opensim-dev] OpenSim dll for use by other programs
+</A></li>
+	<LI>Next message: <A HREF="005707.html">[Opensim-dev] OpenSim dll for use by other programs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5697">[ date ]</a>
+              <a href="thread.html#5697">[ thread ]</a>
+              <a href="subject.html#5697">[ subject ]</a>
+              <a href="author.html#5697">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,339 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] osXXXX function parameter types
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20osXXXX%20function%20parameter%20types&In-Reply-To=%3C4AC9AECD.5040307%40xyzzyxyzzy.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007741.html">
+   <LINK REL="Next"  HREF="007739.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] osXXXX function parameter types</H1>
+    <B>Dr Scofield</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20osXXXX%20function%20parameter%20types&In-Reply-To=%3C4AC9AECD.5040307%40xyzzyxyzzy.net%3E"
+       TITLE="[Opensim-dev] osXXXX function parameter types">DrScofield at xyzzyxyzzy.net
+       </A><BR>
+    <I>Mon Oct  5 10:31:09 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007741.html">[Opensim-dev] osXXXX function parameter types
+</A></li>
+        <LI>Next message: <A HREF="007739.html">[Opensim-dev] Script to Teleport Grid to Grid
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7744">[ date ]</a>
+              <a href="thread.html#7744">[ thread ]</a>
+              <a href="subject.html#7744">[ subject ]</a>
+              <a href="author.html#7744">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+since we are supporting LSL and since OSSL is a functional extension of LSL
+(i.e., adding additional functions not available in LSL) we should stay in-line
+with the grammar of LSL, so +1 on your proposal.
+
+	DrS/dirk
+
+
+Snowdrop Short wrote:
+&gt;<i> Hi
+</I>&gt;<i> 
+</I>&gt;<i> Sorry for the length post, so if you don't care about scripting or the
+</I>&gt;<i> functions in scripting, you can safely ignore this email.
+</I>&gt;<i> 
+</I>&gt;<i> As some of you might be aware of from the IRC channel, I'm working on a
+</I>&gt;<i> LSL-&gt;CIL compiler and a script engine, which will benefit from the
+</I>&gt;<i> features gained by going directly to CIL. The compiler has been
+</I>&gt;<i> completed for quite some time now, while work on the script engine has
+</I>&gt;<i> been slow going. The existing llXXXXX functions has been integrated into
+</I>&gt;<i> the engine, but the osXXXXX functions are lagging behind.
+</I>&gt;<i> 
+</I>&gt;<i> The osXXXXX functions causes some issues, primarily due to the fact that
+</I>&gt;<i> the other compilers, go from LSL-&gt;C#-&gt;CIL, for this reason there has
+</I>&gt;<i> been very little need to ensure that the parameter and return types has
+</I>&gt;<i> a good match to the LSL language.
+</I>&gt;<i> 
+</I>&gt;<i> Especially string/key/UUID is problematic. In LSL strings and keys, are
+</I>&gt;<i> distinct types, but share the same value domain, in the LSL-&gt;C#
+</I>&gt;<i> compilers used by the core engine, this is handled via a rename of the
+</I>&gt;<i> LSL_String, which means that LSL_Key is just a rename of LSL_String and
+</I>&gt;<i> not really distinct types; on top of that, there are implicit
+</I>&gt;<i> conversions between LSL_String (which is a value type) and System.String
+</I>&gt;<i> (which is a reference type), making a distinction between LSL_String and
+</I>&gt;<i> System.String un-needed.
+</I>&gt;<i> 
+</I>&gt;<i> I have been going over the osXXX functions, in an attempt to identify
+</I>&gt;<i> problematic functions, and I submit the list and my findings in hopes of
+</I>&gt;<i> getting a decision as to what their proper LSL signatures should be, I
+</I>&gt;<i> have divided the problematic functions into groups depending on the
+</I>&gt;<i> various problems:
+</I>&gt;<i> 
+</I>&gt;<i> 1) Functions where string/key needs to be clarified
+</I>&gt;<i> 2) C# method overloading used, which would cause name conflicts in
+</I>&gt;<i> &quot;standard&quot; LSL.
+</I>&gt;<i> 3) use of double
+</I>&gt;<i> 4) Use of bool
+</I>&gt;<i> 5) Use of uint
+</I>&gt;<i> 6) use of UUID
+</I>&gt;<i> 7) use of sleep
+</I>&gt;<i> 
+</I>&gt;<i> Some functions are marked with an asterisk, indicating that they appear
+</I>&gt;<i> in several sections, e.g.
+</I>&gt;<i> osSetEstateSunSettings(integer sunFixed, float sunHour)*
+</I>&gt;<i> 
+</I>&gt;<i> since sunFixed is defined as a bool and sunHour is defined as a double,
+</I>&gt;<i> none of which are valid LSL types, consequently it is mentioned in both
+</I>&gt;<i> section 3 and 4.
+</I>&gt;<i> 
+</I>&gt;<i> Ok, here goes my list:
+</I>&gt;<i> 
+</I>&gt;<i> First: Functions where string/key needs to be clarified
+</I>&gt;<i> 
+</I>&gt;<i> These functions does not appear to have made a clear distinction between
+</I>&gt;<i> key and string, from examining the code, it would appear that the
+</I>&gt;<i> signatures below matches the implementation (noted, dynamicID is never
+</I>&gt;<i> used for anything in the osSetDynamicTexturexxxx functions)
+</I>&gt;<i>  
+</I>&gt;<i> key osSetDynamicTextureURL(key dynamicID, string contentType, string
+</I>&gt;<i> url, string extraParams, integer timer)
+</I>&gt;<i> key osSetDynamicTextureURLBlend(key dynamicID, string contentType,
+</I>&gt;<i> string url, string extraParams, integer timer, integer alpha)
+</I>&gt;<i> key osSetDynamicTextureURLBlendFace(key dynamicID, string contentType,
+</I>&gt;<i> string url, string extraParams, integer blend, integer disp, integer
+</I>&gt;<i> timer, integer alpha, integer face)*
+</I>&gt;<i> key osSetDynamicTextureData(key dynamicID, string contentType, string
+</I>&gt;<i> data, string extraParams, integer timer)
+</I>&gt;<i> key osSetDynamicTextureDataBlend(key dynamicID, string contentType,
+</I>&gt;<i> string data, string extraParams, integer timer, integer alpha)
+</I>&gt;<i> key osSetDynamicTextureDataBlendFace(key dynamicID, string contentType,
+</I>&gt;<i> string data, string extraParams, bool blend, integer disp, integer
+</I>&gt;<i> timer, integer alpha, integer face)
+</I>&gt;<i> string osGetGridAgentIP(key)
+</I>&gt;<i> osTeleportAgent(key agent, vector position, vector lookat)*
+</I>&gt;<i> osTeleportAgent(key agent, string regionName, vector position, vector
+</I>&gt;<i> lookat)*
+</I>&gt;<i> osTeleportAgent(key agent, integer regionX, integer regionY, vector
+</I>&gt;<i> position, vector lookat)*
+</I>&gt;<i> osAvatarPlayAnimation(key avatar, string animation)
+</I>&gt;<i> osAvatarStopAnimation(key avatar, string animation)
+</I>&gt;<i> key osAvatarName2Key(string firstname, string lastname)
+</I>&gt;<i> string osKey2Name(key id)
+</I>&gt;<i> 
+</I>&gt;<i> second: Function overloading, used by the osTeleportAgent functions:
+</I>&gt;<i> 
+</I>&gt;<i> Besides the issues mentioned above, regarding System.String and
+</I>&gt;<i> LSL_String, the three functions appears to utilise method overloading,
+</I>&gt;<i> based on the fact that the compiler generates C#, and C# treats the call
+</I>&gt;<i> signature as part of id, whereas LSL solely uses the function name. Is
+</I>&gt;<i> Core proposing that LSL should be extended to support overloaded
+</I>&gt;<i> methods, or should the functions be renamed in order to avoid the name
+</I>&gt;<i> conflict?
+</I>&gt;<i> 
+</I>&gt;<i> either 
+</I>&gt;<i> osTeleportAgent(key agent, vector position, vector lookat)*
+</I>&gt;<i> osTeleportAgent(key agent, string regionName, vector position, vector
+</I>&gt;<i> lookat)*
+</I>&gt;<i> osTeleportAgent(key agent, integer regionX, integer regionY, vector
+</I>&gt;<i> position, vector lookat)*
+</I>&gt;<i> or
+</I>&gt;<i> osTeleportAgent(key agent, vector position, vector lookat)*
+</I>&gt;<i> osTeleportAgentToNamedRegion(key agent, string regionName, vector
+</I>&gt;<i> position, vector lookat)*
+</I>&gt;<i> osTeleportAgentToGridLocation(key agent, integer regionX, integer
+</I>&gt;<i> regionY, vector position, vector lookat)*
+</I>&gt;<i> 
+</I>&gt;<i> Third: use of double
+</I>&gt;<i> LSL does not have a double value, lsl floats are single precision.
+</I>&gt;<i> 
+</I>&gt;<i> osSetRegionWaterHeight(float height)
+</I>&gt;<i> integer osTerrainSetHeight(integer x, integer y, float val)
+</I>&gt;<i> osRegionRestart(float seconds)
+</I>&gt;<i> osSetRegionSunSettings(integer useEstateSun, integer sunFixed, float
+</I>&gt;<i> sunHour)*
+</I>&gt;<i> osSetEstateSunSettings(integer sunFixed, float sunHour)*
+</I>&gt;<i> float osGetCurrentSunHour()
+</I>&gt;<i> float osSunGetParam(string param)
+</I>&gt;<i> osSunSetParam(string param, float value)
+</I>&gt;<i> double osList2Double(LSL_Types.list src, int index)**
+</I>&gt;<i> 
+</I>&gt;<i> Fourth: Use of bool
+</I>&gt;<i> LSL does not have an explicit bool type, integers are overloaded to also
+</I>&gt;<i> work as boolean values.
+</I>&gt;<i> 
+</I>&gt;<i> key osSetDynamicTextureURLBlendFace(key dynamicID, string contentType,
+</I>&gt;<i> string url, string extraParams, integer blend, integer disp, integer
+</I>&gt;<i> timer, integer alpha, integer face)*
+</I>&gt;<i> integer osConsoleCommand(string command)
+</I>&gt;<i> osSetRegionSunSettings(integer useEstateSun, integer sunFixed, float
+</I>&gt;<i> sunHour)*
+</I>&gt;<i> osSetEstateSunSettings(integer sunFixed, float sunHour)*
+</I>&gt;<i> 
+</I>&gt;<i> Fifth: Use of uint
+</I>&gt;<i> LSL does not have unsigned integer types.
+</I>&gt;<i> osTeleportAgent(key agent, integer regionX, integer regionY, vector
+</I>&gt;<i> position, vector lookat)
+</I>&gt;<i> 
+</I>&gt;<i> Sixth: use of UUID
+</I>&gt;<i> Oddball function, explicitly using UUID as the parameter rather than
+</I>&gt;<i> LSL_Key/LSL_String/System.String.
+</I>&gt;<i> osSetRot(key target, Quaternion rotation)
+</I>&gt;<i> 
+</I>&gt;<i> Seventh: use of Sleep
+</I>&gt;<i> Sleep is pretty inconsistently used, currently it is only used for
+</I>&gt;<i> osTeleportAgent (5000 millis). In the llxxxx api library sleep is used
+</I>&gt;<i> for:
+</I>&gt;<i> llSetPos (200 millis),
+</I>&gt;<i> llSetRot (200 millis),
+</I>&gt;<i> llSetLocalRot (200 millis),
+</I>&gt;<i> llRezAtRoot (caculated depending on mass and velocity),
+</I>&gt;<i> llInstantMessage(2000 millis),
+</I>&gt;<i> llCreateLink (1000 millis),
+</I>&gt;<i> llRemoteLoadScriptPin (3000 millis)
+</I>&gt;<i> 
+</I>&gt;<i> All other sleeps in the llxxxx api has been out-commented.
+</I>&gt;<i> 
+</I>&gt;<i> Although sleep is not strictly part of the function definition, per se.,
+</I>&gt;<i> their implementation should be transparent to the user, in order to
+</I>&gt;<i> better decide on a specific design, what are the plans for dealing with
+</I>&gt;<i> script delays?
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> All of this leads to this suggestion as the functions proper signature:
+</I>&gt;<i> 
+</I>&gt;<i> integer osTerrainSetHeight(integer x, integer y, float val)
+</I>&gt;<i> float osTerrainGetHeight(integer x, integer y)
+</I>&gt;<i> osTerrainFlush()
+</I>&gt;<i> osRegionRestart(float seconds)
+</I>&gt;<i> osRegionNotice(string msg)
+</I>&gt;<i> osSetRot(key target, Quaternion rotation)
+</I>&gt;<i> 
+</I>&gt;<i> key osSetDynamicTextureURL(key dynamicID, string contentType, string
+</I>&gt;<i> url, string extraParams, int timer)
+</I>&gt;<i> key osSetDynamicTextureURLBlend(key dynamicID, string contentType,
+</I>&gt;<i> string url, string extraParams, int timer, int alpha)
+</I>&gt;<i> key osSetDynamicTextureURLBlendFace(key dynamicID, string contentType,
+</I>&gt;<i> string url, string extraParams, bool blend, int disp, int timer, int
+</I>&gt;<i> alpha, int face)
+</I>&gt;<i> key osSetDynamicTextureData(key dynamicID, string contentType, string
+</I>&gt;<i> data, string extraParams, int timer)
+</I>&gt;<i> key osSetDynamicTextureDataBlend(key dynamicID, string contentType,
+</I>&gt;<i> string data, string extraParams, int timer, int alpha)
+</I>&gt;<i> key osSetDynamicTextureDataBlendFace(string dynamicID, string
+</I>&gt;<i> contentType, string data, string extraParams, bool blend, int disp, int
+</I>&gt;<i> timer, int alpha, int face)
+</I>&gt;<i> osTeleportAgent(key agent, vector position, vector lookat)
+</I>&gt;<i> osTeleportAgentToNamedRegion(key agent, string regionName, vector
+</I>&gt;<i> position, vector lookat)
+</I>&gt;<i> osTeleportAgentToGridLocation(key agent, integer regionX, integer
+</I>&gt;<i> regionY, vector position, vector lookat)
+</I>&gt;<i> integer osConsoleCommand(string command)
+</I>&gt;<i> osSetPrimFloatOnWater(integer floatYN)
+</I>&gt;<i> string osGetAgentIP(key agent)
+</I>&gt;<i> list osGetAgents()
+</I>&gt;<i> osAvatarPlayAnimation(key avatar, string animation)
+</I>&gt;<i> osAvatarStopAnimation(key avatar, string animation)
+</I>&gt;<i> string osMovePen(string drawList, integer x, integer y)
+</I>&gt;<i> string osDrawLine(string drawList, integer startX, integer startY,
+</I>&gt;<i> integer endX, integer endY)
+</I>&gt;<i> string osDrawLine(string drawList, integer endX, integer endY)
+</I>&gt;<i> string osDrawText(string drawList, string text)
+</I>&gt;<i> string osDrawEllipse(string drawList, integer width, integer height)
+</I>&gt;<i> string osDrawRectangle(string drawList, integer width, integer height)
+</I>&gt;<i> string osDrawFilledRectangle(string drawList, integer width, integer
+</I>&gt;<i> height)
+</I>&gt;<i> string osDrawFilledPolygon(string drawList, list x, list y)
+</I>&gt;<i> string osDrawPolygon(string drawList, list x, list y)
+</I>&gt;<i> string osSetFontSize(string drawList, integer fontSize)
+</I>&gt;<i> string osSetFontName(string drawList, string fontName)
+</I>&gt;<i> string osSetPenSize(string drawList, integer penSize)
+</I>&gt;<i> string osSetPenColour(string drawList, string colour)
+</I>&gt;<i> string osSetPenCap(string drawList, string direction, string type)
+</I>&gt;<i> string osDrawImage(string drawList, integer width, integer height,
+</I>&gt;<i> string imageUrl)
+</I>&gt;<i> vector osGetDrawStringSize(string contentType, string text, string
+</I>&gt;<i> fontName, integer fontSize)
+</I>&gt;<i> osSetStateEvents(integer events)
+</I>&gt;<i> osSetRegionWaterHeight(float height)
+</I>&gt;<i> osSetRegionSunSettings(integer useEstateSun, integer sunFixed, float
+</I>&gt;<i> sunHour)
+</I>&gt;<i> osSetEstateSunSettings(integer sunFixed, float sunHour)
+</I>&gt;<i> float osGetCurrentSunHour()
+</I>&gt;<i> float osSunGetParam(string param)
+</I>&gt;<i> osSunSetParam(string param, float value)
+</I>&gt;<i> string osWindActiveModelPluginName()
+</I>&gt;<i> osWindParamSet(string plugin, string param, float value)
+</I>&gt;<i> osWindParamGet(string plugin, string param)
+</I>&gt;<i> float osList2Double(list src, int index)   -- should exist, comment in
+</I>&gt;<i> the code suggests it should be removed
+</I>&gt;<i> osSetParcelMediaURL(string url)
+</I>&gt;<i> osSetParcelSIPAddress(string SIPAddress)
+</I>&gt;<i> string osGetScriptEngineName()
+</I>&gt;<i> string osGetSimulatorVersion()
+</I>&gt;<i> osMessageObject(key objectUUID, string message)
+</I>&gt;<i> osMakeNotecard(string notecardName, list contents)
+</I>&gt;<i> string osGetNotecardLine(string name, integer line)
+</I>&gt;<i> string osGetNotecard(string name)
+</I>&gt;<i> integer osGetNumberOfNotecardLines(string name)
+</I>&gt;<i> key osAvatarName2Key(string firstname, string lastname)
+</I>&gt;<i> string osKey2Name(key id)
+</I>&gt;<i> string osGetGridNick()
+</I>&gt;<i> string osGetGridName()
+</I>&gt;<i> string osGetGridLoginURI()
+</I>&gt;<i> string osFormatString(string str, list strings)
+</I>&gt;<i> list osMatchString(string src, string pattern, integer start)
+</I>&gt;<i> string osLoadedCreationDate()
+</I>&gt;<i> string osLoadedCreationTime()
+</I>&gt;<i> key osLoadedCreationID()
+</I>&gt;<i> list osGetLinkPrimitiveParams(integer linknumber, list rules)
+</I>&gt;<i> key osNpcCreate(string firstname, string lastname, vector position,
+</I>&gt;<i> vector cloneFrom)
+</I>&gt;<i> osNpcMoveTo(key npc, vector position)
+</I>&gt;<i> osNpcSay(key npc, string message)
+</I>&gt;<i> osNpcRemove(key npc)
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> So what do you think?
+</I>&gt;<i> Snowcrash
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+dr dirk husemann ---- virtual worlds research ---- ibm zurich research lab
+SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007741.html">[Opensim-dev] osXXXX function parameter types
+</A></li>
+	<LI>Next message: <A HREF="007739.html">[Opensim-dev] Script to Teleport Grid to Grid
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7744">[ date ]</a>
+              <a href="thread.html#7744">[ thread ]</a>
+              <a href="subject.html#7744">[ subject ]</a>
+              <a href="author.html#7744">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

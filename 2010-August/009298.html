@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Problem with the bots
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Problem%20with%20the%20bots&In-Reply-To=%3CAANLkTik%3DFvYFn3287hi4RX9qBFgw8afFVNNZHMmZhHhH%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009297.html">
+   <LINK REL="Next"  HREF="009257.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Problem with the bots</H1>
+    <B>Dahlia Trimble</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Problem%20with%20the%20bots&In-Reply-To=%3CAANLkTik%3DFvYFn3287hi4RX9qBFgw8afFVNNZHMmZhHhH%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Problem with the bots">dahliatrimble at gmail.com
+       </A><BR>
+    <I>Wed Aug 25 09:13:08 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009297.html">[Opensim-dev] Problem with the bots
+</A></li>
+        <LI>Next message: <A HREF="009257.html">[Opensim-dev] estate_settings.xml and default values for	regions/estates
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9298">[ date ]</a>
+              <a href="thread.html#9298">[ thread ]</a>
+              <a href="subject.html#9298">[ subject ]</a>
+              <a href="author.html#9298">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>If you don''t need individual bakes for your test you might consider hacking
+the libomv baker to upload pre-baked files instead of making new ones for
+each bot.
+
+-d
+
+On Tue, Aug 24, 2010 at 4:54 PM, Lake, Dan &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>&gt; wrote:
+
+&gt;<i> In our load testing, we use TestClient from OpenMetaverse which is
+</I>&gt;<i> implemented using GridClient. We have contributed several changes in the
+</I>&gt;<i> past few weeks related to running a hundred or more bots in a single
+</I>&gt;<i> TestClient instance. The main reason we see incomplete appearance is that
+</I>&gt;<i> TestClient does not have time to bake each appearance before the appearance
+</I>&gt;<i> handshake times out between TestClient and the server. All client threads
+</I>&gt;<i> become consumed baking/encoding/decoding image data. They all slow down and
+</I>&gt;<i> new baking requests appear to time out.
+</I>&gt;<i>
+</I>&gt;<i> There are 2 workarounds for this we have used with equal success:
+</I>&gt;<i>
+</I>&gt;<i> 1. Run fewer than 25 clients per TestClient instance.
+</I>&gt;<i> 2. Increase the baking timeouts in TestClient (passed as params to
+</I>&gt;<i> GridClient's AppearanceManager) to a large value (10+ minutes).
+</I>&gt;<i>
+</I>&gt;<i> We routinely run 300-400 bots against a single region using 4 TestClient
+</I>&gt;<i> instances with 100 bots each.
+</I>&gt;<i> We also run 1000+ bots on our research grid using 40 TestClient instances
+</I>&gt;<i> with 25 bots each or 10 instances of 100 each.
+</I>&gt;<i> In both of these situations, every avatar appears baked in the viewer.
+</I>&gt;<i>
+</I>&gt;<i> Dan lake
+</I>&gt;<i> Intel Labs
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;<i> Sent: Tuesday, August 24, 2010 4:40 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Problem with the bots
+</I>&gt;<i>
+</I>&gt;<i> On 23/08/10 08:08, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">it at nii.ac.jp</A> wrote:
+</I>&gt;<i> &gt; Hello Everybody,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I made some additionnal test using bots (GridClient)(using different
+</I>&gt;<i> viewer, different database on Opensim 0.7.0).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; My observation is this one :
+</I>&gt;<i> &gt; When we log a lot of bots (50 for instance), the appearance of the bots
+</I>&gt;<i> is not completely loaded for each bot. Some of them are fully loaded, while
+</I>&gt;<i> some others have just hair, eye, or just a grey part of skull loaded (or a
+</I>&gt;<i> ghost with SL viewer).
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; This problem is occuring on 0.7.0, and didn't existed on 0.6.8
+</I>&gt;<i> &gt; Actually, I already talked about that, but, the new fact is that when a
+</I>&gt;<i> bon log into the simulation, it is set to the HOME location, and not to its
+</I>&gt;<i> previous position into the simulation.
+</I>&gt;<i> &gt; Maybe these problem are bound to each others.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I wrote this to understand, if somebody could tell me what information is
+</I>&gt;<i> stored about each avatars, and where is it stored (for instance the last
+</I>&gt;<i> position of the avatar).
+</I>&gt;<i> &gt; For instance, where is stored the appearance of the avatar, and when it
+</I>&gt;<i> is loaded.
+</I>&gt;<i>
+</I>&gt;<i> Last and home positions are stored in a table called GridUser.  Appearance
+</I>&gt;<i> information effectively comes from the body
+</I>&gt;<i> part and clothing entries in an avatar's inventory and the assets that they
+</I>&gt;<i> link to.  This is stored in inventoryitems
+</I>&gt;<i> (and the assets table, of course).
+</I>&gt;<i>
+</I>&gt;<i> I've seen problems with appearance with multiple bots on Intel load tests
+</I>&gt;<i> as well.  Don't know why this is.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20100825/f2710d4a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20100825/f2710d4a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009297.html">[Opensim-dev] Problem with the bots
+</A></li>
+	<LI>Next message: <A HREF="009257.html">[Opensim-dev] estate_settings.xml and default values for	regions/estates
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9298">[ date ]</a>
+              <a href="thread.html#9298">[ thread ]</a>
+              <a href="subject.html#9298">[ subject ]</a>
+              <a href="author.html#9298">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

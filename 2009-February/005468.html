@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Comms Manager
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C565737.7279.qm%40web23005.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005467.html">
+   <LINK REL="Next"  HREF="005470.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Comms Manager</H1>
+    <B>MW</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Comms%20Manager&In-Reply-To=%3C565737.7279.qm%40web23005.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] Comms Manager">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Thu Feb 26 20:34:33 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005467.html">[Opensim-dev] Comms Manager
+</A></li>
+        <LI>Next message: <A HREF="005470.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5468">[ date ]</a>
+              <a href="thread.html#5468">[ thread ]</a>
+              <a href="subject.html#5468">[ subject ]</a>
+              <a href="author.html#5468">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>A couple of issues/questions are:
+
+How would a
+Region/ServiceModule say what interface it wanted to register, it might
+implement a couple but only want to register one, or it might want to
+register its class type.
+
+And I'm taking it we would still have
+the ApplicationPlugin that could register with what regions it wanted,
+so would still need the Scene.RegisterModule&lt;&gt;() interface for
+them.
+
+
+--- On Thu, 26/2/09, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+From: Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;
+Subject: Re: [Opensim-dev] Comms Manager
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date: Thursday, 26 February, 2009, 7:07 PM
+
+MW wrote:
+&gt;<i> I'm not actually bothered about the interface per se. What I require
+</I>is 
+&gt;<i> to be able to dynamically load generic modules that no where in that 
+</I>&gt;<i> module does it know about IScene/Scene.
+</I>&gt;<i> 
+</I>&gt;<i> I actually see your approach as complex because it demands they need to 
+</I>&gt;<i> know how to register to a scene themselves when these types shouldn't 
+</I>&gt;<i> need to know. The types of modules I mean are ones where they just want 
+</I>&gt;<i> to register with the Core/Application and be accessed from anywhere in 
+</I>&gt;<i> the application.
+</I>&gt;<i> 
+</I>&gt;<i> Of course this module type doesn't fit all needs, but thats what
+</I>I'm 
+&gt;<i> saying its not right to try to find a single solution that fits all 
+</I>&gt;<i> needs and turns out to be more complex than some modules require. And we 
+</I>&gt;<i> shouldn't rule out such generic modules.
+</I>&gt;<i> 
+</I>&gt;<i> Now we could still do meet the above requirement with you system, but it 
+</I>&gt;<i> would mean doing some automagic in a ApplicationPlugin (or whatever 
+</I>&gt;<i> interface they used) loader.
+</I>&gt;<i> 
+</I>&gt;<i> As the loader would have to provide its own IServiceCore implementation, 
+</I>&gt;<i> that it passed to the IServiceModules that it loaded, then it would need 
+</I>&gt;<i> to as your examples show handle scene creation and register the all the 
+</I>&gt;<i> IServiceModules with those.
+</I>&gt;<i> 
+</I>&gt;<i> This it does get complex, where the simply solution and the one I favour 
+</I>&gt;<i> is to just have a sharedRegistry that scenes can access. The whole 
+</I>&gt;<i> automagic came from me trying to find a compromise that met your ideas. 
+</I>&gt;<i> I really dislike it though, but we just need to find a compromise as we 
+</I>&gt;<i> both have slighly different ideas and requirements.
+</I>&gt;<i> 
+</I>&gt;<i> Thats why I would like to hear from other people.
+</I>
+Okay, it seems to me that the chief problem now is that MW would like to
+exposed service module methods to regions 
+without having to put any IScene methods in the module code, allowing it to be
+used for both the region server and grid 
+servers.
+
+This is possible if all the service methods are exposed to the region. 
+However, Melanie doesn't like this because it 
+will expose some methods that regions should arguably not be able to get at
+(such as 
+IInventoryService.CreateNewUserInventory()).
+
+I would tend to think that we shouldn't expose such service methods to
+regions.
+
+Neither side likes automagic by the core code, but I think a little bit of it
+will help here.  Instead of having methods 
+such as
+
+void RegisterInterfaceToAllRegistries&lt;T&gt;(T iface);
+
+we instead annotate service modules with [RegionModule] and region interfaces
+with [RegionInterface].  Grid modules 
+which can also provide region services are annotated in this way.  When the
+core code goes to load them, the 
+[RegionInterface] tagged interfaces are automatically registered with the
+region registry.  This replaces 
+RegisterModuleInterface().
+
+It also requires that IServiceModule and IRegionModule are collapsed together,
+by removing the IScene references in 
+IRegionModule.  Instead, these are passed in via the OnNewScene() event talked
+about earlier.
+
+In this way, service/application modules that aren't interested in scenes
+don't need to do any extra work apart from 
+tagging the module/interfaces appropriately, avoiding the boilerplate of
+separately registering the interface to each 
+region.  The regions still don't have access to inter-service/non-region
+interfaces.
+
+This does require a separate service registry hidden from the Region/Scene so
+that services can communicate among 
+themselves (e.g. the user service needs to call the inventory service to create
+new user inventories).  There would be 2 
+registries in total.
+
+Please excuse me if I haven't fully grokked all the previous posts on this
+thread.
+
+
+
+
+
+      
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090226/427d08e4/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090226/427d08e4/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005467.html">[Opensim-dev] Comms Manager
+</A></li>
+	<LI>Next message: <A HREF="005470.html">[Opensim-dev] Comms Manager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5468">[ date ]</a>
+              <a href="thread.html#5468">[ thread ]</a>
+              <a href="subject.html#5468">[ subject ]</a>
+              <a href="author.html#5468">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

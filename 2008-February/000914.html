@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Call to brainstorm on OpenSim core threading
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Call%20to%20brainstorm%20on%20OpenSim%20core%20threading&In-Reply-To=%3C1203393561.7142.121.camel%40localhost.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000913.html">
+   <LINK REL="Next"  HREF="000915.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Call to brainstorm on OpenSim core threading</H1>
+    <B>Brian Wolfe</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Call%20to%20brainstorm%20on%20OpenSim%20core%20threading&In-Reply-To=%3C1203393561.7142.121.camel%40localhost.localdomain%3E"
+       TITLE="[Opensim-dev] Call to brainstorm on OpenSim core threading">brianw at terrabox.com
+       </A><BR>
+    <I>Tue Feb 19 04:59:21 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000913.html">[Opensim-dev] GPL-Sim and BSD-Sim
+</A></li>
+        <LI>Next message: <A HREF="000915.html">[Opensim-dev] SL lego
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#914">[ date ]</a>
+              <a href="thread.html#914">[ thread ]</a>
+              <a href="subject.html#914">[ subject ]</a>
+              <a href="author.html#914">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>As we are all aware there are some rather serious issues with locking,
+thread loss, and memory consumption in OpenSim as of today's HEAD (and
+for a while now in hiding). Mantis bug #622 is yet another indication of
+these issues. 
+
+We're burning 1/3rd of the cpu cycles of an athlon64X2-5800 on a 60-user
+region doing nothign but context switching. This is bad. It means we've
+overloaded on threadcount.
+
+We have MANY ops that block the entire region when used. It means that
+we aren't locking in the right ways, or aren't delegating tasks to the
+worker threadpool when we shoudl be.
+
+We eventually run out of ram. Mantis #622 shows this rather blatantly.
+8-( A large part of this is possibly lost threads based on past
+experience with C# and the symptoms that I've been seeing over the last
+2 weeks.
+
+As a result of the number of issues I'm making a general call for
+everyone to think hard about these things in each person's area of
+expertise and to come up with ideas so that we can use our collective
+brainpower to solve this stability issue. 
+
+
+
+ I have my own ideas on how to fix it. However I'm also very new to the
+system. SO mine may be really really bad. :) Anyways, here's what I'm
+thinking.....
+
+I have made the start of an effort at cleaning up locking and threading
+with several patches posted to mantis through <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Sakai at openlife.</A> What I
+have found so far is not good. There is rampant lack of locking and
+free-use of permanent thread creation in areas that I personally would
+have done otherwise. 
+
+This is not an indictment of anyone or the process used, nor of the
+quality of opensim. It's merely a symptom of a collaborative effort that
+has reached the point where we must take a step back and re-evaluate
+what we have before us.  We need to look at what has been created and
+ask the question &quot;does this thread NEED to exist as an independant?&quot;.
+
+Second, ANY variable that is not atomic by nature should be locked if
+it's accessed at all by other threads, wether the sequence of execution
+says it'll never get two at once or not. Yes this creates overhead, but
+it's necessary is such a massively parallel application.
+
+I'm exploring using a worker threadpool thread to do the
+UDPServer.CreateUser() call and it's descendants. I also intend to
+explore using this same threadpool for processing UserView packets in
+order to eliminate the potential for lost threads as well as thread
+concurrency overload from the UserView area. Once I have the creation
+processing in a worker thread I think we won't have any real issues with
+inbound (or outbound) packet loss anymore once all the remaining areas
+of openlife have beenreexamined and tweaked to play nice in the threads
+arena. :)
+
+I have not looked at anything beyond the core networking code so far. SO
+I don't know what other areas are creating threads, or how they are
+using locks.
+
+Thanks for listening!
+
+As a great chunk of rock said once.... &quot;It's clobberin' time!&quot;
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000913.html">[Opensim-dev] GPL-Sim and BSD-Sim
+</A></li>
+	<LI>Next message: <A HREF="000915.html">[Opensim-dev] SL lego
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#914">[ date ]</a>
+              <a href="thread.html#914">[ thread ]</a>
+              <a href="subject.html#914">[ subject ]</a>
+              <a href="author.html#914">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

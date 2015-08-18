@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Any particular reason for EntityTransferModule being shared instead of per-region?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Any%20particular%20reason%20for%20EntityTransferModule%0A%20being%20shared%20instead%20of%20per-region%3F&In-Reply-To=%3C4FBC3152.7090005%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011174.html">
+   <LINK REL="Next"  HREF="011176.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Any particular reason for EntityTransferModule being shared instead of per-region?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Any%20particular%20reason%20for%20EntityTransferModule%0A%20being%20shared%20instead%20of%20per-region%3F&In-Reply-To=%3C4FBC3152.7090005%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Any particular reason for EntityTransferModule being shared instead of per-region?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed May 23 02:37:38 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011174.html">[Opensim-dev] Any particular reason for EntityTransferModule being shared instead of per-region?
+</A></li>
+        <LI>Next message: <A HREF="011176.html">[Opensim-dev] Gainsay ultra minimalist web front end
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11175">[ date ]</a>
+              <a href="thread.html#11175">[ thread ]</a>
+              <a href="subject.html#11175">[ subject ]</a>
+              <a href="author.html#11175">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>In this case m_agentsInTransit.  If this is not shared between scenes then on teleport, I can put a guard against trying 
+to re-establish an agent in the source region (if, for instance, some script causes an attempt to teleport back very 
+quickly) before an old agent has been properly cleaned up.
+
+One could simply look for an existing ScenePresence but then you wouldn't be able to tell if that SP was still there due 
+to some crash or maybe because multiple logins are allowed and the user has some other presence there.
+
+On 23/05/12 01:23, Diva Canto wrote:
+&gt;<i> Hi Justin,
+</I>&gt;<i>
+</I>&gt;<i> Usually I write Shared modules if they do generic things that don't depend on the state of the individual scenes.
+</I>&gt;<i> Why do you want to make it NonShared? Any state in particular you are looking at?
+</I>&gt;<i>
+</I>&gt;<i> Diva / Crista
+</I>&gt;<i>
+</I>&gt;<i> On 5/21/2012 3:22 PM, Justin Clark-Casey wrote:
+</I>&gt;&gt;<i> Hi Diva (primarily). Is there any strong reason for having EntityTransferModule as a shared module rather than per
+</I>&gt;&gt;<i> region? I need to keep eliminating possible teleport-related race conditions and this gets simpler if scenes aren't
+</I>&gt;&gt;<i> sharing the ETM module. Teleports between regions on the same simulator then better resemble teleports between regions
+</I>&gt;&gt;<i> on different simulators, eliminating the need for special-case logic.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In particular, doing this allows me to extend the in-transit checking to prevent problems such as teleporting back to
+</I>&gt;&gt;<i> the same region before the old ScenePresence has been properly cleaned up.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> There are a couple of shared member variables on ETM (and HGETM) but these are either unused (m_Scenes) or I don't
+</I>&gt;&gt;<i> think the share has no practical effect (e.g. m_bannedRegions, since this is only used on region cross). If these
+</I>&gt;&gt;<i> shared structures are important then I could be move them somewhere else.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> In my early regression and manual tests there are no obvious issues with making this change, though I intend to test
+</I>&gt;&gt;<i> more.
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org/blog">http://justincc.org/blog</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011174.html">[Opensim-dev] Any particular reason for EntityTransferModule being shared instead of per-region?
+</A></li>
+	<LI>Next message: <A HREF="011176.html">[Opensim-dev] Gainsay ultra minimalist web front end
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11175">[ date ]</a>
+              <a href="thread.html#11175">[ thread ]</a>
+              <a href="subject.html#11175">[ subject ]</a>
+              <a href="author.html#11175">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

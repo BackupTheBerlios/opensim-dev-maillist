@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Please do not revert fixes without careful	comtemplation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Please%20do%20not%20revert%20fixes%20without%20careful%0A%09comtemplation&In-Reply-To=%3Cb6e60b3c0902152307l395f54abga1e6ba216f9ba5cd%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005066.html">
+   <LINK REL="Next"  HREF="005084.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Please do not revert fixes without careful	comtemplation</H1>
+    <B>Antti Kokko</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Please%20do%20not%20revert%20fixes%20without%20careful%0A%09comtemplation&In-Reply-To=%3Cb6e60b3c0902152307l395f54abga1e6ba216f9ba5cd%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Please do not revert fixes without careful	comtemplation">aakokko at gmail.com
+       </A><BR>
+    <I>Mon Feb 16 08:07:43 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005066.html">[Opensim-dev] Please do not revert fixes without careful	comtemplation
+</A></li>
+        <LI>Next message: <A HREF="005084.html">[Opensim-dev] Please do not revert fixes without	careful	comtemplation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5081">[ date ]</a>
+              <a href="thread.html#5081">[ thread ]</a>
+              <a href="subject.html#5081">[ subject ]</a>
+              <a href="author.html#5081">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello,
+
+  With NHibernate you can always fetch bulk objects from database. AssetBase
+has about 10 columns and in case you just need the metadata do a
+BulkAssetData which only has the metadata and maybe UUID. Then fetch just
+those fields and convert the object to BulkAssetData. So in this case always
+keep the whole assetdata in the database and when fething AssetMetaData do a
+bulk object fetch and cast it to AssetMetaData. This bulk stuff speeds up to
+database handling since instead of e.q. fething the whole user profile just
+fetch the columns you need cast to a bulkobject and then you can handle the
+object in object-oriented manner. There is no need for foreach datarows or
+similar.
+
+  I hope that makes sense.
+
+Best,
+
+ - Antti
+
+2009/2/14 Tommi Laukkanen &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>&gt;
+
+&gt;<i> Hello,
+</I>&gt;<i>
+</I>&gt;<i> On second though we could keep the current structure and expose all fields
+</I>&gt;<i> also through AssetBase properties. Then we could save / load the AssetBase
+</I>&gt;<i> with nhibernate as a single object and leave out the Metadata  property from
+</I>&gt;<i> NHibernate mapping. Does this sound good?
+</I>&gt;<i>
+</I>&gt;<i> regards,
+</I>&gt;<i> Tommi
+</I>&gt;<i>
+</I>&gt;<i> On Sat, Feb 14, 2009 at 5:06 PM, Mike Mazur &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Sat, Feb 14, 2009 at 4:05 PM, Tommi Laukkanen
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tommi.s.e.laukkanen at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt; I was talking with mikkopa and he suggested we should create two tables
+</I>&gt;&gt;<i> to
+</I>&gt;&gt;<i> &gt; cover AssetBase to solve this issue properly. Namely AssetMetadata for
+</I>&gt;&gt;<i> &gt; metadata information and AssetData for blobs to avoid situation where we
+</I>&gt;&gt;<i> end
+</I>&gt;&gt;<i> &gt; up accessing also the blob data just to read metadata.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I was hoping not to have to do that.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> It should be straightforward to support the current
+</I>&gt;&gt;<i> AssetBase/AssetMetadata composition in the existing OpenSim data
+</I>&gt;&gt;<i> layers, but as sdague warned me earlier, by mapping multiple classes
+</I>&gt;&gt;<i> to one table I was entering a world of pain. Seems that's exactly
+</I>&gt;&gt;<i> what's happening with NHibernate.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The reason I introduced the AssetMetadata class is to supply metadata
+</I>&gt;&gt;<i> information only for some requests that Cable Beach, the new asset
+</I>&gt;&gt;<i> server, supports. Now I realize that this was probably a premature
+</I>&gt;&gt;<i> optimization.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Instead of modifying the DB schema, we could have AssetBase inherit
+</I>&gt;&gt;<i> from AssetMetadata, as I outlined before[1]. Alternatively, we could
+</I>&gt;&gt;<i> get rid of AssetMetadata altogether and store everything in AssetBase
+</I>&gt;&gt;<i> as before, splitting out the metadata sometime in the future when a
+</I>&gt;&gt;<i> use case warrants it.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> What do you think?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Thanks,
+</I>&gt;&gt;<i> Mike
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [1]
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2009-February/004918.html">https://lists.berlios.de/pipermail/opensim-dev/2009-February/004918.html</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090216/6a179fbc/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090216/6a179fbc/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005066.html">[Opensim-dev] Please do not revert fixes without careful	comtemplation
+</A></li>
+	<LI>Next message: <A HREF="005084.html">[Opensim-dev] Please do not revert fixes without	careful	comtemplation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5081">[ date ]</a>
+              <a href="thread.html#5081">[ thread ]</a>
+              <a href="subject.html#5081">[ subject ]</a>
+              <a href="author.html#5081">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

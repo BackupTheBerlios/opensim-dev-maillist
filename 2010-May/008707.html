@@ -1,0 +1,177 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] A way to track access times for the Asset store
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20way%20to%20track%20access%20times%20for%20the%20Asset%20store&In-Reply-To=%3C174531705.20100526161422%40adeptsql.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008706.html">
+   <LINK REL="Next"  HREF="008716.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] A way to track access times for the Asset store</H1>
+    <B>Alex Reatov</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20way%20to%20track%20access%20times%20for%20the%20Asset%20store&In-Reply-To=%3C174531705.20100526161422%40adeptsql.com%3E"
+       TITLE="[Opensim-dev] A way to track access times for the Asset store">info at adeptsql.com
+       </A><BR>
+    <I>Wed May 26 15:14:22 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008706.html">[Opensim-dev] [Opensim-users] Careminster functions are not	enabled
+</A></li>
+        <LI>Next message: <A HREF="008716.html">[Opensim-dev] AlexRa, test dll changes require updates to .nant/local.include for mono run of &quot;nant test&quot;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8707">[ date ]</a>
+              <a href="thread.html#8707">[ thread ]</a>
+              <a href="subject.html#8707">[ subject ]</a>
+              <a href="author.html#8707">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi all,
+
+The asset store is supposed to keep the time of last access for each
+asset fetched, so that long unused assets can be later removed from
+the database, preventing it from growing infinitely.
+
+However, this feature has not been implemented in any of the supported
+databases because the straightforward implementation that uses a separate
+UPDATE after each asset read slows things down by an order of
+magnitude.
+
+There is a way to track the asset access times relatively efficiently
+(with 10-15% performance loss), which I've implemented and pushed to my
+github repo.  See branches &quot;asset-access-time&quot; and
+&quot;asset-access-time-test&quot; at
+
+git (at) github.com:AlexRa/opensim-mods-Alex.git
+
+There is also a Mantis with more details at:
+
+<A HREF="http://opensimulator.org/mantis/view.php?id=4736">http://opensimulator.org/mantis/view.php?id=4736</A>
+
+(which I'm quoting below)
+
+If this is of interest to the core team, I'd appreciate if you use the
+stuff on the main repo.
+
+The changes in &quot;asset-access-time&quot; branch are practically stand-alone,
+but the perfomance tests in the &quot;asset-access-time-test&quot; branch require
+the &quot;unitests&quot; stuff to run, which you can read about here:
+
+<A HREF="http://opensimulator.org/mantis/view.php?id=4717">http://opensimulator.org/mantis/view.php?id=4717</A>
+
+Best regards,
+
+AlexRa
+
+----------------------
+
+The proposed solution (currently for MySql, although a similar
+implementation should be possible for MS SQL) involves a stored
+&quot;tracker&quot; function that records (UUID, access_time) into a separate table, and a
+stored procedure that can be called infrequently to move the updated
+access times back into the 'assets' table. The tracking function first
+looks up the asset in the temp table and applies UPDATE or INSERT as
+needed.
+
+Assuming that the recording the exact timing is not important (i.e. on
+the cleanup we'll need to know that a specific asset has not been
+accessed for a year or more, rather than the exact time when it was
+accessed), the code is further optimized not to update the access log
+too often, with a configurable delay threshold).
+
+I've also tried a &quot;fast log&quot; variant of the same code, where the
+server-side tracking function just logs each access to a non-indexed
+(id, time) table, without doing any index lookups on it first. That
+was supposed to be faster, at the expense of the resulting log growing
+fast and the stored proc to process it slower to run. However, the
+tests haven't shown much (if any) speed advantage of this variant. It
+is still possible it might have some advantage when the asset table is
+very large (and the lookups take longer), although I like the
+&quot;smarter&quot; version better.
+
+For testing purposes, I've also implemented the &quot;naive&quot; way of
+tracking access times by issuing a separate UPDATE statement.
+
+A test set has been prepared both to ensure that the proposed solution
+works and to see what the performance impact is. The tests involve
+filling the database with 1000 random assets, taking a random subset
+of 500 of their UUDS, then randomly accessing those 500 assets 10000
+times. The results were something like this:
+
+No access tracking:    8.33 s
+&quot;New&quot; access tracking: 9.60 s 
+Separate UPDATE:       35 - 103 sec
+Separate UPDATE:       15 sec (when using 50-sec resolution)
+
+As you can see, this implementation of server-side access tracking is
+about 15% less efficient than no tracking at all, but is nowhere as
+bad as the UPDATE tracking.
+
+This acceleration has only become possible due to MySQL's &quot;INSERT
+DELAYED&quot; (and &quot;UPDATE LOW_PRIORITY&quot;) features. It is therefore
+critically important that the log table be placed on a MySql storage
+engine supporting this feature, which is either MEMORY or MyISAM (or
+perhaps ARCHIVE, but that doesn't seem to be commonly used or
+available by default). On this short test I haven't noticed any
+significant difference between the two (most likely all logged data
+still lived in the buffers), but with &quot;ENGINE=InnoDB&quot;, the results
+become the same or worse than with the direct UPDATE (~40sec).
+
+Increasing the delay threshold dramatically increased efficiency of
+the &quot;naive&quot; UPDATE approach, by reducing the actual number of updates
+from 10K to 500. But even in this best-case scenario it is still twice
+as slow as the &quot;no tracking&quot; mode.
+
+Effect of the delay threshold on the server-side tracking is less
+direct, because the `assets`.`access_time` column doesn't reflect the
+actual access times until the log table is merged into `assets`. As
+implemented now, there is at least one extra SELECT hidden inside the
+tracking function, possibly followed by an INSERT/UPDATE depending on
+the delay threshold. To have a significant effect, the delay threshold
+should be set longer than the average interval between the merges
+(e.g. if there is a script running the merge every hour, we might want
+to set the delay so that an asset access is not tracked if it comes
+within one hour from the previous access to the same asset).
+
+
+Th modified code currently has no provisions for automatically calling
+the merging stored proc, except on exit. Full implementation should
+possibly include a way to measure the load level (e.g. as a moving
+average of the intervals between asset requests) and initiate the
+required housekeeping whenever it's not too busy.
+
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008706.html">[Opensim-dev] [Opensim-users] Careminster functions are not	enabled
+</A></li>
+	<LI>Next message: <A HREF="008716.html">[Opensim-dev] AlexRa, test dll changes require updates to .nant/local.include for mono run of &quot;nant test&quot;
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8707">[ date ]</a>
+              <a href="thread.html#8707">[ thread ]</a>
+              <a href="subject.html#8707">[ subject ]</a>
+              <a href="author.html#8707">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> No subject
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.9.1331736295.7835.opensim-dev%40lists.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001332.html">
+   <LINK REL="Next"  HREF="001363.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>No subject</H1>
+    <B></B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20No%20subject&In-Reply-To=%3Cmailman.9.1331736295.7835.opensim-dev%40lists.berlios.de%3E"
+       TITLE="No subject">
+       </A><BR>
+    <I>Wed Mar 14 15:44:31 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001332.html">No subject
+</A></li>
+        <LI>Next message: <A HREF="001363.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1334">[ date ]</a>
+              <a href="thread.html#1334">[ thread ]</a>
+              <a href="subject.html#1334">[ subject ]</a>
+              <a href="author.html#1334">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&nbsp;&lt;br&gt;
+* Overly complex (the configuration seem to, in themselves, be on par with actually coding generic mappers)&lt;br&gt;
+* Mandating major changes in our object structure (opening up for encapsulation violations or forcing dependencies on hibernate)&lt;br&gt;
+* Totally invasive (as in, in practice demanding its storage philosophy to be acommodated for and&nbsp;coded into core objects)&lt;br&gt;
+&nbsp;&lt;br&gt;
+It has been proven a very bad thing to let objects take care of their own db serialization. More often than not, the object cannot be serialized from within its own context (it might not have data like &#39;parent&#39; needed for relational storage) - and the object itself should not know about any given serialization method.&lt;br&gt;
+
+&nbsp;&lt;br&gt;
+It IS a very bad thing to rely on &#39;storage&#39; as a prime db serialization concept -&nbsp;you want &#39;changes&#39;:&nbsp;the first thing we need to do when we get to optimize the db layer, is to introduce more fine-grained update calls, like &#39;ChangeOwner&#39; and &#39;StoreTextures&#39; instead of &#39;store object, with prims, textures and shapes&#39;. I have asked several times how this would be accomodated in nhibernate, but have got no answers.&lt;br&gt;
+
+&nbsp;&lt;br&gt;
+Now, I&#39;ve been asking for some kind of overview of the wins with this and what the drawbacks are, but have so far got none that gives me any idea of what impact this has on our modular approach or on performance.&lt;br&gt;
+
+&nbsp;&lt;br&gt;
+If we&#39;re not going to let it &#39;hibernate&#39; objects, as in &#39;let the objects themselves store themselves&#39; and if we have to set up config files detailing out the mappings, why simply not just CODE the thing and get&nbsp;the granularity,&nbsp;performance and&nbsp;customizability (as in, being able to let the objects be serialized according to their different internal structures) that comes with it?&lt;br&gt;
+
+&nbsp;&lt;br&gt;
+Best,&lt;br&gt;
+/Stefan&lt;br&gt;&lt;br&gt;
+&lt;blockquote&gt;
+&lt;hr&gt;
+Date: Fri, 4 Apr 2008 10:23:33 +0200&lt;br&gt;From: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>&lt;/a&gt;&lt;br&gt;To: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&lt;/a&gt;&lt;div&gt;
+&lt;span class=&quot;e&quot; id=&quot;q_1191990fa115c1b2_1&quot;&gt;&lt;br&gt;Subject: Re: [Opensim-dev] nhibernate progress, baby steps&lt;br&gt;&lt;br&gt;Hello everyone:&lt;br&gt;&lt;br&gt;I hadn&#39;t any time to &quot;nhibernating&quot; opensim (as I told months ago) but the code I did is there.&lt;br&gt;
+&lt;br&gt;Sean I know my code may be &quot;complicated&quot; when starting, that&#39;s for the use of factories and DAO&#39;s. My intention was to convert every nhibernate object in a DAO, so they will know how to save, update, delete... themselves (a simple call to AssetDAO.Save(id) for example). Well, for testing your approach is better if you don&#39;t have enough experience with hibernate.&lt;br&gt;
+&lt;br&gt;Second, my approach was to not modify the current objects, mapping them to nhibernate classes. Of course the better idea is to use the libsl-hibernatized objects (with getters and setters) throughout the code w/o intermediate mapping classes. I think the advantages of having &quot;intelligent&quot; getters and setters where we could put validations, or even classes than can serialize (to XML or whatever) are more than the &quot;overload and memory use&quot; disadvantages.&lt;br&gt;
+&lt;br&gt;Third (fuck, I&#39;m making a list) the ID question: do not use the &quot;auto&quot; ids (generated by nhibernate). Let opensim create them. The overhead of letting hibernate create these ids is higher than the CoCreateId call opensim does. If you want to use a byte array for storing ids (due to better performance), use it; hibernate hasn&#39;t any problem with it (the &quot;recommended id&quot; is an integer because hibernate is often used in &quot;enterprise environments&quot;, there isn&#39;t any other reason).&lt;br&gt;
+&lt;br&gt;Four, I tested my previous code (apart from .NET) with mono + SQLite + nhibernate w/o &quot;touching&quot; anything (I used the included sqlite drivers included with opensim). I can&#39;t help you here.&lt;br&gt;&lt;br&gt;Five, instead of using the hbm.xml files you can use mapping attributes (that was the point where I stopped). The same with the hibernate.cfg.xml, you can set its properties &quot;programatically&quot;. The advantages: if you change one data object you don&#39;t have to change the xml file too; and less files in the bin directory as well.&lt;br&gt;
+&lt;br&gt;Six, you can generate the db schemma automatically (I think I provided an example), it&#39;s db independent. If you are using mapping attributes instead of hbm.xml just serialize the objects (there are some examples looking for &quot;nhibernate mapping attributes&quot; in google). It works...&lt;br&gt;
+&lt;br&gt;Seven, sorry. I wanted to help you developing a hibernate base but I had only 1 &quot;relatively&quot; free week to did it. Maybe in the future.&lt;br&gt;&lt;br&gt;Greetings and good luck&lt;br&gt;&lt;br&gt;Impalah &quot;busy guy&quot; Shenzhou&lt;br&gt;
+&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;
+&lt;div&gt;&lt;span&gt;2008/4/3, Stefan Andersson &lt;&lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&lt;/a&gt;&gt;:&lt;/span&gt; 
+&lt;blockquote style=&quot;padding-left: 1ex;&quot;&gt;
+&lt;div&gt;Yeah, well; I&#39;m not saying it IS, just that we need to check on it.&lt;br&gt;&lt;br&gt;I glimpsed that as I was trying to find out what the &#39;best practice&#39; for storing guids in MySQL databases was; I actually didn&#39;t find any good info on that.&lt;br&gt;
+&nbsp;&lt;br&gt;/Stefan&lt;br&gt;&lt;br&gt;&lt;br&gt;
+&lt;hr&gt;
+&lt;br&gt;&gt; Subject: RE: [Opensim-dev] nhibernate progress, baby steps&lt;br&gt;&gt; From: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&lt;/a&gt;&lt;br&gt;&gt; To: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&lt;/a&gt;&lt;br&gt;
+&gt;<i> CC: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&lt;/a&gt;&lt;br&gt;&gt; Date: Thu, 3 Apr 2008 13:04:37 -0500 
+</I>&lt;div&gt;&lt;span&gt;&lt;br&gt;&gt; &lt;br&gt;&gt; &lt;br&gt;&gt; Ouch. That&#39;s not good. &lt;br&gt;&gt; &lt;br&gt;&gt; &lt;br&gt;&gt; On Thu, 2008-04-03 at 19:55 +0200, Stefan Andersson wrote:&lt;br&gt;&gt; &gt; It seems the MySQL connector for .net assumes the db field is a&lt;br&gt;
+&gt;<i> &gt; string for its internal MySqlDataReader.GetGuid() implementation.&lt;br&gt;&gt; &gt; &lt;br&gt;&gt; &gt; (I could have been looking at source for an old revision of the&lt;br&gt;&gt; &gt; connector, but that needs to be checked out anyway)&lt;br&gt;
+</I>&gt;<i> &gt; &lt;br&gt;&gt; &gt; So, that might mean that going binary could wreck stuff like&lt;br&gt;&gt; &gt; nhibernate, if that&#39;s using a DataReader.&lt;br&gt;&gt; &gt; &lt;br&gt;&gt; &gt; Best,&lt;br&gt;&gt; &gt; /Stefan&lt;br&gt;&gt; &gt; &lt;br&gt;&gt; &gt; &lt;br&gt;
+</I>&gt;<i> &gt; &lt;br&gt;&gt; &gt; &lt;br&gt;&gt; &gt; &lt;br&gt;&gt; &gt; ______________________________________________________________________&lt;br&gt;&gt; &gt; &lt;br&gt;&gt; &gt; &gt; Date: Thu, 3 Apr 2008 13:49:03 -0400&lt;br&gt;&gt; &gt; &gt; From: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&lt;/a&gt;&lt;br&gt;
+</I>&gt;<i> &gt; &gt; To: &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">brianw at terrabox.com</A>&lt;/a&gt;; &lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&lt;/a&gt;&lt;br&gt;
+</I>&gt;<i> &gt; &gt; Subject: Re: [Opensim-dev] nhibernate progress, baby steps&lt;br&gt;&gt; &gt; &gt; &lt;br&gt;&gt; &gt; &gt; On Thu, Apr 03, 2008 at 11:19:58AM -0500, Brian Wolfe wrote:&lt;br&gt;&gt; &gt; &gt; &gt; *nod* sounds good to me as well. I just have one request since&lt;br&gt;
+</I>&gt;<i> &gt; we&#39;ll be&lt;br&gt;&gt; &gt; &gt; &gt; changing things up at this level. Can we shoot for UUIDs being&lt;br&gt;&gt; &gt; stored as&lt;br&gt;&gt; &gt; &gt; &gt; a byte[16] in order to gain the 10x speedup in SQL&lt;br&gt;&gt; &gt; indexing/storage vs&lt;br&gt;
+</I>&gt;<i> &gt; &gt; &gt; string(32|36) ?&lt;br&gt;&gt; &gt; &gt; &lt;br&gt;&gt; &gt; &gt; That&#39;s definitely an option. It did however seem like there was some&lt;br&gt;&gt; &gt; &gt; speedup on LLUUID processing if we kept strings. I&#39;m not sure where&lt;br&gt;
+</I>&gt;<i> &gt; the&lt;br&gt;&gt; &gt; &gt; two end up colliding on speedup effects.&lt;br&gt;&gt; &gt; &gt; &lt;br&gt;&gt; &gt; &gt; -Sean&lt;br&gt;&gt; &gt; &gt; &lt;br&gt;&gt; &gt; &gt; -- &lt;br&gt;&gt; &gt; &gt; __________________________________________________________________&lt;br&gt;
+</I>&gt;<i> &gt; &gt; &lt;br&gt;&gt; &gt; &gt; Sean Dague Mid-Hudson Valley&lt;br&gt;&gt; &gt; &gt; sean at dague dot net Linux Users Group&lt;br&gt;&gt; &gt; &gt; &lt;a href=&quot;<A HREF="http://dague.net/">http://dague.net/</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="http://dague.net&lt;/a">http://dague.net&lt;/a</A>&gt; &lt;a href=&quot;<A HREF="http://mhvlug.org/">http://mhvlug.org/</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="http://mhvlug.org&lt;/a">http://mhvlug.org&lt;/a</A>&gt;&lt;br&gt;
+</I>&gt;<i> &gt; &gt; &lt;br&gt;&gt; &gt; &gt; There is no silver bullet. Plus, werewolves make better neighbors&lt;br&gt;&gt; &gt; &gt; than zombies, and they tend to keep the vampire population down.&lt;br&gt;&gt; &gt; &gt; __________________________________________________________________&lt;br&gt;
+</I>&gt;<i> &gt; &lt;br&gt;&gt; &lt;br&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;br&gt;_______________________________________________&lt;br&gt;Opensim-dev mailing list&lt;br&gt;&lt;a href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;/a&gt;&lt;br&gt;
+</I>&lt;a href=&quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&quot; target=&quot;_blank&quot; onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a">https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a</A>&gt;&lt;br&gt;&lt;br&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;
+&lt;/span&gt;&lt;/div&gt;&lt;/blockquote&gt;&lt;/div&gt;
+&lt;br&gt;_______________________________________________&lt;br&gt;
+Opensim-dev mailing list&lt;br&gt;
+&lt;a onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot; href=&quot;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;/a&gt;&lt;br&gt;
+&lt;a onclick=&quot;return top.js.OpenExtLink(window,event,this)&quot; href=&quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&quot; target=&quot;_blank&quot;&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a">https://lists.berlios.de/mailman/listinfo/opensim-dev&lt;/a</A>&gt;&lt;br&gt;
+&lt;br&gt;&lt;/blockquote&gt;&lt;/div&gt;&lt;br&gt;
+
+------=_Part_6417_11978504.1207318215374--
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001332.html">No subject
+</A></li>
+	<LI>Next message: <A HREF="001363.html">No subject
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1334">[ date ]</a>
+              <a href="thread.html#1334">[ thread ]</a>
+              <a href="subject.html#1334">[ subject ]</a>
+              <a href="author.html#1334">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

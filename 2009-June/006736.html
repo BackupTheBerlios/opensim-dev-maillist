@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Is the message &quot;Please wait 5 minutes&quot;	still	needed?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Is%20the%20message%20%22Please%20wait%205%20minutes%22%09still%0A%09needed%3F&In-Reply-To=%3C4A23DA7C.8010008%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006735.html">
+   <LINK REL="Next"  HREF="006737.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Is the message &quot;Please wait 5 minutes&quot;	still	needed?</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Is%20the%20message%20%22Please%20wait%205%20minutes%22%09still%0A%09needed%3F&In-Reply-To=%3C4A23DA7C.8010008%40t-data.com%3E"
+       TITLE="[Opensim-dev] Is the message &quot;Please wait 5 minutes&quot;	still	needed?">melanie at t-data.com
+       </A><BR>
+    <I>Mon Jun  1 15:41:16 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006735.html">[Opensim-dev] Is the message &quot;Please wait 5 minutes&quot;	still needed?
+</A></li>
+        <LI>Next message: <A HREF="006737.html">[Opensim-dev] 0.7 Release Discussion
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6736">[ date ]</a>
+              <a href="thread.html#6736">[ thread ]</a>
+              <a href="subject.html#6736">[ subject ]</a>
+              <a href="author.html#6736">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On standalone, +1 for a silent logout of the hung session. No 
+message at all, it seems to be the most sensible.
+
+In grid mode, we should actually enforce the waiting time, and the 
+new user server will have that as an option.
+
+This is because in grid mode, if you send a message to log out the 
+user, the sim the user is in will log them out. Then, currently, we 
+set the login status to not logged in, anticipating that response 
+from the sim.
+
+However, if the sim is slow to log out the client, or misses the 
+request, and the client logs into another sim by name, they will 
+actually have 2 root agents i the grid.
+
+If they then teleport to the sim where the orphaned root is, that 
+sim will crash.
+
+The new user server will address this by recording success/failure 
+of the logout request. It will send a REST logout request to the 
+client's last known sim. If that sim is reachable, it will then post 
+the alert back to the user and will leave the logged in flag set. 
+This will cause all subsequent login attempts to fail until the sim 
+completes logout processing. If the sim is not reachable, the flag 
+will be cleared immediately, assuming the sim is down and therefore 
+holds no orphan root agent.
+
+Restarting a sim already clears the users that were recoded to be in 
+that sim, so the approach seems robust.
+
+Melanie
+Arthur Valadares wrote:
+&gt;<i> Stefan, actually those 5 minutes for standalone are actually not true,
+</I>&gt;<i> you can login right after it gave you the message to wait. So the only
+</I>&gt;<i> thing we get today is a warning message that you're supposedly already
+</I>&gt;<i> logged in, but the same symptoms apply (current user is kicked out of
+</I>&gt;<i> region so new one can login).
+</I>&gt;<i> 
+</I>&gt;<i> Melanie, the patch I applied is already for standalone only. I was
+</I>&gt;<i> actually wondering about grid, but since you're saying it's needed,
+</I>&gt;<i> won't even have to look at it. 
+</I>&gt;<i> 
+</I>&gt;<i> I think I will make this standard behavior, so we won't have any more
+</I>&gt;<i> stuff on OpenSim.ini that we already have. 
+</I>&gt;<i> 
+</I>&gt;<i> Unless someone is strongly against for some reason :)
+</I>&gt;<i> 
+</I>&gt;<i> Thanks all,
+</I>&gt;<i> 
+</I>&gt;<i> On Sun, 2009-05-31 at 13:01 +0200, Stefan Andersson wrote:
+</I>&gt;&gt;<i> How about configurable, with 0 being immediately?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Best regards,
+</I>&gt;&gt;<i> Stefan Andersson
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> ______________________________________________________________________
+</I>&gt;&gt;<i> Date: Sat, 30 May 2009 20:52:19 +0200
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A>
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Is the message &quot;Please wait 5 minutes&quot;
+</I>&gt;&gt;<i> still needed?
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Frisby, Adam wrote: 
+</I>&gt;&gt;<i>         Make it standard.
+</I>&gt;&gt;<i>         
+</I>&gt;&gt;<i>         +1
+</I>&gt;&gt;<i>           
+</I>&gt;&gt;<i> +1, since the potential other session is kicked anyhow already...
+</I>&gt;&gt;<i>         Adam
+</I>&gt;&gt;<i>         
+</I>&gt;&gt;<i>           
+</I>&gt;&gt;<i>                 -----Original Message-----
+</I>&gt;&gt;<i>                 From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i>                 <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Arthur Valadares
+</I>&gt;&gt;<i>                 Sent: Friday, 29 May 2009 2:59 PM
+</I>&gt;&gt;<i>                 To: OpenSim-Dev
+</I>&gt;&gt;<i>                 Subject: [Opensim-dev] Is the message &quot;Please wait 5 minutes&quot; still
+</I>&gt;&gt;<i>                 needed?
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 Hi everyone,
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 I wanted to consult you all about this matter, even though I have
+</I>&gt;&gt;<i>                 already committed some related code. I will gladly change it if we
+</I>&gt;&gt;<i>                 decide to do things differently.
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 Once upon a time, there seemed to be a necessity that you had to wait 5
+</I>&gt;&gt;<i>                 minutes if you crashed and tried to log back in. Those were the days
+</I>&gt;&gt;<i>                 before my time, tales that the elder tells us by the fireside. After
+</I>&gt;&gt;<i>                 these days, when I started messing around with OpenSim, there was a bug
+</I>&gt;&gt;<i>                 that would kick you after a few minutes if you tried to log back on
+</I>&gt;&gt;<i>                 without waiting. This was also fixed (thanks Crista!), which leads me
+</I>&gt;&gt;<i>                 to
+</I>&gt;&gt;<i>                 my question. Why are we still getting this message?
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 Well, the only purpose I can think of is it warns you that you either
+</I>&gt;&gt;<i>                 crashed last time or that someone is using your account. Either way,
+</I>&gt;&gt;<i>                 something went wrong and the user might want to know that.
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 So the code I committed puts an option in standalone that allows you to
+</I>&gt;&gt;<i>                 skip this message and just let OpenSim kick the old user and connect
+</I>&gt;&gt;<i>                 the
+</I>&gt;&gt;<i>                 new one, kind of like what happens in messengers if you logon from a
+</I>&gt;&gt;<i>                 different location. This is very useful when you have softwares that
+</I>&gt;&gt;<i>                 encapsulate the login process and doesn't want to leave the user
+</I>&gt;&gt;<i>                 looking
+</I>&gt;&gt;<i>                 at the viewer's login page with a failed message.
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 So, should this become standard and just skip and kick, or should we
+</I>&gt;&gt;<i>                 leave it up to configuration? Opinions please..
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 --
+</I>&gt;&gt;<i>                 Arthur Valadares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">arthursv at linux.vnet.ibm.com</A>&gt;
+</I>&gt;&gt;<i>                 
+</I>&gt;&gt;<i>                 _______________________________________________
+</I>&gt;&gt;<i>                 Opensim-dev mailing list
+</I>&gt;&gt;<i>                 <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>                 <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>                     
+</I>&gt;&gt;<i>         _______________________________________________
+</I>&gt;&gt;<i>         Opensim-dev mailing list
+</I>&gt;&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>           
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> -- 
+</I>&gt;&gt;<i> dr dirk husemann ---- math &amp; computer science ---- ibm zurich research lab
+</I>&gt;&gt;<i> RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A> 
+</I>&gt;&gt;<i> SL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> --------------------- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006735.html">[Opensim-dev] Is the message &quot;Please wait 5 minutes&quot;	still needed?
+</A></li>
+	<LI>Next message: <A HREF="006737.html">[Opensim-dev] 0.7 Release Discussion
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6736">[ date ]</a>
+              <a href="thread.html#6736">[ thread ]</a>
+              <a href="subject.html#6736">[ subject ]</a>
+              <a href="author.html#6736">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

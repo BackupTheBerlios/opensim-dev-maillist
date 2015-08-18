@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Nasty exception in Scene.cs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Nasty%20exception%20in%20Scene.cs&In-Reply-To=%3C20071210212819.GF3469%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000604.html">
+   <LINK REL="Next"  HREF="000517.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Nasty exception in Scene.cs</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Nasty%20exception%20in%20Scene.cs&In-Reply-To=%3C20071210212819.GF3469%40dague.net%3E"
+       TITLE="[Opensim-dev] Nasty exception in Scene.cs">sean at dague.net
+       </A><BR>
+    <I>Mon Dec 10 22:28:19 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000604.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+        <LI>Next message: <A HREF="000517.html">[Opensim-dev] Nasty exception in Scene.cs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#514">[ date ]</a>
+              <a href="thread.html#514">[ thread ]</a>
+              <a href="subject.html#514">[ subject ]</a>
+              <a href="author.html#514">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I got a nasty exception in Scene.cs during the Update() call as follows:
+
+[SCENE] [12-10 04:02:11] Failed with exception
+System.InvalidOperationException: out of sync
+  at
+  System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].VerifyState
+  () [0x00000] 
+  at
+  System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].CurrentSlot
+  () [0x00000] 
+  at
+  System.Collections.Generic.Dictionary`2+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].get_Current
+  () [0x00000] 
+  at
+  System.Collections.Generic.Dictionary`2+ValueCollection+Enumerator[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].get_Current
+  () [0x00000] 
+  at
+  System.Collections.Generic.Dictionary`2+ValueCollection[libsecondlife.LLUUID,OpenSim.Region.Environment.Scenes.EntityBase].CopyTo
+  (OpenSim.Region.Environment.Scenes.EntityBase[] , Int32 ) [0x00000] 
+  at
+  System.Collections.Generic.List`1[OpenSim.Region.Environment.Scenes.EntityBase].AddCollection
+  (ICollection`1 ) [0x00000] 
+  at
+  System.Collections.Generic.List`1[OpenSim.Region.Environment.Scenes.EntityBase]..ctor
+  (IEnumerable`1 ) [0x00000] 
+  at OpenSim.Region.Environment.Scenes.InnerScene.UpdateEntities ()
+  [0x00000] 
+  at OpenSim.Region.Environment.Scenes.Scene.Update () [0x00000] 
+
+Upon further inspection, the issue here appears to be that we give
+public access to m_InnerScene.Entities, which is a dictionary, which is
+something that we need to be able to lock and iterate over inside the
+Scene.  This problem can't be fixed with locks.
+
+Who needs direct access to that entities list outside of Scene?  Is
+there some safer interface we can give them for what they really need?
+
+    -Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071210/3d88ac75/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071210/3d88ac75/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000604.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+	<LI>Next message: <A HREF="000517.html">[Opensim-dev] Nasty exception in Scene.cs
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#514">[ date ]</a>
+              <a href="thread.html#514">[ thread ]</a>
+              <a href="subject.html#514">[ subject ]</a>
+              <a href="author.html#514">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

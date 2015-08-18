@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Ways to bundle a building/content for sharing	with others
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ways%20to%20bundle%20a%20building/content%20for%20sharing%0A%09with%20others&In-Reply-To=%3C496A2070.6030707%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004392.html">
+   <LINK REL="Next"  HREF="004378.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Ways to bundle a building/content for sharing	with others</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Ways%20to%20bundle%20a%20building/content%20for%20sharing%0A%09with%20others&In-Reply-To=%3C496A2070.6030707%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Ways to bundle a building/content for sharing	with others">jjustincc at googlemail.com
+       </A><BR>
+    <I>Sun Jan 11 17:38:08 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004392.html">[Opensim-dev] Ways to bundle a building/content	for	sharing	with others
+</A></li>
+        <LI>Next message: <A HREF="004378.html">[Opensim-dev] Ways to bundle a building/content for sharing	with others
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4376">[ date ]</a>
+              <a href="thread.html#4376">[ thread ]</a>
+              <a href="subject.html#4376">[ subject ]</a>
+              <a href="author.html#4376">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ai Austin wrote:
+ &gt; This might be a question for Justin as he has worked on the OAR
+ &gt; mechanism and load/save-xml console commands....
+ &gt;
+ &gt; It would be useful to be able to take some content, such as  a building
+ &gt; or developed area, and to be able top save that in a  form that can be
+ &gt; downloaded or shared with others to get the same content in heir own
+ &gt; opensim setup.  save-xml, save-xml2 preserve the whole of a sim region
+ &gt; keeping creatorid, ownerid, lastownerid and prim uuids as they were, and
+ &gt; save-oar pr serve the whole of the contents of a sim region including
+ &gt; the terrain height map.
+ &gt;
+ &gt; The mechanism I have used to make a building available to different
+ &gt; Opensim setups, or in different areas of our own build is to use one of
+ &gt; two mechanisms...
+ &gt;
+ &gt; a) save-xml on a sim region that ONLY contains the required content (I
+ &gt; use a sandbox region just for this purpose), and note how many prims
+ &gt; were in the region as a check.. I edit the creatorid, ownerid and
+ &gt; lastownerid manually (i.e. change UUID for 3 X number of prims). Then on
+ &gt; restore I use the load-xml with -newuid flag to ensure new UUIDs are
+ &gt; used for the newly loaded prims.  I then check the required number fo
+ &gt; saved prims did come back in.
+ &gt;
+ &gt; b) save-oar on a sim region that ONLY contains the required content (I
+ &gt; use a sandbox region just for this purpose).  load-oar into an empty
+ &gt; sandbox region (as the terrain will change).  Then take the contents
+ &gt; into inventory - with the disadvantage that relative positioning of
+ &gt; parts is lost.  or link teh whole build and take into inventory to be
+ &gt; moved where you wish with the disadvantage that major linked parts in a
+ &gt; modular build are lost.
+ &gt;
+ &gt; As you can see, the save-xml and save-oar are VERY clise to what is
+ &gt; needed, but are really for archiving within one Opensim set rather than
+ &gt; transfer of modular assets to others.  I think a mechanism to save-oar
+ &gt; with a  flag to say -noterrain, and/or a mechanism to load-oar
+ &gt; -noterrain that can ignore any terrain included in the OAR  and a way to
+ &gt; say -add so that the objects in te oar are added to the current region,
+ &gt; rather than everything being replaced would be close to what is wanted.
+ &gt; A way to make sure that all UUIDs in the new content are suitable for
+ &gt; the target environment (Prim UUID, texture UUIDs, creatorid, ownerid and
+ &gt; lastownerdid) may be needed if the OAR mechanism does not already do that.
+ &gt;
+
+I recognize the problem.  It seemed to me that loading the OAR without deleting the existing region (in effect, merging) 
+would be of limited use unless the terrain was guaranteed to be the same.  Otherwise, of course, your region objects may 
+well be out of position (above, below ground, etc.).  One could then move them, but this still seems somewhat 
+inconvenient.  However, if this is genuinely helpful it could be fairly trivially implemented as an option - this is 
+actually what happened originally for a couple of revisions.  Would this be helpful?
+
+Perhaps the alternative solution in this vein, and one that I had begun to consider, is to produce the equivalent of 
+OARs but for inventory instead.  In fact, there is a hidden experimental feature on the region command console 
+(load-inv/save-inv) which will save and load inventory from an archive.  It's hidden because although it works, there 
+are various problems with it (the inventory format ain't that good and probably needs changing, reloads on a live sim 
+don't show up until the sim restarts, etc.), so I wouldn't use it much yet.
+
+To be really useful, we need to add support for taking 'groups' of objects in OpenSim.  In other words, you don't make a 
+linkset but you just select a group of objects at once and take it.  On the Linden Grid, this takes the whole group into 
+your inventory as a single entry (with a different icon), allowing you to rerez it later.  Currently on OpenSim, doing 
+this will just take each object singly.  Unfortunately, supporting a group of objects will require a fair bit of work.
+
+If this support was in place, then you could take the whole group in a developed area and save it as a single inventory 
+item.  This could then be archived and said archive made available to others to import back into their inventory. 
+However, this still may not work because it might be rather awkward to select all the objects in a big build to take as 
+a single group.  What do you think?
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004392.html">[Opensim-dev] Ways to bundle a building/content	for	sharing	with others
+</A></li>
+	<LI>Next message: <A HREF="004378.html">[Opensim-dev] Ways to bundle a building/content for sharing	with others
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4376">[ date ]</a>
+              <a href="thread.html#4376">[ thread ]</a>
+              <a href="subject.html#4376">[ subject ]</a>
+              <a href="author.html#4376">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

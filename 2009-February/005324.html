@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] User Authentication
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20Authentication&In-Reply-To=%3C423492.12691.qm%40web82603.mail.mud.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005397.html">
+   <LINK REL="Next"  HREF="005332.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] User Authentication</H1>
+    <B>Charles Krinke</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20Authentication&In-Reply-To=%3C423492.12691.qm%40web82603.mail.mud.yahoo.com%3E"
+       TITLE="[Opensim-dev] User Authentication">cfk at pacbell.net
+       </A><BR>
+    <I>Mon Feb 23 21:35:25 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005397.html">[Opensim-dev] User Authentication
+</A></li>
+        <LI>Next message: <A HREF="005332.html">[Opensim-dev] User Authentication
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5324">[ date ]</a>
+              <a href="thread.html#5324">[ thread ]</a>
+              <a href="subject.html#5324">[ subject ]</a>
+              <a href="author.html#5324">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dear Diva:
+
+As &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Charles.Krinke at osgrid.org</A>&quot;, all I can say to all that is : &quot;Harumph&quot;.
+
+And the fact that you bring up a number of good points. It is especially thrilling to actually think we may have enough reliability to actually begin thinking about implementing some of the needed security.
+
+It is always a balance between software development forward motion and security for the users, even this &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Charles.Krinke at osgrid.org</A>&quot; guy, who sounds a bit like a loose cannon visiting &quot;Sports Illuminated&quot;.
+
+So, I commend you for thinking through some of this and offer my whole hearted support to encourage folks to test it *before* I get up one morning and find &quot;Wright Plaza&quot; is a smoking hole in the ground.
+
+Charles Krinke
+
+
+
+
+________________________________
+From: Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Sent: Monday, February 23, 2009 11:47:19 AM
+Subject: [Opensim-dev] User Authentication
+
+Hi,
+
+I'm about to start tightening the ropes for the Hypergrid in order to 
+make it safer, and also make safer some loose ends of OpenSim without 
+HG, and I would appreciate feedback on this.
+
+The first issue that needs to be addressed is the issue of user 
+authentication. The regions need to be able to verify that the agent 
+that claims to be representing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Charles.Krinke at osgrid.org</A> is, indeed, 
+representing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Charles.Krinke at osgrid.org.</A> (As you know, right now this 
+is... err... a bit overlooked... *coughs*... and not just in the HG... 
+*more coughs*).
+
+Having looked at OpenID, I came to the conclusion that it's not enough 
+to know that osgrid.org has a user named &quot;Charles Krinke&quot;, and we 
+certainly don't want Charles to be constantly typing his password 
+everytime he moves; the region needs to know that this user is already 
+logged in to the system AND the region also needs to know that the agent 
+that is representing this user is a legitimate agent.
+
+OK, so the part about being logged in is easy; the user server already 
+knows that, to some approximation.
+
+However, the part about the agent being legitimate is a bit more tricky. 
+Here's the bad thing that can happen: Charles logs in to OSgrid, and TPs 
+to this intriguing region called &quot;Sports Illuminated Swimming Suite 
+Edition&quot;. That region happens to be up to no good. It grabs Charles 
+current notion of identity (all the current identifiers we use), it 
+crashes Charles' viewer so that the user server never knows about it, 
+and proceeds to impersonate Charles using all those stolen identifiers; 
+for example, it can go back to Charles's regions and erase them 
+completely pretending to be Charles.
+
+So, what can we do to detect the legitimacy of agents?
+
+Having scratched my head over this, I came to the conclusion that the 
+most promising element that can be used to identify agents is the 
+Viewer's EndPoint. This is what happens down in the LLUDPServer (I'm 
+sure something similar happens in other viewers' packet handlers):
+
+            if (packet != null)
+            {
+                if (packet.Type == PacketType.UseCircuitCode)
+                    AddNewClient((UseCircuitCodePacket)packet, epSender, 
+epProxy);                                
+                else
+                    ProcessInPacket(packet, epSender);
+            }
+
+The EndPoint epSender comes directly from the socket and I'm assuming it 
+can't be faked, at least the IP part. Is this correct? This is a 
+critical assumption.
+
+So, back to the &quot;Sports Illuminated&quot; scenario: that sim would then try 
+to launch an agent at Charles' region. It can fake everything except 
+being Charles' viewer machine. When Charles' region does that code 
+above, it asks the User server for authentication of an agent with all 
+those identifiers and the given EndPoint, and the User server tells back 
+that Charles wasn't using that EndPoint to start with, so the 
+authentication fails, and an alarm is rang.
+
+Thoughts?
+
+Crista
+
+Disclaimer: I'm not an expert in security, I'm just using my brain in 
+context.
+
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090223/04211e25/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090223/04211e25/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005397.html">[Opensim-dev] User Authentication
+</A></li>
+	<LI>Next message: <A HREF="005332.html">[Opensim-dev] User Authentication
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5324">[ date ]</a>
+              <a href="thread.html#5324">[ thread ]</a>
+              <a href="subject.html#5324">[ subject ]</a>
+              <a href="author.html#5324">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

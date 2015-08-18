@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Slowly making less of the Scene.Update() loop synchronous
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Slowly%20making%20less%20of%20the%0A%20Scene.Update%28%29%20loop%20synchronous&In-Reply-To=%3C4C897CF0.7010705%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009518.html">
+   <LINK REL="Next"  HREF="009520.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Slowly making less of the Scene.Update() loop synchronous</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Slowly%20making%20less%20of%20the%0A%20Scene.Update%28%29%20loop%20synchronous&In-Reply-To=%3C4C897CF0.7010705%40t-data.com%3E"
+       TITLE="[Opensim-dev] Proposal: Slowly making less of the Scene.Update() loop synchronous">melanie at t-data.com
+       </A><BR>
+    <I>Fri Sep 10 02:33:52 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009518.html">[Opensim-dev] Proposal: Slowly making less of the Scene.Update()	loop synchronous
+</A></li>
+        <LI>Next message: <A HREF="009520.html">[Opensim-dev] Update mono versions in Mantis
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9519">[ date ]</a>
+              <a href="thread.html#9519">[ thread ]</a>
+              <a href="subject.html#9519">[ subject ]</a>
+              <a href="author.html#9519">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>You need to carefully evaluate the issues this causes, specifically
+the issue of something being started multiple times in parallel
+because it's so slow.
+
+Update()
+{
+	DoOneSlowThing();
+	DoASlowSynchrnousThing();
+}
+
+converted to
+
+Update())
+{
+	Util.FireAndForget(DoOneSlowThing, null);
+	DoASlowSynchrnousThing();
+}
+
+may cause DoOneSlowThing to be run multiple times, concurrently. For
+most Update() parts, that is ano-no.
+
+
+Melanie
+
+
+Justin Clark-Casey wrote:
+&gt;<i> Whilst bug hunting today, I had reason to dive into the Scene.Update() loop.  This is called many times per second and 
+</I>&gt;<i> is in charge of updating the entire scene (moving avatars in response to client input, sending queued object updates to 
+</I>&gt;<i> the client stack, etc.).  The time taken by this loop increases as the number objects and avatars in the scene increase.
+</I>&gt;<i> 
+</I>&gt;<i> There's quite a lot of code hanging off this loop that looks like it could be carried out asynchronously instead.  This 
+</I>&gt;<i> particularly applies to some of the stuff being invoked via EventManager rather than called directly.
+</I>&gt;<i> 
+</I>&gt;<i> If the amount of synchronous code here could be reduced then this could improve scene performance and reduce instances 
+</I>&gt;<i> where delays in the called code temporarily freeze the update loop.  These problems can be very hard to track down.
+</I>&gt;<i> 
+</I>&gt;<i> Unless there are any countervailing technical arguments, I'd like to start slowly looking at this over the long term. 
+</I>&gt;<i> This might go so far as making some loop-triggered EventManager events asynchronous rather than synchronous.  I know 
+</I>&gt;<i> there is a fair amount of code that does depend on synchronous execution so any changes will be done slowly and carefully.
+</I>&gt;<i> 
+</I>&gt;<i> Regards,
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009518.html">[Opensim-dev] Proposal: Slowly making less of the Scene.Update()	loop synchronous
+</A></li>
+	<LI>Next message: <A HREF="009520.html">[Opensim-dev] Update mono versions in Mantis
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9519">[ date ]</a>
+              <a href="thread.html#9519">[ thread ]</a>
+              <a href="subject.html#9519">[ subject ]</a>
+              <a href="author.html#9519">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

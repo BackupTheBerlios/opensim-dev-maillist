@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] new LSL state to implement
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20new%20LSL%20state%20to%20implement&In-Reply-To=%3CBLU134-W4126DFF11CD69628F9B3DAD57D0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002547.html">
+   <LINK REL="Next"  HREF="002518.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] new LSL state to implement</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20new%20LSL%20state%20to%20implement&In-Reply-To=%3CBLU134-W4126DFF11CD69628F9B3DAD57D0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] new LSL state to implement">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Jul 30 08:35:23 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002547.html">[Opensim-dev] new LSL state to implement
+</A></li>
+        <LI>Next message: <A HREF="002518.html">[Opensim-dev] Fix provider selection and possible security issue	with plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2548">[ date ]</a>
+              <a href="thread.html#2548">[ thread ]</a>
+              <a href="subject.html#2548">[ subject ]</a>
+              <a href="author.html#2548">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>the whole substititution approach, however appealing, still will lead to extremely stub-bloated lsl. Not to mention magic confusing code.
+I guess the use cases fall in three: checking on grid to see what _resources_ are available
+and
+checking on the language to see what _commands_ are available
+and
+checking on the region to see what _features_ are available
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+&gt;<i> Date: Tue, 29 Jul 2008 23:12:55 +0100&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: Re: [Opensim-dev] new LSL state to implement&gt; &gt; Hi,&gt; &gt; actually, I have been looking into implementing a prim motion limit. &gt; There is a solid case to be made FOR such a limit, and the warpPos &gt; &quot;hack&quot;.&gt; Specifically, it is incredibly easy to &quot;lose&quot; prims scripting. It &gt; has happened to me before, when there was no such limit. Debugging &gt; the script and some creative guesswork have often led me to find the &gt; prims again, but some were gone. They're still out there, all alone :(&gt; &gt; So, warpPos should be needed, and used. In fact, the limiting is the &gt; easy part, making warpPos work is the harder part.&gt; &gt; I still believe that there is no need for grid discovery in LSL. In &gt; C#, we will be able to provide it easily. LSL really shouldn't have &gt; it, IMHO.&gt; &gt; That said, either the new constant or the magic variable will work.&gt; &gt; I have it on authority that LSL is FROZEN.&gt; &gt; Nothing will be added after inbound HTTP and another, minor, feature &gt; that slipped my mind.&gt; &gt; Melanie&gt; &gt; &gt; Chang, Francis wrote:&gt; &gt; Hi all,&gt; &gt; &gt; &gt; I completely agree that the &quot;I am shutting down because I hate your grid&quot; error would be incredibly irritating. That said, the purpose of a programming language is to allow you to clearly express an algorithmic idea, not to enforce philosophy.&gt; &gt; &gt; &gt; Moreover, for some scripts, it might be necessary to differentiate grids for correct behaviour. For example, a networked vendor or an auto-updater script need to be able to figure out which grid-specific server to contact.&gt; &gt; &gt; &gt; &gt; &gt; So far, there seems to be 4 implementation suggestions:&gt; &gt; &gt; &gt; 1) Add an automatic state change: drawbacks are that it would interrupt program flow, cause side effects like killing off your llListen()'s, and can only encode 1 bit of information (on maingrid or not)&gt; &gt; &gt; &gt; 2) Add an additional llGetSimulatorVersion() function: drawbacks: requires LL to modify their compiler to get the same script to compile on maingrid&gt; &gt; &gt; &gt; 3) llGetSimulatorHostname() substring matching: drawbacks: heuristic - only works iff Lindenlab.com hosts all maingrid servers, and only maingrid servers.&gt; &gt; &gt; &gt; 4) llRequestSimulatorData() with a new constant: drawbacks: LL could break this going forward: Suppose they defined a new constant to mean something else, or they changed the failure mode of an undefined constant.&gt; &gt; (This is my favourite idea so far)&gt; &gt; &gt; &gt; &gt; &gt; New suggestion: Use a magic variable - opensim compilers will automatigically change the value:&gt; &gt; &gt; &gt; string __MAGIC_VAR_SERVER_MAJOR_VERSION__ = &quot;&quot;;&gt; &gt; &gt; &gt; string getCurrentGrid() {&gt; &gt; if ( __MAGIC_VAR_SERVER_MAJOR_VERSION__ == &quot;&quot; )&gt; &gt; return &quot;LL_GRID&quot;;&gt; &gt; else if ( __MAGIC_VAR_SERVER_MAJOR_VERSION__ == &quot;OPENSIM&quot;)&gt; &gt; return &quot;OS_GRID&quot;;&gt; &gt; else&gt; &gt; return &quot;UNKOWN_GRID&quot;;&gt; &gt; }&gt; &gt; &gt; &gt; It would work forever going forward, since we're just changing the result of well-defined correct behaviour. This could be handled at both at runtime or compile time.&gt; &gt; &gt; &gt; The drawback is it would be a total hack.&gt; &gt; &gt; &gt; Just my 2 cents :)&gt; &gt; &gt; &gt; --&gt; &gt; Francis&gt; &gt; &gt; &gt; &gt; &gt; &gt; &gt; -----Original Message-----&gt; &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Melanie&gt; &gt; Sent: Tuesday, July 29, 2008 5:27 AM&gt; &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; &gt; Subject: Re: [Opensim-dev] new LSL state to implement&gt; &gt; &gt; &gt; Hi,&gt; &gt; &gt; &gt; well, to be honest, I dont see a need, and don't even see it as&gt; &gt; desirable, to allow scripts to discover, with certainty, what grid&gt; &gt; they're on.&gt; &gt; &gt; &gt; In these days of aiming for interop, I think it is wrong to limit a&gt; &gt; script to run only on one grid, and this feature would most&gt; &gt; certainly be used in this way:&gt; &gt; &gt; &gt; &quot;You are running MyFreeScript on Second Life. I don't like it.&gt; &gt; Shutting down&quot;&gt; &gt; &gt; &gt; Not pleasant, is it?&gt; &gt; &gt; &gt; Melanie&gt; &gt; &gt; &gt; &gt; &gt; Lc wrote:&gt; &gt;&gt; ok.&gt; &gt;&gt; I will try that under SL and update the wiki.&gt; &gt;&gt;&gt; &gt;&gt; Maybe a page like : &quot;Porting script into SL/OS howto&quot; will be a good&gt; &gt;&gt; start...&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt; On Tue, Jul 29, 2008 at 2:18 PM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:&gt; &gt;&gt;&gt; &gt;&gt;&gt; Hi,&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; simply use llRequestSimulatorData with a new constant (like I&gt; &gt;&gt;&gt; defined CHANGED_REGION_RESTART). That would silently fail in LL,&gt; &gt;&gt;&gt; IIRC, and deliver data in OS.&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; Melanie&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; Mike Mazur wrote:&gt; &gt;&gt;&gt; &gt; Hi,&gt; &gt;&gt;&gt; &gt;&gt; &gt;&gt;&gt; &gt; On Tue, Jul 29, 2008 at 5:00 PM, Lc &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lcc1967 at gmail.com</A>&gt; wrote:&gt; &gt;&gt;&gt; &gt;&gt; with the event, we are not CoreGrid dependant.&gt; &gt;&gt;&gt; &gt;&gt; &gt;&gt;&gt; &gt; Unfortunately events are part of the LSL grammar in SL. A script&gt; &gt;&gt;&gt; &gt; defining an unknown event doesn't compile.&gt; &gt;&gt;&gt; &gt;&gt; &gt;&gt;&gt; &gt; Your example wouldn't compile either, as your custom state doesn't&gt; &gt;&gt;&gt; &gt; have any events.&gt; &gt;&gt;&gt; &gt;&gt; &gt;&gt;&gt; &gt; I agree that this solution is a hack, but if required it would get the&gt; &gt;&gt;&gt; &gt; job done for the time being. The optimal solution, as Adam suggests,&gt; &gt;&gt;&gt; &gt; is to get Linden Labs to implement some function that returns the&gt; &gt;&gt;&gt; &gt; current simulator version.&gt; &gt;&gt;&gt; &gt;&gt; &gt;&gt;&gt; &gt; Mike&gt; &gt;&gt;&gt; &gt; _______________________________________________&gt; &gt;&gt;&gt; &gt; Opensim-dev mailing list&gt; &gt;&gt;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt;&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt; &gt;&gt; &gt;&gt;&gt; &gt;&gt; &gt;&gt;&gt; _______________________________________________&gt; &gt;&gt;&gt; Opensim-dev mailing list&gt; &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt;&gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt;&gt; &gt;&gt; ------------------------------------------------------------------------&gt; &gt;&gt;&gt; &gt;&gt; _______________________________________________&gt; &gt;&gt; Opensim-dev mailing list&gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; _______________________________________________&gt; &gt; Opensim-dev mailing list&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt; &gt; &gt; &gt; &gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080730/6099dd84/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080730/6099dd84/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002547.html">[Opensim-dev] new LSL state to implement
+</A></li>
+	<LI>Next message: <A HREF="002518.html">[Opensim-dev] Fix provider selection and possible security issue	with plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2548">[ date ]</a>
+              <a href="thread.html#2548">[ thread ]</a>
+              <a href="subject.html#2548">[ subject ]</a>
+              <a href="author.html#2548">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

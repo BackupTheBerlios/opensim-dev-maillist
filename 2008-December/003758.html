@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Lockless Lists?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3C49365BE6.1040903%40nowostawski.org%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003757.html">
+   <LINK REL="Next"  HREF="003759.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Lockless Lists?</H1>
+    <B>Mariusz Nowostawski</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3C49365BE6.1040903%40nowostawski.org%3E"
+       TITLE="[Opensim-dev] Lockless Lists?">mariusz at nowostawski.org
+       </A><BR>
+    <I>Wed Dec  3 11:13:58 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003757.html">[Opensim-dev] Lockless Lists?
+</A></li>
+        <LI>Next message: <A HREF="003759.html">[Opensim-dev] SL RAW imported flipped
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3758">[ date ]</a>
+              <a href="thread.html#3758">[ thread ]</a>
+              <a href="subject.html#3758">[ subject ]</a>
+              <a href="author.html#3758">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dr Scofield wrote:
+&gt;<i> Christopher Yeoh wrote:
+</I>&gt;<i>   
+</I>&gt;&gt;<i> On Mon, 24 Nov 2008 20:43:09 +0100
+</I>&gt;&gt;<i> &quot;Homer Horwitz&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">homerhorwitz at googlemail.com</A>&gt; wrote:
+</I>&gt;&gt;<i>     
+</I>&gt;&gt;&gt;<i> So, I'm not sure if we really should do that move. If at all, I'm for
+</I>&gt;&gt;&gt;<i> a very slow move to lock-free versions from a rather stable software
+</I>&gt;&gt;&gt;<i> base (which we currently don't have in trunk), so errors that are
+</I>&gt;&gt;&gt;<i> introduced during that move are more easily identifiable, with much
+</I>&gt;&gt;&gt;<i> testing in-between. Even then, I'm absolutely sure we will get a lot
+</I>&gt;&gt;&gt;<i> of Heisenbugs in the process, which will take us weeks to find.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>       
+</I>&gt;&gt;<i> Perhaps what is really needed here is some performance benchmarks 
+</I>&gt;&gt;<i> which highlight existing problems? So for individual
+</I>&gt;&gt;<i> changes to lockless versions we better see what improvements we'd
+</I>&gt;&gt;<i> get on both small and large SMP machines and whether its worth the
+</I>&gt;&gt;<i> increase in complexity.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I did some debugging of a deadlock a couple of weeks ago and found it
+</I>&gt;&gt;<i> already pretty complicated. Any suggestions on how other people
+</I>&gt;&gt;<i> approach these problems with OpenSim? I sprinkled lots of console
+</I>&gt;&gt;<i> messages around as mdb doesn't seem to work for me, but in retrospect
+</I>&gt;&gt;<i> it would have been really handy to have been able to just turn on
+</I>&gt;&gt;<i> a lock debugging flag and have debug output when locks are taken
+</I>&gt;&gt;<i> and released.
+</I>&gt;&gt;<i>     
+</I>&gt;<i>
+</I>&gt;<i> in theory, you can trace specific instructions with mono...in theory, because i
+</I>&gt;<i> haven't succeeded yet in getting this really done without being drowned in
+</I>&gt;<i> console messages (sean might have more experience with this).
+</I>&gt;<i>
+</I>&gt;<i> i agree console messages are not really the cat's whiskers and the additional
+</I>&gt;<i> problem with console messages is that it will change timing and might get you
+</I>&gt;<i> nowhere..
+</I>
+
+Hi,
+
+I've been following this discussion with interest.
+
+Would it be possible for someone with a good understanding of opensim 
+architecture provide a schematic description of where the threads are 
+being created, for what purpose and how much inter-thread dependencies 
+are there, please? In particular, what are the shared datastructures and 
+the like. Digging it all from the code is possible but if some has it in 
+her/his head it would speed up the analysis.
+
+We've done some testing of different software packages on multicore 
+systems, and generally for the best performance one needs to plan the 
+threading model, thread pooling and thread syncing explicitly, without 
+leaving much to the runtime and operating systems. What I mean here is 
+that multi-threaded applications with &quot;normal&quot; threads and mutexes can 
+achieve better performance to a single threaded ones in many cases - 
+however, applications that plan and work with custom threading usually 
+outperform the latter. We are investigating some areas of improving the 
+code, and here is a list of some &quot;hints&quot; that may trigger some further 
+discussions.
+
+- mutexes should be removed and lockless datastructures used, but, only 
+where it make sense. In some cases having a lock is unavoidable. 
+Suggested removal of normal blocking locks with spin-locks will not help 
+with performance at all - to the contrary - on 2 core machine one core 
+will be busy spin-locking waiting for the lock to become available 
+instead of doing something useful in the meantime
+
+- many thread usually decrease performance. Having more than 2-4 threads 
+on 2-core machine will decrease overall performance. Given that most 
+opensim deployments are on 2- or 4-core chips, having 10s or more 
+threads is not helping in terms performance. Rather to the contrary. 
+
+- creation and destruction of threads is quite costly. Having thread  
+pools instead would help.
+
+- scheduling events and packet processing subject to priorities would 
+definitely help, and I'm quite surprised that this has not been 
+investigated more thoroughly. Servers need to deal with increasing 
+number of events and network traffic. Having a well-designed priority 
+mechanisms - not on the thread level, but rather on the event type and 
+packet type level would help in managing responsiveness and general 
+perceived performance of the server.
+
+
+Note - I'm not as familiar with certain opensim internals as many of you 
+are and I would appreciate some guidance.
+
+best regards
+Mariusz
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003757.html">[Opensim-dev] Lockless Lists?
+</A></li>
+	<LI>Next message: <A HREF="003759.html">[Opensim-dev] SL RAW imported flipped
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3758">[ date ]</a>
+              <a href="thread.html#3758">[ thread ]</a>
+              <a href="subject.html#3758">[ subject ]</a>
+              <a href="author.html#3758">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

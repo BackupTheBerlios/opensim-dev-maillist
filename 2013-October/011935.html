@@ -1,0 +1,290 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Rate Limit DOS Protection
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Rate%20Limit%20DOS%20Protection&In-Reply-To=%3CCABsLVMuXCMr5O_HcgrjEhr2Q2y4Y75VYbxePmGBoJL1kepqXFQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011934.html">
+   <LINK REL="Next"  HREF="011936.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Rate Limit DOS Protection</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Rate%20Limit%20DOS%20Protection&In-Reply-To=%3CCABsLVMuXCMr5O_HcgrjEhr2Q2y4Y75VYbxePmGBoJL1kepqXFQ%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Rate Limit DOS Protection">teravus at gmail.com
+       </A><BR>
+    <I>Tue Oct  8 22:31:47 CEST 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011934.html">[Opensim-dev] Rate Limit DOS Protection
+</A></li>
+        <LI>Next message: <A HREF="011936.html">[Opensim-dev] Rate Limit DOS Protection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11935">[ date ]</a>
+              <a href="thread.html#11935">[ thread ]</a>
+              <a href="subject.html#11935">[ subject ]</a>
+              <a href="author.html#11935">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE> Another note, I can probably expand the DOS protection class to
+identify X sessions and establish a maximum number of sessions pretty
+easily and with really low overhead.    I have not yet..   just X
+requests in Y seconds and Z seconds to unblock.
+
+I may do that later this week. (but won't have it active by default)
+
+Best Regards
+
+Teravus
+
+On Tue, Oct 8, 2013 at 3:23 PM, Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; wrote:
+&gt;<i> LoginService,  Very much agreed.   Though, I figured I'd give people 5
+</I>&gt;<i> attempts in 10 seconds before sending them on their way in case they
+</I>&gt;<i> improperly type their password a few times quickly.
+</I>&gt;<i>
+</I>&gt;<i> Inventory Service,   Also very much agreed.   There is no DOS
+</I>&gt;<i> protection on that service at the moment.
+</I>&gt;<i>
+</I>&gt;<i> That's why I figured that this was pretty sane and pretty closely
+</I>&gt;<i> matches the functionality that people expect while still providing
+</I>&gt;<i> reasonable protection.    There are two things that I can think of
+</I>&gt;<i> that may get snagged by the DOS protection..     usage of pcampbot for
+</I>&gt;<i> load testing.   Clearly that's a rapid login of many clients and is
+</I>&gt;<i> similar to a DOS attack in many ways.   And people with
+</I>&gt;<i> reverse/transparent proxies.    That was the reason that I set up the
+</I>&gt;<i> 'AllowXForwardedFor' option.     It's off by default now because if
+</I>&gt;<i> it's on by default, the DOS protection is easily gamed with the right
+</I>&gt;<i> header.     It can be turned on and the issue goes away for those
+</I>&gt;<i> users.
+</I>&gt;<i>
+</I>&gt;<i> Best Regards
+</I>&gt;<i>
+</I>&gt;<i> Teravus
+</I>&gt;<i>
+</I>&gt;<i> On Tue, Oct 8, 2013 at 3:05 PM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;<i> The login server should only ever see one connection per client, any more is most likely a DOS.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Services that are called by regions are way more critical, as they get all requests from a few entities only. The inventory service, for instance, can't be rate limited because a single login creates a slew of requests. Also, it should not normally be accessible to the world.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 8 Oct 2013, at 18:27, Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Just to be clear, and comment/answer some questions.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I did add the DOS protection variables to the Robust.ini.example in
+</I>&gt;&gt;<i> the [LoginService] section.  The Rate Limit code does 'per connection'
+</I>&gt;&gt;<i> velocity counts.   The default rate setting is 5 requests in 10
+</I>&gt;&gt;<i> seconds.    If you have a transparent proxy, such as squid, you need
+</I>&gt;&gt;<i> to set DOSAllowXForwardedForHeader to true so that the code trusts the
+</I>&gt;&gt;<i> X-Forwarded-For header that your proxy adds to the headers.    If you
+</I>&gt;&gt;<i> want to turn it off, set DOSMaxRequestsInTimeFrame = 0.       If you
+</I>&gt;&gt;<i> want to allow individual clients to do 20 connections in 5 seconds,
+</I>&gt;&gt;<i> set DOSMaxRequestsInTimeFrame = 20 and   DOSRequestTimeFrameMS = 5000.
+</I>&gt;&gt;<i>  If you want to change how long individual connections are blocked
+</I>&gt;&gt;<i> when they go over the rate limit, change DOSForgiveClientAfterMS.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Hopefully this helps get you started with the config options.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> One more thing, this DOS protector is configured and implemented 'per
+</I>&gt;&gt;<i> service',    So, if it's implemented in the login service, it's not
+</I>&gt;&gt;<i> going to get triggered by the Group Service.   If there's DOS
+</I>&gt;&gt;<i> protection on the Group Service and the login service, and a
+</I>&gt;&gt;<i> connection gets blocked on the login service, they'll still be able to
+</I>&gt;&gt;<i> access the Group Service because they're individually rate limited...
+</I>&gt;&gt;<i> This is for flexibility.    Choosing what the best rate limit is
+</I>&gt;&gt;<i> cannot really be done server wide, it has to be based on the needs of
+</I>&gt;&gt;<i> the individual service and that's why it was implemented this way.
+</I>&gt;&gt;<i> At this point, the only major service that has rate limiting on by
+</I>&gt;&gt;<i> default is the login service.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I'll be happy to answer more questions and discuss default settings.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Best Regards
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Teravus
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Tue, Oct 8, 2013 at 8:04 AM, James Stallings II
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">james.stallings at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i> As I have often been told by you, Melanie, if I am upgrading and not
+</I>&gt;&gt;&gt;<i> auditing, adjusting, and testing my configs in accordance with changes, I'm
+</I>&gt;&gt;&gt;<i> doing it wrong.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I think that statement probably applies more to those running larger
+</I>&gt;&gt;&gt;<i> concerns than anyone else.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Honestly, Teravus typically does a better job of coding than to produce work
+</I>&gt;&gt;&gt;<i> that does not take such matters of scale into consideration.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I'm comfortable with whatever he chooses to do, and if it turns out it isn't
+</I>&gt;&gt;&gt;<i> a case of 'one size fits all', I'll make adjustments accordingly.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On Tue, Oct 8, 2013 at 7:52 AM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> I'm worried that people with larger installations will see service
+</I>&gt;&gt;&gt;&gt;<i> failures because legit traffic is seen as abusive. This could cause issues
+</I>&gt;&gt;&gt;&gt;<i> for the lerger grids out there. I don't believe that whatever tenuous
+</I>&gt;&gt;&gt;&gt;<i> protection this may offer for small grids and standalones outwieghs the
+</I>&gt;&gt;&gt;&gt;<i> potential service impairment it may cause for unsuspecting larger grids. Not
+</I>&gt;&gt;&gt;&gt;<i> every grid operator reads this list,
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> So I'd again suggest that we stick to the way we've always done it and
+</I>&gt;&gt;&gt;&gt;<i> make the default for new features be &quot;off&quot;.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Melanie
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> On 8 Oct 2013, at 09:31, Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> I understand what you're saying.      It's hard to argue to leave
+</I>&gt;&gt;&gt;&gt;<i> people unprotected from attacks, though.    I'm certainly open to
+</I>&gt;&gt;&gt;&gt;<i> making the defaults less protective, and, I'm concerned enough about
+</I>&gt;&gt;&gt;&gt;<i> it that I'd prefer to leave some protection in place there.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> What are your thoughts on that?
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Best Regards
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Teravus
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> On Tue, Oct 8, 2013 at 12:41 AM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;&gt;&gt;<i> Hi,
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> in keeping with our SOP, the defaults provided should be emulating
+</I>&gt;&gt;&gt;&gt;&gt;<i> the previous behavior, e.g. NO rate limiting.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> I would much appreciate if that procedure would be adhered to,
+</I>&gt;&gt;&gt;&gt;&gt;<i> unless we vote to abandon it. Users could suffer because they don't
+</I>&gt;&gt;&gt;&gt;&gt;<i> expect the default config to change on them.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Cheers,
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Melanie
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> On 08/10/2013 05:42, Teravus Ovares wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Hi there,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> I just wanted to inform -dev that I added some rate limiting DOS
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> protection classes to use to protect your opensim based services from
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> rapid calling.      At the moment, this will be most noticeable in the
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Login Service.    I have, both as an example, and good practice,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> applied the Rate limit protection to the login service.    There are
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> new Configuration options in StandaloneCommon.ini and Robust.ini that
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> control how the connections are rate limited and if trusts the
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> X-Forwarded-For header.    Just for the sake of getting something up
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> there, I set the defaults to something sane, however they may not work
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> for everyone, so it may be wise to take a look at the new
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> configuration options in the [LoginService] section of your
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> bin/Robust.ini.example and
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> /bin/config-include/StandaloneCommon.ini.example AND/OR have
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> discussions on what would be more sane default options.   There's a
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> chance that this could affect anyone, so don't neglect to take a look
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> at it.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> You may also notice messages on your console and in your logs like:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> 21:56:29 - [LOGINDOSPROTECTION]: client: 192.168.1.213 is blocked for
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> 120000 milliseconds, X-ForwardedForAllowed status is False,
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> endpoint:192.168.1.213
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> This is an example of the DOS Protection blocking a connection because
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> the client went beyond the rate limit.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> The rate limit is defined by X requests in Y period of time and is
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> implemented in a rolling Y fashion.   It also has a 'forget' period of
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> time that will unblock the blocked user.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> At this point, there's one implemented for XMLRPC handlers, one for
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> GenericHTTPHandlers and a base class for StreamHandlers based on
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> BaseStreamHandler.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> If you are interested in the code changes, you can check the diff:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="http://opensimulator.org/viewgit/?a=commitdiff&amp;p=opensim&amp;h=f76cc6036ebf446553ee5201321879538dafe3b2">http://opensimulator.org/viewgit/?a=commitdiff&amp;p=opensim&amp;h=f76cc6036ebf446553ee5201321879538dafe3b2</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> There's still more to do, and, here's a start to providing some
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> modicum of protection on the services.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> If you have any questions, feel free to reply and ask..  or send me an
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> e-mail personally.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Thanks and Best Regards
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Teravus
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> --
+</I>&gt;&gt;&gt;<i> ===================================
+</I>&gt;&gt;&gt;<i> <A HREF="http://osgrid.org/">http://osgrid.org/</A>
+</I>&gt;&gt;&gt;<i> <A HREF="http://simhost.com">http://simhost.com</A>
+</I>&gt;&gt;&gt;<i> <A HREF="http://twitter.com/jstallings2">http://twitter.com/jstallings2</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I></PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011934.html">[Opensim-dev] Rate Limit DOS Protection
+</A></li>
+	<LI>Next message: <A HREF="011936.html">[Opensim-dev] Rate Limit DOS Protection
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11935">[ date ]</a>
+              <a href="thread.html#11935">[ thread ]</a>
+              <a href="subject.html#11935">[ subject ]</a>
+              <a href="author.html#11935">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

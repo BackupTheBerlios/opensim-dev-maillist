@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] User services refactoring status
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20services%20refactoring%20status&In-Reply-To=%3C4B44B5FA.2040207%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008213.html">
+   <LINK REL="Next"  HREF="008190.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] User services refactoring status</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20User%20services%20refactoring%20status&In-Reply-To=%3C4B44B5FA.2040207%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] User services refactoring status">diva at metaverseink.com
+       </A><BR>
+    <I>Wed Jan  6 17:10:34 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008213.html">[Opensim-dev] OGP module and the grand re-factor...
+</A></li>
+        <LI>Next message: <A HREF="008190.html">[Opensim-dev] User services refactoring status
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8187">[ date ]</a>
+              <a href="thread.html#8187">[ thread ]</a>
+              <a href="subject.html#8187">[ subject ]</a>
+              <a href="author.html#8187">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Tom Willans wrote:
+&gt;<i> Are some aspects of the interface more settled than others? I appreciate 
+</I>&gt;<i> that this is a judgement call.
+</I>
+Yes, some aspects are more settled than others.
+First, let me point out where this comes from, so that you and others 
+can understand better.
+
+Up to recently, there was no such thing as OpenSim.Services.Interfaces, 
+nor the companions OpenSim.Services.Connectors and 
+OpenSim.Server.Handlers. The interaction between the simulator and the 
+resource services, and among the resource services themselves, was a 
+mess. I don't mean it in a criticizing attitude, early-stage code is 
+usually a mess. The broad stokes were there, and were really good, but 
+the details were a complete mess. Simple questions like &quot;what handlers 
+are there?&quot; or &quot;what are the resource service interfaces?&quot; were a 
+challenge to answer, interfaces and handlers were spread all over the 
+code, special cases were pervasive, classes were being used directly 
+instead of interfaces, etc. The user services, in particular, were a 
+nightmare, with duplication running rampant because of &quot;standalone vs 
+grid mode&quot;, and the code being on the verge of bipolar disorder. Users, 
+agents and avatars were being used interchangeably, with no conceptual 
+distinction, misnomers everywhere, etc.
+
+This refactoring's main goal is to depart from that chaotic mess and to 
+instill order in the code base. It is primarily a *refactoring*, meaning 
+that code has moved from one namespace to another, but it is also a 
+rewrite -- because in the process of revisiting the code it was clear 
+that things should be done better than they were being done. In 
+particular, harmful hard-coded instantiations of classes were replaced 
+by dynamic loading and instantiation. The core of this is 
+OpenSim.Server.Base.Utils.LoadPlugin -- this is the core of the ROBUST 
+model.
+
+Having said that, let me now explain how people who plan to extend 
+OpenSim should be looking at it.
+
+The main &quot;contract&quot; between the core code and developers of resource 
+services is the collection of interfaces in OpenSim.Services.Interfaces. 
+This is what the simulators call, can't get around hard-coded calls to 
+those interfaces. Those interfaces will stabilize very quickly. Most of 
+them are stable already, with the notable exception of IInventoryService 
+which still needs love. But all others will be stable at 0.7. Now is the 
+right time for people to look at those interfaces and send feedback 
+about which things you think are missing.
+
+The next level of reuse is the code in OpenSim.Services.Connectors and 
+OpenSim.Server.Handlers. This code is less important than the 
+interfaces, because it's invisible to the simulators, therefore ppl 
+should be more careful about relying on it. This is quite an important 
+point that I don't think many people grasp yet, so let me explain.
+
+In most systems, the network protocols are fixed. People go to great 
+lengths discussing them ad-nauseum in meetings and committees, to settle 
+on the right data formats, the right data, etc. NOT HERE. The network 
+protocols in OpenSim are now dynamically loaded, and therefore 
+replaceable. There is no such thing as *the* network protocol between 
+the simulator and, say, the asset server. There can be many -- you can 
+roll your own. There are reference implementations in the core 
+distribution, but that's exactly what they are: reference 
+implementations, they are not fixed protocols. As such, people should be 
+careful about relying on those reference implementations.
+
+So, to sum it up: the main contract is OpenSim.Services.Interfaces and 
+those are going to be stable very soon. The level right under it, 
+OpenSim.Server.Handlers and OpenSim.Services.Connectors can also be 
+relied upon but it's less stable. I'm still not happy with many of 
+those, so they will change after 0.7. People who don't want to put up 
+with these changes may want to roll their own network protocols.
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008213.html">[Opensim-dev] OGP module and the grand re-factor...
+</A></li>
+	<LI>Next message: <A HREF="008190.html">[Opensim-dev] User services refactoring status
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8187">[ date ]</a>
+              <a href="thread.html#8187">[ thread ]</a>
+              <a href="subject.html#8187">[ subject ]</a>
+              <a href="author.html#8187">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

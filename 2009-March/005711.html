@@ -1,0 +1,265 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim dll for use by other programs
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20dll%20for%20use%20by%20other%20programs&In-Reply-To=%3CBLU134-W808F1866CEF4CB3E8CE6DD59D0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005708.html">
+   <LINK REL="Next"  HREF="005694.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim dll for use by other programs</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20dll%20for%20use%20by%20other%20programs&In-Reply-To=%3CBLU134-W808F1866CEF4CB3E8CE6DD59D0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] OpenSim dll for use by other programs">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sat Mar 14 21:07:25 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005708.html">[Opensim-dev] OpenSim dll for use by other programs
+</A></li>
+        <LI>Next message: <A HREF="005694.html">[Opensim-dev] Round 2: Config changes preview
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5711">[ date ]</a>
+              <a href="thread.html#5711">[ thread ]</a>
+              <a href="subject.html#5711">[ subject ]</a>
+              <a href="author.html#5711">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Well.
+
+ 
+
+The dependancy on libomv has always been a topic for discussion. I included it as a fairly reasonable compromise to get the vector and quaternion types and transformations that we are operating with.
+
+ 
+
+My point is exactly that, that the number of dependencies has to go down, and the way to do it is to introduce a types layer, a services layer and an application layer, where the application layer is the one that draws in the most dependencies. The types layer should bring in a bare minimum (system and needed math types) since it will be geared towards reuse in any application, the services layer might bring in a few more.
+
+ 
+
+What you are proposing is something you could set up a forge project to do today - problem is that such an 'third party' lib will have to be maintained and in synch in just the same way we have to be kept in synch with libomv. If it's in the core repo, it should follow the core naming conventions.
+
+ 
+
+I'm proposing we create something that can function both for our own core and for third parties. Kind of like Axiom has (had?) its Mathlib.
+ 
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+&gt;<i> Date: Sat, 14 Mar 2009 11:44:10 -0700
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">aerowolf at gmail.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] OpenSim dll for use by other programs
+</I>&gt;<i> 
+</I>&gt;<i> I don't really believe that a single namespace is all that possible.
+</I>&gt;<i> OpenSim itself has too many external dependencies, and your suggestion
+</I>&gt;<i> for OpenSim.Model would expose those dependencies to external
+</I>&gt;<i> programs. (do we want to expose the requirement for libomv to be
+</I>&gt;<i> linked to get a class structure referenced from OpenSim.Model, when
+</I>&gt;<i> all the client wanted was to be able to edit a mesh without uploading
+</I>&gt;<i> it?)
+</I>&gt;<i> 
+</I>&gt;<i> -Kyle H
+</I>&gt;<i> 
+</I>&gt;<i> On Sat, Mar 14, 2009 at 6:09 AM, Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:
+</I>&gt;<i> &gt; I have on several occasions suggested the OpenSim.Model project approach,
+</I>&gt;<i> &gt; that would contain base data structures, as a base for any application that
+</I>&gt;<i> &gt; wants to interact or modify OpenSim data structures.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I think this could be done in steps with a minimum of architectural fussing
+</I>&gt;<i> &gt; about.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 1) First thing would probably be to create the OpenSim.Model.Interfaces
+</I>&gt;<i> &gt; namespace (in the OpenSim.Model project) and just move any interface that
+</I>&gt;<i> &gt; doesn't reference any other types than system types or libomv types there.
+</I>&gt;<i> &gt; Just move those ther, plain and simple.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 2) Second, we could start moving OpenSim base types, ie, extract abstract
+</I>&gt;<i> &gt; superclasses on all root classes containing only their data containers, and
+</I>&gt;<i> &gt; move them to OpenSim.Model. This should meet no problems, just moving them.
+</I>&gt;<i> &gt; There are excellent refactoring tools for this.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Third, we could have another round at a)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; et c
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; this is a process that can be started today, and is more about code hygiene
+</I>&gt;<i> &gt; than architectural pridence.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; at some point, we should probably establish the
+</I>&gt;<i> &gt; OpenSim.Framework.Serialization that would more or less only reference
+</I>&gt;<i> &gt; OpenSim.Model, which is used to contain all those classes and functions that
+</I>&gt;<i> &gt; are used to serialize base objects back and forth to various supported core
+</I>&gt;<i> &gt; formats.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Similarly, but not connected, I believe that a separate project,
+</I>&gt;<i> &gt; OpenSim.Services is the right way to go. It's the layer right above the
+</I>&gt;<i> &gt; application layer (which can't be generalized into one project, as
+</I>&gt;<i> &gt; each executable needs its own assembly)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Best regards,
+</I>&gt;<i> &gt; Stefan Andersson
+</I>&gt;<i> &gt; Tribal Media AB
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ________________________________
+</I>&gt;<i> &gt; Date: Fri, 13 Mar 2009 16:50:51 -0700
+</I>&gt;<i> &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; Subject: Re: [Opensim-dev] OpenSim dll for use by other programs
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Here's a suggestion.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; We could have another project under OpenSim called
+</I>&gt;<i> &gt; OpenSimLib
+</I>&gt;<i> &gt; This would be a place for putting things that are meant to be used both by
+</I>&gt;<i> &gt; OpenSim and by other programs.
+</I>&gt;<i> &gt; We could start with
+</I>&gt;<i> &gt; OpenSimLib.Communications
+</I>&gt;<i> &gt; OpenSimLib.Meshes
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I suspect several data structures would move there.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; But this raises the question about OpenSim.Framework -- is it supposed to be
+</I>&gt;<i> &gt; _that_ OpenSimLib? I see some of that, but it's mostly assuming that the
+</I>&gt;<i> &gt; &quot;other programs&quot;, other than OpenSim.exe, are exactly the 5 U G A I M
+</I>&gt;<i> &gt; servers. I'm now thinking that clients (all sorts of clients) will want to
+</I>&gt;<i> &gt; use some of that too.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Yeah, maybe OpenSim.Framework is the right place to put this kind of code?
+</I>&gt;<i> &gt; What do you think? Should I move the sending side functions of RESTComms to
+</I>&gt;<i> &gt; OpenSim.Framework.Communications?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Diva Canto wrote:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Cool, I'm glad to see there are more cases.
+</I>&gt;<i> &gt; In my case, this piece of comm needs stuff from OpenSim.Framework
+</I>&gt;<i> &gt; (RegionInfo, AgentCircuitData) and other data structures from other places
+</I>&gt;<i> &gt; in opensim (Region.Framework.Scenes.AgentData), which is a bit of a mess
+</I>&gt;<i> &gt; that needs to be cleaned up too.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; [RegionInfo, btw, is E.V.I.L -- I've wasted several hours over the past
+</I>&gt;<i> &gt; several months fighting with the ExternalEndPoint property. I always get it
+</I>&gt;<i> &gt; wrong. If we are to expose something like that to other fellow humans, I'll
+</I>&gt;<i> &gt; probably define another, much simpler, data structure.]
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Dahlia Trimble wrote:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I had a similar intention with Primmesher. Currently there is a
+</I>&gt;<i> &gt; primmesher.dll project on forge which is a dll containing the 2 files
+</I>&gt;<i> &gt; Primmesher.cs and Sculptmesh.cs. My intent was to have a single dll file
+</I>&gt;<i> &gt; which could be used by both OpenSim and viewer projects wishing to implement
+</I>&gt;<i> &gt; prims and sculpties. In order to make this a standalone dll I had to create
+</I>&gt;<i> &gt; internal types for quaternions and vectors, and the associated methods and
+</I>&gt;<i> &gt; operators. In this case it is a small duplication of code in other modules
+</I>&gt;<i> &gt; in OpenSim, but it's probably ok as I needed to extend those types while
+</I>&gt;<i> &gt; coding Primmesher anyway. The code on forge and in OpenSim are identical and
+</I>&gt;<i> &gt; one could easily delete those 2 files from OpenSim and just use the dll file
+</I>&gt;<i> &gt; from forge. This was my intent but I ran into some difficulties with
+</I>&gt;<i> &gt; prebuild.xml and the location of the dll file in the physics folder in the
+</I>&gt;<i> &gt; OpenSim tree, as it would not build successfully on some systems. So for now
+</I>&gt;<i> &gt; I am maintaining both source trees and keeping the code in sync.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; On Fri, Mar 13, 2009 at 1:50 PM, Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I need more architectural advice.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I'm working on a client that has all the control over the agents. For
+</I>&gt;<i> &gt; that, it uses the sending part of the RESTInterregionComms module that I
+</I>&gt;<i> &gt; did a couple of months ago -- a module which now is clearly out of
+</I>&gt;<i> &gt; place. That module is not about interregion comms; it's about comms
+</I>&gt;<i> &gt; involving regions, but not necessarily *between* regions. In my case,
+</I>&gt;<i> &gt; it's between the client and the region. I'm &quot;using
+</I>&gt;<i> &gt; OpenSim.Region.CoreModules.Communications.REST&quot; in my client -- horrible.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; So, I want to break it down into 2 parts, sending and receiving. The
+</I>&gt;<i> &gt; question is: where should I place these two parts? The receiving part
+</I>&gt;<i> &gt; can continue to be a region module in CoreModules -- that's perfectly
+</I>&gt;<i> &gt; fine. But how about the sending part?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The sending part needs to be in a dll that can be used by other programs
+</I>&gt;<i> &gt; out there, just like my client. This is, in fact, what will make OpenSim
+</I>&gt;<i> &gt; interoperable from the  outside -- its use API, as opposed to the
+</I>&gt;<i> &gt; wonderful extension API provided by region modules. Should these things
+</I>&gt;<i> &gt; be in OpenSim.Framework.*? I was tempted to think so, but then I looked
+</I>&gt;<i> &gt; at what's in there, and it's clearly facing the internals. Should it be
+</I>&gt;<i> &gt; in OpenSim.Region.Communications.*?
+</I>&gt;<i> &gt; OpenSim.Region.CoreModules.Communications.REST with sending and
+</I>&gt;<i> &gt; receiving parts as separate modules? (but then the importers of this
+</I>&gt;<i> &gt; will get all the other CoreModules as a dll, which doesn't feel right)
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Your thoughts appreciated. Just think of what makes sense from a program
+</I>&gt;<i> &gt; that wants to use OpenSim libraries.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ________________________________
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; ________________________________
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090314/ebd7fa94/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090314/ebd7fa94/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005708.html">[Opensim-dev] OpenSim dll for use by other programs
+</A></li>
+	<LI>Next message: <A HREF="005694.html">[Opensim-dev] Round 2: Config changes preview
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5711">[ date ]</a>
+              <a href="thread.html#5711">[ thread ]</a>
+              <a href="subject.html#5711">[ subject ]</a>
+              <a href="author.html#5711">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

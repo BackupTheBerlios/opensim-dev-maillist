@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] HG Versions and Changes
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20HG%20Versions%20and%20Changes&In-Reply-To=%3C4D056A72.4070109%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009857.html">
+   <LINK REL="Next"  HREF="009854.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] HG Versions and Changes</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20HG%20Versions%20and%20Changes&In-Reply-To=%3C4D056A72.4070109%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] HG Versions and Changes">diva at metaverseink.com
+       </A><BR>
+    <I>Mon Dec 13 01:36:02 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009857.html">[Opensim-dev] HG Versions and Changes
+</A></li>
+        <LI>Next message: <A HREF="009854.html">[Opensim-dev] HG Versions and Changes
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9858">[ date ]</a>
+              <a href="thread.html#9858">[ thread ]</a>
+              <a href="subject.html#9858">[ subject ]</a>
+              <a href="author.html#9858">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes, I understand the need for versioning, I just want to make sure that 
+we're all on the same page :)
+
+There are some important things that affect how compatibility is 
+handled, both in time and diversity, and things can still go in 
+different directions. Something that seems as simple as adding a version 
+number actually is not that simple... I know that most people out there 
+don't care about technical details, and they shouldn't care. &quot;Most 
+people&quot;, however, should not be using developers code, where this work 
+is being done. In the next official release, OpenSim 0.7.1, HG will be 
+clearly marked as incompatible with OpenSim 0.7.0.2, and that's what 
+most people need to know.
+
+For everyone who cares about technical details, let me explain a few 
+more things directly related to the issue of versioning.
+
+First of all, HG is a set of services, not just one -- gatekeeper and 
+user agents (core HG, that includes the simulation service), plus an 
+open-ended list of resource services such as inventory, assets, etc. The 
+fact that some services are in incompatible versions doesn't necessarily 
+mean that the whole thing will fail; there may be partial failures. So 
+there needs to be versioning associated with the individual services, 
+it's not just one sequence of numbers. The bump that happened a few 
+weeks ago affected the simulation service, which is part of the core HG. 
+Unfortunately, that happened while I was busy with other things, so 
+there was no notification about it here on -dev.
+
+Second, currently, HG 1.5 supports protocol negotiation in some parts, 
+but not in others [yet], namely negotiation is supported in asset and 
+inventory access. What this means is that these services don't even need 
+to be talking the same wire protocol in order for grids to interoperate. 
+Specifically, right now we're supporting two different network handlers: 
+Robust and Simian -- they package the data in completely different ways, 
+and yet all of that is transparent to the HG protocol, and things [will] 
+work.
+
+WRT versioning, protocol negotiation has a non trivial consequence; if 
+some backwards incompatible change happens, say, in the Robust inventory 
+handlers, it doesn't affect the Simian handlers at all, and vice-versa. 
+So there are version numbers associated with the network handlers of 
+each service, additionally to the type of the network handlers, and 
+additionally to the version number associated with abstract HG protocol 
+itself, which is 1.5 at the moment.
+
+There are advantages and disadvantages in negotiating network handlers 
+in the overall HG protocol, and I'm not sure which way this will end up 
+going. If we keep protocol negotiation, and extend it to all services, 
+then we clearly need different sets of version numbers; if we can all 
+agree in one single data representation for the entire set of services, 
+forever, then we can merge the abstract HG protocol with a [single] 
+specification regarding the data that gets transmitted for each service, 
+and have one single sequence of version numbers (but still associated 
+with the individual services, probably).
+
+The way things will end up is not something that I can decide by myself, 
+as the mere existence of the issue conveys the existence of many people 
+with different perspectives, and the System-to-System nature of the HG.
+
+
+
+On 12/12/2010 1:13 PM, kidd piko wrote:
+&gt;<i> On Sun, Dec 12, 2010 at 6:13 PM, Diva Canto&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;  wrote:
+</I>&gt;&gt;<i> We have been using &quot;interface version numbers&quot; to refer to communications
+</I>&gt;&gt;<i> between simulators and their central services *within* grids. We introduced
+</I>&gt;&gt;<i> these numbers mainly because of OSGrid, where the central services are run
+</I>&gt;&gt;<i> by one group of people and the simulators are run by others, and therefore
+</I>&gt;&gt;<i> the software upgrades are not coordinated.
+</I>&gt;<i>
+</I>&gt;<i> Diva,
+</I>&gt;<i>
+</I>&gt;<i> Thank you for your informative posts regarding HG versioning,
+</I>&gt;<i> interface version numbers, and OSGrid's proxy issues. Anyone who was
+</I>&gt;<i> unclear on those topics should be well informed now.
+</I>&gt;<i>
+</I>&gt;<i> To further clarify some of the earlier statements that Ai made, any
+</I>&gt;<i> reference to interface numbers in relation to the HG 1.5 protocol has
+</I>&gt;<i> been purely out of neccessity.
+</I>&gt;<i>
+</I>&gt;<i> IMHO, just as &quot;interface version numbers&quot; were introduced to help
+</I>&gt;<i> coordinate communications between simulators and their central
+</I>&gt;<i> services, the decentralized peer-2-peer network of the thousands of
+</I>&gt;<i> active HyperGrid nodes also need adequate version numbers in order to
+</I>&gt;<i> coordinate communications between each other.
+</I>&gt;<i>
+</I>&gt;<i> Even though the HG 1.5 protocol has not changed, the facts on the
+</I>&gt;<i> ground are that grids/standalones using Interface 6 cannot communicate
+</I>&gt;<i> with grids/standalones using Interface 7. No matter how many times
+</I>&gt;<i> someone is told that the HG 1.5 protocol has not changed, it does not
+</I>&gt;<i> change the fact that they cannot travel to the same destinations that
+</I>&gt;<i> they could before they upgraded to Interface 7.
+</I>&gt;<i>
+</I>&gt;<i> As you are aware, we manage a network of 300+ HyperGates. Every week
+</I>&gt;<i> we provide hundreds of HyperGrid addresses to HyperGrid travellers via
+</I>&gt;<i> those HyperGates and via our web site <A HREF="http://TheHyperGates.com">http://TheHyperGates.com</A> . When
+</I>&gt;<i> HyperGate owners began updating to revisions that contained the newer
+</I>&gt;<i> Interface 7, it quickly became clear that all Interface 7
+</I>&gt;<i> grids/standalones could only travel between each other and could no
+</I>&gt;<i> longer travel to destinations that had not updated yet.
+</I>&gt;<i>
+</I>&gt;<i> When this incompatibility became appearant, we were sure that even
+</I>&gt;<i> though the HG 1.5 protocol had not changed, a new revision or
+</I>&gt;<i> maintenance number was going to be announced in order to coordinate
+</I>&gt;<i> communications between compatible HyperGrid destinations. Something
+</I>&gt;<i> like an &quot;HG 1.5.1&quot; announcement would have made the situation
+</I>&gt;<i> instantly clear to many HyperGrid travellers and region owners alike.
+</I>&gt;<i>
+</I>&gt;<i> When this new HG revision/maintenance number announcement was never
+</I>&gt;<i> made, we were forced with either providing people incompatible HG 1.5
+</I>&gt;<i> destinations or splitting our HG 1.5 HyperGate Network into 2 seperate
+</I>&gt;<i> networks and coming up with our own naming to differentiate between
+</I>&gt;<i> the two. Since the only difference between the two networks was the
+</I>&gt;<i> Interface number that they each used, we decided to label the two
+</I>&gt;<i> networks according to their Interface numbers: i.e. HG 1.5 i6 and HG
+</I>&gt;<i> 1.5 i7.
+</I>&gt;<i>
+</I>&gt;<i> We strongly support any decision to begin version numbering the HG
+</I>&gt;<i> protocol in an effort to better indicate compatibility.
+</I>&gt;<i>
+</I>&gt;<i> We are all fully aware the OpenSim is still in alpha and that HG still
+</I>&gt;<i> needs a lot of work, but the first time HG traveller doesn't care
+</I>&gt;<i> about version numbers and can't be bothered to hunt down the
+</I>&gt;<i> undocumented ins and outs of HyperGridding. To them, it either works
+</I>&gt;<i> or it is broken. And first impressions can mean a lot.
+</I>&gt;<i>
+</I>&gt;<i> Anything that can help region/grid owners build a more reliable mesh
+</I>&gt;<i> of HyperGrid destinations for their first time HG travellers, can only
+</I>&gt;<i> help the overall advancement of the HyperGrid.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> kidd
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009857.html">[Opensim-dev] HG Versions and Changes
+</A></li>
+	<LI>Next message: <A HREF="009854.html">[Opensim-dev] HG Versions and Changes
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9858">[ date ]</a>
+              <a href="thread.html#9858">[ thread ]</a>
+              <a href="subject.html#9858">[ subject ]</a>
+              <a href="author.html#9858">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

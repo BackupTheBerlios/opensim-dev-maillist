@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Does OpenSim need to leave so many packets marked as	reliable?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Does%20OpenSim%20need%20to%20leave%20so%20many%20packets%20marked%0A%20as%09reliable%3F&In-Reply-To=%3C47CD7A94BBEC6A4AA909639645EFE3695BC9C2%40winxbeus02.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003187.html">
+   <LINK REL="Next"  HREF="003180.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Does OpenSim need to leave so many packets marked as	reliable?</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Does%20OpenSim%20need%20to%20leave%20so%20many%20packets%20marked%0A%20as%09reliable%3F&In-Reply-To=%3C47CD7A94BBEC6A4AA909639645EFE3695BC9C2%40winxbeus02.exchange.xchg%3E"
+       TITLE="[Opensim-dev] Does OpenSim need to leave so many packets marked as	reliable?">adam at deepthink.com.au
+       </A><BR>
+    <I>Fri Oct  3 14:12:41 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003187.html">[Opensim-dev] Does OpenSim need to leave so many packets marked as	reliable?
+</A></li>
+        <LI>Next message: <A HREF="003180.html">[Opensim-dev] Unit Testing Documentation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3201">[ date ]</a>
+              <a href="thread.html#3201">[ thread ]</a>
+              <a href="subject.html#3201">[ subject ]</a>
+              <a href="author.html#3201">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I remember you suggesting this before, +1.
+
+Adam
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Stefan Andersson
+Sent: Thursday, 2 October 2008 9:54 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Does OpenSim need to leave so many packets marked as reliable?
+
+Guys,
+
+for some time now, I've been meaning to propose a quite different approach, of which we've actually already done some tests with good result;
+
+the basic idea is to connect reliable packets with two delegates; an ack delegate and a nack delegate - the implication probably obvious:
+
+when the packet gets acked, the ack delegate is called, when it's nacked, the nack. The packet is sent as a parameter.
+
+what this would let us do, is to use the sent packet to figure out what the right course of action is;
+
+for an update, for example, we could look that object up and see if it's there's been another more resent update sent; if so, we can discard this. If not - we can _recreate_ a more recent packet and send that instead.
+
+We have done something similar for terrain, a terrain packet watchdog, which keeps track of what patches has been acked, and resends those that haven't after a timeout. This removes the atom bombing.
+
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A>
+
+
+
+________________________________
+
+&gt;<i> Date: Thu, 2 Oct 2008 21:00:44 +0100
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Does OpenSim need to leave so many packets marked as reliable?
+</I>&gt;<i>
+</I>&gt;<i> Yes, it's possible that the situation is more complicated than simply marking all packets as reliable. It's also
+</I>&gt;<i> difficult to look at percentages since it does depends heavily on what you do.
+</I>&gt;<i>
+</I>&gt;<i> Also, apologies for suggesting I would change trunk earlier. I won't be making any changes there without more
+</I>&gt;<i> consultation, at least certainly not any change which is non-default. I forgot how complicated an area this is.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Melanie wrote:
+</I>&gt;<i> &gt; Hi again,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; there may be some object updates that can be sent unreliable. For
+</I>&gt;<i> &gt; instance, all that have to do with moving objects (e.g. velocity !=
+</I>&gt;<i> &gt; 0). but the initial object update can't be lost. Any object update
+</I>&gt;<i> &gt; lost of the login burst is a ghost prim.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Melanie
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Justin Clark-Casey wrote:
+</I>&gt;<i> &gt;&gt; Hmm, I then did the obvious thing and compared it (unscientifically) with a couple of sessions on the Linden Lab grid.
+</I>&gt;<i> &gt;&gt; There, reliable packets appear to compromise approximately 40% of the transfer.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; -------- Original Message --------
+</I>&gt;<i> &gt;&gt; Subject: Does OpenSim need to leave so many packets marked as reliable?
+</I>&gt;<i> &gt;&gt; Date: Thu, 02 Oct 2008 19:32:57 +0100
+</I>&gt;<i> &gt;&gt; From: Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;
+</I>&gt;<i> &gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Hi there,
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; A vast number of the packets that we send out from OpenSim (usually &gt;95% according to the statistics printed to the
+</I>&gt;<i> &gt;&gt; Linden viewer log on shutdown) are marked as reliable. This requires that the viewer respond with an ack, and it just
+</I>&gt;<i> &gt;&gt; doesn't appear that this is done very well when a large number of reliables are sent. A lot of acks never come and we
+</I>&gt;<i> &gt;&gt; often appear to end up resending thousands (or in the worst case tens of thousands) of packets.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; In a private experiment I've set Header.Reliable = false for the LayerDataPacket and ObjectUpdatePacket (which appear to
+</I>&gt;<i> &gt;&gt; be the greatest sent by count, and which are currently reliable by default in libOMV). Naturally, this cuts down the
+</I>&gt;<i> &gt;&gt; vast number of resends (and possibly some of the packet_out_of_order messages that come out on the console log) without
+</I>&gt;<i> &gt;&gt; any apparant ill effects. However, my testing has been pretty limited so I'm minded to wait until Monday before making
+</I>&gt;<i> &gt;&gt; any trunk changes, since then I can get a better load test with multiple avatars (this doesn't stop anybody else testing
+</I>&gt;<i> &gt;&gt; of course :-)
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Any opinions on this? Is there a good reason for these packets to remain reliable (when resends are probably rare
+</I>&gt;<i> &gt;&gt; anyway)? libOMV appears to mark every packet as reliable by default... and then OpenSim removes this from a couple of
+</I>&gt;<i> &gt;&gt; them but not from others.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> justincc
+</I>&gt;<i> Justin Clark-Casey
+</I>&gt;<i> <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081003/60f7ba9f/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081003/60f7ba9f/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003187.html">[Opensim-dev] Does OpenSim need to leave so many packets marked as	reliable?
+</A></li>
+	<LI>Next message: <A HREF="003180.html">[Opensim-dev] Unit Testing Documentation
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3201">[ date ]</a>
+              <a href="thread.html#3201">[ thread ]</a>
+              <a href="subject.html#3201">[ subject ]</a>
+              <a href="author.html#3201">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

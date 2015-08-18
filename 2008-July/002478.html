@@ -1,0 +1,265 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] secure_inventory_server ??
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20secure_inventory_server%20%3F%3F&In-Reply-To=%3Cb046ff2a0807251100r9bc6963yb15c2d2d3538b164%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002472.html">
+   <LINK REL="Next"  HREF="002484.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] secure_inventory_server ??</H1>
+    <B>liu xiaolu</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20secure_inventory_server%20%3F%3F&In-Reply-To=%3Cb046ff2a0807251100r9bc6963yb15c2d2d3538b164%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] secure_inventory_server ??">lulurun at gmail.com
+       </A><BR>
+    <I>Fri Jul 25 20:00:28 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002472.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+        <LI>Next message: <A HREF="002484.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2478">[ date ]</a>
+              <a href="thread.html#2478">[ thread ]</a>
+              <a href="subject.html#2478">[ subject ]</a>
+              <a href="author.html#2478">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After all, please understand that I am not &quot;selling&quot; how my &quot;secure
+inventory&quot; is great,
+I made it because I found my interop module is an ease-to-use tool to modify
+others' inventory(at OSGrid.org).
+if there are bugs or broken things please let me know.
+hope it is fixed or I would like to offer what I can do to help the fix.
+What I am trying to do is to share my point of view on &quot;interop&quot;, that is
+what I called avatar portability.
+maybe I replied to a wrong mail.
+
+So, about the usecase: (I finanlly got your idea, from the quoted mail)
+&gt;<i>The use case (or one of many) that I'm talking about, is if a user has
+</I>inventory on a inventory server, that user's inventory shouldn't be tied to
+any user server/grid. So the user should be able to use the same inventory
+set on multiple grids. At the
+&gt;<i>moment that means they have the same userid on each grid but thats no
+</I>problem (and in the future I hope we will support a better way of
+identifying a inventory belongs to a user).
+&gt;<i>
+</I>&gt;<i>So lets call the Inventory server InvN like you used. My single inventory
+</I>set (of folders/items) on that server is called InvSetA. Then we have Grid A
+and Grid B.  With user server A and B. When I log into grid A it should use
+InvN to receive InvSetA.
+&gt;<i>But also if I log out of grid A and log into grid B then it should also use
+</I>InvN to receive InvSetA. The inventory set (of folders/items) isn't tied to
+a single grid/avatar. It belongs to the user. The &quot;grid&quot; is just using a
+guid (avatarID) to access the correct
+&gt;<i>inventory set. So as long as both grids use the same id, they should be
+</I>able to use the same inventory.
+When I read the above sentences, what I was thinking is &quot;why it is required
+to be like such a case?&quot;
+Still, There are 3 situations I can imagine:
+*1*. UserA and UserB do not know each other, by (small) chance, thier UUID
+are the same.
+      uuid collision, hard to say anything.
+      yes, we do should care about this, though I learned that uuid wouldnot
+duplicate in common life, but we cannot trust the implementations.
+      I think this is possibly not what you mean, even if you really mean
+this ...
+      the &quot;userserver_dictionary&quot; should be &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">uuid at grid_identifier</A>&quot;,
+&quot;userserver_url&quot;, grid_identifier can be the address(host,ip) of the grid
+service, hmmm ...
+*2*. UserA and UserB are the same person.
+      In order to login to both GridA and GridB, an User copied his/her
+account both at GridA(UserA) and GridB(UserB), so they are having the same
+uuid.
+      I suggest to use the way I mentioned: he/she can always keep one
+account at GridA, and travel to both GridA and GridB.
+      reasons for the suggestion:
+      1. coping account is not a forever solution for grid-grid travel.
+      2. there is an advanced way, we should encourage ourself to use that
+*3*. UserA and UserB are completly different accounts, they are
+friends/groupmember(or they are owned by the same person who intend to do
+such thing),
+      they want to share InvSetA(both of them can CRUD InvSetA)
+      InvSetA only can be specified by user uuid, so they *have* to have the
+same uuid to share InvSetA,
+      this can be solved in another level - inventory does not belongs to a
+user, it belongs to a group.
+      * a group has 1 uuid used to identify inventory
+      * a group contains mutilple/single user
+      this may introduce &quot;join&quot; SQL statements to &quot;select&quot; the inventory,
+instead of just &quot;select&quot; by &quot;uuid&quot;. ... no deeper thoughts.
+
+I want it be a &quot;pulling&quot; system, because
+* &quot;push&quot; has security issues, session_id or what ever things that is used as
+a secret to prove identity, shouldn't be &quot;pushed&quot; to everywhere
+* I still do not think the case you are concerning is a major case, or even
+I think it is strange, except you are meaning *3*. but *3* is another issue.
+* &quot;pulling&quot; reduces the responsibility of inventoryserver, in the case,
+inventoryserver couldn't get auth infomation for the specified userserver,
+because userserver
+  is specified by user itself, so it the problem of the user, not the
+inventory, but &quot;push&quot; is the opposite, to think inventory/asset server will
+play a important roll
+  in the future, the less responssibility it has the more it is reliable.
+
+Wrote too much english today ... see you tomorrow
+thank you for your detailed explanations.
+
+regards,
+lulurun
+
+2008/7/26 Michael Wright &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>&gt;:
+
+&gt;<i> I might be missing something but I don't see how this solution addresses
+</I>&gt;<i> some of the problems. Maybe I wasn't very clear on some of the use cases
+</I>&gt;<i> that would currently be broke.
+</I>&gt;<i>
+</I>&gt;<i> The use case (or one of many) that I'm talking about, is if a user has
+</I>&gt;<i> inventory on a inventory server, that user's inventory shouldn't be tied to
+</I>&gt;<i> any user server/grid. So the user should be able to use the same inventory
+</I>&gt;<i> set on multiple grids. At the moment that means they have the same userid on
+</I>&gt;<i> each grid but thats no problem (and in the future I hope we will support a
+</I>&gt;<i> better way of identifying a inventory belongs to a user).
+</I>&gt;<i>
+</I>&gt;<i> So lets call the Inventory server InvN like you used. My single inventory
+</I>&gt;<i> set (of folders/items) on that server is called InvSetA. Then we have Grid A
+</I>&gt;<i> and Grid B.  With user server A and B. When I log into grid A it should use
+</I>&gt;<i> InvN to receive InvSetA. But also if I log out of grid A and log into grid B
+</I>&gt;<i> then it should also use InvN to receive InvSetA. The inventory set (of
+</I>&gt;<i> folders/items) isn't tied to a single grid/avatar. It belongs to the user.
+</I>&gt;<i> The &quot;grid&quot; is just using a guid (avatarID) to access the correct inventory
+</I>&gt;<i> set. So as long as both grids use the same id, they should be able to use
+</I>&gt;<i> the same inventory.
+</I>&gt;<i>
+</I>&gt;<i> So in this case if we have the pull from user server approach to
+</I>&gt;<i> authenticating then it needs to switch between user server A and B,
+</I>&gt;<i> depending on what grid the user is currently logged into. So again it would
+</I>&gt;<i> require a push somewhere to update which is the current user server for that
+</I>&gt;<i> user.
+</I>&gt;<i>
+</I>&gt;<i> As far as I can tell, your solution just stops a inventory server being
+</I>&gt;<i> tied to a single grid/user server and instead ties each inventory set to a
+</I>&gt;<i> grid/user server. That is better than tying the whole server. But it doesn't
+</I>&gt;<i> support the above case.
+</I>&gt;<i>
+</I>&gt;<i> There are a number of other use cases that would require multiple
+</I>&gt;<i> grids/instances to access a single inventory set.
+</I>&gt;<i>
+</I>&gt;<i> I find it helps if we think of User server and the grid server as seperate
+</I>&gt;<i> to the inventory and asset server. The user server defines what users can
+</I>&gt;<i> access a grid (plus other data like what inventory server that user is
+</I>&gt;<i> using).  The grid server defines and manages what regions are on a grid.
+</I>&gt;<i>
+</I>&gt;<i> But asset and inventory server can (in part) be thought of more as end user
+</I>&gt;<i> servers. In that a user could use the same servers on multiple grids and
+</I>&gt;<i> that can mean using the same inventory on all grids. So then if we think
+</I>&gt;<i> about defining on the asset and inventory servers what grids/regions can
+</I>&gt;<i> access them.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> *liu xiaolu &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lulurun at gmail.com</A>&gt;* wrote:
+</I>&gt;<i>
+</I>&gt;<i> First, I want to clarify that, I am not against what you said
+</I>&gt;<i> To release inventory, asset server become independent ones is also what I
+</I>&gt;<i> have been working on.
+</I>&gt;<i>
+</I>&gt;<i> I am just trying to introduce my thoughts:
+</I>&gt;<i> &gt;&gt;[solution:]
+</I>&gt;<i> &gt;&gt;* add a new table for inventoryserver, 2 fields, useruuid,
+</I>&gt;<i> userserver_url, everytime inventoryserver
+</I>&gt;<i> &gt;&gt;  extract &quot;session_id&quot;, &quot;user_id&quot; from the request, get &quot;userserver_url&quot;
+</I>&gt;<i> by &quot;user_id&quot;, then check the
+</I>&gt;<i> &gt;&gt;  identity of &quot;user_id&quot; from &quot;userserver_url&quot; (call check_auth_session)
+</I>&gt;<i> &gt;I really think rather than the inventory server calling a authenticate
+</I>&gt;<i> method on the user server. That
+</I>&gt;<i> &gt;the user server should send a sessionid to the inventory server when a new
+</I>&gt;<i> login happens. I guess
+</I>&gt;<i> &gt;your idea of the userserver_url was something silmilar in that the
+</I>&gt;<i> userserver would update it when
+</I>&gt;<i> &gt;a user logs in? Otherwise if it was just &quot;hardcoded&quot; in the db then it
+</I>&gt;<i> wouldn't solve anything.
+</I>&gt;<i>
+</I>&gt;<i> sorry for the lack of explanation of the new table, temporary let me call
+</I>&gt;<i> it &quot;userserver_dictionary&quot;.
+</I>&gt;<i> * &quot;userserver_dictionary&quot; is a table always together with inventoryfolers,
+</I>&gt;<i> inventoryitems
+</I>&gt;<i> * &quot;userserver_dictionary&quot; has 2 column: user_id pkey, userserver_url
+</I>&gt;<i> // user registration
+</I>&gt;<i> when a new user registered at a GridService G1, the user will possibly have
+</I>&gt;<i> its account on G1's
+</I>&gt;<i> userserver U1, then, no matter which inventoryserver the user is using(or
+</I>&gt;<i> going to use), assume it is called InvN,
+</I>&gt;<i> InvN's &quot;userserver_dictionary&quot; would be added 1 record &lt;&quot;uid&quot;, U1's url&gt;,
+</I>&gt;<i> // user login to VW
+</I>&gt;<i> * user get authentication at U1, get &quot;session_id&quot;
+</I>&gt;<i> * user login into a regionserver, regionserver gets user's profile and
+</I>&gt;<i> extract user's inventoryserver InvN from its profile.
+</I>&gt;<i> * regionserver requests getInventory(&quot;session_id&quot;, user.uuid) from InvN.
+</I>&gt;<i> * InvN gets &quot;U1's url&quot; by user.uuid from &quot;userserver_dictionary&quot;
+</I>&gt;<i> * InvN requests check_auth_session(&quot;session_id&quot;, user.uuid) from &quot;U1's url&quot;
+</I>&gt;<i> //
+</I>&gt;<i> in this case, dose InvN satisfies what you want ?
+</I>&gt;<i> * InvN is separate from any other server
+</I>&gt;<i> * InvN is independent, not rely on any userserver, it pull identity under
+</I>&gt;<i> user's specification(get &quot;userserver_url&quot; by uuid)
+</I>&gt;<i> * InvN can store users from different gridsevices
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Lulurun
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ------------------------------
+</I>&gt;<i> Not happy with your email address?
+</I>&gt;<i>  Get the one you really want &lt;<A HREF="http://uk.docs.yahoo.com/ymail/new.html">http://uk.docs.yahoo.com/ymail/new.html</A>&gt; -
+</I>&gt;<i> millions of new email addresses available now at Yahoo!&lt;<A HREF="http://uk.docs.yahoo.com/ymail/new.html">http://uk.docs.yahoo.com/ymail/new.html</A>&gt;
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+Lulurun
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080726/85c19290/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080726/85c19290/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002472.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+	<LI>Next message: <A HREF="002484.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2478">[ date ]</a>
+              <a href="thread.html#2478">[ thread ]</a>
+              <a href="subject.html#2478">[ subject ]</a>
+              <a href="author.html#2478">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

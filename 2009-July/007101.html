@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Warning w/ ODE &amp; llTargetOmega
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Warning%20w/%20ODE%20%26%20llTargetOmega&In-Reply-To=%3C34cc66250907101101m4991be4bh4e57f123b8a07e55%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007098.html">
+   <LINK REL="Next"  HREF="007076.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Warning w/ ODE &amp; llTargetOmega</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Warning%20w/%20ODE%20%26%20llTargetOmega&In-Reply-To=%3C34cc66250907101101m4991be4bh4e57f123b8a07e55%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Warning w/ ODE &amp; llTargetOmega">teravus at gmail.com
+       </A><BR>
+    <I>Fri Jul 10 20:01:06 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007098.html">[Opensim-dev] Warning w/ ODE &amp; llTargetOmega
+</A></li>
+        <LI>Next message: <A HREF="007076.html">[Opensim-dev] Proposal: change opensim command line options for	console
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7101">[ date ]</a>
+              <a href="thread.html#7101">[ thread ]</a>
+              <a href="subject.html#7101">[ subject ]</a>
+              <a href="author.html#7101">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After looking at the code again, I could not find a single place that
+set PhysActor.RotationalVelocity, which, is the proper property for
+setting angular velocity in the physics engine currently.   This means
+that physics isn't aware, currently, of any case where a specific
+rotational velocity is set like would be expected to occur if you made
+a llTargetOmega prim physical.
+
+There's also a PhysActor.Torque, that acts as a single Impulse,
+however, that's only used from llSetTorque and llSetForceAndTorque.
+ This means that there's currently no visible way for llTargetOmega to
+have a different effect on physics based on phantom status.  The
+Angular Velocity is never sent to the physics layer from the Scene
+Graph layer.
+
+The fact that this is missing is interesting to me because I remember
+testing the functionality way back when.
+
+Regards
+
+Teravus
+
+On Fri, Jul 10, 2009 at 12:50 PM, Charles Krinke&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+&gt;<i> Well,... then lets patch it until we can get it to the 'happiness' state.
+</I>&gt;<i> Patches eagerly accepted.
+</I>&gt;<i>
+</I>&gt;<i> Charles
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i> From: Brianna &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">wwwench at gmail.com</A>&gt;
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Sent: Friday, July 10, 2009 9:42:19 AM
+</I>&gt;<i> Subject: Re: [Opensim-dev] Warning w/ ODE &amp; llTargetOmega
+</I>&gt;<i>
+</I>&gt;<i> Suffice it to say, llTargetOmega was semi promised to be implemented 6
+</I>&gt;<i> months ago and with fixes to well documented issues. Doesn't work yet.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ----- Original Message -----
+</I>&gt;<i> From: Nebadon Izumi
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Sent: Friday, July 10, 2009 9:34 AM
+</I>&gt;<i> Subject: Re: [Opensim-dev] Warning w/ ODE &amp; llTargetOmega
+</I>&gt;<i> Apparently if you don't set Phantom Manually with lltargetomega, the flag is
+</I>&gt;<i> not actually set&#160; and ODE might be interpreting as such.
+</I>&gt;<i>
+</I>&gt;<i> Neb
+</I>&gt;<i> On Fri, Jul 10, 2009 at 2:36 AM, Melanie &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt; wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> What does Ode do &#160;with llTargetOmega? Unless the object is physical,
+</I>&gt;&gt;<i> llTargetOmega is a clientside effect and should not cause any
+</I>&gt;&gt;<i> physics updates.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Frisby, Adam wrote:
+</I>&gt;&gt;<i> &gt; Just a warning folks
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; I just spent a week trying to figure out why LBSA Plaza was lagging all
+</I>&gt;&gt;<i> &gt; of a sudden - apparently llTargetOmega can cause ODE to progressively run
+</I>&gt;&gt;<i> &gt; slower and slower. Setting the object in question to phantom instantly fixed
+</I>&gt;&gt;<i> &gt; the problem.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; This might be of use to anyone else who notices a similar condition
+</I>&gt;&gt;<i> &gt; whereby the sim CPU progressively increases over time.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Adam
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; ------------------------------------------------------------------------
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Michael Emory Cerquoni - Nebadon Izumi @ <A HREF="http://osgrid.org">http://osgrid.org</A>
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007098.html">[Opensim-dev] Warning w/ ODE &amp; llTargetOmega
+</A></li>
+	<LI>Next message: <A HREF="007076.html">[Opensim-dev] Proposal: change opensim command line options for	console
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7101">[ date ]</a>
+              <a href="thread.html#7101">[ thread ]</a>
+              <a href="subject.html#7101">[ subject ]</a>
+              <a href="author.html#7101">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

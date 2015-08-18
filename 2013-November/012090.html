@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Notes on varregion
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Notes%20on%20varregion&In-Reply-To=%3CCAJ%3DJWqy42ADR-OVohbBNb2x7r8A2Ax3_FrVAzEzBsOWpWfdhgw%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="012082.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Notes on varregion</H1>
+    <B>Mister Blue</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Notes%20on%20varregion&In-Reply-To=%3CCAJ%3DJWqy42ADR-OVohbBNb2x7r8A2Ax3_FrVAzEzBsOWpWfdhgw%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Notes on varregion">misterblue at misterblue.com
+       </A><BR>
+    <I>Sat Nov 30 04:43:00 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="012082.html">[Opensim-dev] UUID field at land table
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12090">[ date ]</a>
+              <a href="thread.html#12090">[ thread ]</a>
+              <a href="subject.html#12090">[ subject ]</a>
+              <a href="author.html#12090">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>There are so many 'social network' services that I don't know where to
+publish anything any more. I've taken to putting notes on my 'varregion'
+implementation on my blog at <A HREF="http://misterblue.com">http://misterblue.com</A> and in my OpenSim circle
+on Google+. People suggested this is another forum for notes. Well here are
+a few notes:
+
+VarRegion: adding TerrainData and HeightmapTerrainData
+classes&lt;<A HREF="http://misterblue.com/wwpp/archives/20131129-varregion">http://misterblue.com/wwpp/archives/20131129-varregion</A>&gt;
+
+One major problem is passing the terrain data from the region to
+the protocol stack. The existing implementation passed an array of
+floats that were presumed to be a 256&#215;256 array of region terrain
+heights. The TerrainChannelclass is an attempt to hide the terrain
+implementation from TerrainModule. TerrainChannel can&#8217;t be passed into the
+protocol
+stack (LLClientView) because TerrainChannel is defined as part of
+OpenSim.Region.Framework which is not visible to the protocol code.
+
+My solution is to create the TerrainData class in OpenSim.Framework.
+TerrainData just wraps the data structure for the terrain and additionally
+has the attributes giving X and Y size.
+
+I didn&#8217;t want to change the signature of IClientAPI since so many external
+modules rely on it. It should be  changed to pass TerrainData rather than a
+float[]. I decided to not change IClientAPI but rather have
+LLClientView ignore the
+passed array and instead reach back into the associated scene and fetch the
+TerrainDatainstance.
+
+At the moment, all of these changes are in the varregion branch of the
+OpenSimulator repository.
+Varregion: crossing region
+boundries&lt;<A HREF="http://misterblue.com/wwpp/archives/20131129-varregion-crossing-region-boundries">http://misterblue.com/wwpp/archives/20131129-varregion-crossing-region-boundries</A>&gt;
+
+Most of the &#8216;move to new region&#8217; code is based on checking boundaries.
+There is much code related to computing if an object or avatar has crossed
+a region boundary and then computing the address of the next region from
+same. Introducing variable sized regions messes a lot of this computation
+up. That is, the code doing the arithmetic usually assumes it knows the
+address of the next region based on a known region size and them can
+compute the location of the next region based on that. With varregions
+those assumptions no longer hold. Varregion implementation means that the
+computation of region base locations and border locations moves to the
+GridService who is the entity who really knows the size of all the regions
+and what is adjacent to what.
+
+The realization that location to region computation is really a GridService
+operation lead me to totally rip apart the grid boundary checking code and
+replace it with two functions: Scene.PositionIsInCurrentRegion(Vector3 pos) and
+then IGridService.GetRegionContainingWorldLocation(double X, double Y). The
+former function tests to see if the object/avatar has moved out of the
+current region and the latter gets the region moved into.
+
+A side note is the computation of positions. A region has a base X,Y that
+is measured in meters and in &#8220;region units&#8221; (the number of 256 regions to
+this point). For instance, the region location of (1000,1000) is in &#8216;region
+units&#8217; which is the number of 256 meter regions to the location. The &#8220;world
+coordinate&#8221; of the region is (256000, 256000) &#8212; the meters from zero. These
+meter measurements are usually passed around at &#8216;int&#8217;s or &#8216;uint&#8217;s. An
+object/avatar within a region has a relative position &#8212; relative to the
+base of the region. This relative location is usually a &#8216;float&#8217;. So an
+object would be at (23.234, 44.768) withing a region. An object&#8217;s world
+location, though, must be a &#8216;double&#8217; since a C# float has only 6 or 7
+significant digits. An object&#8217;s relative location (float) plus a region&#8217;s
+base (uint) are combined into a world coordinate (double) that can be used
+to find the region that includes  that point.
+varregion: maximum region
+size&lt;<A HREF="http://misterblue.com/wwpp/archives/20131129-varregion-maximum-region-size">http://misterblue.com/wwpp/archives/20131129-varregion-maximum-region-size</A>&gt;
+
+Seems that 8192 is a good maximum for region size. Both the viewer and the
+simulator agree.
+
+To that end, I added Constants.MaximumRegionSize and have RegionInfo enforcing
+same.
+
+Having a maximum region size is also good for searching for neighbor
+regions as this limits the search area. This constant is thus used in the
+&#8216;find neighboring region&#8217; logic as well as the &#8216;find region containing
+point&#8217; logic.
+
+For the moment, this is in the varregion branch of the OpenSimulator source
+repository.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20131129/ea9603d6/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20131129/ea9603d6/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="012082.html">[Opensim-dev] UUID field at land table
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#12090">[ date ]</a>
+              <a href="thread.html#12090">[ thread ]</a>
+              <a href="subject.html#12090">[ subject ]</a>
+              <a href="author.html#12090">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

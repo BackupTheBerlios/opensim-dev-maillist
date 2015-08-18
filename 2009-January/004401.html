@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] .NET / Mono lock(obj) statement
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.NET%20/%20Mono%20lock%28obj%29%20statement&In-Reply-To=%3COF5270541F.0F1CA8F7-ON8525753E.0040FA3E-8525753E.00413B69%40us.ibm.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004408.html">
+   <LINK REL="Next"  HREF="004402.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] .NET / Mono lock(obj) statement</H1>
+    <B>Alan M Webb</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.NET%20/%20Mono%20lock%28obj%29%20statement&In-Reply-To=%3COF5270541F.0F1CA8F7-ON8525753E.0040FA3E-8525753E.00413B69%40us.ibm.com%3E"
+       TITLE="[Opensim-dev] .NET / Mono lock(obj) statement">alan_webb at us.ibm.com
+       </A><BR>
+    <I>Wed Jan 14 12:52:28 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004408.html">[Opensim-dev] .NET / Mono lock(obj) statement
+</A></li>
+        <LI>Next message: <A HREF="004402.html">[Opensim-dev] .NET / Mono lock(obj) statement
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4401">[ date ]</a>
+              <a href="thread.html#4401">[ thread ]</a>
+              <a href="subject.html#4401">[ subject ]</a>
+              <a href="author.html#4401">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Does someone have an actual test case (as simple as the one shown here) 
+that DOES exhibit the problem? And can they say what version of mono, what 
+OS (distro, version, and kernel release), and which processor (and how 
+many?).
+
+Best regards
+Alan
+-------------------
+T.J. Watson Research Center, Hawthorne, NY
+1-914-784-7286
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.com</A>
+
+
+
+From:
+Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+To:
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Date:
+01/13/2009 11:58 PM
+Subject:
+[Opensim-dev] .NET / Mono lock(obj) statement
+
+
+
+Hi everyone,
+
+Just got back from vacation to TP grief caused by extra locking 
+introduced in 7982. The extra locking is all good, but it seems that 
+certain things confuse the heck out of mono, so I thought I'd bring up 
+the issue here -- I'm pretty sure this problem occurs in other places of 
+the code too, so it's good to know what to expect. I'd certainly like to 
+find out more about the .NET spec.
+
+Here's a simplified version of the problem:
+
+lock (a)
+{
+   foo();
+}
+
+void foo()
+{
+  lock (a)
+  {
+    ...
+  }
+}
+
+(the real situation is a bit more complicated; foo() involves a 
+delegate; but ignore that)
+
+In Java, this situation does NOT result in locking, because it's the 
+same thread that's acquiring object a. I can't find the spec for .NET 
+for this particular issue, but I'd be very surprised if it is different 
+from Java. Nevertheless, mono was deadlocking here; Windows was not. I 
+find the mono behavior very strange.
+
+Crista
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090114/fa22699a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090114/fa22699a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004408.html">[Opensim-dev] .NET / Mono lock(obj) statement
+</A></li>
+	<LI>Next message: <A HREF="004402.html">[Opensim-dev] .NET / Mono lock(obj) statement
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4401">[ date ]</a>
+              <a href="thread.html#4401">[ thread ]</a>
+              <a href="subject.html#4401">[ subject ]</a>
+              <a href="author.html#4401">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

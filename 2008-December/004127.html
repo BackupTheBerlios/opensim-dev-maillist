@@ -1,0 +1,268 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] openid (other authentication methods)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20openid%20%28other%20authentication%20methods%29&In-Reply-To=%3C6b9359640812162049i64e11f04pa89a8825c894c325%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004122.html">
+   <LINK REL="Next"  HREF="004136.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] openid (other authentication methods)</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20openid%20%28other%20authentication%20methods%29&In-Reply-To=%3C6b9359640812162049i64e11f04pa89a8825c894c325%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] openid (other authentication methods)">aerowolf at gmail.com
+       </A><BR>
+    <I>Wed Dec 17 05:49:50 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004122.html">[Opensim-dev] openid (other authentication methods)
+</A></li>
+        <LI>Next message: <A HREF="004136.html">[Opensim-dev] service monitoring for opensim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4127">[ date ]</a>
+              <a href="thread.html#4127">[ thread ]</a>
+              <a href="subject.html#4127">[ subject ]</a>
+              <a href="author.html#4127">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>May I suggest some possible use-cases, so that the design doesn't
+inadvertently exclude them?
+
+TLS authentication requires obtaining information from the TLS session
+-- specifically, it requires obtaining the certificate with which the
+client authenticates.  (I would recommend not relying on just the
+Subject, but also the issuer and extensions -- which means that
+implementing it as a CGI script is probably not really all that
+useful, unless the webserver provides the full client-presented
+certificate to the CGI program.)  Once the certificate is obtained,
+the authentication information should be extracted therefrom.  The
+use-case is that the client has a certificate issued by a CA that the
+login/user server trusts (this CA perhaps even run by the user
+server).  The certificate itself identifies which account to look at,
+though it does not necessarily have to have the &quot;firstname lastname&quot;
+approach taken in the current SL-grid model.
+
+OpenID authentication requires an online connection to the OpenID
+provider, and allows one to &quot;own&quot; an identity that can be proven
+elsewhere on the 'net.  This requires an OpenID client in the
+authentication server/user server, atop the OpenID provider that the
+patch provides.  This identity should be linked to one avatar (though
+it would likely be useful to allow a one-OpenID-to-many-avatar
+configuration, as well as [for business accounts, for example customer
+service] one-avatar-to-many-OpenID).
+
+I'm certain that there are others (such as a Windows Active Directory
+login mechanism, or a UNIX PAM-like login mechanism).
+
+So, basically, what this means is that the authserver needs to be able
+to handle its own network connection to the client (taking over the
+current UserServer duty), needs to be able to accept any arbitrary
+information over that connection, needs to be able to do whatever it
+wants with that information, and eventually figure out how to
+associate that authentication credential to a UserServer identity.
+Then, it needs to set whatever on the back end so that the other
+services know that the AuthServer has blessed the connection.
+
+-Kyle H
+
+
+
+On Tue, Dec 16, 2008 at 1:01 AM, Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:
+&gt;<i> I believe, based on quite a few discussions with quite a few people lately,
+</I>&gt;<i> that it's time we finally started thinking about and working on the backend
+</I>&gt;<i> architecture.
+</I>&gt;<i>
+</I>&gt;<i> I propose we take the same &quot;modularized and malleable&quot; approach that
+</I>&gt;<i> has been so successful on the region side - which would in effect mean,
+</I>&gt;<i>
+</I>&gt;<i> * an extensible plugin system (Hooking up to events, like in the region)
+</I>&gt;<i> * support for several authentication sources (As plug-ins)
+</I>&gt;<i> and
+</I>&gt;<i> * support for several, co-existing and complementing, client and backend
+</I>&gt;<i> protocols (I've already suggested that we center on a good set of 'handlers'
+</I>&gt;<i> that can be re-used - it seems like a good unifying point.)
+</I>&gt;<i>
+</I>&gt;<i> Given that we haven't done much on the servers anyway, I think that this is
+</I>&gt;<i> an golden opportunity.
+</I>&gt;<i>
+</I>&gt;<i> By the way, another good thing with the 'handlers' approach is that that
+</I>&gt;<i> would, in theory, let you 'assemble' a server process by just choosing what
+</I>&gt;<i> handlers to register in it, so if you want to separate login from user
+</I>&gt;<i> (which makes big sense from a security standpoint) you could just configure
+</I>&gt;<i> two processes.
+</I>&gt;<i>
+</I>&gt;<i> Best regards,
+</I>&gt;<i> Stefan Andersson
+</I>&gt;<i> Tribal Media AB
+</I>&gt;<i>
+</I>&gt;&gt;<i> Date: Mon, 15 Dec 2008 17:11:39 -0800
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">aerowolf at gmail.com</A>
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] openid (other authentication methods)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Would there be a major problem with allowing an X.509
+</I>&gt;&gt;<i> client-certificate based authentication system? (No, it won't work
+</I>&gt;&gt;<i> with the existing Linden client either.)
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -Kyle H
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On Mon, Dec 15, 2008 at 5:39 AM, James Stallings II
+</I>&gt;&gt;<i> &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">james.stallings at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt; I am not JHurliman, but I have actually given this topic considerable
+</I>&gt;&gt;<i> &gt; thought. As I see things, there probably is no way to incorporate OpenID
+</I>&gt;&gt;<i> &gt; directly into the existing client.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; I dont let this concern me overmuch - I think constraining ourselves to
+</I>&gt;&gt;<i> &gt; existing client functionality is a certain way to allow our friends at
+</I>&gt;&gt;<i> &gt; Linden Labs to remain the defacto industry leaders of this technology.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Now that that is out of the way, there are certain methodologies that I
+</I>&gt;&gt;<i> &gt; could employ to put an OpenID capability to work today:
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Scenario 1: Keep all accounts 'deactivated' by default (even when they
+</I>&gt;&gt;<i> &gt; are
+</I>&gt;&gt;<i> &gt; valid, active accounts), activating them only at such time as the OpenID
+</I>&gt;&gt;<i> &gt; authorization method I've embedded into the splash page is completed.
+</I>&gt;&gt;<i> &gt; Once
+</I>&gt;&gt;<i> &gt; that embedded authorization procedure is completed, the account would be
+</I>&gt;&gt;<i> &gt; enabled, and login would procede as normally occurs with the client.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Scenario 2: All login procedures as per usual; OpenID kept on file for
+</I>&gt;&gt;<i> &gt; for
+</I>&gt;&gt;<i> &gt; positive identification on an as-needed basis where such things are
+</I>&gt;&gt;<i> &gt; relevant: access to mature content, proof of ownership of assets,
+</I>&gt;&gt;<i> &gt; resolution
+</I>&gt;&gt;<i> &gt; of complaints, etc.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Scenario 3: External authentication layers that might be built on top of
+</I>&gt;&gt;<i> &gt; e.g., Hypergrid or OGP, which cant really be explored at present because
+</I>&gt;&gt;<i> &gt; we
+</I>&gt;&gt;<i> &gt; have no support for authenticating via OpenID.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; These are just three that occur to me off the top of my head. I think
+</I>&gt;&gt;<i> &gt; all
+</I>&gt;&gt;<i> &gt; represent use cases that are desirable here and now. We simply lack the
+</I>&gt;&gt;<i> &gt; tools to implement them at present. All that remains is that some
+</I>&gt;&gt;<i> &gt; trailblazing group put the tools in the hands of users.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Will we blaze that trail? or will we read about who already has on the
+</I>&gt;&gt;<i> &gt; Linden blog?
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; I say +100, get this patch in trunk. ASAP.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Cheers
+</I>&gt;&gt;<i> &gt; James
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; On Mon, Dec 15, 2008 at 7:03 AM, Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>&gt; wrote:
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Hurliman, John wrote:
+</I>&gt;&gt;<i> &gt;&gt; &gt;
+</I>&gt;&gt;<i> &gt;&gt; &gt; A clarification on the patch, this adds OpenID provider support to
+</I>&gt;&gt;<i> &gt;&gt; &gt; user
+</I>&gt;&gt;<i> &gt;&gt; &gt; server. It does not turn the user server into an OpenID consumer. I
+</I>&gt;&gt;<i> &gt;&gt; &gt; think
+</I>&gt;&gt;<i> &gt;&gt; &gt; OpenID grid login is a very interesting discussion that should take
+</I>&gt;&gt;<i> &gt;&gt; &gt; place on
+</I>&gt;&gt;<i> &gt;&gt; &gt; the mailing list, but what this does is allow you to prove ownership
+</I>&gt;&gt;<i> &gt;&gt; &gt; of an
+</I>&gt;&gt;<i> &gt;&gt; &gt; avatar on a grid. You could leave a comment on a blog using your
+</I>&gt;&gt;<i> &gt;&gt; &gt; avatar
+</I>&gt;&gt;<i> &gt;&gt; &gt; identity, for example. The main reason for the patch is to pave the
+</I>&gt;&gt;<i> &gt;&gt; &gt; way to
+</I>&gt;&gt;<i> &gt;&gt; &gt; building a secure hypergrid. Now that OpenSim is evolving into a
+</I>&gt;&gt;<i> &gt;&gt; &gt; federated
+</I>&gt;&gt;<i> &gt;&gt; &gt; grid model it's critical to be able to carry identity around the
+</I>&gt;&gt;<i> &gt;&gt; &gt; metaverse.
+</I>&gt;&gt;<i> &gt;&gt; &gt; I also have a patch for the distributed asset service that
+</I>&gt;&gt;<i> &gt;&gt; &gt; authenticates all
+</I>&gt;&gt;<i> &gt;&gt; &gt; inventory and asset transactions against the user server and allows
+</I>&gt;&gt;<i> &gt;&gt; &gt; whitelisting/blacklisting of foreign grids (will be committed very
+</I>&gt;&gt;<i> &gt;&gt; &gt; soon
+</I>&gt;&gt;<i> &gt;&gt; &gt; after some cleanup).
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Could you explain that authentication flow with the existing client?
+</I>&gt;&gt;<i> &gt;&gt; While this patch doesn't hurt anything, I'd really like to understand
+</I>&gt;&gt;<i> &gt;&gt; where this is going before we commit something like this.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; -Sean
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; --
+</I>&gt;&gt;<i> &gt;&gt; Sean Dague / Neas Bade
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="http://dague.net">http://dague.net</A>
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; --
+</I>&gt;&gt;<i> &gt; ===================================
+</I>&gt;&gt;<i> &gt; The wind
+</I>&gt;&gt;<i> &gt; scours the earth for prayers
+</I>&gt;&gt;<i> &gt; The night obscures them
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; <A HREF="http://osgrid.org">http://osgrid.org</A>
+</I>&gt;&gt;<i> &gt; <A HREF="http://del.icio.us/SPQR">http://del.icio.us/SPQR</A>
+</I>&gt;&gt;<i> &gt; <A HREF="http://twitter.com/jstallings2">http://twitter.com/jstallings2</A>
+</I>&gt;&gt;<i> &gt; <A HREF="http://www.linkedin.com/pub/5/770/a49">http://www.linkedin.com/pub/5/770/a49</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; _______________________________________________
+</I>&gt;&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004122.html">[Opensim-dev] openid (other authentication methods)
+</A></li>
+	<LI>Next message: <A HREF="004136.html">[Opensim-dev] service monitoring for opensim
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4127">[ date ]</a>
+              <a href="thread.html#4127">[ thread ]</a>
+              <a href="subject.html#4127">[ subject ]</a>
+              <a href="author.html#4127">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

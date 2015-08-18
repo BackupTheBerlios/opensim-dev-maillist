@@ -1,0 +1,231 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] nhibernate progress, baby steps
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20nhibernate%20progress%2C%20baby%20steps&In-Reply-To=%3C1207239598.4917.68.camel%40localhost.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001311.html">
+   <LINK REL="Next"  HREF="001316.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] nhibernate progress, baby steps</H1>
+    <B>Brian Wolfe</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20nhibernate%20progress%2C%20baby%20steps&In-Reply-To=%3C1207239598.4917.68.camel%40localhost.localdomain%3E"
+       TITLE="[Opensim-dev] nhibernate progress, baby steps">brianw at terrabox.com
+       </A><BR>
+    <I>Thu Apr  3 18:19:58 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001311.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+        <LI>Next message: <A HREF="001316.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1312">[ date ]</a>
+              <a href="thread.html#1312">[ thread ]</a>
+              <a href="subject.html#1312">[ subject ]</a>
+              <a href="author.html#1312">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>*nod* sounds good to me as well. I just have one request since we'll be
+changing things up at this level. Can we shoot for UUIDs being stored as
+a byte[16] in order to gain the 10x speedup in SQL indexing/storage vs
+string(32|36) ?
+
+
+On Thu, 2008-04-03 at 16:17 +0100, Michael Wright wrote:
+&gt;<i> ahh okay that sounds fine. I just wasn't sure if you were talking
+</I>&gt;<i> about having the nhibernate code (for storing via nhibernate) directly
+</I>&gt;<i> in the core classes. As I believe was talked about some time ago. But
+</I>&gt;<i> yeah making classes use Properties rather than Public variables is
+</I>&gt;<i> something we should be doing anyway.
+</I>&gt;<i> 
+</I>&gt;<i> Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt; wrote:
+</I>&gt;<i>         On Thu, Apr 03, 2008 at 03:05:31PM +0100, Michael Wright
+</I>&gt;<i>         wrote:
+</I>&gt;<i>         &gt; I'm not quite clear on how you plan to integrate this into
+</I>&gt;<i>         &gt; opensim. Will it be via interfaces like current db systems
+</I>&gt;<i>         are. So a
+</I>&gt;<i>         &gt; call is made on the interface asking the db system to store
+</I>&gt;<i>         that
+</I>&gt;<i>         &gt; object. Or are you planning on having these nhibernate
+</I>&gt;<i>         objects
+</I>&gt;<i>         &gt; directly in the core.
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; I'm really unsure of that, if that is the plan, as it ties
+</I>&gt;<i>         the core to
+</I>&gt;<i>         &gt; nhibernate without any chance of implementing a non
+</I>&gt;<i>         nhibernate based
+</I>&gt;<i>         &gt; storage system. I think we should have interfaces like
+</I>&gt;<i>         currently ,but
+</I>&gt;<i>         &gt; of course improved and more standardised. That would have a
+</I>&gt;<i>         call like
+</I>&gt;<i>         &gt; StorageAsset(AssetBase asset). But we can't rely on
+</I>&gt;<i>         AssetBase asset
+</I>&gt;<i>         &gt; being of type NHibernateAssetData. As that again would be
+</I>&gt;<i>         restricting
+</I>&gt;<i>         &gt; us to nhibernate.
+</I>&gt;<i>         
+</I>&gt;<i>         It goes into the standard OpenSim.Data.* model that happens
+</I>&gt;<i>         today. No
+</I>&gt;<i>         changes to the data layer there at this point.
+</I>&gt;<i>         
+</I>&gt;<i>         &gt; Maybe AssetBase isn't the best example of what I'm thinking.
+</I>&gt;<i>         But if
+</I>&gt;<i>         &gt; we had NhibernateSceneObjectGroup. We couldn't expect all
+</I>&gt;<i>         &gt; SceneObjectGroup objects in the core to be of that sub type.
+</I>&gt;<i>         As what
+</I>&gt;<i>         &gt; if a Module add some sceneobjects and just used the base
+</I>&gt;<i>         type.
+</I>&gt;<i>         
+</I>&gt;<i>         As an example, this is what a NHibernate friendly AssetBase
+</I>&gt;<i>         looks like.
+</I>&gt;<i>         Notice, there is really nothing NHibernate specific about
+</I>&gt;<i>         this. Code
+</I>&gt;<i>         wise it is binary compatible (just attributes replaced by
+</I>&gt;<i>         properties).
+</I>&gt;<i>         Someone that knows how serialization works could tell me
+</I>&gt;<i>         whether or not
+</I>&gt;<i>         the serialization will be the same. I added one convenience
+</I>&gt;<i>         property so
+</I>&gt;<i>         that we can get/set UUID as a string. SceneObjectGroup/Part
+</I>&gt;<i>         already
+</I>&gt;<i>         looks much more like this, and I think probably won't need any
+</I>&gt;<i>         changes.
+</I>&gt;<i>         
+</I>&gt;<i>         using System;
+</I>&gt;<i>         using libsecondlife;
+</I>&gt;<i>         
+</I>&gt;<i>         namespace OpenSim.Framework
+</I>&gt;<i>         {
+</I>&gt;<i>         [Serializable]
+</I>&gt;<i>         public class AssetBase
+</I>&gt;<i>         {
+</I>&gt;<i>         private byte[] _data;
+</I>&gt;<i>         private LLUUID _fullid;
+</I>&gt;<i>         private sbyte _type;
+</I>&gt;<i>         private sbyte _invtype;
+</I>&gt;<i>         private string _name = String.Empty;
+</I>&gt;<i>         private string _description = String.Empty;
+</I>&gt;<i>         private bool _local = false;
+</I>&gt;<i>         private bool _temporary = false;
+</I>&gt;<i>         
+</I>&gt;<i>         public AssetBase()
+</I>&gt;<i>         {
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public AssetBase(LLUUID assetId, string name)
+</I>&gt;<i>         {
+</I>&gt;<i>         FullID = assetId;
+</I>&gt;<i>         Name = name;
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual LLUUID FullID {
+</I>&gt;<i>         get { return _fullid; }
+</I>&gt;<i>         set { _fullid = value; }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual string ID {
+</I>&gt;<i>         get { return _fullid.ToString(); }
+</I>&gt;<i>         set { _fullid = new LLUUID(value); }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual byte[] Data {
+</I>&gt;<i>         get { return _data; }
+</I>&gt;<i>         set { _data = value; }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual sbyte Type {
+</I>&gt;<i>         get { return _type; }
+</I>&gt;<i>         set { _type = value; }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual sbyte InvType {
+</I>&gt;<i>         get { return _invtype; }
+</I>&gt;<i>         set { _invtype = value; }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual string Name {
+</I>&gt;<i>         get { return _name; }
+</I>&gt;<i>         set { _name = value; }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual string Description {
+</I>&gt;<i>         get { return _description; }
+</I>&gt;<i>         set { _description = value; }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual bool Local {
+</I>&gt;<i>         get { return _local; }
+</I>&gt;<i>         set { _local = value; }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         public virtual bool Temporary {
+</I>&gt;<i>         get { return _temporary; }
+</I>&gt;<i>         set { _temporary = value; }
+</I>&gt;<i>         }
+</I>&gt;<i>         }
+</I>&gt;<i>         }
+</I>&gt;<i>         
+</I>&gt;<i>         -Sean
+</I>&gt;<i>         
+</I>&gt;<i>         -- 
+</I>&gt;<i>         __________________________________________________________________
+</I>&gt;<i>         
+</I>&gt;<i>         Sean Dague Mid-Hudson Valley
+</I>&gt;<i>         sean at dague dot net Linux Users Group
+</I>&gt;<i>         <A HREF="http://dague.net">http://dague.net</A> <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;<i>         
+</I>&gt;<i>         There is no silver bullet. Plus, werewolves make better
+</I>&gt;<i>         neighbors
+</I>&gt;<i>         than zombies, and they tend to keep the vampire population
+</I>&gt;<i>         down.
+</I>&gt;<i>         __________________________________________________________________
+</I>&gt;<i>         _______________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ______________________________________________________________________
+</I>&gt;<i> Sent from Yahoo! Mail. 
+</I>&gt;<i> A Smarter Inbox.
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001311.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+	<LI>Next message: <A HREF="001316.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1312">[ date ]</a>
+              <a href="thread.html#1312">[ thread ]</a>
+              <a href="subject.html#1312">[ subject ]</a>
+              <a href="author.html#1312">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

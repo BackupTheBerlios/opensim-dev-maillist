@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] oddities with asset storage
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20oddities%20with%20asset%20storage&In-Reply-To=%3C499C2756.6070402%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005151.html">
+   <LINK REL="Next"  HREF="005153.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] oddities with asset storage</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20oddities%20with%20asset%20storage&In-Reply-To=%3C499C2756.6070402%40googlemail.com%3E"
+       TITLE="[Opensim-dev] oddities with asset storage">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed Feb 18 16:20:54 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005151.html">[Opensim-dev] oddities with asset storage
+</A></li>
+        <LI>Next message: <A HREF="005153.html">[Opensim-dev] oddities with asset storage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5152">[ date ]</a>
+              <a href="thread.html#5152">[ thread ]</a>
+              <a href="subject.html#5152">[ subject ]</a>
+              <a href="author.html#5152">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dirk Krause wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> I did a little test with a fresh OpenSim installation (yes, thanks for
+</I>&gt;<i> the installer!),
+</I>&gt;<i> to get a grip on what I learned from Melanie yesterday.
+</I>&gt;<i> 
+</I>&gt;<i> I wrote a little python script to help me monitor these tables:
+</I>&gt;<i>   inventoryStore/inventoryItems
+</I>&gt;<i>   assetStorage/assets
+</I>&gt;<i> <A HREF="http://pastebin.com/mc9e6574">http://pastebin.com/mc9e6574</A> , be warned: ugly code.
+</I>&gt;<i> 
+</I>&gt;<i> I started OpenSim and logged in a 'Test User' with the SL viewer.
+</I>&gt;<i> 
+</I>&gt;<i> (Just to mention it - first time log in in as test users creates
+</I>&gt;<i> 4 'blank' entries in assets.)
+</I>&gt;<i> 
+</I>&gt;<i> The inventoryItems table was initially empty.
+</I>&gt;<i> 
+</I>&gt;<i> Now I rezzed a cube and renamed it to 'p1'.
+</I>&gt;<i> inventoryStore/inventoryItems was still empty.
+</I>&gt;<i> To my surprise no new entry shows up in assetStorage/assets.
+</I>
+Rezzing an object in a region does not involve the creation of any new assets - all the data is stored in unserialized 
+form in columns in the region database.
+
+&gt;<i> 
+</I>&gt;<i> Picking up the cube ('take') created an entry named 'p1' in the
+</I>&gt;<i> inventory and in the asset table.
+</I>
+The asset you see is the serialized object pointed to by your inventory item entry.
+
+&gt;<i> 
+</I>&gt;<i> Now I renamed the cube in Test Users inventory to 'p2'.
+</I>&gt;<i> The name in inventoryStore/inventoryItems changes to 'p2'.
+</I>&gt;<i> The entry in assetStorage/assets stays 'p1'. As mentioned on the list
+</I>&gt;<i> before,
+</I>&gt;<i> the asset name is useless, since the user only sees the name in the
+</I>&gt;<i> inventory.
+</I>
+Exactly.
+
+&gt;<i> 
+</I>&gt;<i> Now I deleted 'p2' in my inventory - 'p2's parentfolderID changes to
+</I>&gt;<i> 'Trash'.
+</I>&gt;<i> Now I emptied the trash - the inventory table is empty again, which is
+</I>&gt;<i> fine,
+</I>&gt;<i> but here's the big one:
+</I>&gt;<i>    the assetStorage/assets still holds the reference to 'p1'.
+</I>
+Exactly.
+
+&gt;<i> 
+</I>&gt;<i> Just to make sure I shut down the simulator and opened it again, and it
+</I>&gt;<i> was still there.
+</I>&gt;<i> 
+</I>&gt;<i> Now, doesn't that mean, that the database increases over time with no
+</I>&gt;<i> hope to find
+</I>&gt;<i> these assets that actually should be gone? or is there some magic
+</I>&gt;<i> purging that happens,
+</I>&gt;<i> and that I missed?
+</I>
+The problem is that you may have given that item to somebody else.  Giving an item does not make an asset copy, it just 
+makes an inventory item copy (both inventory items still point towards the same asset).
+
+So you may delete your item, but we don't know if the asset referenced by that item lives on in someone else's inventory 
+(or in an object inventory).  So we can't delete the underlying asset.
+
+&gt;<i> 
+</I>&gt;<i> This would mean that any grid runs into a severe problem over time.
+</I>
+Yep :).  On a standalone one could implement some cleanup scheme which checks everything to see if an asset is still 
+referenced, and deletes that asset if it is not.
+
+In grid mode this is a much more difficult problem since references are scattered across many different regions servers. 
+  The situation is even worse if you are running a grid where not all of them are guaranteed to be connected.
+
+&gt;<i> 
+</I>&gt;<i> Best,
+</I>&gt;<i>   Dirk/Bart
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005151.html">[Opensim-dev] oddities with asset storage
+</A></li>
+	<LI>Next message: <A HREF="005153.html">[Opensim-dev] oddities with asset storage
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5152">[ date ]</a>
+              <a href="thread.html#5152">[ thread ]</a>
+              <a href="subject.html#5152">[ subject ]</a>
+              <a href="author.html#5152">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

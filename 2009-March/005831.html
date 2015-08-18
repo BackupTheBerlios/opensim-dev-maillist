@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Unit%20tests%20should%20not%20be%20coupled%20%28WAS%3A%20Re%3A%0A%20%5BOpensim-commits%5D%20r8737%20-%20trunk/OpenSim/Framework/Communications/Tests%29&In-Reply-To=%3CBLU134-W46425B03524BAD09AA0633D5920%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005830.html">
+   <LINK REL="Next"  HREF="005832.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Unit%20tests%20should%20not%20be%20coupled%20%28WAS%3A%20Re%3A%0A%20%5BOpensim-commits%5D%20r8737%20-%20trunk/OpenSim/Framework/Communications/Tests%29&In-Reply-To=%3CBLU134-W46425B03524BAD09AA0633D5920%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)">stefan at tribalmedia.se
+       </A><BR>
+    <I>Mon Mar 23 14:39:02 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005830.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+        <LI>Next message: <A HREF="005832.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5831">[ date ]</a>
+              <a href="thread.html#5831">[ thread ]</a>
+              <a href="subject.html#5831">[ subject ]</a>
+              <a href="author.html#5831">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Yo,
+
+ 
+
+&gt;<i> I created the model for testing the database code. We can play
+</I>&gt;<i> semantics on whether database tests are unit tests or not, but at the
+</I>&gt;<i> end of the day, if the database don't work, all breaks, and the end user
+</I>&gt;<i> cries. Hence, testing there is good. :)
+</I>
+
+No arguing from me there.
+
+ 
+&gt;<i> In my experience, first order unit tests, i.e. stateless tests for
+</I>&gt;<i> objects, aren't usually very interesting, and rarely find bugs.
+</I>
+ 
+
+That of course depends on how it was coded. One of the benefits with TDD is that it pushes the code towards low-state low-coupling. Which makes the code even simpler to test, and needed changes in test cases more localized.
+
+
+&gt;<i> Complexity comes in the interaction between a couple of components where
+</I>&gt;<i> state is involved.
+</I>
+
+Which, both of them, pushes towards entangled difficult-to-maintain test-cases where you don't really know what the test is actually testing. The complexity should be adressed on each side of the contract. If something fails, it's should be one component or the other, not both in tandem.
+
+
+&gt;<i> The database tests have found at least a dozen tree breaks that might
+</I>&gt;<i> have taken a long time to sort out otherwise, so I think there is a lot
+</I>&gt;<i> of value there.
+</I>
+
+Of course there is. The full test suite should be run before each commit. But the tests should be divided into unit tests and integration tests, so that you can run the unit tests far more often than the integration tests.
+
+
+&gt;<i> While it is possible to make each of these tests stateless, you cause
+</I>&gt;<i> some new problems if you do that:
+</I>&gt;<i> * it's more work, which means people are less likely to contribute the
+</I>&gt;<i> tests
+</I>
+ 
+
+Stateful tests are bad for a number of very good reasons, most already mentioned here.
+
+
+&gt;<i> * it takes more time to execute, as you are constantly building up and
+</I>&gt;<i> destroying the same state. If the tests take longer to run, less people
+</I>&gt;<i> will run them.
+</I>
+
+Which won't be a problem if you're only supposed to run them before commit, and/or the CI catches them.
+
+
+&gt;<i> If we had a battery of tests that had a bunch of expected fails, then it
+</I>&gt;<i> would be more important to know more than just the first break point.
+</I>&gt;<i> But our tests are all supposed to always run, so the fact that we stop
+</I>&gt;<i> at the first break is ok. That exposes the earliest point where things
+</I>&gt;<i> when wrong. You fix that and move onto the next issue.
+</I>
+
+It's a very common thing to wanting to re-run only the test that failed.
+
+
+&gt;<i> I really think that this is a case of theory vs. practice. Theory says
+</I>&gt;<i> we shouldn't do it this way, but in practice it works better (at least
+</I>&gt;<i> from my experience doing this with 2 prior large scale projects).
+</I>
+
+And in my experience from two prior large scale projects, practise says the opposite.
+
+ 
+
+One of the 'killers' in CI involving tests is when the CI builder starts failing intermittently on integration tests just because something on the CI machine is configured in a certain way, or takes a certain time to execute. Having chained integrations tests in this setting will lead to real, practical, grief and can stall the testing for a long time, until the group identifies the failing link. This is most oftenly the point in time where the team re-writes the stateful tests into state-less.
+
+
+/Stefan
+
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090323/a6f52f98/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090323/a6f52f98/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005830.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+	<LI>Next message: <A HREF="005832.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5831">[ date ]</a>
+              <a href="thread.html#5831">[ thread ]</a>
+              <a href="subject.html#5831">[ subject ]</a>
+              <a href="author.html#5831">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

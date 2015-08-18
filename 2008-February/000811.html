@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] GridServer RPC security and region alive heartbeat
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20GridServer%20RPC%20security%20and%20region%20alive%20heartbeat&In-Reply-To=%3C1202502275.25597.23.camel%40localhost.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000889.html">
+   <LINK REL="Next"  HREF="000812.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] GridServer RPC security and region alive heartbeat</H1>
+    <B>Brian Wolfe</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20GridServer%20RPC%20security%20and%20region%20alive%20heartbeat&In-Reply-To=%3C1202502275.25597.23.camel%40localhost.localdomain%3E"
+       TITLE="[Opensim-dev] GridServer RPC security and region alive heartbeat">brianw at terrabox.com
+       </A><BR>
+    <I>Fri Feb  8 21:24:35 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000889.html">[Opensim-dev] FW: [opensim 0000112]: Unhandled	exception	in	LoadDefaultSharedModules
+</A></li>
+        <LI>Next message: <A HREF="000812.html">[Opensim-dev] GridServer RPC security and region alive heartbeat
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#811">[ date ]</a>
+              <a href="thread.html#811">[ thread ]</a>
+              <a href="subject.html#811">[ subject ]</a>
+              <a href="author.html#811">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After reading through the GridServer and Region.Communications.OGS1 I
+noticed a lack of region alive heartbeat fucntionality as well as a lack
+of security check on RPC requests to the GridServer. 
+
+There is a desire by several parties (including myself) to have up to
+date information on which regions are still online in a simple,
+unstressfull to GridServer, netowrk, and regions method.
+
+so two questions...
+
+Is there a need for checking keys on RPC calls after RegisterRegion
+sicne RegisterRegion has the option of authenticating via the keys?
+
+What is the best way for GridServer to keep track of what regions are
+still alive for a new RPC call requesting RegionOnlineStatus data?
+
+
+My thought is yes, there needs to be some kind of minimal check done on
+the current two RPC calls XmlRpcSimulatorDataRequestMethod and
+XmlRpcMapBlockMethod since they appear to ony be used by simulators.
+
+
+On the topic of the heartbeat I saw that there was a disabled chunk of
+code for having GridServer do a periodic heartbeat cal TO the regions. I
+think that this is backwards and will nto work nearly as well as having
+the regions report itno the gridserver.
+
+My proposal is to add LastSeen value to RegionData and implement a new
+XMLRPC handler called RegionHeartbeat. We can leverage the security
+check to keep the number of RegionHeartbeat calls down to a minimal by
+having it update the LastSeen stamp at the same time that it checks the
+keys (if the keys are NOT NULL). If the time interval between now and
+LastSeen in a regiondata is greater than a configurable time limit,
+thent he sim is considered offline and is reported as such in the
+getRegionsStatus RPC call. Optionally we can also add this field to the
+regions table to make it easy for external applications to gather online
+status data without having to pester the GridServer.
+
+On the Region side, when a packet is sent out, it sets it's
+HeartbeatSent = true. I would also add a timer that every X
+(configurable via OpenSim.ini) seconds the timer would check
+HeartbeatSent, and if false send a heartbeat RPC call, then clear it to
+False.
+
+
+Comments, suggestions, etc are as always desired. :)
+
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000889.html">[Opensim-dev] FW: [opensim 0000112]: Unhandled	exception	in	LoadDefaultSharedModules
+</A></li>
+	<LI>Next message: <A HREF="000812.html">[Opensim-dev] GridServer RPC security and region alive heartbeat
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#811">[ date ]</a>
+              <a href="thread.html#811">[ thread ]</a>
+              <a href="subject.html#811">[ subject ]</a>
+              <a href="author.html#811">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

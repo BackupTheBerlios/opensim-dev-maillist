@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chain
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20So%20I%20decided%20to%20give%20this%20one%20more%20shot%20before%20I%0A%09start%20chopping%20it%20up%20with%20a%20chain&In-Reply-To=%3C39037.65967.qm%40web23005.mail.ird.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000550.html">
+   <LINK REL="Next"  HREF="000548.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chain</H1>
+    <B>Michael Wright</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20So%20I%20decided%20to%20give%20this%20one%20more%20shot%20before%20I%0A%09start%20chopping%20it%20up%20with%20a%20chain&In-Reply-To=%3C39037.65967.qm%40web23005.mail.ird.yahoo.com%3E"
+       TITLE="[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chain">michaelwri22 at yahoo.co.uk
+       </A><BR>
+    <I>Fri Dec 14 15:38:50 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000550.html">[Opensim-dev] So I decided to give this one more shot before	I	start chopping it up with a chain
+</A></li>
+        <LI>Next message: <A HREF="000548.html">[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#551">[ date ]</a>
+              <a href="thread.html#551">[ thread ]</a>
+              <a href="subject.html#551">[ subject ]</a>
+              <a href="author.html#551">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>yup sounds like a good plan.
+
+Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; wrote:    .hmmessage P { margin:0px; padding:0px } body.hmmessage { FONT-SIZE: 10pt; FONT-FAMILY:Tahoma }  Ok, so; I revise my suggestion to a five-step plan:
+  
+ 1) Make sure nullable is serializable fine. (Teravus, you want to do the honours?)
+ 2) Introduce incoming and outbound packet pool so we don't create a lot of unneccesary LLUUIDs (Yo, joha1!)
+ 3) Remove the last remaining packet references outside of the ClientStack (ShapePacket et al in ScenePresence f.ex.)
+ 4) Purge the solution of LLUUIDs (except for in the ClientStack)
+ 5) Clean up the ensuing mess.
+
+/Stefan
+
+
+  
+---------------------------------
+ Date: Fri, 14 Dec 2007 09:47:06 +0000
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">michaelwri22 at yahoo.co.uk</A>
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] So I decided to give this one more shot before I start chopping it up with a chainsaw.......
+
+hmm,  has there been a 100% certain case of LLUUID in the grid communitcations causing a problem ? As we don't actually use the ISerializable interfeace, for the REST postings (which inventory uses). We use XML serialising  and from all the tests I have done (just did another one to be sure before I wrote this email), LLUUID is serializable into XML. If it wasn't then we would no longer be able to take items in and out of inventory as that serialises/deserialises the SceneObjectGroup to and from xml.  Same with load-xml/save-xml.
+
+I know we have problems rezzing old inventory items and the same with old saved xml files. But this is due to a difference in how LLUUID , LLVector3 and LLQuaternion come out in the xml. 
+
+The old format for LLUUID was like :
+
+&lt;OwnerID UUID=&quot;00000000-0000-0000-0000-000000000000&quot; /&gt; 
+or 
+&lt;UUID UUID=&quot;ee4caf18-5c09-fb3a-fc2c-e6043471ef66&quot; /&gt;
+
+so it was the property name which was a xml element and the actual value as a attribute. The new format is like: 
+
+ &lt;OwnerID&gt;
+        &lt;UUID&gt;7109782c-4155-485c-9c9a-590478682c51&lt;/UUID&gt;
+ &lt;/OwnerID&gt;
+
+ &lt;UUID&gt;
+        &lt;UUID&gt;c9559f29-53f6-4c87-8e43-07465709ce1e&lt;/UUID&gt;
+ &lt;/UUID&gt;
+
+The same with the other two classes. So yes it is being serialised into xml (anyone wants to confirm it, do a save-xml, or output a derezz asset to a file), so shouldn't be causing problems with inventory server as thats all xml. I think these classes will only cause problems with .net remoting which is only used for interegion comms.
+
+If there is a 100% confirmed grid (non inter-region) problem due to LLUUID then we will have to do something. It just seems weired that in all my tests it serialising to xml without any problems. 
+
+If possible, I would rather us leave the changing to guids for now as I think we need to think of a longer term plan. As I said, the Sceneobjects are full of LLUUID and using xml serialising and if we want to avoid future problems with changes to LLUUID etc (like old saved xml files or iventory items not working), we need to come up with something to replace those classes in there and not sure Guid is ideal there.
+
+
+Anyway on a slightly different subject, could anyone who is working on inventory, either try to catch me on irc or reply to this and let me know which bits they are working on and which bits would be safe for me to do some changes to. Just I want to do some refactoring to the Inventory Code in scene and most likely the cache code, but don't want to mess up anyone current work. 
+Teravus Ovares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">teravus at gmail.com</A>&gt; wrote:  Hey Guys'n Gals..  
+  
+ Digging into Bug number 145 on Mantis..    I discovered profuse and prolific use of the unserializable LLUUID in inventory..    It's used *everywhere*.     
+  
+ It's no wonder inventory is spotty and error prone!
+  
+ It's used in InventoryFolderBase
+ It's used in InventoryItemBase
+ It's used in the REST calls
+ All of this data is being transferred over Grid Communications :/
+  
+ Once again, I restate that the LLUUID is no longer serializable.  It now implements the IComparable interface which is *not* serializable..   Therefore, it can 'never' be used in any grid communications, period. 
+  
+ We all need to take a good look at the grid inventory service and 'fix' all uses of LLUUID.
+  
+ It's *really* easy to use a Guid instead.      
+  
+ To go from a System.Guid to a LLUUID, you instantiate a new LLUUID and pass the Guid to it's constructor.  
+ ex:
+  
+ Guid gAgentID = 'xxxxxxx-xx-x--x-x--xx';
+  
+ LLUUID AgentID = new LLUUID(gAgentID);
+  
+  
+ To go from a LLUUID to a guid, you use the UUID property of the LLUUID.
+ ex:
+  
+ Guid gAgentID = AgentID.UUID;
+  
+ So, given that you've got a userID LLUUID..      to get it over grid communications reliably..  you have to turn it into a Guid.
+  
+ requester.BeginPostObject&lt;Guid&gt;(_inventoryServerUrl + &quot;/GetInventory/&quot;, userID.UUID);
+  
+ Then on the receiving side, 
+  
+  httpServer.AddStreamHandler(
+                new RestDeserialisehandler&lt;Guid, InventoryCollection&gt;(&quot;POST&quot;, &quot;/GetInventory/&quot;,
+                                                                                  m_inventoryService.GetUserInventory)); 
+  
+ public InventoryCollection GetUserInventory(Guid userID)
+        {
+            InventoryCollection invCollection = new InventoryCollection();
+            List&lt;InventoryFolderBase&gt; folders; 
+            List&lt;InventoryItemBase&gt; allItems;
+            if (TryGetUsersInventory(new LLUUID(userID), out folders, out allItems))
+            {
+                invCollection.AllItems = allItems; 
+                invCollection.Folders = folders;
+                invCollection.UserID = new LLUUID(userID);
+            }
+            return invCollection;
+        }
+  
+ Additionally, 
+ Any object that encapsulates a LLUUID directly, is NOT serializable...   that means..   the objects;
+  
+ InventoyFolderBase
+ and 
+ InventoryItemBase
+  
+ Are not serializable because they encapsulate LLUUIDs.  This is *bad* :D.  They cannot go over Grid Communications reliably.
+  
+ They all need to be changed to Guids, or we'll continue to have spotty inventory.
+  
+  :D
+  
+ I'm mentioning this because it's a big problem..  
+  
+ I don't really know this portion of the code well..   so if I edit it, it's likely to break..  hence the subject.
+  
+ Someone take this on please..   so I don't have to chop it up with a chainsaw..    grind it down with a tree stump grinder, run it over with a steam roller and jack-hammer it to itty bitty bite sized serializable components that can reliably be transferred over grid communications. :D 
+  
+ Best Regards 
+  
+ Tera
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+  
+---------------------------------
+ Sent from Yahoo! - a smarter inbox._______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+       
+---------------------------------
+ Yahoo! Answers - Get better answers from someone who knows. Tryit now.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071214/3d4885fb/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071214/3d4885fb/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000550.html">[Opensim-dev] So I decided to give this one more shot before	I	start chopping it up with a chain
+</A></li>
+	<LI>Next message: <A HREF="000548.html">[Opensim-dev] So I decided to give this one more shot before I	start chopping it up with a chainsaw.......
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#551">[ date ]</a>
+              <a href="thread.html#551">[ thread ]</a>
+              <a href="subject.html#551">[ subject ]</a>
+              <a href="author.html#551">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

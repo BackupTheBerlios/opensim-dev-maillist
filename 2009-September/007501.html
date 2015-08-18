@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] ConsoleClient -pass option
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20ConsoleClient%20-pass%20option&In-Reply-To=%3C4646639E08F58B42836FAC24C94624DD6FE81C5C20%40GVW0433EXB.americas.hpqcorp.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007490.html">
+   <LINK REL="Next"  HREF="007502.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] ConsoleClient -pass option</H1>
+    <B>Dickson, Mike (ISS Software)</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20ConsoleClient%20-pass%20option&In-Reply-To=%3C4646639E08F58B42836FAC24C94624DD6FE81C5C20%40GVW0433EXB.americas.hpqcorp.net%3E"
+       TITLE="[Opensim-dev] ConsoleClient -pass option">mike.dickson at hp.com
+       </A><BR>
+    <I>Tue Sep  8 18:14:52 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007490.html">[Opensim-dev] ConsoleClient -pass option
+</A></li>
+        <LI>Next message: <A HREF="007502.html">[Opensim-dev] ConsoleClient -pass option
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7501">[ date ]</a>
+              <a href="thread.html#7501">[ thread ]</a>
+              <a href="subject.html#7501">[ subject ]</a>
+              <a href="author.html#7501">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Ok, after a tour through the REST console code as best as I can tell it *looks* like all your REST console does is wrap cli commands in XML and ship messages back and forth. I guess that sort of band-aids the need for a console remotely but there are whole sets of things that don't work.  For instance if I want to do a &quot;load oar&quot; command how does the oar file get to the server and where does it need to live to get found?  If I need to do some sort of out of band mechanism to achieve that how does that translate to a fully functional console?
+
+In a case like this where I *personally* want a truly remote management interface for a server I'd strongly prefer a set of well documented remotely callable functions.  They should fully capture the semantics for the operations involved (i.e. the load oar &quot;function&quot; specifies how the oar file is transported over the wire) so the interface is truly remotable.   If you had that you could still implement a text based local console over the implementation interface but at least what remotely managing the server means is well defined.  And programming against it means using a straightforward RPC call vs. XML mangling.
+
+Just my 2 cents.
+
+Mike
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Melanie
+Sent: Sunday, September 06, 2009 9:27 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] ConsoleClient -pass option
+
+Isn't this discussion a bit behind? After all, the console is fully 
+implemented (and, yes, WITH remote command parsing/verification/help 
+tree) using REST.
+
+Melanie
+
+Frisby, Adam wrote:
+&gt;<i> I have to second this motion - XMLRPC in my opinion is a lot better for remote programming than &quot;REST&quot; which doesn't really define the wire formats nor datatypes.
+</I>&gt;<i> 
+</I>&gt;<i> The ICommander interface we are now using on the console really suits XMLRPC well - since we already have a list of defined arguments available, and can build nice remote-access documentation from them automatically.
+</I>&gt;<i> 
+</I>&gt;<i> In addition, we can use the exact same format &amp; arguments as the console commands.
+</I>&gt;<i> 
+</I>&gt;<i> Regards,
+</I>&gt;<i> 
+</I>&gt;<i> Adam
+</I>&gt;<i> 
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Dickson, Mike (ISS Software)
+</I>&gt;&gt;<i> Sent: Friday, 4 September 2009 8:05 AM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] ConsoleClient -pass option
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Thanks for the pointer Melanie. No I wasn't aware of it.  I'll have a
+</I>&gt;&gt;<i> look.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> I'm pretty sure I don't agree however that a simple GET/PUT interface
+</I>&gt;&gt;<i> is somehow just better than (dated!) XML/RPC (or some other protocol
+</I>&gt;&gt;<i> where the on the wire data types are actually defined). That's creeping
+</I>&gt;&gt;<i> towards a religious discussion however so I'll drop it. Having the
+</I>&gt;&gt;<i> console functionality packages separate like this is the important
+</I>&gt;&gt;<i> &quot;feature&quot; IMO.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Mike
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;&gt;<i> Sent: Friday, September 04, 2009 9:59 AM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] ConsoleClient -pass option
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Have you ever looked at the REST console? That is precisely what it
+</I>&gt;&gt;<i> does, it removes the local console, enabling the process to run as a
+</I>&gt;&gt;<i> daemon, and allows remote connections from a console application.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Only, it doesn't use the (dated) XMLRPC, it uses RESTful requests.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> XMLRPC admin is only available in region servers, and is too limited
+</I>&gt;&gt;<i> a tool even if &quot;beefed up&quot; to ever replace a console.
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i> 
+</I>&gt;&gt;<i> Dickson, Mike (ISS Software) wrote:
+</I>&gt;&gt;<i> &gt; Right.  That gets around the issue.  BTW, if the server is running
+</I>&gt;&gt;<i> SNMP or something that gives access to the process list this problem
+</I>&gt;&gt;<i> can leak outside the local machine.  I don't for sure but I'm guessing
+</I>&gt;&gt;<i> you could have the same issue in Windows with WMI.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; IMO, the right answer is to dump the consoles, beef up the XML/RPC
+</I>&gt;&gt;<i> admin interface and if desired do a separate &quot;console app&quot; that parses
+</I>&gt;&gt;<i> and sends the XML/RPC to the server.  I've been noodling on that but
+</I>&gt;&gt;<i> still struggling with a stable config with the new &quot;BUST&quot; architecture.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Mike
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; -----Original Message-----
+</I>&gt;&gt;<i> &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Dr Scofield
+</I>&gt;&gt;<i> &gt; Sent: Friday, September 04, 2009 3:19 AM
+</I>&gt;&gt;<i> &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt; Subject: Re: [Opensim-dev] ConsoleClient -pass option
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; Dickson, Mike (ISS Software) wrote:
+</I>&gt;&gt;<i> &gt;&gt; I'd agree with Dave on this one.  Just a simple long ps listing gets
+</I>&gt;&gt;<i> you the password if its on cleartext on the command line.  At least the
+</I>&gt;&gt;<i> file can be locked down via permissions.  A password on the command
+</I>&gt;&gt;<i> line is pretty much insecure. Might as well not have one.
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; ...unless you rewrite argv (which is standard practise for stuff like
+</I>&gt;&gt;<i> that).
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt; 	DrS/dirk
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Mike
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; -----Original Message-----
+</I>&gt;&gt;<i> &gt;&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;&gt;<i> &gt;&gt; Sent: Thursday, September 03, 2009 10:02 PM
+</I>&gt;&gt;<i> &gt;&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt; Subject: Re: [Opensim-dev] ConsoleClient -pass option
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; It's choosing the lesser evil.
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Melanie
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt; Dave Coyle wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt; On Thursday 03 September 2009 03:00:46 pm  wrote:
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; commit 6b70b5709913e9734f5864560e997b34dfd58b85
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; Author: Justin Clark-Casey (justincc) &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; Date:   Thu Sep 3 20:00:18 2009 +0100
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;     * Add extra warning about using -pass in
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; OpenSim.ConsoleClient.ini.example
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; &lt;...&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; +    ; Please be aware that this is not secure since the password
+</I>&gt;&gt;<i> is in the
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt; clear +    ; we recommend the use of -pass wherever possible
+</I>&gt;&gt;<i> &gt;&gt;&gt;&gt;      ;pass = secret
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; Is the password not also in the clear, visible to any local user
+</I>&gt;&gt;<i> who does a
+</I>&gt;&gt;<i> &gt;&gt;&gt; 'ps', if you use the -pass switch?  Access to
+</I>&gt;&gt;<i> OpenSim.ConsoleClient.ini can at
+</I>&gt;&gt;<i> &gt;&gt;&gt; least be restricted to specific user(s).  I don't see how -pass is
+</I>&gt;&gt;<i> the lesser
+</I>&gt;&gt;<i> &gt;&gt;&gt; of the two evils.
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; -coyled
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; -------------------------------------------------------------------
+</I>&gt;&gt;<i> -----
+</I>&gt;&gt;<i> &gt;&gt;&gt;
+</I>&gt;&gt;<i> &gt;&gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;&gt; _______________________________________________
+</I>&gt;&gt;<i> &gt;&gt; Opensim-dev mailing list
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> &gt;&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> &gt;
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007490.html">[Opensim-dev] ConsoleClient -pass option
+</A></li>
+	<LI>Next message: <A HREF="007502.html">[Opensim-dev] ConsoleClient -pass option
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7501">[ date ]</a>
+              <a href="thread.html#7501">[ thread ]</a>
+              <a href="subject.html#7501">[ subject ]</a>
+              <a href="author.html#7501">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

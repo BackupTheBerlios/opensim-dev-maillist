@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim search
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20search&In-Reply-To=%3C968336.28486.qm%40web58315.mail.re3.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000800.html">
+   <LINK REL="Next"  HREF="000803.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim search</H1>
+    <B>David Wendt JR.</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20search&In-Reply-To=%3C968336.28486.qm%40web58315.mail.re3.yahoo.com%3E"
+       TITLE="[Opensim-dev] OpenSim search">dcrkid at yahoo.com
+       </A><BR>
+    <I>Fri Feb  8 01:00:40 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000800.html">[Opensim-dev] OpenSim search
+</A></li>
+        <LI>Next message: <A HREF="000803.html">[Opensim-dev] OpenSim search
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#802">[ date ]</a>
+              <a href="thread.html#802">[ thread ]</a>
+              <a href="subject.html#802">[ subject ]</a>
+              <a href="author.html#802">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Yes. I think we came up with this a few days ago on IRC, and I would like to start hammering out details. I already have some code to index parcels, but right now all it does is output parcel changes to the console since there's no API or transport protocol to expose.
+
+A simple exposed XML file polled at set intervals would be fine. But I would also like a way for a search service to subscribe to a sim's XML file to have it pushed (delta-compressed, of course) to the search service whenever something changes or at set intervals such that low-traffic sims get updated whenever something changes, but high-traffic sims don't flood the service with too many updates.
+
+So I'll be back with an XML schema idea.
+
+----- Original Message ----
+From: Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Sent: Thursday, February 7, 2008 1:29:02 PM
+Subject: Re: [Opensim-dev] OpenSim search
+
+
+I'll weigh in here and say that I think Diva's thoughts appear sound to me and I would like to encourage them and offer a friendly environment to test them on OSGrid as they come together.
+
+ 
+
+Charles
+
+
+
+----- Original Message ----
+From: Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Sent: Thursday, February 7, 2008 9:01:05 AM
+Subject: [Opensim-dev] OpenSim search
+
+Hi all,
+
+I've been spending some time studying the project, to see how exactly I 
+can contribute towards enabling search engines in OpenSims/Grids. I have 
+a more concrete plan now that I'd like to share with you, and ask 
+whether this is something you think it's worth pursuing or not. If not, 
+then, well, never mind, it's just a plan! :-) If you think it's worth 
+pursuing, after getting your comments I will proceed to coding this 
+weekend, and when I'm done I'll submit my code as a patch for your 
+assessment and consideration. The patch involved in this is relatively 
+independent of everything that already exists, it would simply be
+ 
+another server command that doesn't interfere with the existing ones. 
+Here's the details.
+
+The very basic for a search engine to exist is the data that lives on 
+the sims. (I'll talk more about which data and data access control in 
+the next paragraph, but let's ignore that in this paragraph.) As such, 
+that data has to be exposed for collection. The right way to do this is 
+to generate an XML file representing the information on the sims, namely 
+parcel and object information. This file can then be served by the sim 
+via, for example, http. So, a possible interface to data collection 
+services might be as simple as this: tagus.ics.uci.edu/OpenSim Test.xml. 
+My concrete proposal as a first step is to implement a command that 
+generates this XML file, possibly called xml-snapshot.
+
+Unlike the existing save/load commands, whose purpose is admin
+ backups 
+and data ports, this external exposure doesn't need so many details and 
+must be aware of exposure controls.
+- Less details: children prims in objects are irrelevant -- only the 
+root prims matter.
+- Exposure control: the viewer's checkbox &quot;Show in search&quot; is a good 
+indicator of users intensions towards  external exposure. (In fact, that 
+button should really be called &quot;Expose externally&quot;). Only objects and 
+parcels that have that marked should be exposed.
+
+Additionally to users intensions, there can be two more layers of 
+control, one at the sim admin level, and one at the grid admin level.
+- At the sim level, each sim admin should have the power to override the 
+users checkboxes. Specifically, if sim admins decide that nothing in the 
+sim should be exposed then the xml-snapshot for those sims is a no-op.
+- At the grid level, each grid operator should have the power to decide 
+whether to
+ externally serve common assets, such as textures, or not. 
+More importanly, the grid operator should also be able to instruct the 
+sims on that grid that they should not serve the XML file to external 
+data collectors, only to data collectors that are &quot;authorized&quot; by the grid.
+
+These controls enable a variety of grids, from very open to completely 
+closed, homogeneous, heterogeneous, and everything in between.
+Once this external data exposure is in place, data collection components 
+(search engines and others) can do their thing.
+
+Note that Linden Lab has recently moved from being a closed grid to 
+being open, with respect to sim and user data. Unfortunately, they 
+decided to use HTML as data representation...duh.
+
+Additionally to the xml-snapshot command, I can volunteer to implement a 
+basic Lucene-based search engine that OpenSim grid operators can run on 
+their own grids. This is independent of any
+ other search engines, and is 
+particularly useful in grids that are closed to the outside. The 
+argument here is that Lucene-based text search  is 100x better than 
+relational queries, under all aspects I can think of -- run-time 
+performance, sim/grid load, component coupling, and relevance of search 
+results.
+
+Note that some parts of the search problem can still be served in the 
+traditional way. Specifically, user search seems like a really simple 
+thing to do with SQL, it's not like there are many Diva Canto's on the 
+grid... So the idea of a SQL-based search service for certain kinds of 
+data is not incompatible with what I'm proposing.
+
+I'll wait for your comments, and, as I said, if you think this is not 
+worth pursuing, I'll go away :-)
+Probably won't be able to reply until later tonight.
+
+Diva
+
+
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+
+
+
+
+-----Inline Attachment Follows-----
+
+_______________________________________________
+Opensim-dev 
+mailing 
+list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+
+
+
+
+
+
+      ____________________________________________________________________________________
+Be a better friend, newshound, and 
+know-it-all with Yahoo! Mobile.  Try it now.  <A HREF="http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ">http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ</A> 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080207/52dd2534/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080207/52dd2534/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000800.html">[Opensim-dev] OpenSim search
+</A></li>
+	<LI>Next message: <A HREF="000803.html">[Opensim-dev] OpenSim search
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#802">[ date ]</a>
+              <a href="thread.html#802">[ thread ]</a>
+              <a href="subject.html#802">[ subject ]</a>
+              <a href="author.html#802">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

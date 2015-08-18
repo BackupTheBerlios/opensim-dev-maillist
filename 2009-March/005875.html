@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Updated: OpenSim profiling on ScienceSim wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Updated%3A%20OpenSim%20profiling%20on%20ScienceSim%20wiki&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD802EE37F9C%40orsmsx502.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005874.html">
+   <LINK REL="Next"  HREF="005879.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Updated: OpenSim profiling on ScienceSim wiki</H1>
+    <B>Lake, Dan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Updated%3A%20OpenSim%20profiling%20on%20ScienceSim%20wiki&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD802EE37F9C%40orsmsx502.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Updated: OpenSim profiling on ScienceSim wiki">dan.lake at intel.com
+       </A><BR>
+    <I>Thu Mar 26 14:50:05 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005874.html">[Opensim-dev] Updated: OpenSim profiling on ScienceSim wiki
+</A></li>
+        <LI>Next message: <A HREF="005879.html">[Opensim-dev] Updated: OpenSim profiling on ScienceSim wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5875">[ date ]</a>
+              <a href="thread.html#5875">[ thread ]</a>
+              <a href="subject.html#5875">[ subject ]</a>
+              <a href="author.html#5875">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I don't honestly know the speed of something like a MySQL query compared to creating a text file. I have to believe that an SQL query to store a 500 byte blob is faster than serializing to a an XML string and creating a new file to write the string into. The current code follows that up with another filesystem check to make sure the file was really created after the try/catch. This is a 2X increase in rez performance compared with a 5X increase for the convert/compile step. 
+
+~Dan
+
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Melanie
+Sent: Thursday, March 26, 2009 6:43 AM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Updated: OpenSim profiling on ScienceSim wiki
+
+Hi,
+
+i propose to move line map caching into the base64/XML 
+representation of the script that is stored in the filesystem for 
+script crossings. Like the binary, that file is created only during 
+the compile and the script instance code could read it only when the 
+line map is needed (to display a runtime error, which is rare).
+
+Script state files are stored because sims do crash and scripts like 
+rent boxes and networked vendors can't be allowed to lose state in a 
+sim crash. The file system was the first chance opportunity to put 
+these files, but script counts were maxing out at about 50 when i 
+coded that.
+
+Would a database really be that much faster? If so, I have no issues 
+with that stuff being moved to the database. I simply wanted to 
+avoid storing yet more blobs.
+
+Melanie
+
+Lake, Dan wrote:
+&gt;<i> I posted some new OpenSim profiling results on the ScienceSim wiki at <A HREF="http://sciencesim.com/wiki/doku.php/opensim/performance_profiling.">http://sciencesim.com/wiki/doku.php/opensim/performance_profiling.</A>
+</I>&gt;<i> 
+</I>&gt;<i> In my previous post, I used a workload which rezzed 2,000 objects as quickly as possible. Each object a script and timer to rotate and change color every 1-5 seconds. After those optimizations to r8536, it took about 1.5 minutes to rez 2,000 objects with an 80% reduction in stead state CPU utilization.
+</I>&gt;<i> 
+</I>&gt;<i> Today's update describes the changes which enable the same scene to rez 10,000 scripted objects in the same 1.5 minutes (5X rez rate) and rez up to 40,000 objects in 8 minutes. 
+</I>&gt;<i> 
+</I>&gt;<i> I also describe a change to script state persistence that may enable up to 10,000 objects to be rezzed per minute, and a much higher scene maximum with respect to state. I have tested that idea out and was able to rez 50,000 scripted objects in under 5 minutes. The sim was between 25-30 FPS and only 3 of 4 processor cores were utilized.
+</I>&gt;<i> 
+</I>&gt;<i> There are still a number of performance limitations with managing lists of updates, timers, and scene object inventories.
+</I>&gt;<i> 
+</I>&gt;<i> Your comments or feedback are appreciated.
+</I>&gt;<i> 
+</I>&gt;<i> Dan lake
+</I>&gt;<i> Network Software Engineer
+</I>&gt;<i> Network Technology Lab
+</I>&gt;<i> Corporate Technology Group
+</I>&gt;<i> 503.712.8318
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>
+</I>&gt;<i>  
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005874.html">[Opensim-dev] Updated: OpenSim profiling on ScienceSim wiki
+</A></li>
+	<LI>Next message: <A HREF="005879.html">[Opensim-dev] Updated: OpenSim profiling on ScienceSim wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5875">[ date ]</a>
+              <a href="thread.html#5875">[ thread ]</a>
+              <a href="subject.html#5875">[ subject ]</a>
+              <a href="author.html#5875">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

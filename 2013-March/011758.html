@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] asset type vs inventory type
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20asset%20type%20vs%20inventory%20type&In-Reply-To=%3CCAJaF1_FWzSdNGBLMZsc4jYAVOnd39NwOE5Gs6pvPreAs8yt4rg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011757.html">
+   <LINK REL="Next"  HREF="011760.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] asset type vs inventory type</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20asset%20type%20vs%20inventory%20type&In-Reply-To=%3CCAJaF1_FWzSdNGBLMZsc4jYAVOnd39NwOE5Gs6pvPreAs8yt4rg%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] asset type vs inventory type">cmickeyb at gmail.com
+       </A><BR>
+    <I>Thu Mar 14 16:46:18 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011757.html">[Opensim-dev] asset type vs inventory type
+</A></li>
+        <LI>Next message: <A HREF="011760.html">[Opensim-dev] Question about the asset cache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11758">[ date ]</a>
+              <a href="thread.html#11758">[ thread ]</a>
+              <a href="subject.html#11758">[ subject ]</a>
+              <a href="author.html#11758">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have all the assets for all the objects I can rez. When I rez one I make
+sure that the simulator has the asset and all of its dependencies. I'm
+setting the local flag for the assets so they don't go back to the grid
+asset server. I'm using flotsam with disk caching so I can make sure local
+assets are never flushed and persist across simulator restarts.
+
+And yeah, I know its not what opensim expects... that's kind of the point.
+
+--mic
+
+
+On Thu, Mar 14, 2013 at 7:01 AM, Mike Chase &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mike.chase at alternatemetaverse.com</A>&gt; wrote:
+
+&gt;<i> What happens when someone rezzes an item that points to your offline
+</I>&gt;<i> asset?  Just confuzzled.  Your behavior is exactly the opposite of what
+</I>&gt;<i> opensim expects.  That is, that assets are immutable and inventory
+</I>&gt;<i> references can come and go.****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> Mike****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> *From:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] *On Behalf Of *Mic Bowman
+</I>&gt;<i> *Sent:* Wednesday, March 13, 2013 11:58 PM
+</I>&gt;<i> *To:* <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> *Subject:* Re: [Opensim-dev] asset type vs inventory type****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> i don't have a viewer. :-)****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> putting objects in a scene (and getting them out) with bash scripts... ***
+</I>&gt;<i> *
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> for x in `seq 150 5 200` ; do ****
+</I>&gt;<i>
+</I>&gt;<i>   for y in `seq 150 5 200`; do ****
+</I>&gt;<i>
+</I>&gt;<i>     ./inventory.pl put -p TestObject -s 'Scratch 01' -l $x $y 50; ****
+</I>&gt;<i>
+</I>&gt;<i>   done; ****
+</I>&gt;<i>
+</I>&gt;<i> done****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> just testing some ideas for moving inventory completely out of the
+</I>&gt;<i> simulator (which isn't possible yet, but a lot of progress in that
+</I>&gt;<i> direction is possible). i'm basically creating a local inventory tree in
+</I>&gt;<i> the file system that looks a little like a blown out iar file. and then
+</I>&gt;<i> using my dispatcher interface to interact with the scene. (the dispatcher
+</I>&gt;<i> is a transport independent interface to the scene that communicates via
+</I>&gt;<i> json messages all with authenticated access.) the inventory module can
+</I>&gt;<i> convert an object into an asset and pull it off the simulator. then turn
+</I>&gt;<i> around and upload it to the simulator prior to rezzing an object. that
+</I>&gt;<i> means that all my assets are local &amp; temp and only loaded into the
+</I>&gt;<i> simulator when i need them. and... the inventory the viewer has to load is
+</I>&gt;<i> *much* smaller and a LOT faster. and i get to use file system tools for
+</I>&gt;<i> managing it.****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> --mic****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Mar 13, 2013 at 8:39 PM, Dahlia Trimble &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.com</A>&gt;
+</I>&gt;<i> wrote:****
+</I>&gt;<i>
+</I>&gt;<i> I would think it might affect what the viewer can do with inventory items,
+</I>&gt;<i> such as wearing a skin or a body part or trying to rez an object by drag
+</I>&gt;<i> and drop.****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Mar 13, 2013 at 7:37 PM, Mic Bowman &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A>&gt; wrote:***
+</I>&gt;<i> *
+</I>&gt;<i>
+</I>&gt;<i> Thanks... ****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> This is for that filesystem-based inventory tool I mentioned to you the
+</I>&gt;<i> other day. Since I don't have to worry about icons and nice viewer
+</I>&gt;<i> operations, I think I'm just going to ignore the existence of the inventory
+</I>&gt;<i> types and stick to asset types. ****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> --mic****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> On Wed, Mar 13, 2013 at 4:47 PM, Justin Clark-Casey &lt;
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:****
+</I>&gt;<i>
+</I>&gt;<i> On 13/03/13 12:40, Jeff Kelley wrote:****
+</I>&gt;<i>
+</I>&gt;<i> At 8:57 PM -0700 3/12/13, Mic Bowman wrote:****
+</I>&gt;<i>
+</I>&gt;<i> maybe a better question... are inventory types used for anything other
+</I>&gt;<i> than to put
+</I>&gt;<i> the right icon in the viewer (without the need to pull the asset) and put
+</I>&gt;<i> stuff in the
+</I>&gt;<i> right default folder?****
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> According to <A HREF="http://opensimulator.org/wiki/Custom_Libraries">http://opensimulator.org/wiki/Custom_Libraries</A>
+</I>&gt;<i>
+</I>&gt;<i> &#171; Inventory type is what tells the viewer which sort of icon to show next
+</I>&gt;<i> to the inventory item's name. &#187;
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> It also controls the variable part of the contextual menu (&quot;Open&quot;, &quot;Wear&quot;,
+</I>&gt;<i> &quot;Attach&quot;, &quot;Play&quot;, &quot;Teleport&quot;) and which
+</I>&gt;<i> editor to use.****
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> Yes, it does seem a messy crossover with much of the inventory type
+</I>&gt;<i> covered by equivalent asset type enums.  But it's not a subset - inventory
+</I>&gt;<i> type has an attachment enum for instance.  Although whether that particular
+</I>&gt;<i> enum is actually used I couldn't say.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> OSVW Consulting
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc****">http://twitter.com/justincc****</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev****">https://lists.berlios.de/mailman/listinfo/opensim-dev****</A>
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev****">https://lists.berlios.de/mailman/listinfo/opensim-dev****</A>
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev****">https://lists.berlios.de/mailman/listinfo/opensim-dev****</A>
+</I>&gt;<i>
+</I>&gt;<i> ** **
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20130314/34f41427/attachment-0001.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20130314/34f41427/attachment-0001.html</A>&gt;
+</PRE>
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011757.html">[Opensim-dev] asset type vs inventory type
+</A></li>
+	<LI>Next message: <A HREF="011760.html">[Opensim-dev] Question about the asset cache
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11758">[ date ]</a>
+              <a href="thread.html#11758">[ thread ]</a>
+              <a href="subject.html#11758">[ subject ]</a>
+              <a href="author.html#11758">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

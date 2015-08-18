@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Uris: Errors/Inconsistencies/TBD
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Uris%3A%20Errors/Inconsistencies/TBD&In-Reply-To=%3CBLU134-W20589CD8F8020C58BE0C5CD5570%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002981.html">
+   <LINK REL="Next"  HREF="002987.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Uris: Errors/Inconsistencies/TBD</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Uris%3A%20Errors/Inconsistencies/TBD&In-Reply-To=%3CBLU134-W20589CD8F8020C58BE0C5CD5570%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Uris: Errors/Inconsistencies/TBD">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Sep 10 08:03:13 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002981.html">[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+</A></li>
+        <LI>Next message: <A HREF="002987.html">[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2986">[ date ]</a>
+              <a href="thread.html#2986">[ thread ]</a>
+              <a href="subject.html#2986">[ subject ]</a>
+              <a href="author.html#2986">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Alan,
+ 
+insensititvity is in deed best and often the goal.
+ 
+Although, sometimes things are best explicit and sometimes best implicit. Knowing when and how is often a black art; a combination of ignorance, wishes, knowledge, experience and preference.
+ 
+Uri, at least on .net, in deed adds a trailing slash:
+ 
+// Yields <A HREF="http://www.sunet.se/">http://www.sunet.se/</A> 
+Console.WriteLine(new Uri(&quot;<A HREF="http://www.sunet.se">http://www.sunet.se</A>&quot;).ToString());
+ 
+So, the easy fix would be to let the RestClient strip any trailing slashes from the supplied base url.
+ 
+When lloking thru the RestClient, I noticed some other things:
+ 
+The rest client takes the url (set form the ini) - RestClient rc = new RestClient(_assetServerUrl);
+ 
+ The AddResourcePath only trims one slash from the end
+ 
+ _pathElements.Add(element.Substring(0, element.Length - 1));
+ 
+ which is a presumption; maybe better to use TrimStart() and TrimEnd() - or even better to just throw an exception saying &quot;you shouldn't supply slashes, we take care of that&quot;
+ 
+In the RestClient, we build the uri ourselves (with query and fragments) from scratch, why not just depend on the UriBuilder where it provides what we need?
+ 
+ When we build the request,  private Uri buildUri()
+ does
+ foreach (string e in _pathElements)
+ {
+ sb.Append(&quot;/&quot;);
+ sb.Append(e);
+ }
+ which presumes the root url to be slash-less
+ 
+As said above, the easyfix(tm) would be to let the rest client trim off trailing slashes from the incoming root url.
+ 
+ Then again, the best approach would be to peruse Uri and UriBuilder internally, 
+and only supply the functionality that isn't already there.
+on the issue of trilaing slashes, I do know that there is no 'right' answer, and that it's been subject to holy wars, but the trailing slash has the good benefit that the node itself definies explicitly whether it's referencing a file or a directory. (as opposed to the prefix notation which actually defines the node _before_ it to be a hierarchy node)
+ 
+leaving this to the web server to figure out can lead to ambiguities and errors, especially when doing REST (ie, is that guid referencing a node or a leaf?) or writing parsing url rewriters.
+ 
+so, in general, the trailing slash approach leads to less screw-up potential.
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deFrom</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">alan_webb at us.ibm.comDate</A>: Tue, 9 Sep 2008 08:51:55 -0400Subject: Re: [Opensim-dev] Uris: Errors/Inconsistencies/TBDStefan Consistency would be nice, but I think insensitivity would be better. Can you give some specific examples, I trawled through the code but couldn't be sure i was finding the code you have issue with. In the REST code in ApplicationPlugins/Rest all inbound URL's are canonicalized to eliminate any issues WRT trailing &quot;/&quot;. BTW as far as I can tell, The Uri class' ToString echoes whatever you provide. If you don't supply a trailing slash when the URI is created, then ToString does not generate one. The ABNF in RFC 3986 (URI Generic Syntax) always shows &quot;/&quot; as a prefixing notion - conversely, many of their textual examples indicate that a trailing &quot;/&quot; is perfectly valid. I think this is an area where human interaction will always produce either, and REST is certanly not limited to machine-to-machine communications, so I do think we need to code this is in a way that says it doesn't matter. Best regardsAlan-------------------T.J. Watson Research Center, Hawthorne, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">NY1-914-784-7286alan_webb at us.ibm.com</A> 
+
+
+
+Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt; Sent by: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> 
+09/09/2008 04:20 AM 
+
+
+
+
+Please respond <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">toopensim-dev at lists.berlios.de</A>
+
+
+
+
+
+To
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; 
+
+
+cc
+
+
+
+Subject
+[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+
+
+
+
+Just a quick one,I don't have time to fix this up, and I guess we should discuss it first;the issue is that parts of the code presumes url segments _ends_ with '/' and others they _begin_ with '/'this leads to heavy confusion and easily done mistakesnow, the Uri class (which, together with UriBuilder, is poorly underused) ToString _appends_ an '/'which I consider the proper behaviour: all segments appends an '/' to show they represent a hierarchy node.I've already made the inventoryUrl wrapping an Uri to safeguard against missing trailing '/' in the ini, which is/was one of our most common mistakes, it seems. (and a bloody easy one at that)Now, for example, the REST code, presumes the oppositewhich means we can't combine the output of a Uri with the output from the RestClient.So I can't wrap the asset url the same way.Which sucks.Either way, I suggest we use postfix notation in accordance with Uri class standard, but most of all I would want us to harmonize on one or the other.Discussions?/Stefan_______________________________________________Opensim-dev mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.dehttps</A>://lists.berlios.de/mailman/listinfo/opensim-dev
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080910/5af53406/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080910/5af53406/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002981.html">[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+</A></li>
+	<LI>Next message: <A HREF="002987.html">[Opensim-dev] Uris: Errors/Inconsistencies/TBD
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2986">[ date ]</a>
+              <a href="thread.html#2986">[ thread ]</a>
+              <a href="subject.html#2986">[ subject ]</a>
+              <a href="author.html#2986">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

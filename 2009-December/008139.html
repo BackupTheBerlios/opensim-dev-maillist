@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim Library
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20Library&In-Reply-To=%3C4B3A216A.2050005%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008138.html">
+   <LINK REL="Next"  HREF="008140.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim Library</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim%20Library&In-Reply-To=%3C4B3A216A.2050005%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] OpenSim Library">diva at metaverseink.com
+       </A><BR>
+    <I>Tue Dec 29 16:34:02 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008138.html">[Opensim-dev] OpenSim Library
+</A></li>
+        <LI>Next message: <A HREF="008140.html">[Opensim-dev] OpenSim Library
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8139">[ date ]</a>
+              <a href="thread.html#8139">[ thread ]</a>
+              <a href="subject.html#8139">[ subject ]</a>
+              <a href="author.html#8139">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>What you're describing is exactly the process I first had in mind for 
+doing this. It would work both for standalones and grids. However I 
+decided not to do it like that for a couple of reasons:
+
+1) There is a horrible dependency in IARs to scenes -- precisely related 
+to decoding that and other fields that encode UUIDs. The IAR facility 
+instantiates SceneObjectGroup so that it can reach the UUIDs inside; 
+that means that anything that uses IAR for other purposes  needs to 
+include the entire OpenSim.Region.Framework.dll, which is one of the 
+biggest DLLs of OpenSim, essentially the core of the simulator. In other 
+words, if you want to do anything with IARs right now, you need to load 
+the simulator code... it's so wrong that I couldn't force myself to do this.
+
+2) Even if that dependency didn't exist, the process you describe would 
+still be a quick &amp; dirty hack. As Adam pointed out, now that we have 
+archives, it doesn't make any sense to load the library from the file 
+system representation that the current Library uses. We should load the 
+Library from archives, no need to extract them into the file system first.
+
+We are currently refactoring the user services -- the last push to move 
+everything to the new services architecture. We're going to have to fix 
+the Library issues too, to some extent, because right now in grid mode 
+the library is being instantiated by the user server, which is a mess. 
+But the new IAR library load facility won't be on for grids until that 
+nasty dependency (1) is eliminated -- there's no way *I* will code up a 
+library service that loads OpenSim.Region.Framework.dll... (maybe 
+someone else will do it, but not me)
+
+
+Ursula MATOVA wrote:
+&gt;<i> Wall, in grid mode, it's possible to use iar content to add objects to  
+</I>&gt;<i> OpenSim Library &quot;by hand&quot; :
+</I>&gt;<i> 
+</I>&gt;<i> 1/ untar the IAR file ( tar -xf archive.iar )
+</I>&gt;<i> 2/ find &quot;.xml&quot; files in the assets directory
+</I>&gt;<i> 3/ create entry in &quot;ObjectsAssetSet.xml&quot;
+</I>&gt;<i> 4/ create entry in &quot;ObjectsLibraryItems.xml&quot;
+</I>&gt;<i> 
+</I>&gt;<i> Clear you client cache &amp; restart OpenSim ...
+</I>&gt;<i> 
+</I>&gt;<i> The only point is : you cannot rez objects directly from OpenSim  
+</I>&gt;<i> Library ... you first need to copy them to your Inventory.
+</I>&gt;<i> It's working like a charm even if those operations need to be automated.
+</I>&gt;<i> 
+</I>&gt;<i> I have one question about textures defined in the xml file :
+</I>&gt;<i> 
+</I>&gt;<i> In the IAR archive, you have all jp2 textures files used in objects,  
+</I>&gt;<i> but there are no references to them into the xml file ( I mean no  
+</I>&gt;<i> references to their UUID ).
+</I>&gt;<i> 
+</I>&gt;<i> The only thing is something like that :
+</I>&gt;<i> 
+</I>&gt;<i> &lt;TextureEntry&gt;D8A5VoXjdbelfuLe7gQXwgpUpwVqTnrFznsGUr19LB2/ 
+</I>&gt;<i> AAAAAAAAAACAPwAAAIA/AAAAAAAAAAAAAAAAAAAA&lt;/TextureEntry&gt;
+</I>&gt;<i> 
+</I>&gt;<i> I guess that's some special encoding ... but cannot find the &quot;link&quot;  
+</I>&gt;<i> between the texture itself, it's UUID and that line.
+</I>&gt;<i> 
+</I>&gt;<i> Can somebody explain that ?
+</I>&gt;<i> 
+</I>&gt;<i> Because, I'm sure that you need to load textures too, not only the  
+</I>&gt;<i> xml. specially in case of using the assets in a foreign grid/database.
+</I>&gt;<i> 
+</I>&gt;<i> Thanks in advance,
+</I>&gt;<i> 
+</I>&gt;<i> Ursula.
+</I>&gt;<i> ( Sorry my english is poor today :D )
+</I>&gt;<i> 
+</I>&gt;<i> Le 29 d&#233;c. 09 &#224; 05:03, Robert Martin a &#233;crit :
+</I>&gt;<i> 
+</I>&gt;&gt;<i> On Mon, Dec 28, 2009 at 10:55 PM,  &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt; wrote:
+</I>&gt;&gt;&gt;<i> Not the most elegant thing to do, but if you do
+</I>&gt;&gt;&gt;<i> $tar -tvf archive.iar
+</I>&gt;&gt;&gt;<i> you'll get a manifest of sorts of what's inside.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> i pulled up the file in a text editor (after unpacking) and there
+</I>&gt;&gt;<i> seems to be some sort of XML header and then i would guess the various
+</I>&gt;&gt;<i> assets all packed into a single file
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> so does anybody have a good collection of IAR files (more than say a
+</I>&gt;&gt;<i> dozen)? if you need hosting i do have some webspace i can set you up
+</I>&gt;&gt;<i> with.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -- 
+</I>&gt;&gt;<i> Robert L Martin
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008138.html">[Opensim-dev] OpenSim Library
+</A></li>
+	<LI>Next message: <A HREF="008140.html">[Opensim-dev] OpenSim Library
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8139">[ date ]</a>
+              <a href="thread.html#8139">[ thread ]</a>
+              <a href="subject.html#8139">[ subject ]</a>
+              <a href="author.html#8139">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Solution attempt about code duplication in database	plugins
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Solution%20attempt%20about%20code%20duplication%20in%0A%20database%09plugins&In-Reply-To=%3CBLU134-W3943FC50EA3E502781096D5480%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000649.html">
+   <LINK REL="Next"  HREF="000653.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Solution attempt about code duplication in database	plugins</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Solution%20attempt%20about%20code%20duplication%20in%0A%20database%09plugins&In-Reply-To=%3CBLU134-W3943FC50EA3E502781096D5480%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Solution attempt about code duplication in database	plugins">stefan at tribalmedia.se
+       </A><BR>
+    <I>Tue Jan  8 09:24:39 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000649.html">[Opensim-dev] Solution attempt about code duplication in database	plugins
+</A></li>
+        <LI>Next message: <A HREF="000653.html">[Opensim-dev] Solution attempt about code duplication in database plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#651">[ date ]</a>
+              <a href="thread.html#651">[ thread ]</a>
+              <a href="subject.html#651">[ subject ]</a>
+              <a href="author.html#651">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Laurent,
+ 
+good of you to have a look at this. We are painfully aware of the duplication; historically, there's been quite a few different coders (mostly me, sdague and Tleiades) and approaches on the different data providers for the different functions. I know Sean (sdague) is thinking of revising the whole db structure, maybe you should have a chat with him.
+ 
+I am a proponent of having a simple set of interfaces, that defines the operations each database provider should implement. If we stick to this approach, we will be able to write very custom persistence behaviour depending on what environment the region manager finds the most suitable; ado, dynamic queries or stored procedures. (One should note that today, stored procedures doesn't pose that big a performance gain over dynamic sql)
+ 
+I have a couple of interesting dynamic sql patterns living here on my hard-disk, I've just not committed them as I'm a bit unsure of how to move forward with them.I also think that the creation of tables, should be more explicit; we should ship sql, not autocreate. The autocreation approach, while simple for the beginner, leads to extremely limited control over db performance and by shipping this functionality we establish it as standard. Better then to have an entry-level no-config plug-in based on SQLite, and explicit instructions for intermediate-level sql server.
+Also, I also think that we need to revise and normalise the database structure, there are a number of inconsistencies and bad design choices.
+ 
+This is a worthy 0.6 goal. (as we are trying to get 0.5 out the door right now) so welcome aboard and get cracking! ;-)
+Best,
+/Stefan (lbsa71)
+
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">grumly57 at hotmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deDate</A>: Tue, 8 Jan 2008 00:41:51 +0100Subject: [Opensim-dev] Solution attempt about code duplication in database plugins
+
+Hello, My name is Laurent (Larry). I am a MCAD developer / architect / instructor on behalf of a service company based in Luxembourg, and I live in France. I'm French, 
+so I humbly request your indulgence for the poor quality of my writing.I am fascinated by your teamwork. So I decided to put my nose in the OpenSim code... Thanks to it, I have learnt a lot already about open-sourcing, third party tools I never see before (as prebuild, nini...), and have a better idea about how mono freaks are doing.Taking a close look at the plugins database, I noticed that the persistence logic was replicated in each, which must be difficult to maintain, and it may leads to ennoying bugs... That's why I started to write a plugin generic database in an attempt to find a solution to this problem.It consists of an additional OpenSim.Framework.Data.DbEngine assembly which contains the usual classes you know that implements IAssetProvider, IGridData, IInventoryData, IUserData. Instead of creating ADO.NET Connection, Command objects, theses classes logic relies on an IDbEngine helper that creates thoses objects and handle queries parameters.
+IDbEngine is an interface that has to be implemented by as many classes as desired available database engine. This class helps to instantiate ADO.NET objects the best way the specifics of the database engine allows to.As an example of code is better than too much explanations, please find AssetData.cs here: <A HREF="http://pastebin.ca/845808">http://pastebin.ca/845808</A> and MSSQLDbEngine here: <A HREF="http://pastebin.ca/845813.">http://pastebin.ca/845813.</A> GridData.cs, InventoryData.cs, UserData.cs have also been implemented. Also SQLiteDbEngine.cs is ready.
+However, in trying to design this plugin, I encountered several problems. The first one stucks me a little...* The structure of the database differs from a plug to another. For example, there is a field called assets.id in MySQL plugin, although it is called assets.uuid in SQLite. The same way, some varchar field size are fixed to 255 in all SQLite tables that are generated from DataSet. What about to keep a database structure common to all plug-ins ? This would be better to keep this new approach simple.* For the moment, there is two different strategies of access to the data: one with DataSets implemented, the other with SQL queries. I think it's an opportunity to experiment other approaches, knowing that the datasets eats a lot of memory when they are well filled, and chews up performance when commit is done.Maybe we could implement stored procedures ? The proposed approach will make possible to implement a variety of strategies, which could be activated in turn in order to choose the most effective for a given database engine. That is, if you like the idea, I would love to hear feedback, comments and suggestions before to continue to work on it.Sincerely, Laurent.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080108/8b559b8a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080108/8b559b8a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000649.html">[Opensim-dev] Solution attempt about code duplication in database	plugins
+</A></li>
+	<LI>Next message: <A HREF="000653.html">[Opensim-dev] Solution attempt about code duplication in database plugins
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#651">[ date ]</a>
+              <a href="thread.html#651">[ thread ]</a>
+              <a href="subject.html#651">[ subject ]</a>
+              <a href="author.html#651">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

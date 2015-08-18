@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Two sets of LSL function implementation files.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Two%20sets%20of%20LSL%20function%20implementation%20files.&In-Reply-To=%3C484E20C2.7030703%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001775.html">
+   <LINK REL="Next"  HREF="001783.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Two sets of LSL function implementation files.</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Two%20sets%20of%20LSL%20function%20implementation%20files.&In-Reply-To=%3C484E20C2.7030703%40t-data.com%3E"
+       TITLE="[Opensim-dev] Two sets of LSL function implementation files.">melanie at t-data.com
+       </A><BR>
+    <I>Tue Jun 10 08:35:46 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001775.html">[Opensim-dev] Two sets of LSL function implementation files.
+</A></li>
+        <LI>Next message: <A HREF="001783.html">[Opensim-dev] Two sets of LSL function implementation files.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1782">[ date ]</a>
+              <a href="thread.html#1782">[ thread ]</a>
+              <a href="subject.html#1782">[ subject ]</a>
+              <a href="author.html#1782">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+unfortunately, as I said in chat, that is not a possible solution.
+
+Basically, Tedd and I pretty much concur what needs to be done, it's 
+just not a solution as simple as that.
+
+What happened is that more and more logic that belongs in 
+DotNetEngine/ was put into Common/ for convenience, along with a 
+couple of broken implementations that locked this structure pretty 
+much into place.
+
+This results in the &quot;Common&quot; assembly actually pulling most of 
+DotNetEngine in, so Common/ currently can't be used to write another 
+script engine - anything that touches Common/ becomes the 
+DotNetEngine, pulling in it's event handling and AppDomain handling.
+
+Also, all that stuff is loaded into the AppDomain. Megs of useless 
+code, that, at best, never gets executed, at worst creates security 
+holes.
+
+Tedd and I are aware of the steps needed to re-merge the LSL 
+implementations, which involves putting together a file from both 
+LSL files, moving engine functionality out of Common/ back into 
+DotNetEngine/, defining new interfaces and creating a new Common/ 
+assembly from that, that contains only the code that actually needs 
+to be loaded into the AppDomain, and not half the engine.
+
+This is something that will be done, but can't be done just right 
+away. So we agreed to carry on for a few more days as we were, while 
+the options are looked at.
+
+The fork happened because there was no way anyone would have let me 
+make the changes to Common/ and DotNetEngine/ that are needed, in 
+time for my deadlines. XEngine was not designed for inclusion, it 
+was designed as a private patch.
+Much positive resonance in IRC, from people who were happy to see a 
+new script engine, made me submit those patches, resulting in two 
+copies exiting in trunk.
+
+So, I'm all for reintegration, and I don't want to be perceived as 
+the one who is against it, I'm +1 myself!
+
+Melanie
+
+
+Mike Mazur wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> On Tue, Jun 10, 2008 at 11:41 AM, Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+</I>&gt;&gt;<i> So, how do we evolve this mess back to sanity. At this point we have two
+</I>&gt;&gt;<i> copies of the LSL function implmentation. Some folks are patching the
+</I>&gt;&gt;<i> Common/ copy. Other folks are patching the new file.
+</I>&gt;<i> 
+</I>&gt;<i> I suggest the XEngine.LSL_ScriptCommands class inherits form
+</I>&gt;<i> Common.LSL_BuiltIn_Commands and overrides whatever is necessary. That
+</I>&gt;<i> shouldn't be too difficult to whip up in an afternoon or so ;)
+</I>&gt;<i> 
+</I>&gt;<i> Are there any other suggestions?
+</I>&gt;<i> 
+</I>&gt;<i> Mike
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001775.html">[Opensim-dev] Two sets of LSL function implementation files.
+</A></li>
+	<LI>Next message: <A HREF="001783.html">[Opensim-dev] Two sets of LSL function implementation files.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1782">[ date ]</a>
+              <a href="thread.html#1782">[ thread ]</a>
+              <a href="subject.html#1782">[ subject ]</a>
+              <a href="author.html#1782">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

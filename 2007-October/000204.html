@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] so many dll's, so little time
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20so%20many%20dll%27s%2C%20so%20little%20time&In-Reply-To=%3C20071017123057.GE7940%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000219.html">
+   <LINK REL="Next"  HREF="000218.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] so many dll's, so little time</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20so%20many%20dll%27s%2C%20so%20little%20time&In-Reply-To=%3C20071017123057.GE7940%40dague.net%3E"
+       TITLE="[Opensim-dev] so many dll's, so little time">sean at dague.net
+       </A><BR>
+    <I>Wed Oct 17 14:30:57 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000219.html">[Opensim-dev] so many dll's, so little time
+</A></li>
+        <LI>Next message: <A HREF="000218.html">[Opensim-dev] My ISP banned from irc.efnet.net???
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#204">[ date ]</a>
+              <a href="thread.html#204">[ thread ]</a>
+              <a href="subject.html#204">[ subject ]</a>
+              <a href="author.html#204">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Wed, Oct 17, 2007 at 02:33:17AM -0700, dan miller wrote:
+&gt;<i> I'm trying to get a handle on the 3rd party lib situation, both native and
+</I>&gt;<i> managed.
+</I>&gt;<i> 
+</I>&gt;<i> Firstly, can anyone tell me what these dll's do, and whether they are being
+</I>&gt;<i> used anymore?
+</I>&gt;<i> 
+</I>&gt;<i>  10/17/2007  01:58 AM            24,576 DotSets.dll
+</I>&gt;<i>  10/17/2007  01:58 AM            40,960 Kds.Serialization.dll
+</I>&gt;<i>  10/17/2007  01:58 AM           221,184 libdb_dotNET43.dll
+</I>
+I think we can kill libdb_dotNET43.dll
+
+&gt;<i>  10/17/2007  01:58 AM           270,336 log4net.dll
+</I>&gt;<i>  10/17/2007  01:58 AM           131,072 Mono.PEToolkit.dll
+</I>&gt;<i> 
+</I>&gt;<i> Secondly, I would like to locate the appropriate source code and licenses
+</I>&gt;<i> for all of the following, or information as to why the source code is not
+</I>&gt;<i> available (for instance I recall the Physx wrappers require you to sign some
+</I>&gt;<i> SDK license or something like that).  Please mention anything you know about
+</I>&gt;<i> versions, who compiled on what machine, if the assemblies were downloaded
+</I>&gt;<i> from somewhere precompiled, whether they are written in C# or something
+</I>&gt;<i> else, etc.  Basically whatever you know about any of these files (including
+</I>&gt;<i> &quot;hey stupid, it's in the wiki!&quot;):
+</I>&gt;<i> 
+</I>&gt;<i> 10/17/2007  01:47 AM            69,632 Axiom.MathLib.dll
+</I>&gt;<i> 10/17/2007  01:47 AM           110,592 CookComputing.XmlRpcV2.dll
+</I>&gt;<i> 10/17/2007  01:47 AM           593,408 Db4objects.Db4o.dll
+</I>
+Death by fire!  (i.e. if there are no objections I'll gut all the db4o
+stuff tommorrow.  It shouldn't break anyone on current).
+
+&gt;<i> 10/17/2007  01:58 AM            52,224 Mono.Data.SqliteClient.dll
+</I>&gt;<i> 10/17/2007  01:47 AM           363,609 sqlite3.dll
+</I>&gt;<i> 10/17/2007  01:47 AM           568,832 System.Data.SQLite.dll
+</I>
+The way we should be doing sqlite is using Mono.Data.SqliteClient on
+Mono (where it is a built in), and System.Data.SQLite on .NET (it only
+works on win32).  However, making the current build system build one or
+the other based on platform is ... special ... and painful.
+
+&gt;<i> 10/17/2007  01:47 AM            36,864 MonoXnaCompactMaths.dll
+</I>&gt;<i> 10/17/2007  01:47 AM           266,240 MySql.Data.dll
+</I>&gt;<i> 10/17/2007  01:47 AM            69,632 Nini.dll
+</I>&gt;<i> 10/17/2007  01:47 AM            57,344 PhysX-wrapper.dll
+</I>&gt;<i> 10/17/2007  01:47 AM             8,704 PhysX_Wrapper_Dotnet.dll
+</I>&gt;<i> 10/17/2007  01:47 AM           200,704 RAIL.dll
+</I>&gt;<i> 10/17/2007  01:47 AM            40,960 XMLRPC.dll
+</I>&gt;<i> 
+</I>&gt;<i> Perhaps I'm misunderstanding things, and it's understood that there will be
+</I>&gt;<i> 3rd party components without source or with licensing issues that preclude
+</I>&gt;<i> us providing that source code.  However it seems in that case we should make
+</I>&gt;<i> that clear, and we might want to consider whether items such as
+</I>&gt;<i> PhysX_Wrapper.dll should be shipped in the /bin folder of the main trunk as
+</I>&gt;<i> they are now.  In any case, there should be a wiki page or README or
+</I>&gt;<i> something explaining where all this stuff comes from.
+</I>
+If you are going down the opensim-libs track, I think that we keep a
+seperate readme with each .dll in the source that states:
+
+License
+Reason it's needed
+Upstream URL for Source
+
+Thanks again for taking on this task of cleaning up the repo here!
+
+	-Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071017/163bd590/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071017/163bd590/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000219.html">[Opensim-dev] so many dll's, so little time
+</A></li>
+	<LI>Next message: <A HREF="000218.html">[Opensim-dev] My ISP banned from irc.efnet.net???
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#204">[ date ]</a>
+              <a href="thread.html#204">[ thread ]</a>
+              <a href="subject.html#204">[ subject ]</a>
+              <a href="author.html#204">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

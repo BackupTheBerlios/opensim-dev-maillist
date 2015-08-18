@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Object Representation
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Object%20Representation&In-Reply-To=%3C47AE178D.1020906%40dzonux.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000836.html">
+   <LINK REL="Next"  HREF="000817.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Object Representation</H1>
+    <B>Dzonatas</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Object%20Representation&In-Reply-To=%3C47AE178D.1020906%40dzonux.net%3E"
+       TITLE="[Opensim-dev] Object Representation">dzonatas at dzonux.net
+       </A><BR>
+    <I>Sat Feb  9 22:13:49 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000836.html">[Opensim-dev] Object Representation
+</A></li>
+        <LI>Next message: <A HREF="000817.html">[Opensim-dev] init.d scripts I put on the wiki and putting then in	the svn
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#849">[ date ]</a>
+              <a href="thread.html#849">[ thread ]</a>
+              <a href="subject.html#849">[ subject ]</a>
+              <a href="author.html#849">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Impalah wrote:
+&gt;<i> Well, I've seen enterprise solutions with hibernate and Lucene working 
+</I>&gt;<i> together, so the needs for having a good search engine could be 
+</I>&gt;<i> covered with this aproach...
+</I>
+Recent slashdot news has pointed out a distributed database based on 
+google, more to check-out:
+<A HREF="http://www.linuxworld.com/news/2008/020608-hypertable.html">http://www.linuxworld.com/news/2008/020608-hypertable.html</A>
+<A HREF="http://www.zvents.com/">http://www.zvents.com/</A>
+<A HREF="http://code.google.com/p/hypertable/wiki/FAQ">http://code.google.com/p/hypertable/wiki/FAQ</A>
+
+&gt;<i>
+</I>&gt;<i> I've been looking for info of Atomatrix (not too much, only a bird's 
+</I>&gt;<i> eye look). Looks very interesting: atomic objects, distributed 
+</I>&gt;<i> computing, etc. Is all that a virtual world needs.
+</I>
+One thing that probably gets confused is the thought to implement 
+everything in raw atomatrices, but that would be a resource hog 
+space-wise even if it becomes extremely fast to index every detail of 
+any possible object. A balance is needed. It is good to use atomatricies 
+for general and dynamic areas, but specific data structures (especially 
+ones that don't change) are not needed to be defined by atomatrices. 
+Instead, a general type is made in a atomatrix structure, and it is used 
+as a way to class blob entries. The blob then stores the packed data 
+structure. That is why I pointed out the schema for the matrix1 example 
+(previously posted here).
+
+Hypertables (or hypercubes, multi-dimensional tables) are similar to 
+what Atomatrix does. Atomatrix is more object-orientated based while 
+hypetables is more 'view' based (i.e. MapReduce). I'd imagine the main 
+different in schema is the resource use with Hypertables geared more 
+towards search rather than update speed. Hypertables appears good for an 
+archive base.
+
+&gt;<i>
+</I>&gt;<i> But it's not incompatible with hibernate, I think. One is the object 
+</I>&gt;<i> model (the whole world architecture), the other, the way the objects 
+</I>&gt;<i> persists in database (or memory, or whatever we want to use). Maybe if 
+</I>&gt;<i> we take a look at the atomatrix code we could find a way to link 
+</I>&gt;<i> everything.
+</I>
+NHibernate is cool, but what I have seen so far is that it wants to 
+broker directly to SQL and that forces users to base their entire 
+environment on the NHibernate/SQL back-end. Anotherwords, it is not 
+DB/filesystem agnostic. That is where I see it lack the generality we 
+need; for example, when there is a need to share (as in exchange) 
+objects between simulators. We can't expect all simulators to use 
+NHibernate/SQL brokerage, but that doesn't mean we shouldn't use 
+NHibernate. It means that assets being exchanged may break if the assets 
+rely on the default setup of NHibernate of one simulator and find it not 
+available on the other simulator.
+
+Yes, it is not incompatible with Atomatrix. Atomatrix and NHibernate 
+focus at different layers.  Atomatrix can easily encapsulate NHibernate 
+data or even provide MapReduce like processes upon such data, but that 
+depends on how well we would be able to get NHibernate not to rely on 
+direct SQL access. It appears NHibernate has the XML option instead of 
+SQL for storage, and XML is easily encapsulated. We would only want to 
+be able to encapsulate objects that are not static to the run-time. Such 
+static objects, being fitted with NHibernate and Mono, are best to let 
+NHibernate do what it does natively. The more dynamic objects, being 
+used as exchangeable assets for example, is where I see a more general 
+layer is needed for their exchange, security, and other dynamic factory 
+features.
+
+
+&gt;<i>
+</I>&gt;<i> Collada is another thing. It's a xml format for saving 3D scenes: good 
+</I>&gt;<i> for sharing data between programs but not for having this data working 
+</I>&gt;<i> in real time. I tried to use it for my Henshin project (Autocad to 
+</I>&gt;<i> Second Life exporter program) but due the way SL treates the 
+</I>&gt;<i> primitives (modifications, cuts, texturing...) is a mad to use it: we 
+</I>&gt;<i> will need to add some type of &quot;converter&quot; if we want to use the Second 
+</I>&gt;<i> Life viewer. One project that uses Collada for importing/exporting is 
+</I>&gt;<i> Multiverse (<A HREF="http://www.multiverse.net/">http://www.multiverse.net/</A>) if my memory doesn't fails.
+</I>
+Collada doesn't force anybody to use it natively, but it is a standard 
+way to encapsulate such related data for exchange.  The filters (i.e. 
+'converters') can be used to move data structures from one optimal 
+format to another and back to collada for its exchange. The default 
+schema shown on the website is pretty general and not well suited for 
+more secure transactions. For example, parts of an object may be owned 
+by several users, and we wouldn't want to generally expose all parts of 
+an object for anybody to look at it. Collada does present the flow and 
+basic protocol (skeleton) to allow such finer security control, but we 
+would need to developer the actual methods to control such data.  I 
+really like the ability to store an optimized physical model and an 
+optimized viewer model of the same object under the same DAE.
+
+
+The main question to this thread was about a unified database plan, and 
+the answer may come in different layers to the database. I suggested a 
+couple general layers. There are suggestions here for more specific 
+layers.  How unified does it have to be?
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000836.html">[Opensim-dev] Object Representation
+</A></li>
+	<LI>Next message: <A HREF="000817.html">[Opensim-dev] init.d scripts I put on the wiki and putting then in	the svn
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#849">[ date ]</a>
+              <a href="thread.html#849">[ thread ]</a>
+              <a href="subject.html#849">[ subject ]</a>
+              <a href="author.html#849">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

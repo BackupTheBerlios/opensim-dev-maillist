@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%22Friendly%20teleports%22%20between%20the%20standalone%20sims&In-Reply-To=%3CBAY102-DAV7E22AF807FD7B11D8FC7CC8B10%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000076.html">
+   <LINK REL="Next"  HREF="000082.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims</H1>
+    <B>Tleiades</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%22Friendly%20teleports%22%20between%20the%20standalone%20sims&In-Reply-To=%3CBAY102-DAV7E22AF807FD7B11D8FC7CC8B10%40phx.gbl%3E"
+       TITLE="[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims">tleiades at hotmail.com
+       </A><BR>
+    <I>Thu Sep 27 08:39:11 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000076.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+        <LI>Next message: <A HREF="000082.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#81">[ date ]</a>
+              <a href="thread.html#81">[ thread ]</a>
+              <a href="subject.html#81">[ subject ]</a>
+              <a href="author.html#81">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>  just for a laugh, I've implemented so that the OGS Grid comms now have a Local Grid comm, and forwards all requests to it to see if it can be handled locally, if not, it accesses the grid.
+
+
+One second thought, I think we should be very carefull about the levels of indirections
+
+The comms manager already has a lot, most of the various base classes in the inheritance chain try to implement complex logic, user simpler - and multiple - methods to the genric comms (be it the local or the OGS one), when the comms layer needs database access you will again see a lot of indirections.
+
+We have 2-3-4 different DB plugins (SQLLite and MySQL probably being more complete and stable), If you examine both the MySql and SQLite plugins, they are again staggered into a hierarchy of logic.
+
+So if you tweak the local comms layer to attempt a local access first, and then divert to OGS in case you fail, you risk:
+1) Duplicating the decision of wheter to uses local or OGS in two different layers of the application
+2) Introduce - atleast increased -latency in the network communications, and that will cause the lag monster to appear.
+
+I am pretty worried, we have a very flexible engine, with a lot of dynamically loaded assemblies, which - atleast on Microsoft -  will produce less than optimum compiled code, and we generally use a very inefficient network comms protocol (XML-RPC and REST). How can we get that to perform well?
+
+I would suggest that we:
+1) Use .NET remoting for all our communications, out of the box .NET comes with TCP, HTTP and IPC channels. IPC is designed to be a local machine interprocess communications protocol. TCP and HTTP should be pretty self explanatory. The format of the messages can be controlled via formatters, out of the box .NET supports binary and SOAP, but an XML-RPC formatter is freely available.
+
+2) Drop local mode.
+
+If we switch to a complete remoting based communications protocol, it will be possible to use high performance IPC remoting if we are running in stand alone mode, and stil delegate communications on a per server basis via the config files.
+
+This way stand alone mode, is merely a question of using the right configuration. The gains are that we reduce the comlexity of the codebase by removing all the local comms stuff. and remove one layer of abstraction.
+
+/Tleiades
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20070927/e8b49d17/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20070927/e8b49d17/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000076.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+	<LI>Next message: <A HREF="000082.html">[Opensim-dev] &quot;Friendly teleports&quot; between the standalone sims
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#81">[ date ]</a>
+              <a href="thread.html#81">[ thread ]</a>
+              <a href="subject.html#81">[ subject ]</a>
+              <a href="author.html#81">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

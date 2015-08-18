@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] XInventory issues (was Re:	[Opensim-commits]	...r/12657)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-May/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20XInventory%20issues%20%28was%20Re%3A%0A%09%5BOpensim-commits%5D%09...r/12657%29&In-Reply-To=%3C4BDF5728.90704%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008600.html">
+   <LINK REL="Next"  HREF="008609.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] XInventory issues (was Re:	[Opensim-commits]	...r/12657)</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20XInventory%20issues%20%28was%20Re%3A%0A%09%5BOpensim-commits%5D%09...r/12657%29&In-Reply-To=%3C4BDF5728.90704%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] XInventory issues (was Re:	[Opensim-commits]	...r/12657)">diva at metaverseink.com
+       </A><BR>
+    <I>Tue May  4 01:07:20 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008600.html">[Opensim-dev] XInventory issues (was Re: [Opensim-commits]	...r/12657)
+</A></li>
+        <LI>Next message: <A HREF="008609.html">[Opensim-dev] XInventory issues (was	Re:	[Opensim-commits]	...r/12657)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8602">[ date ]</a>
+              <a href="thread.html#8602">[ thread ]</a>
+              <a href="subject.html#8602">[ subject ]</a>
+              <a href="author.html#8602">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>XInventory's data layer is consistent with all the other resources, it 
+uses the generic table handler. That should eliminate the inventory 
+crashes in SQLite in Mac, although I haven't had time to test this. (and 
+it won't fix all other problems with SQLite in the Mac)
+The network connectors are also much simpler and nicer than the old 
+ones, same as as the new ones: form data + xml responses.
+
+Migration: for MySql the tables are exactly the same, so there's no 
+migration. For SQLite, the tables were inconsistent with the tables in 
+MySql, so there are new ones. Migration is possible, and it's working, 
+sorta. I have a migration there (002) that theoretically does it, but 
+for some reason doesn't work inside OpenSim -- but it works if you type 
+those exact statements in the sqlite3 console. Cause TBD.
+
+I don't know what other data migration issues you are referring to. As 
+far as I know, all migrations are there, and are working, both for MySql 
+and SQLite.
+
+Data migration is possible. I have a migration in there that 
+theoretically does it, although, for some reason it doesn't work when 
+it's run by the OpenSim migrations code
+
+More details over IRC if you are there.
+
+On 5/3/2010 3:45 PM, Justin Clark-Casey wrote:
+&gt;<i> Hi Diva.  Couple of points
+</I>&gt;<i>
+</I>&gt;<i> 1)  With this change it doesn't appear possible to go back to the 
+</I>&gt;<i> existing Inventory dll - the logins fail with no root folder - can we 
+</I>&gt;<i> fix this?  XInventory also fails to work on standalone when I tried to 
+</I>&gt;<i> use it, though that may be because there now exists no inventory data 
+</I>&gt;<i> for existing users
+</I>&gt;<i>
+</I>&gt;<i> 2)  How does this XInventory module differ from the existing inventory 
+</I>&gt;<i> module and what advantages does it bring?  What is the migration plan 
+</I>&gt;<i> for existing data?  I feel that it's a bad precedent to bring in these 
+</I>&gt;<i> kinds of changes without simultaneous data migration code, as we have 
+</I>&gt;<i> traditionally done in the past.   This happened with the user changes 
+</I>&gt;<i> and the data migration issues there have still not been resolved.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-commits-bounces at lists.berlios.de</A> wrote:
+</I>&gt;&gt;<i> The branch, master has been updated
+</I>&gt;&gt;<i>        via cbb297b Renamed HGInventoryBroker2 to HGInventoryBroker.
+</I>&gt;&gt;<i>        via 052580e Deleted HGInventoryBroker, so that the new one can 
+</I>&gt;&gt;<i> take its name.
+</I>&gt;&gt;<i>        via bd49985 Switched everything to XInventory by default. The 
+</I>&gt;&gt;<i> old Inventory is still there for now, in case bugs pop up with 
+</I>&gt;&gt;<i> XInventory.
+</I>&gt;&gt;<i>       from 648999d add operation to &quot;nant distbin&quot; to copy 
+</I>&gt;&gt;<i> StandaloneCommon.ini.example -&gt; StandaloneCommon.ini
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Those revisions listed above that are new to this repository have
+</I>&gt;&gt;<i> not appeared on any other notification email; so we list those
+</I>&gt;&gt;<i> revisions in full, below.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> - Log -----------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> commit bd49985afa0a30cf9338730807a42eff3d508bee
+</I>&gt;&gt;<i> Author: Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+</I>&gt;&gt;<i> Date:   Sun May 2 10:31:35 2010 -0700
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>     Switched everything to XInventory by default. The old Inventory 
+</I>&gt;&gt;<i> is still there for now, in case bugs pop up with XInventory.
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008600.html">[Opensim-dev] XInventory issues (was Re: [Opensim-commits]	...r/12657)
+</A></li>
+	<LI>Next message: <A HREF="008609.html">[Opensim-dev] XInventory issues (was	Re:	[Opensim-commits]	...r/12657)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8602">[ date ]</a>
+              <a href="thread.html#8602">[ thread ]</a>
+              <a href="subject.html#8602">[ subject ]</a>
+              <a href="author.html#8602">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

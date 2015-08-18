@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OpenSim.Model
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim.Model&In-Reply-To=%3CBLU134-W40C470D18A1287900D7919D5EE0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001438.html">
+   <LINK REL="Next"  HREF="001453.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OpenSim.Model</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OpenSim.Model&In-Reply-To=%3CBLU134-W40C470D18A1287900D7919D5EE0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] OpenSim.Model">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sat Apr 12 11:11:47 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001438.html">[Opensim-dev] Universal Avatar Question
+</A></li>
+        <LI>Next message: <A HREF="001453.html">[Opensim-dev] FYI: Established an OpenSim 'related software' page on the OpenSim wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1440">[ date ]</a>
+              <a href="thread.html#1440">[ thread ]</a>
+              <a href="subject.html#1440">[ subject ]</a>
+              <a href="author.html#1440">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Sean asked me to outline the 'Model' concept proposed by me and MW and give examples of what classes would move there.
+ 
+To put it simple, 'Model' as we mean it, is more or less identical to the 'Model' koncept of the MVC pattern
+ 
+<A HREF="http://en.wikipedia.org/wiki/Model-view-controller">http://en.wikipedia.org/wiki/Model-view-controller</A>
+ 
+A 'model' is &quot;The domain-specific representation of the information on which the application operates&quot; together with raw data calculations, as calculating current age from birthday et c - and data integrity enforcement, as for example range checks.
+ 
+The Model does not ACT in the system, but is OBSERVED and ACTED UPON.
+ 
+Since the model does not act, it never calls on references to (non-trivial) outside types - ie, UserProfile can expose an IUserProfileService (hypothetically a reference to the service that produced it) but it will never CALL on it.
+ 
+The model assembly should be self-contained in that it should not reference any libraries but the .net System assemblies. This makes it very easy to re-use in other contexts.
+ 
+While this pattern works best in a SOA or MVC system, just having the model layer brings several benefits:
+ 
+* Over time, the code starts to move towards better control over state and state-changes (by forcing state-changing behaviour out of the state containers) decoupling and integrity enforcement.
+* The Model can be acted upon by several different contexts, such as
+  * Data Serialization (Database, Xml, Remoting)
+  * Aux Services (UGAI, Web interfaces, inter-grid logic)
+  * Unit and integration Tests
+  * Building Tools and Third-party services and applications (that can re-use the model for their inner representation)
+ 
+Now, since we don't have a fully implemented 'controller' orientation, inheritance has to be side-stepped by formulating the type as interface instead of class. It's less than perfect, but better than nothing.
+ 
+(For example, currently the SceneObjectGroup is an EntityBase, which means that we would need to inherit the model (data) parts from the model layer and the acting parts (functions) from the business logic layer, which can't be done in a single-inheritance language as c# - so, what we have to do is to at least implement IEntityBase and ISceneObjectGroup, probably supplying classes EntityBaseImpl and SceneObjectGroupImpl for data manipulation purposes only)
+ 
+We believe this would be a big step forward towards getting the architecture under control and to facilitate third-party extension support.
+ 
+Best regards,
+Stefan (lbsa71)
+ 
+** Addendum **
+Some prime candidates for OpenSim.Model (think of what it would mean to have esay access to these types from other contexts, like your own UGAI, Application or Web site)
+ 
+UUID
+Asset, IAssetAssetLandmark
+Texture, ITexture
+Wearable, IWearable
+Estate, IEstate
+Region, IRegion (formerly SimpleRegionInfo)
+Scene, IScene
+ScenePresence
+Avatar, IAvatar
+SceneObjectGroup, ISceneObjectGroup
+SceneObjectPart, ISceneObjectPart 
+Shape, IShape
+FriendRelation (formerly FriendListItem)
+IInventoryNode
+InventoryFolder
+InventoryItem
+LandData
+UserProfile, IUserProfile (formerly UserProfileData)
+ 
+IAssetService
+IUserProfileService
+IAvatarService
+IAuthenticationService
+IRegionService
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080412/aa08039c/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080412/aa08039c/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001438.html">[Opensim-dev] Universal Avatar Question
+</A></li>
+	<LI>Next message: <A HREF="001453.html">[Opensim-dev] FYI: Established an OpenSim 'related software' page on the OpenSim wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1440">[ date ]</a>
+              <a href="thread.html#1440">[ thread ]</a>
+              <a href="subject.html#1440">[ subject ]</a>
+              <a href="author.html#1440">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

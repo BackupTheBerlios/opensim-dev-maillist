@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] On Mantis #1370 (avatar persistence)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3C4848E226.8000904%403di.jp%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001749.html">
+   <LINK REL="Next"  HREF="001760.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] On Mantis #1370 (avatar persistence)</H1>
+    <B>Johan Berntsson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3C4848E226.8000904%403di.jp%3E"
+       TITLE="[Opensim-dev] On Mantis #1370 (avatar persistence)">johan at 3di.jp
+       </A><BR>
+    <I>Fri Jun  6 09:07:18 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001749.html">[Opensim-dev] Any test results?
+</A></li>
+        <LI>Next message: <A HREF="001760.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1750">[ date ]</a>
+              <a href="thread.html#1750">[ thread ]</a>
+              <a href="subject.html#1750">[ subject ]</a>
+              <a href="author.html#1750">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+We have discussed #1370 and looked at the code and we are a bit 
+confused. Currently these events seems to occur when a client logs onto 
+a region:
+
+Region receives UseCircuitCode packet, and calls GetAppearance(). 
+GetAppearance needs InventoryFolder which has not yet been created, and 
+fails every time.
+
+A bit later the region receives a CompletedAgentMovement packet, and 
+calls GetInventory(). It then calls GetAppearance() once again. If 
+GetInventory succeeded, then GetAppearance() also succeeds, and avatar 
+persistence works.
+
+Here are some ideas/questions:
+
+1. GetInventory() is asynchronous but GetAppearance() doesn't check if 
+it has been completed or not. This probably explains why some people 
+experience #1370 while it works for others (the unlucky guys have slow 
+computers/networks).
+
+2. GetAppearance() is using InventoryFolder to get asset IDs even though 
+the inventory asset IDs are available in 'avatarappearance' in the DB. 
+The information seems to be duplicated. Can't we use the DB IDs 
+directly? In that case we don't need to synchronize GetInventory() and 
+GetAppearance().
+
+3. One of the GetAppearance() calls seem redundant, but which? Should we 
+call GetApperance after UseCircuitCode or CompletedAgentMovement?
+
+We think it would work if we removed the GetInventory() dependency in 
+GetAppearance() and the second call to GetApperance(), but we are 
+reluctant to commit the change since we don't understand the design 
+completely. Hope you can enlighten us.
+
+Cheers,
+Johan
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001749.html">[Opensim-dev] Any test results?
+</A></li>
+	<LI>Next message: <A HREF="001760.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1750">[ date ]</a>
+              <a href="thread.html#1750">[ thread ]</a>
+              <a href="subject.html#1750">[ subject ]</a>
+              <a href="author.html#1750">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

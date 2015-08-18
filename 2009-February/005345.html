@@ -1,0 +1,612 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [REX] [Fwd: User Authentication]
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BREX%5D%20%5BFwd%3A%20User%20Authentication%5D&In-Reply-To=%3C34cc66250902231619x3d8b67dcla2e73f16924300cf%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005343.html">
+   <LINK REL="Next"  HREF="005346.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [REX] [Fwd: User Authentication]</H1>
+    <B>Teravus Ovares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BREX%5D%20%5BFwd%3A%20User%20Authentication%5D&In-Reply-To=%3C34cc66250902231619x3d8b67dcla2e73f16924300cf%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] [REX] [Fwd: User Authentication]">teravus at gmail.com
+       </A><BR>
+    <I>Tue Feb 24 01:19:31 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005343.html">[Opensim-dev] [REX] [Fwd:  User Authentication]
+</A></li>
+        <LI>Next message: <A HREF="005346.html">[Opensim-dev] [REX] [Fwd: User Authentication]
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5345">[ date ]</a>
+              <a href="thread.html#5345">[ thread ]</a>
+              <a href="subject.html#5345">[ subject ]</a>
+              <a href="author.html#5345">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The only thing that concerns me about using the endpoint for
+authentication, is it's UDP.  Anyone with access to raw sockets your
+IP address, UUID and circuit code, session ID, and SecureSessionId
+could pretend to be you.   I would suggest a better way to validate
+the endpoint would be to verify the IP address on the Seed caps call
+parhaps.  In theory, the initial seed cap would be gotten by the user
+server from the appropriate sim and forwarded to the user over SSL.
+There may also be some checking potential in that the user server
+could post the IP address that the simulator should expect a
+connection from.   Then when the seed cap is requested, the simulator
+could check the IP with the User Server.   The other aspect of this is
+securely ensuring that an avatar can only be in one place(simulator)
+at the same time.  This could be done with some careful session
+locking.
+
+Best Regards
+
+Teravus
+
+On 2/23/09, Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i> Well, I suppose that since we can discern which viewer logs in via the
+</I>&gt;<i> UserServer, we can allow additional features for some viewers that dont
+</I>&gt;<i> exist for others.
+</I>&gt;<i>
+</I>&gt;<i> Dont know if that simplifies or complicates the problem, however.
+</I>&gt;<i>
+</I>&gt;<i> Charles
+</I>&gt;<i>
+</I>&gt;<i> ________________________________
+</I>&gt;<i> From: Diva Canto &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Sent: Monday, February 23, 2009 3:52:29 PM
+</I>&gt;<i>
+</I>&gt;<i> Subject: Re: [Opensim-dev] [REX] [Fwd: User Authentication]
+</I>&gt;<i>
+</I>&gt;<i> &quot;However, this would currently have to happen purely as communication
+</I>&gt;<i> between backend services since we can't change the viewer.&quot;
+</I>&gt;<i>
+</I>&gt;<i> This doesn't solve the man-in-the-middle problem in OSGrid itself, which
+</I>&gt;<i> needs to be solved too, urgently.
+</I>&gt;<i> I think my proposal does.
+</I>&gt;<i>
+</I>&gt;<i> Crista
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Hurliman, John wrote:
+</I>&gt;<i> A RADIUS server is a solution to the problem of authentication. OpenID is a
+</I>&gt;<i> solution for federated identity, and plays nicely with any authentication
+</I>&gt;<i> solution you want to use. I think the description of this particular problem
+</I>&gt;<i> is closer to identity verification across administrative domains than
+</I>&gt;<i> defining a common login protocol, so the OpenID + token systems sound like
+</I>&gt;<i> the right approach. However, this would currently have to happen purely as
+</I>&gt;<i> communication between backend services since we can't change the viewer. A
+</I>&gt;<i> possible flow might be:
+</I>&gt;<i>
+</I>&gt;<i> (OSGrid)-&gt;(UCI) &quot;User
+</I>&gt;<i> <A HREF="http://www.osgrid.org/users/Charles_Krinke">http://www.osgrid.org/users/Charles_Krinke</A> is teleporting
+</I>&gt;<i> to you. His token is abcdef&quot;
+</I>&gt;<i> (UCI)-&gt;(<A HREF="http://www.osgrid.org/users/Charles_Krinke">http://www.osgrid.org/users/Charles_Krinke</A>) &quot;I
+</I>&gt;<i> have the token abcdef, is that a valid session token for Charles?&quot;
+</I>&gt;<i> (UCI)&lt;-(<A HREF="http://www.osgrid.org/users/Charles_Krinke">http://www.osgrid.org/users/Charles_Krinke</A>) &quot;Yes it
+</I>&gt;<i> is&quot;
+</I>&gt;<i> (OSGrid)&lt;-(UCI) &quot;That worked, thanks. Teleport is finished&quot;
+</I>&gt;<i>
+</I>&gt;<i> Notice that Charles happens to have his identity at OSGrid, but that's not a
+</I>&gt;<i> requirement of the exchange. It could just as easily been an identity from
+</I>&gt;<i> another grid, which will be useful for teleporting from UCI to ScienceSim.
+</I>&gt;<i>
+</I>&gt;<i> John
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Mark Malewski
+</I>&gt;<i> Sent: Monday, February 23, 2009 3:04 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>Subject: Re: [Opensim-dev] [REX] [Fwd: User
+&gt;<i> Authentication]
+</I>
+Crista,
+
+
+&gt;<i> The bottom line question in my email, phrased in OpenID terminology,
+</I>&gt;<i>
+</I>&gt;<i> is whether we
+</I>&gt;<i>
+</I>&gt;<i> can use the Viewer's IP address as the token.
+</I>&gt;<i>
+</I>&gt;<i> My question is, would you really want to use the Viewer's IP address as
+</I>&gt;<i> the token? What IP address would it specifically use?
+</I>&gt;<i>
+</I>&gt;<i> If a user were on an internal LAN, would it use the 192.168.1.x IP
+</I>&gt;<i> address (local internal LAN address) or 10.x.x.x? or 172.x.x.x?
+</I>&gt;<i>
+</I>&gt;<i> Or would it use the external routable IP address (from the ISP)? If
+</I>&gt;<i> that were the case, then wouldn't 2 viewers that are accessing a server
+</I>&gt;<i>
+</I>&gt;<i> &gt;from the same location (for example a library, or school, or
+</I>&gt;<i>
+</I>&gt;<i> work/office) where multiple computers on the same internal LAN would try
+</I>&gt;<i> to connect to an external grid server, then wouldn't the viewer's all
+</I>&gt;<i> have the same IP address?
+</I>&gt;<i>
+</I>&gt;<i> Keep in mind, that most users are using NAT behind their firewall, so
+</I>&gt;<i> what IP address would you even use for the token?
+</I>&gt;<i>
+</I>&gt;<i> A better address would be the hostname address (<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hostname at domain.com</A>).
+</I>&gt;<i> This way each and every machine would always hava a unique hostname, and
+</I>&gt;<i> it's tied to a specifc domain (whether it's an internal domain, a LAN,
+</I>&gt;<i> or even the WAN/ISP domain name given by your local ISP, such as a local
+</I>&gt;<i> comcast user:
+</I>&gt;<i>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hostname at be-70-ar01.area1.il.chicago.comcast.net</A>
+</I>
+It might
+&gt;<i> make more sense to use hostname instead of an IP address. So
+</I>maybe use the
+&gt;<i> machine's full FQDN hostname as the token?
+</I>
+I still think a RADIUS server
+&gt;<i> would be the best bet (the solution I
+</I>described in the message below), as
+&gt;<i> the best possible longterm solution
+</I>to this problem.
+
+We would probably need
+&gt;<i> to create some type of &quot;RADIUS&quot; module for
+</I>OpenSim.
+
+ Mark
+
+
+On Mon, Feb 23,
+&gt;<i> 2009 at 3:29 PM, Mark Malewski &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mark.malewski at gmail.com</A>&gt;
+</I>wrote:
+
+
+
+
+ On Mon,
+&gt;<i> Feb 23, 2009 at 3:28 PM, Mark Malewski
+</I>&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mark.malewski at gmail.com</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>  Crista,
+</I>&gt;<i>
+</I>&gt;<i>  Sounds like you are on the right track. Sounds like a very
+</I>&gt;<i> &quot;logical&quot; process, but why not use something like 802.1x/EAP?
+</I>&gt;<i>
+</I>&gt;<i>  &gt; So, what can we do to detect the legitimacy of agents?
+</I>&gt;<i>
+</I>&gt;<i>  Instead of a &quot;Finnish Magic&quot;, why not use 802.1x and use a
+</I>&gt;<i> RADIUS server for standard authentication?
+</I>&gt;<i>
+</I>&gt;<i>  Using simple 802.1x, the authenticator sends an &quot;EAP-
+</I>&gt;<i> Request/Identity&quot; packet to the supplicant as soon as it detects that
+</I>&gt;<i> the link is active (the user has associated with the grid/radius
+</I>&gt;<i> server).
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>  1. The supplicant sends an &quot;EAP-Response/Identity&quot; packet
+</I>&gt;<i> to the authenticator, which is then passed on to the
+</I> authentication
+&gt;<i> (RADIUS) server.
+</I>&gt;<i>
+</I>&gt;<i>  2. The authentication server sends back a challenge to
+</I>&gt;<i> the authenticator, such as with a token password system. The
+</I>&gt;<i> authenticator unpacks this from IP and repackages it into EAPOL and
+</I>&gt;<i> sends it to the supplicant. Different authentication methods will vary
+</I>&gt;<i> this message and the total number of messages. EAP supports client-only
+</I>&gt;<i> authentication and strong mutual authentication. Only strong mutual
+</I>&gt;<i> authentication is considered appropriate for the virtual world case.
+</I>&gt;<i>
+</I>&gt;<i>  3. The supplicant responds to the challenge via the
+</I>&gt;<i> authenticator and passes the response onto the authentication server.
+</I>&gt;<i>
+</I>&gt;<i>  4. If the supplicant provides proper identity, the
+</I>&gt;<i> authentication server responds with a success message, which is then
+</I>&gt;<i> passed onto the supplicant. The authenticator now allows access to the
+</I>&gt;<i> LAN- - possibly restricted based on attributes
+</I> that came back from the
+&gt;<i> authentication server. For example, the authenticator might switch the
+</I>&gt;<i> supplicant to a particular virtual LAN or install a set of firewall
+</I>&gt;<i> rules.
+</I>&gt;<i>
+</I>&gt;<i>  802.1x is a standard, and many wireless LAN vendors have
+</I>&gt;<i> latched onto 802.1x standard to help authenticate and secure both wired
+</I>&gt;<i> and wireless LANs. The greatest feature of 802.1x is interoperability.
+</I>&gt;<i>
+</I>&gt;<i>  It would seem to make sense to just use 802.1x
+</I>&gt;<i> authentication, EAP is supposed to head off proprietary authentication
+</I>&gt;<i> systems and let everything from passwords to challenge-response tokens
+</I>&gt;<i> and public-key infrastructure certificates all work smoothly.
+</I>&gt;<i>
+</I>&gt;<i>  Why not just use a standard RADIUS server as the
+</I>&gt;<i> authentication server? With 802.1x, the user or client that wants to be
+</I>&gt;<i> authenticated would be called a &quot;supplicant&quot;. The actual server doing
+</I>&gt;<i> the authentication (typically a RADIUS server) is called
+</I> the
+&gt;<i> authentication server. The device in between (such as a wireless access
+</I>&gt;<i> point, or any region/grid server) is called the &quot;authenticator&quot;. One of
+</I>&gt;<i> the key points is that the authenticator can be simple and dumb, all of
+</I>&gt;<i> the &quot;brains&quot; have to be in the supplicant and the authentication server.
+</I>&gt;<i>
+</I>&gt;<i>  Each Grid could run their own separate RADIUS server, and
+</I>&gt;<i> user groups could be setup to allow users to &quot;hypergrid&quot; between grids
+</I>&gt;<i> (securely). [By setting up REALMS between Grids]
+</I>&gt;<i>
+</I>&gt;<i>  Each grid would be responsible for checking the &quot;legitimacy&quot;
+</I>&gt;<i> of it's users (via E-mail confirmation, etc.) and if any user was &quot;up to
+</I>&gt;<i> no good&quot; then their user ID can be disabled, and their IP address can be
+</I>&gt;<i> blocked (by the RADIUS server).
+</I>&gt;<i>
+</I>&gt;<i>  <A HREF="http://freeradius.org/">http://freeradius.org/</A>
+</I>
+ Using a standard FreeRADIUS server would make it
+&gt;<i> extremely
+</I>easy for Grid Administrators to Administer User accounts. RADIUS
+&gt;<i> would
+</I>provide centralized access, authentication and accounting management
+&gt;<i> for
+</I>users of the Grid.
+
+&gt;<i> <A HREF="http://en.wikipedia.org/wiki/RADIUS">http://en.wikipedia.org/wiki/RADIUS</A>
+</I>
+ If someone attempted
+&gt;<i> to &quot;hijack&quot; a secure session, the
+</I>RADIUS server checks that the information
+&gt;<i> is correct using
+</I>authentication schemes like PAP, CHAP or EAP. The RADIUS
+&gt;<i> server than
+</I>returns one of three responses (&quot;Yea&quot;, &quot;Nay&quot;, or &quot;Challenge&quot;).
+
+&gt;<i> The &quot;Access Challenge&quot; requests additional information from
+</I>the user (such
+&gt;<i> as a secondary password, or a PIN number, mother's maiden
+</I>name, secret
+&gt;<i> password, or a token or even a secureID card, biometrics,
+</I>etc.)
+
+ Similar to
+&gt;<i> how a web-based online banking system (like Bank
+</I>of America) works. If you
+&gt;<i> are using the same computer all the time, it
+</I>only asks for your username and
+&gt;<i> password. If you attempt to login from
+</I>a new or different computer, then it
+&gt;<i> kicks back an Access Challenge, and
+</I>asks you for additional information
+&gt;<i> (like a secret password, or a PIN,
+</I>or to verify your mother's maiden name,
+&gt;<i> or any of several challenge
+</I>passwords that only the actual user would
+&gt;<i> know).
+</I>
+ If the Challenge is successful, then the secure tunnel
+&gt;<i> is
+</I>established between the user machine and the RADIUS server (and
+&gt;<i> access
+</I>credentials are completely hidden).
+
+ By using RADIUS, we could also
+&gt;<i> grant users access by groups.
+</I>There could be an &quot;Administrators&quot; groups
+&gt;<i> setup, and &quot;Moderator&quot; groups,
+</I>and &quot;Peace Keepers&quot; groups, and various
+&gt;<i> groups with certain permissions
+</I>setup.
+
+ Also certain information is stored
+&gt;<i> in the RADIUS server (IP
+</I>address of the user, maximum length that the user
+&gt;<i> may remain connected,
+</I>an access list, priority queue or other restrictions
+&gt;<i> on a user's access,
+</I>VLAN parameters, QoS parameters, etc.)
+
+ RADIUS is
+&gt;<i> commonly used to facilitate roaming between ISPs,
+</I>for example by companies
+&gt;<i> which provide a single global set of
+</I>credentials that are usable on many
+&gt;<i> public networks. RADIUS facilitates
+</I>this by the use of realms, which
+&gt;<i> identify where the RADIUS server should
+</I>forward the AAA requests for
+&gt;<i> processing.
+</I>
+
+ A realm is commonly appended to a user's user name
+&gt;<i> and
+</I>delimited with an '@' sign, resembling an email address domain
+&gt;<i> name.
+</I>This is known a postfix notation for the realm. Another common usage
+&gt;<i> is
+</I>prefix notation, which involves prepending the realm to the username
+&gt;<i> and
+</I>using '\' as a delimiter. Modern RADIUS servers allow any character
+&gt;<i> to
+</I>be used as a realm delimiter, although in practice '@' and '\'
+&gt;<i> are
+</I>usually used.
+
+ Realms can also be compounded using both prefix and
+&gt;<i> postfix
+</I>notation, to allow for complicated roaming scenarios; for
+&gt;<i> example,
+</I>somedomain.com &lt;<A HREF="http://somedomain.com/">http://somedomain.com/</A>&gt;
+&gt;<i> \<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">username at anotherdomain.com</A>
+</I>could be a valid username with two realms.
+
+&gt;<i> Although realms often resemble email domains, it is
+</I>important to note that
+&gt;<i> realms are in fact arbitrary text and need not
+</I>contain real domain names.
+
+&gt;<i> So users from different Grids could roam freely between
+</I>&quot;partnering&quot; Grid
+&gt;<i> servers using realms.
+</I>
+
+
+
+ Proxy operations
+
+
+ When a RADIUS server receives
+&gt;<i> an AAA request for a user name
+</I>containing a realm, the server will reference
+&gt;<i> a table of configured
+</I>realms. If the realm is known, the server will then
+&gt;<i> proxy the request to
+</I>the configured home server for that domain. The
+&gt;<i> behaviour of the
+</I>proxying server regarding the removal of the realm from the
+&gt;<i> request
+</I>(&quot;stripping&quot;) is configuration-dependent on most servers. In
+&gt;<i> addition,
+</I>the proxying server can be configured to add, remove or rewrite
+&gt;<i> AAA
+</I>requests when they are proxied.
+
+ I believe the first step would be to
+&gt;<i> get a RADIUS server
+</I>setup and working, and then work on setting up two grids
+&gt;<i> together (using
+</I>REALM between the two RADIUS servers) and then once this
+&gt;<i> could be done,
+</I>then later additional grids could be &quot;trusted&quot; and allowed
+&gt;<i> onto the
+</I>network. So users could roam freely between the &quot;trusted grids&quot;.
+
+&gt;<i> If a user was reported to the Grid Owner (as being an
+</I>&quot;abusive user&quot;) then
+&gt;<i> the Grid owner would suspend that user's account,
+</I>and send an &quot;abuse
+&gt;<i> notification&quot; to the Grid Owner (that the user has
+</I>violated the Terms of
+&gt;<i> Service for the Grid). Basically just &quot;pull the
+</I>plug&quot; on that user's
+&gt;<i> account, and kick them off the grid, and ban their
+</I>computer &amp; IP address.
+
+&gt;<i> It would make it extremely easy for &quot;policing&quot; the Grid, and
+</I>any users that
+&gt;<i> want &quot;Secure Inter-Grid&quot; handshakes would just join the
+</I>REALM network.
+
+&gt;<i> Mark
+</I>
+ P.S. If you need some help with this, I'm sure we can sit
+down and
+&gt;<i> discuss it a bit, and set something up as a &quot;demo&quot; grid as to
+</I>how this could
+&gt;<i> be done. Then later other Grids (like OS Grid, and
+</I>various others) could
+&gt;<i> join the REALM grid network.
+</I>
+
+
+
+ On Mon, Feb 23, 2009 at 2:19 PM, Toni
+&gt;<i> Alatalo
+</I>&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">antont at kyperjokki.fi</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>  this kinda sounds like trying to achieve what rexauth
+</I>&gt;<i> does, no?
+</I>&gt;<i>
+</I>&gt;<i>  perhaps someone could write how it is w.r.t to that
+</I>&gt;<i> case? i might be
+</I>&gt;<i>  able, but too tired now and probably busy tomorrow.
+</I>&gt;<i>
+</I>&gt;<i>  also John Hurliman is planning new auth stuff with
+</I>&gt;<i> openid and some
+</I>&gt;<i>  openid related token thing (i forgot the name) which
+</I>&gt;<i> is basically 'same
+</I>&gt;<i>  as rexauth but standards instead of Finnish magic',
+</I>&gt;<i> like he said the
+</I>&gt;<i>  other day :) .. so perhaps he replies his plan there,
+</I>&gt;<i> seems to be online
+</I>&gt;<i>  at least.
+</I>&gt;<i>
+</I>&gt;<i>  ~Toni
+</I>&gt;<i>
+</I>&gt;<i>
+</I> --~--~---------~--~----~------------~-------~--~----~
+&gt;<i>  this list: <A HREF="http://groups.google.com/group/realxtend">http://groups.google.com/group/realxtend</A>
+</I>&gt;<i> realXtend home page: <A HREF="http://www.realxtend.org/">http://www.realxtend.org/</A>
+</I>&gt;<i> -~----------~----~----~----~------~----~------~--~---
+</I>
+
+
+&gt;<i> Hi,
+</I>
+ I'm about to start tightening the ropes for the
+Hypergrid in order to
+&gt;<i> make it safer, and also make safer some loose ends of
+</I>OpenSim without
+ HG,
+&gt;<i> and I would appreciate feedback on this.
+</I>
+ The first issue that needs to be
+&gt;<i> addressed is the
+</I>issue of user
+ authentication. The regions need to be able
+&gt;<i> to verify
+</I>that the agent
+ that claims to be
+&gt;<i> representing
+</I><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Charles.Krinke at osgrid.org</A> is, indeed,
+&gt;<i>  representing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Charles.Krinke at osgrid.org.</A> (As you know,
+</I>&gt;<i> right now this
+</I>&gt;<i>  is... err... a bit overlooked... *coughs*... and not
+</I>&gt;<i> just in the HG...
+</I>&gt;<i>  *more coughs*).
+</I>&gt;<i>
+</I>&gt;<i>  Having looked at OpenID, I came to the conclusion that
+</I>&gt;<i> it's not enough
+</I>&gt;<i>  to know that osgrid.org &lt;<A HREF="http://osgrid.org/">http://osgrid.org/</A>&gt; has a
+</I>&gt;<i> user named &quot;Charles Krinke&quot;, and we
+</I>&gt;<i>
+</I> certainly don't want Charles to be constantly typing
+&gt;<i> his password
+</I>&gt;<i>  everytime he moves; the region needs to know that this
+</I>&gt;<i> user is already
+</I>&gt;<i>  logged in to the system AND the region also needs to
+</I>&gt;<i> know that the agent
+</I>&gt;<i>  that is representing this user is a legitimate agent.
+</I>&gt;<i>
+</I>&gt;<i>  OK, so the part about being logged in is easy; the
+</I>&gt;<i> user server already
+</I>&gt;<i>  knows that, to some approximation.
+</I>&gt;<i>
+</I>&gt;<i>  However, the part about the agent being legitimate is
+</I>&gt;<i> a bit more tricky.
+</I>&gt;<i>  Here's the bad thing that can happen: Charles logs in
+</I>&gt;<i> to OSgrid, and TPs
+</I>&gt;<i>  to this intriguing region called &quot;Sports Illuminated
+</I>&gt;<i> Swimming Suite
+</I>&gt;<i>  Edition&quot;. That region happens to be up to no good. It
+</I>&gt;<i> grabs Charles
+</I>&gt;<i>  current notion of identity
+</I> (all the current
+&gt;<i> identifiers we use), it
+</I>&gt;<i>  crashes Charles' viewer so that the user server never
+</I>&gt;<i> knows about it,
+</I>&gt;<i>  and proceeds to impersonate Charles using all those
+</I>&gt;<i> stolen identifiers;
+</I>&gt;<i>  for example, it can go back to Charles's regions and
+</I>&gt;<i> erase them
+</I>&gt;<i>  completely pretending to be Charles.
+</I>&gt;<i>
+</I>&gt;<i>  So, what can we do to detect the legitimacy of agents?
+</I>&gt;<i>
+</I>&gt;<i>  Having scratched my head over this, I came to the
+</I>&gt;<i> conclusion that the
+</I>&gt;<i>  most promising element that can be used to identify
+</I>&gt;<i> agents is the
+</I>&gt;<i>  Viewer's EndPoint. This is what happens down in the
+</I>&gt;<i> LLUDPServer (I'm
+</I>&gt;<i>  sure something similar happens in other viewers'
+</I>&gt;<i> packet handlers):
+</I>&gt;<i>
+</I>&gt;<i>  if (packet != null)
+</I>&gt;<i>
+</I> {
+&gt;<i>  if (packet.Type ==
+</I>&gt;<i> PacketType.UseCircuitCode)
+</I>&gt;<i>
+</I>&gt;<i> AddNewClient((UseCircuitCodePacket)packet, epSender,
+</I>&gt;<i>  epProxy);
+</I>&gt;<i>  else
+</I>&gt;<i>  ProcessInPacket(packet, epSender);
+</I>&gt;<i>  }
+</I>&gt;<i>
+</I>&gt;<i>  The EndPoint epSender comes directly from the socket
+</I>&gt;<i> and I'm assuming it
+</I>&gt;<i>  can't be faked, at least the IP part. Is this correct?
+</I>&gt;<i> This is a
+</I>&gt;<i>  critical assumption.
+</I>&gt;<i>
+</I>&gt;<i>  So, back to the &quot;Sports Illuminated&quot; scenario: that
+</I>&gt;<i> sim would then try
+</I>&gt;<i>  to launch an agent at Charles' region. It can fake
+</I>&gt;<i> everything except
+</I>&gt;<i>  being Charles' viewer machine. When Charles' region
+</I>&gt;<i> does that code
+</I>&gt;<i>  above, it asks the User server for authentication
+</I> of
+&gt;<i> an agent with all
+</I>&gt;<i>  those identifiers and the given EndPoint, and the User
+</I>&gt;<i> server tells back
+</I>&gt;<i>  that Charles wasn't using that EndPoint to start with,
+</I>&gt;<i> so the
+</I>&gt;<i>  authentication fails, and an alarm is rang.
+</I>&gt;<i>
+</I>&gt;<i>  Thoughts?
+</I>&gt;<i>
+</I>&gt;<i>  Crista
+</I>&gt;<i>
+</I>&gt;<i>  Disclaimer: I'm not an expert in security, I'm just
+</I>&gt;<i> using my brain in
+</I>&gt;<i>  context.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>  _______________________________________________
+</I>&gt;<i>  Opensim-dev mailing list
+</I>&gt;<i>  <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+
+
+
+&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005343.html">[Opensim-dev] [REX] [Fwd:  User Authentication]
+</A></li>
+	<LI>Next message: <A HREF="005346.html">[Opensim-dev] [REX] [Fwd: User Authentication]
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5345">[ date ]</a>
+              <a href="thread.html#5345">[ thread ]</a>
+              <a href="subject.html#5345">[ subject ]</a>
+              <a href="author.html#5345">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

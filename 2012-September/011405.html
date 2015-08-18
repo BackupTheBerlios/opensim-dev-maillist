@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Is it OK performance-wise to long-poll a money module?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Is%20it%20OK%20performance-wise%20to%20long-poll%20a%20money%0A%20module%3F&In-Reply-To=%3C505918AB.9020101%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011399.html">
+   <LINK REL="Next"  HREF="011400.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Is it OK performance-wise to long-poll a money module?</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Is%20it%20OK%20performance-wise%20to%20long-poll%20a%20money%0A%20module%3F&In-Reply-To=%3C505918AB.9020101%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Is it OK performance-wise to long-poll a money module?">jjustincc at googlemail.com
+       </A><BR>
+    <I>Wed Sep 19 02:58:19 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011399.html">[Opensim-dev] Is it OK performance-wise to long-poll a money module?
+</A></li>
+        <LI>Next message: <A HREF="011400.html">[Opensim-dev] small problem with GIT on (Debian) Linux...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11405">[ date ]</a>
+              <a href="thread.html#11405">[ thread ]</a>
+              <a href="subject.html#11405">[ subject ]</a>
+              <a href="author.html#11405">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I also used a long poll technique to integrate a webpage user interface for water-resource usage game work I did with 
+Intel and Sandia National Labs a while back.  This made the webpage long pull for updates from OpenSimulator so that 
+actions done by a player in-world (such as clicking on a water-using crop) would be received by javascript on the 
+webpage and acted on appropriately (in this case by changing the webpage tab to the crop information page).  This was to 
+get around the limitations of in-world user interfaces (MOAP on a hud wasn't working back then).
+
+The code is at [1] if an example would be useful.  The polling is done by getUpdate() in [2] and the simulator sets up 
+and initially handles a webservice call at [3], using JSON as the data transport.  When I get some spare time I'm going 
+to write some blog posts about its technical aspects.
+
+I didn't find any issue with timeouts - I found that the javascript could poll indefinitely.
+
+[1] <A HREF="https://github.com/justincc/waterwars">https://github.com/justincc/waterwars</A>
+[2] <A HREF="https://github.com/justincc/waterwars/blob/master/web/waterwars/js/waterwars/waterwars.js">https://github.com/justincc/waterwars/blob/master/web/waterwars/js/waterwars/waterwars.js</A>
+[3] <A HREF="https://github.com/justincc/waterwars/blob/master/src/WaterWars/WebServices/ViewerWebServices.cs">https://github.com/justincc/waterwars/blob/master/src/WaterWars/WebServices/ViewerWebServices.cs</A>
+
+On 15/09/12 10:53, Dahlia Trimble wrote:
+&gt;<i> I've had excellent luck serving many simultaneous long-poll requests with the HTTP server that comes with OpenSimulator.
+</I>&gt;<i> Bear in mind though that each active request may consume a thread so you might need to increase available threads if you
+</I>&gt;<i> see problems. I'm not certain if the request threads are managed by the threadpool in OpenSimulator or if they are
+</I>&gt;<i> direct calls into .NET framework. I did search through the code once and found many threads that were not treadpool
+</I>&gt;<i> managed but I can't remember if HTTP threads were or not.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On Fri, Sep 14, 2012 at 9:07 PM, Edmund Edgar &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ed at avatarclassroom.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ed at avatarclassroom.com</A>&gt;&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>     I've got a situation with the money module I'm working on where I'd
+</I>&gt;<i>     like an external program (running on the client PC in parallel to the
+</I>&gt;<i>     viewer) to be able to be in almost constant contact with the server
+</I>&gt;<i>     while the user is logged in. (I want it to be able to find out
+</I>&gt;<i>     whenever the user wanted to buy something.)
+</I>&gt;<i>
+</I>&gt;<i>     I figure I can do this by having the external program long-poll the
+</I>&gt;<i>     OpenSim server. (The external program makes a request, the server
+</I>&gt;<i>     waits such time as it has something to tell the external program, then
+</I>&gt;<i>     responds. It gives up and responds if there's nothing to say after 30
+</I>&gt;<i>     seconds or so, at which point the external program will make a new
+</I>&gt;<i>     request and start the cycle again.)
+</I>&gt;<i>
+</I>&gt;<i>     At this point if I was serving a web application with Apache I'd start
+</I>&gt;<i>     worrying that I was hogging a bunch of threads and eating through the
+</I>&gt;<i>     memory. Is this the kind of thing I should be worrying about with
+</I>&gt;<i>     OpenSim, or can I merrily go ahead and long-poll without worrying?
+</I>&gt;<i>
+</I>&gt;<i>     The kind of thing I'm thinking of follows:
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>     public void FirstRegionLoaded ()
+</I>&gt;<i>
+</I>&gt;<i>              MainServer.Instance.AddHTTPHandler (&quot;/checkfortransactions/&quot;,
+</I>&gt;<i>     CheckForTransactions);
+</I>&gt;<i>
+</I>&gt;<i>     }
+</I>&gt;<i>
+</I>&gt;<i>     public Hashtable CheckForTransactions(Hashtable request) {
+</I>&gt;<i>
+</I>&gt;<i>              UUID userUUID = (get a user id using a session ID passed in the
+</I>&gt;<i>     request or something);
+</I>&gt;<i>
+</I>&gt;<i>              int i;
+</I>&gt;<i>              // poll for 30 seconds then give up
+</I>&gt;<i>              for (i=0; i&lt;30; i++) {
+</I>&gt;<i>                      if (m_transactionsAwaitingNotification.containsKey(&quot;userUUID&quot;)) {
+</I>&gt;<i>                              // Reply to the request
+</I>&gt;<i>                              Hashtable reply = new Hashtable ();
+</I>&gt;<i>                              reply[&quot;int_response_code&quot;] = 200;
+</I>&gt;<i>                              reply[&quot;str_response_string&quot;] = &quot;{ Some JSON goes here }&quot;;
+</I>&gt;<i>                              reply[&quot;content_type&quot;] = &quot;text/json&quot;;
+</I>&gt;<i>                              return reply;
+</I>&gt;<i>                      }
+</I>&gt;<i>                      Thread.Sleep (1000);
+</I>&gt;<i>              }
+</I>&gt;<i>
+</I>&gt;<i>              Hashtable reply = new Hashtable ();
+</I>&gt;<i>              reply[&quot;int_response_code&quot;] = 204; // No Content
+</I>&gt;<i>              return reply;
+</I>&gt;<i>
+</I>&gt;<i>              // The client will get this reply then hit /checkfortransactions/ again.
+</I>&gt;<i>
+</I>&gt;<i>     }
+</I>&gt;<i>
+</I>&gt;<i>     PS. Thanks for the replies to my C#-ignorant questions on previous threads.
+</I>&gt;<i>
+</I>&gt;<i>     --
+</I>&gt;<i>     Edmund Edgar
+</I>&gt;<i>     Avatar Classroom
+</I>&gt;<i>     Your classroom, on the web, in a virtual world.
+</I>&gt;<i>
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ed at avatarclassroom.com</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">ed at avatarclassroom.com</A>&gt;
+</I>&gt;<i>     +81 090 3912 3380 &lt;tel:%2B81%20090%203912%203380&gt;
+</I>&gt;<i>     Skype: edmundedgar
+</I>&gt;<i>     Second Life: Edmund Earp
+</I>&gt;<i>     Linked In: edmundedgar
+</I>&gt;<i>     Twitter: @edmundedgar
+</I>&gt;<i>     <A HREF="http://www.avatarclassroom.com">http://www.avatarclassroom.com</A>
+</I>&gt;<i>     _______________________________________________
+</I>&gt;<i>     Opensim-dev mailing list
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+OSVW Consulting
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011399.html">[Opensim-dev] Is it OK performance-wise to long-poll a money module?
+</A></li>
+	<LI>Next message: <A HREF="011400.html">[Opensim-dev] small problem with GIT on (Debian) Linux...
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11405">[ date ]</a>
+              <a href="thread.html#11405">[ thread ]</a>
+              <a href="subject.html#11405">[ subject ]</a>
+              <a href="author.html#11405">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Lockless Lists?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3C4933E778.2050305%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="003740.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Lockless Lists?</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Lockless%20Lists%3F&In-Reply-To=%3C4933E778.2050305%40gmail.com%3E"
+       TITLE="[Opensim-dev] Lockless Lists?">sdague at gmail.com
+       </A><BR>
+    <I>Mon Dec  1 14:32:40 CET 2008</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="003740.html">[Opensim-dev] Lockless Lists?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3738">[ date ]</a>
+              <a href="thread.html#3738">[ thread ]</a>
+              <a href="subject.html#3738">[ subject ]</a>
+              <a href="author.html#3738">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin Clark-Casey wrote:
+&gt;<i> Frisby, Adam wrote:
+</I>&gt;&gt;<i> I&#8217;ve managed to get the majority of my goals solved here without 
+</I>&gt;&gt;<i> removing the locks &#8211; but by making a new EntityManager to deal with 
+</I>&gt;&gt;<i> those locks.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Code has been checked in tonight as it doesn&#8217;t look like it should cause 
+</I>&gt;&gt;<i> any new issues. May improve performance during login/logout &#8211; but 
+</I>&gt;&gt;<i> ScenePresences (which I haven&#8217;t touched yet) is probably the real 
+</I>&gt;&gt;<i> culprit there.
+</I>&gt;<i> 
+</I>&gt;<i> To be honest, I suspect the real issue on login/logout performance is the fact that mono does not yet implement thread 
+</I>&gt;<i> prioritization - you can see it but properties such as Thread.Priority are merely stubs.
+</I>&gt;<i> 
+</I>&gt;<i> So when a login/logout comes along it's not currently possible to give existing clients or threads such as the scene 
+</I>&gt;<i> update execution priority.  So I'm thinking that the significant cpu spike on login/logout slows the whole system down.
+</I>&gt;<i> 
+</I>&gt;<i> I looked at login recently and I don't believe that the periods of lock holding are significant enough to be causing the 
+</I>&gt;<i> delay.
+</I>&gt;<i> 
+</I>&gt;<i> No actual proper performance analysis was carried out so I could be wrong.
+</I>
+Using serverstats, something I've noticed is that on Linux after you get
+a dozen people into your environment, system time of the process ends up
+matching user time of the process (about 7% of total CPU for both).
+This lines up with when the lag starts to get bad.
+
+High system time on linux means there is something the kernel is doing
+for you that you need to watch for.  Typically this includes locking.
+
+So I tend to believe the locking is really the problem.  Also, the china
+team got their 1000 avatars simulated on OpenSim by doing lots of lock
+removal.  That work was over a year ago, but I suspect the approaches
+are still valid.
+
+I do think this is where our biggest choke point is right now.  One
+question I've got is whether the synchronized datastructures on mono are
+more efficient than doing the locks yourself.  On .NET that is known to
+be true, but I'm not sure on Mono.  I integrated one such change in the
+packet outgoing queue 6 months ago, and got some confirmation that
+stability went up after that change.
+
+	-Sean
+
+-- 
+Sean Dague / Neas Bade
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sdague at gmail.com</A>
+<A HREF="http://dague.net">http://dague.net</A>
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 252 bytes
+Desc: OpenPGP digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081201/6b1faae5/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081201/6b1faae5/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="003740.html">[Opensim-dev] Lockless Lists?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3738">[ date ]</a>
+              <a href="thread.html#3738">[ thread ]</a>
+              <a href="subject.html#3738">[ subject ]</a>
+              <a href="author.html#3738">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

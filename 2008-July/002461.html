@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] secure_inventory_server ??
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20secure_inventory_server%20%3F%3F&In-Reply-To=%3Cb046ff2a0807250709q4b11360fn9310a88c7e8bd6ed%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002474.html">
+   <LINK REL="Next"  HREF="002464.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] secure_inventory_server ??</H1>
+    <B>liu xiaolu</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20secure_inventory_server%20%3F%3F&In-Reply-To=%3Cb046ff2a0807250709q4b11360fn9310a88c7e8bd6ed%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] secure_inventory_server ??">lulurun at gmail.com
+       </A><BR>
+    <I>Fri Jul 25 16:09:11 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002474.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+        <LI>Next message: <A HREF="002464.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2461">[ date ]</a>
+              <a href="thread.html#2461">[ thread ]</a>
+              <a href="subject.html#2461">[ subject ]</a>
+              <a href="author.html#2461">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi, _MW,
+
+&gt;<i>a quick follow on, what I mean about it being too rigid, is that by having
+</I>a set userserver set
+&gt;<i>url in the inventory server.
+</I>I think I have to explain more about the security change.
+
+[definition:]
+* To put inventoryserver and userserver separatly, means they are on
+different servers and use
+  different DB.
+* &quot;inventory information&quot; is very *closely* related to user
+information(inventoryids belongs to a userid),
+  but &quot;inventory information&quot; does not contain enough information that can
+prove user's identity.
+* Inventoryserver holds such kind of &quot;inventory information&quot;
+* Userserver holds the information that can prove user's
+identity(uuid/name,password)
+[problem:]
+* If we put inventoryserver separate from userserver, then inventoryserver
+can not claim user's
+  identity by itself
+  =&gt; inventoryserver has to rely on 1 or some userservers.
+(check_auth_session call is neccessary)
+// Above, is the current situation
+[solution for &quot;too rigid&quot;:]
+* add a new table for inventoryserver, 2 fields, useruuid, userserver_url,
+everytime inventoryserver
+  extract &quot;session_id&quot;, &quot;user_id&quot; from the request, get &quot;userserver_url&quot; by
+&quot;user_id&quot;, then check the
+  identity of &quot;user_id&quot; from &quot;userserver_url&quot; (call check_auth_session)
+
+&gt;<i>It makes it harder to use the same inventory server on multiple grids.
+</I>&gt;<i>Either for the same user (if their id on each grid was the same).
+</I>&gt;<i>Or just multiple grids/user groups sharing a common inventory server.
+</I>Have you ever think about 1 grid uses multiple inventoryservers. :&gt;
+Sounds like the opposite of what you said, but I think inventoryserver
+should be thought in this way:
+*** inventoryserver is serving for the users, not the grids/regions.
+I mean, inventory server should not be always tied up with grids, no matter
+1 to n or n to 1,
+inventory server just exists for &quot;users&quot;, and the &quot;users&quot; maybe from
+different grids.
+
+This is also a part of my plan of &quot;interop&quot;, please refer to
+<A HREF="http://opensimulator.org/wiki/Avatar_portability_version_2">http://opensimulator.org/wiki/Avatar_portability_version_2</A>
+for more information
+
+regards,
+Lulurun
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080725/d9c335e1/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080725/d9c335e1/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002474.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+	<LI>Next message: <A HREF="002464.html">[Opensim-dev] secure_inventory_server ??
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2461">[ date ]</a>
+              <a href="thread.html#2461">[ thread ]</a>
+              <a href="subject.html#2461">[ subject ]</a>
+              <a href="author.html#2461">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

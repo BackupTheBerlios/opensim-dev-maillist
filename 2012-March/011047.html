@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [RegionReady] login_disable - Default changed in 0.7.3?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BRegionReady%5D%20login_disable%20-%20Default%20changed%20in%0A%200.7.3%3F&In-Reply-To=%3C1332465512.8662.9.camel%40linux-pt9p.site%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011045.html">
+   <LINK REL="Next"  HREF="011038.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [RegionReady] login_disable - Default changed in 0.7.3?</H1>
+    <B>James Hughes</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BRegionReady%5D%20login_disable%20-%20Default%20changed%20in%0A%200.7.3%3F&In-Reply-To=%3C1332465512.8662.9.camel%40linux-pt9p.site%3E"
+       TITLE="[Opensim-dev] [RegionReady] login_disable - Default changed in 0.7.3?">jamesh at bluewallgroup.com
+       </A><BR>
+    <I>Fri Mar 23 02:18:32 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011045.html">[Opensim-dev] [RegionReady] login_disable - Default changed in	0.7.3?
+</A></li>
+        <LI>Next message: <A HREF="011038.html">[Opensim-dev] remote admin bug in 0.7.3 and later
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11047">[ date ]</a>
+              <a href="thread.html#11047">[ thread ]</a>
+              <a href="subject.html#11047">[ subject ]</a>
+              <a href="author.html#11047">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks!
+
+Another note. The settings are defined in the OpenSimDefaults.ini and
+may be copied over to your OpenSim.ini for modification. As logins are
+enabled, a message is sent to the lsl chat channel defined in the
+settings. And a location may be set with he &quot;alert_uri&quot; to receive JSON
+alerts. Here is a simple php handler to recieve them ...
+
+&lt;?php
+
+$method = $_SERVER[&quot;PATH_INFO&quot;];
+
+if ($method == &quot;/alert/&quot;)
+{
+  $msg = json_decode($HTTP_RAW_POST_DATA, true);
+  $alert = $msg['alert'];
+  $login = $msg['login'];
+  $region = $msg['region_name'];
+  $id = $msg['region_id'];
+
+  $file = fopen(&quot;/tmp/login_alerts.txt&quot;,'a');
+  fwrite($file,&quot;*******************************\n&quot;.
+                  &quot;ALERT: &quot;.$alert.
+                  &quot;  REGION: &quot;.$region.
+                  &quot;  LOGIN STATUS: &quot;.$login.&quot;\n&quot;.
+                  &quot;REGION ID: &quot;.$id.&quot;\n&quot;);
+  fclose($file);
+
+}
+
+?&gt;
+
+
+-BlueWall
+
+On Thu, 2012-03-22 at 11:52 -0400, Fleep Tuque wrote:
+&gt;<i> Ahh, that makes perfect sense.  Thanks for the additional information
+</I>&gt;<i> and I took the liberty of adding a bullet point to the 0.7.3 release
+</I>&gt;<i> notes under the General Simulator section:
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> During simulator startup, default setting now disables logins to the
+</I>&gt;<i> simulator until scripts finish compiling to reduce performance issues.
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> I hope that's the appropriate section heading and language, but if not
+</I>&gt;<i> let me know.  
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Thanks again!
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> - Chris/Fleep
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> Chris M. Collins (SL/OS: Fleep Tuque)
+</I>&gt;<i> Center for Simulations &amp; Virtual Environments Research (UCSIM)
+</I>&gt;<i> UCIT Instructional &amp; Research Computing
+</I>&gt;<i> University of Cincinnati
+</I>&gt;<i> 406A Zimmer Hall
+</I>&gt;<i> 315 College Drive
+</I>&gt;<i> PO BOX 210088
+</I>&gt;<i> Cincinnati, OH 45221-0088
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">chris.collins at uc.edu</A>
+</I>&gt;<i> (513) 556-3018
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://ucsim.uc.edu">http://ucsim.uc.edu</A>
+</I>&gt;<i> 
+</I>&gt;<i> On Thu, Mar 22, 2012 at 10:47 AM, R.Gunther &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">rigun at rigutech.nl</A>&gt; wrote:
+</I>&gt;<i>         With the new opensim versions scripts get compiled first,
+</I>&gt;<i>         until that is done region logins are disable for stability.
+</I>&gt;<i>         Thats why you see the logins disabled message. And offcorse it
+</I>&gt;<i>         can take longer before you can login if you have more scripts.
+</I>&gt;<i>         In the past avatars that did a login while scripts where not
+</I>&gt;<i>         done with compileing,  some strange side effects happend then
+</I>&gt;<i>         sometimes.
+</I>&gt;<i>         
+</I>&gt;<i>         --------------------------
+</I>&gt;<i>         
+</I>&gt;<i>         
+</I>&gt;<i>         On 2012-03-21 05:12, Fleep Tuque wrote: 
+</I>&gt;<i>         &gt; Hi all, 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; I noticed when I upgraded to 0.7.3 this evening that I
+</I>&gt;<i>         &gt; couldn't log in for quite some time after a restart with a
+</I>&gt;<i>         &gt; message I'd never seen before on the client, that logins
+</I>&gt;<i>         &gt; were disabled.
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; After some googling, I see that the opensimdefaults.ini has
+</I>&gt;<i>         &gt; a [RegionReady] section that I'd never messed with before (I
+</I>&gt;<i>         &gt; don't think), and comparing the 0.7.2 version to the 0.7.3
+</I>&gt;<i>         &gt; version, it appears the default setting for login_disable
+</I>&gt;<i>         &gt; was false in 0.7.2 but is set to true in 0.7.3.
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; I didn't see this documented in the 0.7.3 release notes, can
+</I>&gt;<i>         &gt; anyone else verify?  If this default has been changed, the
+</I>&gt;<i>         &gt; 0.7.3 release notes should probably reflect that, and if the
+</I>&gt;<i>         &gt; change wasn't intended, thought I should mention it in any
+</I>&gt;<i>         &gt; case.
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; It's a minor thing, but it was momentarily confusing, I
+</I>&gt;<i>         &gt; thought something was wrong with my upgrade..  
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; Of course it's still possible that I changed something and
+</I>&gt;<i>         &gt; don't remember it too, so if so, apologies in advance for my
+</I>&gt;<i>         &gt; utter confusion.  ;)
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; - Chris/Fleep
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; Chris M. Collins (SL/OS: Fleep Tuque)
+</I>&gt;<i>         &gt; Center for Simulations &amp; Virtual Environments Research
+</I>&gt;<i>         &gt; (UCSIM)
+</I>&gt;<i>         &gt; UCIT Instructional &amp; Research Computing
+</I>&gt;<i>         &gt; University of Cincinnati
+</I>&gt;<i>         &gt; 406A Zimmer Hall
+</I>&gt;<i>         &gt; 315 College Drive
+</I>&gt;<i>         &gt; PO BOX 210088
+</I>&gt;<i>         &gt; Cincinnati, OH 45221-0088
+</I>&gt;<i>         &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">chris.collins at uc.edu</A>
+</I>&gt;<i>         &gt; (513) 556-3018
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; <A HREF="http://ucsim.uc.edu">http://ucsim.uc.edu</A>
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; 
+</I>&gt;<i>         &gt; _______________________________________________
+</I>&gt;<i>         &gt; Opensim-dev mailing list
+</I>&gt;<i>         &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>         &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>         
+</I>&gt;<i>         
+</I>&gt;<i>         
+</I>&gt;<i>         _______________________________________________
+</I>&gt;<i>         Opensim-dev mailing list
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>         <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+</PRE>
+
+
+
+
+
+
+
+
+
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011045.html">[Opensim-dev] [RegionReady] login_disable - Default changed in	0.7.3?
+</A></li>
+	<LI>Next message: <A HREF="011038.html">[Opensim-dev] remote admin bug in 0.7.3 and later
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11047">[ date ]</a>
+              <a href="thread.html#11047">[ thread ]</a>
+              <a href="subject.html#11047">[ subject ]</a>
+              <a href="author.html#11047">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

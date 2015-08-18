@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Improving object update performance
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Improving%20object%20update%20performance&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D50263043%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005238.html">
+   <LINK REL="Next"  HREF="005148.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Improving object update performance</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Improving%20object%20update%20performance&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D50263043%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Improving object update performance">john.hurliman at intel.com
+       </A><BR>
+    <I>Fri Feb 20 18:49:02 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005238.html">[Opensim-dev] Improving object update performance
+</A></li>
+        <LI>Next message: <A HREF="005148.html">[Opensim-dev] Big thanks to the Installer Team
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5260">[ date ]</a>
+              <a href="thread.html#5260">[ thread ]</a>
+              <a href="subject.html#5260">[ subject ]</a>
+              <a href="author.html#5260">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I'm confused; there's no such thing as an AvatarTerseUpdate (see <A HREF="http://www.libsecondlife.org/template/release/1.19.1.4.txt">http://www.libsecondlife.org/template/release/1.19.1.4.txt</A>). There are AgentUpdate packets, but those only go from the client to the server. Avatars are also objects (they share all of the same properties as prims at the wire level) and avatar movements are broadcasted with ObjectUpdate, ObjectUpdateCompressed (currently unused in OpenSim), ObjectUpdateCached (rare for avatars as it's a client cache check), and ImprovedTerseObjectUpdate. Since avatar properties almost never change (the exception is changing appearance where the TextureData block for an avatar will change, or changing group name where the NameValues field will change) all avatar movements are broadcast with ImprovedTerseObjectUpdate. Aggregating multiple ImprovedTerseObjectUpdate.ObjectData blocks into a single packet should provide a noticeable reduction in bandwidth for crowded regions. Doing frustum calculations to cull and prioritize updates for each avatar will also ease the network bottleneck, at the expense of more compute power.
+
+John
+
+&gt;<i>-----Original Message-----
+</I>&gt;<i>From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Mikko Pallari
+</I>&gt;<i>Sent: Friday, February 20, 2009 12:41 AM
+</I>&gt;<i>To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>Subject: Re: [Opensim-dev] Improving object update performance
+</I>&gt;<i>
+</I>&gt;<i>Hi,
+</I>&gt;<i>
+</I>&gt;<i>I don't have resent statistic about which packets are sent most in
+</I>&gt;<i>simulators currenly, but I would suspect that the most traffic comes
+</I>&gt;<i>from avatar movement not object updates. This however depends from how
+</I>&gt;<i>many scripts are in use etc.
+</I>&gt;<i>
+</I>&gt;<i>I have already made a patch [1], which combines multiple
+</I>&gt;<i>AvatarTerseUpdates in to one packet, like should also be done with the
+</I>&gt;<i>ImprovedTerseObjectUpdate packets as John descripes in the first point.
+</I>&gt;<i>
+</I>&gt;<i>Cheers,
+</I>&gt;<i>Mikko
+</I>&gt;<i>
+</I>&gt;<i>[1]: <A HREF="http://opensimulator.org/mantis/view.php?id=3136">http://opensimulator.org/mantis/view.php?id=3136</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>-----Original Message-----
+</I>&gt;<i>From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Hurliman, John
+</I>&gt;<i>Sent: 18. helmikuuta 2009 3:19
+</I>&gt;<i>To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>Subject: [Opensim-dev] Improving object update performance
+</I>&gt;<i>
+</I>&gt;<i>Continuing a phone conversation on the mailing list, this is my current
+</I>&gt;<i>understanding of the status of object updates in OpenSim:
+</I>&gt;<i>
+</I>&gt;<i>1) Each object update is a single packet. No aggregation is done by
+</I>&gt;<i>combining multiple ObjectUpdate.ObjectData blocks into a single packet,
+</I>&gt;<i>or combining ImprovedTerseObjectUpdate.ObjectData blocks
+</I>&gt;<i>2) Object updates are sent in the same order to all clients, with no
+</I>&gt;<i>prioritization (using distance from camera/avatar, frustum culling, etc)
+</I>&gt;<i>3) OpenSim uses two packet types for sending object updates,
+</I>&gt;<i>ObjectUpdate and ImprovedTerseObjectUpdate. Different code paths arrive
+</I>&gt;<i>at each of these packets being sent, and no logic is used to determine
+</I>&gt;<i>the smallest object update packet possible to carry the modified data.
+</I>&gt;<i>This excludes the ObjectUpdateCompressed packet from being used
+</I>&gt;<i>4) Full scene information is streamed to each client as it connects.
+</I>&gt;<i>ObjectUpdateCached packets are not used in cases where the simulator
+</I>&gt;<i>might suspect a cache hit
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>None of these are trivial to implement, but #1 would require the least
+</I>&gt;<i>amount of work and would be the least invasive change. #2, #3, and #4
+</I>&gt;<i>require a stronger concept of an interest list in OpenSim, and a careful
+</I>&gt;<i>balance between cpu load, memory usage from state management, and
+</I>&gt;<i>network load.
+</I>&gt;<i>
+</I>&gt;<i>John
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Opensim-dev mailing list
+</I>&gt;<i><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>_______________________________________________
+</I>&gt;<i>Opensim-dev mailing list
+</I>&gt;<i><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005238.html">[Opensim-dev] Improving object update performance
+</A></li>
+	<LI>Next message: <A HREF="005148.html">[Opensim-dev] Big thanks to the Installer Team
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5260">[ date ]</a>
+              <a href="thread.html#5260">[ thread ]</a>
+              <a href="subject.html#5260">[ subject ]</a>
+              <a href="author.html#5260">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

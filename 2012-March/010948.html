@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3CCAOaG_2ZBtv0mcxmL%3DwT517nbW1fT3iQ86QWNT6s4_MSa_YS1wQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010947.html">
+   <LINK REL="Next"  HREF="010951.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service</H1>
+    <B>James Stallings II</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Proposal%3A%20Implement%20a%20de-duplicating%20core%20ROBUST%0A%20asset%20service&In-Reply-To=%3CCAOaG_2ZBtv0mcxmL%3DwT517nbW1fT3iQ86QWNT6s4_MSa_YS1wQ%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service">james.stallings at gmail.com
+       </A><BR>
+    <I>Thu Mar  8 05:14:30 CET 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010947.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+        <LI>Next message: <A HREF="010951.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10948">[ date ]</a>
+              <a href="thread.html#10948">[ thread ]</a>
+              <a href="subject.html#10948">[ subject ]</a>
+              <a href="author.html#10948">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>brilliant direction. +1
+
+On Wed, Mar 7, 2012 at 9:44 PM, Cristina Videira Lopes &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">lopes at ics.uci.edu</A>&gt;wrote:
+
+&gt;<i> +1 on this.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> On 3/2/2012 6:51 PM, Justin Clark-Casey wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Hi folks.  As we know, the space required for asset storage in
+</I>&gt;&gt;<i> OpenSimulator grows continuously over time.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I think this is inevitable in a web-like virtual world - distributed
+</I>&gt;&gt;<i> garbage collection is practically impossible. However, the current
+</I>&gt;&gt;<i> OpenSimulator asset service stores much more data than it needs to since it
+</I>&gt;&gt;<i> fails to identify assets that are exact duplicates of each other.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Previous work in places such as OSGrid, which now uses Dave Coyle's
+</I>&gt;&gt;<i> Simple Ruby Asset Service (SRAS) [1], reveals that preventing duplicate
+</I>&gt;&gt;<i> assets has a significant effect on storage requirements (I can't remember
+</I>&gt;&gt;<i> the exact figures but I think that it's &gt;30%).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Therefore, I propose to introduce a new core asset service
+</I>&gt;&gt;<i> (xassetservice) that will implement asset de-duplication via asset data
+</I>&gt;&gt;<i> hashing.  This has already been shown to work by SRAS.  I regard this
+</I>&gt;&gt;<i> feature as critical for future plans to extend IAR loading and to improve
+</I>&gt;&gt;<i> the 3-months-out-of-the-box OpenSimulator experience.  It does not aim to
+</I>&gt;&gt;<i> replace external projects such as SRAS for heavy users.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I already have a working implementation in the xassetservice git branch
+</I>&gt;&gt;<i> (configuration instructions at [2]).  This should not be used in way except
+</I>&gt;&gt;<i> for testing - it is still in the prototype stage and can change at any
+</I>&gt;&gt;<i> time.  Only a MySQL implementation exists right now.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The plan would be to have xassetservice exist alongside and independent
+</I>&gt;&gt;<i> of the existing asset service.  Only one service can be used at a time and
+</I>&gt;&gt;<i> this is determined via config files.  After considerable testing,
+</I>&gt;&gt;<i> xassetservice would become the default asset service for new OpenSimulator
+</I>&gt;&gt;<i> installations.  The existing asset service would continue alongside for a
+</I>&gt;&gt;<i> very, very, very long time.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Since asset datasets are so large and critical there would be no
+</I>&gt;&gt;<i> automatic migration between assetservice data and xassetservice.  Instead,
+</I>&gt;&gt;<i> there would be an external migration tool.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I may also take this opportunity to implement other asset service
+</I>&gt;&gt;<i> features, such as data storage on disk instead of database (possibly
+</I>&gt;&gt;<i> nicking stuff from kcozen's previous patch for this) and maybe compression
+</I>&gt;&gt;<i> (though I'm currently thinking that the cons of this outweight the pros).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> More detail is at [3].  Comments or alternative implementation
+</I>&gt;&gt;<i> suggestions from developers, etc., are welcome.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> [1] <A HREF="https://github.com/coyled/sras">https://github.com/coyled/sras</A>
+</I>&gt;&gt;<i> [2] <A HREF="http://opensimulator.org/wiki/**Feature_Proposals/**">http://opensimulator.org/wiki/**Feature_Proposals/**</A>
+</I>&gt;&gt;<i> Deduplicating_Asset_Service#**Testing&lt;<A HREF="http://opensimulator.org/wiki/Feature_Proposals/Deduplicating_Asset_Service#Testing">http://opensimulator.org/wiki/Feature_Proposals/Deduplicating_Asset_Service#Testing</A>&gt;
+</I>&gt;&gt;<i> [3] <A HREF="http://opensimulator.org/wiki/**Feature_Proposals/**">http://opensimulator.org/wiki/**Feature_Proposals/**</A>
+</I>&gt;&gt;<i> Deduplicating_Asset_Service&lt;<A HREF="http://opensimulator.org/wiki/Feature_Proposals/Deduplicating_Asset_Service">http://opensimulator.org/wiki/Feature_Proposals/Deduplicating_Asset_Service</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>
+
+
+-- 
+===================================
+<A HREF="http://simhost.com">http://simhost.com</A>
+<A HREF="http://twitter.com/jstallings2">http://twitter.com/jstallings2</A>
+<A HREF="http://www.linkedin.com/pub/5/770/a49">http://www.linkedin.com/pub/5/770/a49</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20120307/87027957/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20120307/87027957/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010947.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+	<LI>Next message: <A HREF="010951.html">[Opensim-dev] Proposal: Implement a de-duplicating core ROBUST asset service
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10948">[ date ]</a>
+              <a href="thread.html#10948">[ thread ]</a>
+              <a href="subject.html#10948">[ subject ]</a>
+              <a href="author.html#10948">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

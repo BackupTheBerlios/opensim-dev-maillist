@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] On Mantis #1370 (avatar persistence)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3Cb046ff2a0806090939n19bf930an8afee4e1a7368c2f%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001760.html">
+   <LINK REL="Next"  HREF="001764.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] On Mantis #1370 (avatar persistence)</H1>
+    <B>liu xiaolu</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20On%20Mantis%20%231370%20%28avatar%20persistence%29&In-Reply-To=%3Cb046ff2a0806090939n19bf930an8afee4e1a7368c2f%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] On Mantis #1370 (avatar persistence)">lulurun at gmail.com
+       </A><BR>
+    <I>Mon Jun  9 18:39:41 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001760.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+        <LI>Next message: <A HREF="001764.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1761">[ date ]</a>
+              <a href="thread.html#1761">[ thread ]</a>
+              <a href="subject.html#1761">[ subject ]</a>
+              <a href="author.html#1761">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>My personal suggestion:
+
+For getting apprearance data:
+remove the 2nd &quot;if&quot; condition in &quot;TryGetAvatarAppearance&quot;.
+&gt;&gt;&gt;<i> if ((profile != null) &amp;&amp; (profile.RootFolder != null))  --&gt; if (profile
+</I>!= null)
+remove &quot;SetAppearanceAssets&quot; in &quot;TryGetAvatarAppearance&quot;.
+&gt;&gt;&gt;<i> // SetAppearanceAssets(profile, ref appearance);
+</I>
+For storing would be almost the same.
+
+&gt;<i>This was added to deal with the &quot;Can't find your clothes&quot; issue.
+</I>It seems that this is the reason why &quot;RootFolder&quot; information is needed.
+I think it is not necessary (or should not) to check assetID's avaliability
+by using C# code.
+It is a tired, buggy way to go, even you can make &quot;getinventory&quot;
+synchronous.
+Both of the MySQL, MSSQL have the native support of &quot;FOREGIN KEY
+constaints&quot;.
+RDBMS should handle such task for us.
+
+THEN,
+in that case, ... Table &quot;inventoryfolders&quot;, &quot;inventoryitems&quot;,
+&quot;avatarappearance&quot; should be always in the save DB. ...
+THEN,
+probably, getapearance should be moved to inventoryservice :&gt;
+
+It is very strange that you get appearance from use server and then check
+them by using the information from inventory server. these things
+can(should) be done in one request.
+
+
+2008/6/10 Sean Dague &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">sean at dague.net</A>&gt;:
+
+&gt;<i> On Fri, Jun 06, 2008 at 04:07:18PM +0900, Johan Berntsson wrote:
+</I>&gt;<i> &gt; Hi,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; We have discussed #1370 and looked at the code and we are a bit
+</I>&gt;<i> &gt; confused. Currently these events seems to occur when a client logs onto
+</I>&gt;<i> &gt; a region:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Region receives UseCircuitCode packet, and calls GetAppearance().
+</I>&gt;<i> &gt; GetAppearance needs InventoryFolder which has not yet been created, and
+</I>&gt;<i> &gt; fails every time.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; A bit later the region receives a CompletedAgentMovement packet, and
+</I>&gt;<i> &gt; calls GetInventory(). It then calls GetAppearance() once again. If
+</I>&gt;<i> &gt; GetInventory succeeded, then GetAppearance() also succeeds, and avatar
+</I>&gt;<i> &gt; persistence works.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Here are some ideas/questions:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; 1. GetInventory() is asynchronous but GetAppearance() doesn't check if
+</I>&gt;<i> &gt; it has been completed or not. This probably explains why some people
+</I>&gt;<i> &gt; experience #1370 while it works for others (the unlucky guys have slow
+</I>&gt;<i> &gt; computers/networks).
+</I>&gt;<i>
+</I>&gt;<i> Ok, that's a good catch.  There was a random sleep in the code before,
+</I>&gt;<i> which might have been trying to alleviate this (which is the bad
+</I>&gt;<i> approach).  It would be good to come up with a good way of delaying the
+</I>&gt;<i> response here.
+</I>&gt;<i>
+</I>&gt;<i> &gt; 2. GetAppearance() is using InventoryFolder to get asset IDs even though
+</I>&gt;<i> &gt; the inventory asset IDs are available in 'avatarappearance' in the DB.
+</I>&gt;<i> &gt; The information seems to be duplicated. Can't we use the DB IDs
+</I>&gt;<i> &gt; directly? In that case we don't need to synchronize GetInventory() and
+</I>&gt;<i> &gt; GetAppearance().
+</I>&gt;<i>
+</I>&gt;<i> This was added to deal with the &quot;Can't find your clothes&quot; issue.  It
+</I>&gt;<i> turns out that we were missing an update on appearance editing that
+</I>&gt;<i> meant the asset ids were out of date.  It seemed more logical to look it
+</I>&gt;<i> up via inventory.  If we can track down where we were loosing that
+</I>&gt;<i> update, we could rely on the asset fields again.
+</I>&gt;<i>
+</I>&gt;<i> &gt; 3. One of the GetAppearance() calls seem redundant, but which? Should we
+</I>&gt;<i> &gt; call GetApperance after UseCircuitCode or CompletedAgentMovement?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; We think it would work if we removed the GetInventory() dependency in
+</I>&gt;<i> &gt; GetAppearance() and the second call to GetApperance(), but we are
+</I>&gt;<i> &gt; reluctant to commit the change since we don't understand the design
+</I>&gt;<i> &gt; completely. Hope you can enlighten us.
+</I>&gt;<i>
+</I>&gt;<i> Honestly, I don't understand the design completely either. :)  And worse
+</I>&gt;<i> than that, confirming that it works on Standalone + Grid / accross
+</I>&gt;<i> multiple dbs tends to show that one approach doesn't work in one of
+</I>&gt;<i> those environments.  At this point, any help in getting this pulled
+</I>&gt;<i> together would be appreciated.
+</I>&gt;<i>
+</I>&gt;<i>    -Sean
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> Sean Dague                                       Mid-Hudson Valley
+</I>&gt;<i> sean at dague dot net                            Linux Users Group
+</I>&gt;<i> <A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+</I>&gt;<i>
+</I>&gt;<i> There is no silver bullet.  Plus, werewolves make better neighbors
+</I>&gt;<i> than zombies, and they tend to keep the vampire population down.
+</I>&gt;<i> __________________________________________________________________
+</I>&gt;<i>
+</I>&gt;<i> -----BEGIN PGP SIGNATURE-----
+</I>&gt;<i> Version: GnuPG v1.4.6 (GNU/Linux)
+</I>&gt;<i>
+</I>&gt;<i> iD8DBQFITVKuSamXem9TdyYRAitjAKCIpuwIj6rq/fDNnpqSb+wDi7pW4ACdGTj0
+</I>&gt;<i> nIcCQxwyrbmV48JpNHhJpDM=
+</I>&gt;<i> =HEnD
+</I>&gt;<i> -----END PGP SIGNATURE-----
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+-- 
+Liu Xiaolu
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080610/e0a99547/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080610/e0a99547/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001760.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+	<LI>Next message: <A HREF="001764.html">[Opensim-dev] On Mantis #1370 (avatar persistence)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1761">[ date ]</a>
+              <a href="thread.html#1761">[ thread ]</a>
+              <a href="subject.html#1761">[ subject ]</a>
+              <a href="author.html#1761">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

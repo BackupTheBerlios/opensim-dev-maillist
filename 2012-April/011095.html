@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Walk animation doesn't stop
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Walk%20animation%20doesn%27t%20stop&In-Reply-To=%3C1334241866779-7459646.post%40n2.nabble.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011094.html">
+   <LINK REL="Next"  HREF="011096.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Walk animation doesn't stop</H1>
+    <B>Oren Hurvitz</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Walk%20animation%20doesn%27t%20stop&In-Reply-To=%3C1334241866779-7459646.post%40n2.nabble.com%3E"
+       TITLE="[Opensim-dev] Walk animation doesn't stop">orenh at kitely.com
+       </A><BR>
+    <I>Thu Apr 12 16:44:26 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011094.html">[Opensim-dev] Walk animation doesn't stop
+</A></li>
+        <LI>Next message: <A HREF="011096.html">[Opensim-dev] Walk animation doesn't stop
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11095">[ date ]</a>
+              <a href="thread.html#11095">[ thread ]</a>
+              <a href="subject.html#11095">[ subject ]</a>
+              <a href="author.html#11095">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I found the problem. The walking script is notified whenever the user presses
+or releases a movement key, e.g. the Forward key. When that happens, the
+script checks which movement animation the avatar is currently using, and
+starts or stops the custom animation according to whether the movement
+animation is &quot;WALK&quot; or not. There were several problems with this:
+
+1. In ScenePresence, when the client moves, the &quot;control&quot; notification was
+sent to the scripts before the avatar's animation had been updated, so the
+walking script was using the wrong animation to make its decisions. Now the
+scripts are notified only after the animation has been updated.
+
+2. Sometimes multiple threads were trying to update the avatar's movement
+animation at once, again causing the script to see the wrong animation. I
+added a lock to prevent threads from interfering with each other.
+
+3. When choosing the avatar's movement animation, if the avatar stopped
+walking while it was falling (even if the &quot;fall&quot; was really just a tiny bump
+in the ground) then the avatar animation remained on &quot;WALK&quot;. I changed it to
+set the animation to &quot;STAND&quot; in this case. (It would have changed to &quot;STAND&quot;
+soon anyway, but that delay caused the walking script to fail.) Note that
+this only affects the beginning of a fall; if the fall takes a long time
+then the avatar switches to the &quot;FALLING&quot; animation, and I didn't change
+that.
+
+The situation is much improved now: I haven't been able to cause the walking
+animation bug to happen anymore (although it's possible that there are other
+cases I haven't hit upon). I will submit this patch after I finish updating
+our system to OpenSim 0.7.3.
+
+--
+View this message in context: <A HREF="http://opensim-dev.2196679.n2.nabble.com/Walk-animation-doesn-t-stop-tp7453403p7459646.html">http://opensim-dev.2196679.n2.nabble.com/Walk-animation-doesn-t-stop-tp7453403p7459646.html</A>
+Sent from the opensim-dev mailing list archive at Nabble.com.
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011094.html">[Opensim-dev] Walk animation doesn't stop
+</A></li>
+	<LI>Next message: <A HREF="011096.html">[Opensim-dev] Walk animation doesn't stop
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11095">[ date ]</a>
+              <a href="thread.html#11095">[ thread ]</a>
+              <a href="subject.html#11095">[ subject ]</a>
+              <a href="author.html#11095">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] multiple, empty, root inventory folders
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20multiple%2C%20empty%2C%20root%20inventory%20folders&In-Reply-To=%3C6b9359640804211028wb95016dy2c9fc4c6de95c12d%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001483.html">
+   <LINK REL="Next"  HREF="001488.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] multiple, empty, root inventory folders</H1>
+    <B>Kyle Hamilton</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20multiple%2C%20empty%2C%20root%20inventory%20folders&In-Reply-To=%3C6b9359640804211028wb95016dy2c9fc4c6de95c12d%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] multiple, empty, root inventory folders">aerowolf at gmail.com
+       </A><BR>
+    <I>Mon Apr 21 19:28:09 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001483.html">[Opensim-dev] multiple, empty, root inventory folders
+</A></li>
+        <LI>Next message: <A HREF="001488.html">[Opensim-dev] multiple, empty, root inventory folders
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1484">[ date ]</a>
+              <a href="thread.html#1484">[ thread ]</a>
+              <a href="subject.html#1484">[ subject ]</a>
+              <a href="author.html#1484">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Mon, Apr 21, 2008 at 8:34 AM, Justin Clark-Casey
+&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+&gt;<i>
+</I>&gt;<i>  Multiple roots were the result of various code bugs.  I actually hope
+</I>&gt;<i>  now that we have these nailed, and that all the current multiple
+</I>&gt;<i>  inventories are now historical stock.
+</I>&gt;<i>
+</I>&gt;<i>  If this doesn't prove to be the case, I think it would be worth adding a
+</I>&gt;<i>  multiple inventory check on inventory service startup.  I'm loathe to
+</I>&gt;<i>  add anything more than this due to the code and startup cost, which
+</I>&gt;<i>  would only be going to counter a situation which should in theory never
+</I>&gt;<i>  occur.
+</I>
+One of the most important things in any service structure is the
+ability to gracefully degrade in the presence of constraint
+assumptions which are not met by the data set.  The constraint here is
+&quot;there must be only one root inventory for each avatar/account&quot;; in
+OSgrid's case, that constraint is currently violated.
+
+I appreciate that you think/hope that you've got these bugs squashed.
+But, it's important to recognize that the constraints can easily
+become violated through nobody's fault... especially in a
+constantly-changing codebase.  Since the inventory service is
+restarted only rarely, any instances of root inventory
+duplication/inventory-db constraint violation will in the case of
+startup-check only be determined at the time of restart.
+
+It's extremely easy to envision that startup is the worst possible
+time for these constraint violations to be detected (i.e., the
+inventory server has crashed and, during restart, duplicates are found
+that cause the startup to abort).
+
+Instead of once-per-run-at-startup, I'd suggest a timer throw to do a
+kind of read-only dbck (i.e., scan just to make sure that basic
+constraints are met) once an hour or so, eventually moving it to once
+every 24 hours.  Since it can be done within a transaction, it can be
+guaranteed that the state of the database as it is seen by this check
+is consistent, and it would provide for an early-warning system to
+show when things start to degrade and the constraints start to be
+broken.  (so that maintenance can be performed at that time, instead
+of in an urgent situation.)
+
+I've been called at 3am -- and called others at 3am -- too many times
+(due to unexpected sanity violations on databases and poor handling of
+it by codebases).  I personally don't like unplanned failure modes.
+I'd like to see some sort of degradation strategy built into the
+infrastructure to help provide a highly-available system.
+
+-Kyle H
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001483.html">[Opensim-dev] multiple, empty, root inventory folders
+</A></li>
+	<LI>Next message: <A HREF="001488.html">[Opensim-dev] multiple, empty, root inventory folders
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1484">[ date ]</a>
+              <a href="thread.html#1484">[ thread ]</a>
+              <a href="subject.html#1484">[ subject ]</a>
+              <a href="author.html#1484">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

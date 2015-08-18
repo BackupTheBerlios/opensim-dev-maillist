@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving assets from sqlite to mysql
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20assets%20from%20sqlite%20to%20mysql&In-Reply-To=%3C508339.19069.qm%40web82603.mail.mud.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000791.html">
+   <LINK REL="Next"  HREF="000693.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving assets from sqlite to mysql</H1>
+    <B>Charles Krinke</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20assets%20from%20sqlite%20to%20mysql&In-Reply-To=%3C508339.19069.qm%40web82603.mail.mud.yahoo.com%3E"
+       TITLE="[Opensim-dev] moving assets from sqlite to mysql">cfk at pacbell.net
+       </A><BR>
+    <I>Thu Jan 17 17:01:37 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000791.html">[Opensim-dev] [libsl-dev] UUID format: dashed here to stay?
+</A></li>
+        <LI>Next message: <A HREF="000693.html">[Opensim-dev] moving assets from sqlite to mysql
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#692">[ date ]</a>
+              <a href="thread.html#692">[ thread ]</a>
+              <a href="subject.html#692">[ subject ]</a>
+              <a href="author.html#692">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Please bear with me as I need to understand this completely to ensure I get it right.
+
+The issue is how to move one or more assets from a regions AssetStorage.db in sqlite to import into a grids mysql database. Let me take the tables first. Here is the sqlite table for assets.
+
+$ sqlite3 AssetStorage.db
+sqlite&gt; .tables
+assets
+sqlite&gt; describe assets;
+SQL error: near &quot;describe&quot;: syntax error
+sqlite&gt; .schema assets
+CREATE TABLE assets(UUID varchar(255) primary key,
+Name varchar(255),
+Description varchar(255),
+Type integer,
+InvType integer,
+Local integer,
+Temporary integer,
+Data blob);
+sqlite&gt;    
+
+mysql&gt; describe assets;
++-------------+-------------+------+-----+---------+-------+
+|<i> Field       | Type        | Null | Key | Default | Extra |
+</I>+-------------+-------------+------+-----+---------+-------+
+|<i> id          | binary(16)  | NO   | PRI |         |       |
+</I>|<i> name        | varchar(64) | NO   |     |         |       |
+</I>|<i> description| varchar(64) | NO   |     |         |       |
+</I>|<i> assetType  | tinyint(4)  | NO   |     |         |       |
+</I>|<i> invType    | tinyint(4)  | NO   |     |         |       |
+</I>|<i> local      | tinyint(1)  | NO   |     |         |       |
+</I>|<i> temporary  | tinyint(1)  | NO   |     |         |       |
+</I>|<i> data        | longblob    | NO   |     |         |       |
+</I>+-------------+-------------+------+-----+---------+-------+
+8 rows in set (0.00 sec)
+mysql&gt;   
+
+So, we have names that are slightly different (capitalization mainly) and types that are somewhat different.
+
+Can one expect to do something like
+
+1. $ sqlite3 AssetStorage &gt; assetFile
+2. $ scp assetFile computerRunningGrid
+3. $ ssh computerRunningGrid
+4. $ mysql 
+5. $ import from assetFile to assets;
+
+And expect all the details to be worked out?
+
+Pardon my naivety a bit as I work through something I have not done before, but I would like to understand it completely first before fubarring anything. Also, I suspect a recipe describing this would be helpful on wiki. If I can get a recipe to work, then I will be delighted to add it to the wiki.
+
+Charles
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080117/d279ca85/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080117/d279ca85/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000791.html">[Opensim-dev] [libsl-dev] UUID format: dashed here to stay?
+</A></li>
+	<LI>Next message: <A HREF="000693.html">[Opensim-dev] moving assets from sqlite to mysql
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#692">[ date ]</a>
+              <a href="thread.html#692">[ thread ]</a>
+              <a href="subject.html#692">[ subject ]</a>
+              <a href="author.html#692">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

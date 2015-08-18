@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] SOG and scripting
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SOG%20and%20scripting&In-Reply-To=%3C48BD6220.4080204%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002831.html">
+   <LINK REL="Next"  HREF="002832.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] SOG and scripting</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20SOG%20and%20scripting&In-Reply-To=%3C48BD6220.4080204%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] SOG and scripting">diva at metaverseink.com
+       </A><BR>
+    <I>Tue Sep  2 17:56:16 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002831.html">[Opensim-dev] Added fields to OpenSim tables
+</A></li>
+        <LI>Next message: <A HREF="002832.html">[Opensim-dev] SOG and scripting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2829">[ date ]</a>
+              <a href="thread.html#2829">[ thread ]</a>
+              <a href="subject.html#2829">[ subject ]</a>
+              <a href="author.html#2829">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+You're probably all busy at the Virtual Worlds conference :-)
+I left a couple of comments in the obscure talk page of the XML 
+Serialization, I bet no one saw that; so I'm repeating the most 
+important one here:
+
+    * Sub-classing SceneObjectGroup:
+
+I'm working on simulations that involve subclassing SceneObjectGroup. 
+The current serialization implementation doesn't work for them, because 
+it always instantiates objects of type SceneObjectGroup. We should 
+account for the sub-type of the object in the XML, and instantiate the 
+right sub-type. Includes having to override the xml-related methods of 
+SceneObject, so make those virtual.
+
+-----
+
+My recent experience with writing subclasses of SOG (and IClientAPI, but 
+that's another topic) opened my mind to the fantastic architecture that 
+you guys have put in place here. I suspect that not many people realize 
+the power of this architecture yet.
+
+So, this other thought popped in my mind: why not implement scripted 
+objects as instances of sub-classes of SOG, and bypass script 
+interpreters and their use of reflection altogether? Something like 
+this: whenever you attach scripts to an object, the OS runtime would 
+generate (assemble, really) CIL bytecodes representing a subclass of SOG 
+implementing those scripts. An instance of that class would then replace 
+the original object, preserving all the important properties and IDs. 
+Rez would be nothing but new-ing those subclasses.
+That way there would be only one uniform representation of active scene 
+objects, independent of whether they were written directly in modules or 
+written by scripting them inworld, and it would use this great API that 
+you have put in place. I bet it would make a lot things a lot faster.
+
+I know it's not as easy as I make it sound, and there are many tricky 
+details, but... is there any fundamental obstacle to this?
+
+Diva / Crista
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080902/4bfc8544/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080902/4bfc8544/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002831.html">[Opensim-dev] Added fields to OpenSim tables
+</A></li>
+	<LI>Next message: <A HREF="002832.html">[Opensim-dev] SOG and scripting
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2829">[ date ]</a>
+              <a href="thread.html#2829">[ thread ]</a>
+              <a href="subject.html#2829">[ subject ]</a>
+              <a href="author.html#2829">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

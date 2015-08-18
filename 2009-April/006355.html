@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving away from grid vs. standalone
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F8BC2C.9020800%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006354.html">
+   <LINK REL="Next"  HREF="006356.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving away from grid vs. standalone</H1>
+    <B>diva at metaverseink.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F8BC2C.9020800%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] moving away from grid vs. standalone">diva at metaverseink.com
+       </A><BR>
+    <I>Wed Apr 29 22:44:28 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006354.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+        <LI>Next message: <A HREF="006356.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6355">[ date ]</a>
+              <a href="thread.html#6355">[ thread ]</a>
+              <a href="subject.html#6355">[ subject ]</a>
+              <a href="author.html#6355">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think that there is a technical obstacle to doing that: the master 
+avatar stuff, that happens early on in the application (OpenSimBase, 
+line 688), needs to have the communication code in place. I think -- 
+although I may be wrong -- that that happens before region modules are 
+in place.
+
+Melanie wrote:
+&gt;<i> I still think all that stuff can be put in region modules....
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;<i> Maybe the right name for it is
+</I>&gt;&gt;<i> OpenSim.Region.ResourceServicesConnectors.dll
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;&gt;&gt;<i> Stefan Andersson wrote:
+</I>&gt;&gt;&gt;&gt;<i> How about
+</I>&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;<i> ---
+</I>&gt;&gt;&gt;&gt;<i> [RegionResourceServices]
+</I>&gt;&gt;&gt;&gt;<i> ;GridService = OpenSim.Region.Communications.Hypergrid.dll, 
+</I>&gt;&gt;&gt;&gt;<i> HGGridServices
+</I>&gt;&gt;&gt;&gt;<i> ;GridService = OpenSim.Region.Communications.Local.dll, 
+</I>&gt;&gt;&gt;&gt;<i> LocalBackEndServices
+</I>&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;<i> GridService = OpenSim.Region.Communications.OGS1.dll, OGS1GridServices
+</I>&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;<i> [GridService]
+</I>&gt;&gt;&gt;&gt;<i> grid_server_url = &quot;<A HREF="http://192.168.1.101:9000">http://192.168.1.101:9000</A>&quot;
+</I>&gt;&gt;&gt;&gt;<i> grid_send_key = &quot;null&quot;
+</I>&gt;&gt;&gt;&gt;<i> grid_recv_key = &quot;null&quot;
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> The problem with specifying dlls *in this particular case* is that 
+</I>&gt;&gt;&gt;<i> these things aren't entirely orthogonal/different. The Hypergrid dlls 
+</I>&gt;&gt;&gt;<i> are a mashup of the other two. Therefore from a source code 
+</I>&gt;&gt;&gt;<i> perspective it makes things a heck of a lot more complicated than 
+</I>&gt;&gt;&gt;<i> they need to be if we simply merge things and use conditionals on 
+</I>&gt;&gt;&gt;<i> configuration variables. For example, hyperlinks (part of grid 
+</I>&gt;&gt;&gt;<i> services) is a really simple extension to LocalGrid services.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> The issue of local vs remote services isn't entirely orthogonal 
+</I>&gt;&gt;&gt;<i> either. Some parts of OGS1 use Local services -- the well know 
+</I>&gt;&gt;&gt;<i> pattern of trying things locally first and if that doesn't work, 
+</I>&gt;&gt;&gt;<i> proceed for a remote service call (e.g. OGS1 grid services does that).
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I see why you want this, in abstract. If another service comes along, 
+</I>&gt;&gt;&gt;<i> it can simply be added as a component. Or if someone writes, say, a 
+</I>&gt;&gt;&gt;<i> completely different inventory service, its interface can be added as 
+</I>&gt;&gt;&gt;<i> dll.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> But in this particular case, for the code we already have, I think 
+</I>&gt;&gt;&gt;<i> that having Local.dll, OGS1.dll and Hypergrid.dll is not working 
+</I>&gt;&gt;&gt;<i> well, even if the configuration process is the one you suggest. The 
+</I>&gt;&gt;&gt;<i> code is mess; things are _way_ more complicated than they need to be.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> So, maybe, what we can do is merging these two ideas. We'll have only 
+</I>&gt;&gt;&gt;<i> one dll (OpenSim.Region.ResourceServices.dll), but we'll specify 
+</I>&gt;&gt;&gt;<i> things in OpenSim.ini the way that you suggest, so that if anyone 
+</I>&gt;&gt;&gt;<i> comes along and wants to plug in a different inventory service, he 
+</I>&gt;&gt;&gt;<i> can just specify the  other dll and an entry class name for it.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> What do you think?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> [Security]
+</I>&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;<i> SessionAuthentication = {True|False}
+</I>&gt;&gt;&gt;&gt;<i> KeyAuthentication = {True|False}
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> ---
+</I>&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;<i> The constructor is being fed a config source, so the service can 
+</I>&gt;&gt;&gt;&gt;<i> pick out whatever it needs.
+</I>&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;<i> All the shipped grid services could move into one assembly, as we're 
+</I>&gt;&gt;&gt;&gt;<i> explicitly specifying the implementing calss.
+</I>&gt;&gt;&gt;&gt;<i>  
+</I>&gt;&gt;&gt;&gt;<i> I believe this approach would get us improved flexibility.
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> /Stefan
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006354.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+	<LI>Next message: <A HREF="006356.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6355">[ date ]</a>
+              <a href="thread.html#6355">[ thread ]</a>
+              <a href="subject.html#6355">[ subject ]</a>
+              <a href="author.html#6355">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

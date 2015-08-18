@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [mmox] My evaluation of LLSD+LLIDL
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5Bmmox%5D%20My%20evaluation%20of%20LLSD%2BLLIDL&In-Reply-To=%3C122539.82294.qm%40web82601.mail.mud.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005263.html">
+   <LINK REL="Next"  HREF="005267.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [mmox] My evaluation of LLSD+LLIDL</H1>
+    <B>Charles Krinke</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5Bmmox%5D%20My%20evaluation%20of%20LLSD%2BLLIDL&In-Reply-To=%3C122539.82294.qm%40web82601.mail.mud.yahoo.com%3E"
+       TITLE="[Opensim-dev] [mmox] My evaluation of LLSD+LLIDL">cfk at pacbell.net
+       </A><BR>
+    <I>Sat Feb 21 03:40:44 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005263.html">[Opensim-dev] My evaluation of LLSD+LLIDL
+</A></li>
+        <LI>Next message: <A HREF="005267.html">[Opensim-dev] Mantis#3148
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5264">[ date ]</a>
+              <a href="thread.html#5264">[ thread ]</a>
+              <a href="subject.html#5264">[ subject ]</a>
+              <a href="author.html#5264">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thats cool, John. Thank you for that. This is a very helpful step forward.
+
+Charles
+
+
+
+
+________________________________
+From: &quot;Hurliman, John&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">john.hurliman at intel.com</A>&gt;
+To: &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmox at ietf.org</A>&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmox at ietf.org</A>&gt;; &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+Sent: Friday, February 20, 2009 6:20:34 PM
+Subject: [mmox] My evaluation of LLSD+LLIDL
+
+I have a partial, very early implementation of a C# LLIDL lexer/parser and code generator in SVN at <A HREF="http://openmv.org/svn/misc/LLIDL/">http://openmv.org/svn/misc/LLIDL/</A> (under the BSD license) in addition to the C# implementation of LLSD that has been under active development for about a year. This is my evaluation of the combined LLSD+LLIDL system in comparison to other similar offerings. Please add comments, corrections, and general feedback.
+
+Linden Lab Structured Data by itself provides an abstract type system. This defines a fixed number of data types: null, boolean, signed 32-bit integer, 64-bit floating point, string, 128-bit UUID, timestamp, URI, binary data, array, and map. Arrays and maps are weakly typed allowing them to store any LLSD data type. Type-casting mechanics are defined, creating a complete, weakly typed system. Implementation involves a layer to handle the weak typing (straightforward in Python, usually a class for each type inheriting from a base class in OO languages) and a layer to handle the conversions to and from native language types.
+
+LLSD by itself is not very interesting; each individual programming language already had its own way of handling data and has no need for a new abstract type system. The idea is that if all languages shared a common type system, one or more serializations can be defined that allows the types to travel language and network boundaries. The approach used in other systems (ASN.1, Google Protocol Buffers, Apache Thrift, etc.) is to clearly define the data types at the serialization level instead of at the LLSD&lt;-&gt;native level. My opinion is that this is an implementation detail that does not affect the developer using library in any meaningful way.
+
+Where LLSD gets interesting is the addition of LLIDL. The interface description language for LLSD defines a text format for defining messages, similar to what you find in ASN.1, Protobufs, Thrift, and every other IDL. The text is very easy to parse (here's my ANTLR grammar file to convert LLIDL files to an AST: <A HREF="http://openmv.org/svn/misc/LLIDL/LLIDL.g,">http://openmv.org/svn/misc/LLIDL/LLIDL.g,</A> compare this to the ANTLR grammar for ASN.1: <A HREF="http://www.antlr.org/grammar/1231433381400/ASN.g">http://www.antlr.org/grammar/1231433381400/ASN.g</A>). What you do with the LLIDL is an open question. You can make a simple parser that validates LLSD against an LLIDL definition, but that doesn't add value beyond being a good debugging tool. You can make a converter for incoming LLSD to conform to an LLIDL definition, but this has questionable value. Section 2.1 of the LLSD draft already states that reading the values will either &quot;just work&quot;, or default values will be filled in for missing parameters. The only thing LLIDL can offer in addition to this is a warning
+ of whether or not the
+re were missing or extra fields. Additionally, this forces you to work with weakly typed data where you want to have strict type enforcement. The code generated by ASN.1, Protobufs, Thrift, etc. doubles as a compiler-enforced contract. Consider the following example:
+
+Thrift:
+
+struct UserProfile {
+  1: i32 uid,
+  2: string name
+}
+
+This might generate psuedocode code like this:
+
+public struct UserProfile {
+  int uid;
+  string name;
+  public void Serialize(Stream outputStream) { ... }
+}
+
+LLSD/LLIDL:
+
+&amp;UserProfile = {
+  uid : int,
+  name : string
+}
+
+This generates:
+
+LLSDMap UserProfile;
+
+With keys &quot;uid&quot; and &quot;name&quot; that hold the types int and string, respectively. When writing code with the first example, you know exactly what data types the enclosing type is composed of, what the types of each format are, and any default/fixed values. Working with the LLSD/LLIDL system, your only reference is to open up the LLIDL text file and look at it. This is roughly equivalent to a well formatted README file.
+
+The solution? Implement a strongly typed generator on top of LLSD/LLIDL. This is what my llidlgen program attempts to do. For very basic examples of LLIDL (such as the example above) this seems like a straightforward thing to do. However, because of the baked in assumption that no one would attempt to do this, there are several problems. The outputted code is full of generator-named types and variables, lots of special handling has to be added to prevent the output from turning into layer after layer of nested classes, there are situations such as nested maps ({ $ : { $ : int } }) that drastically increase the complexity of converting LLSD types to native types, and the fact that this happens to be using an abstract type system starts to feel like a trivial design decision that is eventually hidden away from the developer.
+
+Summary:
+
+* There is no clear benefit to standardizing on conversions at the abstract type level instead of the serialization level. Doing so removes the ability to enforce data contracts at compile time
+
+* The only published code for LLIDL is a broken C# generator. ASN.1, Protobufs, and Thrift all have proven implementations across a wide variety of languages
+
+* The binary serialization format for LLSD is objectively less efficient than the Protobuf serialization format. With real-world data, the gap likely widens (haven't compared with Thrift or ASN.1). LLSD and Thrift support JSON &quot;out of the box&quot;, Protobufs is flexible enough to support it but does not ship with JSON support. I haven't seen anything that would suggest ASN.1 could be transported over JSON. Only LLSD and ASN.1 (XER) support XML
+
+* LLSD+LLIDL gives you the choice between guessing and checking what parameters need to be serialized for a particular message (no compiler-enforced structure), or writing a strongly typed generator so complex it makes ASN.1 look easy. Generator-named types and variables (in a strongly typed output) move the system further away from comprehensible data contracts
+
+This evaluation was based on the LLSD/LLIDL draft at <A HREF="http://www.ietf.org/internet-drafts/draft-hamrick-llsd-00.txt.">http://www.ietf.org/internet-drafts/draft-hamrick-llsd-00.txt.</A> If I overlooked something in the draft or misunderstood the intended use please provide corrections.
+
+John
+_______________________________________________
+mmox mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmox at ietf.org</A>
+<A HREF="https://www.ietf.org/mailman/listinfo/mmox">https://www.ietf.org/mailman/listinfo/mmox</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090220/3748405c/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090220/3748405c/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005263.html">[Opensim-dev] My evaluation of LLSD+LLIDL
+</A></li>
+	<LI>Next message: <A HREF="005267.html">[Opensim-dev] Mantis#3148
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5264">[ date ]</a>
+              <a href="thread.html#5264">[ thread ]</a>
+              <a href="subject.html#5264">[ subject ]</a>
+              <a href="author.html#5264">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

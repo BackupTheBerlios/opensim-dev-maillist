@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Prim (Task) Inventory - initial thoughts for an	implementation in OpenSim 0.6
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Prim%20%28Task%29%20Inventory%20-%20initial%20thoughts%20for%20an%0A%09implementation%20in%20OpenSim%200.6&In-Reply-To=%3Cc5851bcf0712211031u4ba27bcbtd6fa5a2e7fc33d1f%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000617.html">
+   <LINK REL="Next"  HREF="000518.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Prim (Task) Inventory - initial thoughts for an	implementation in OpenSim 0.6</H1>
+    <B>Impalah</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Prim%20%28Task%29%20Inventory%20-%20initial%20thoughts%20for%20an%0A%09implementation%20in%20OpenSim%200.6&In-Reply-To=%3Cc5851bcf0712211031u4ba27bcbtd6fa5a2e7fc33d1f%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Prim (Task) Inventory - initial thoughts for an	implementation in OpenSim 0.6">impalah at gmail.com
+       </A><BR>
+    <I>Fri Dec 21 19:31:37 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000617.html">[Opensim-dev] Prim (Task) Inventory - initial thoughts for an implementation	in OpenSim 0.6
+</A></li>
+        <LI>Next message: <A HREF="000518.html">[Opensim-dev] My ISP banned from irc.efnet.net???
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#618">[ date ]</a>
+              <a href="thread.html#618">[ thread ]</a>
+              <a href="subject.html#618">[ subject ]</a>
+              <a href="author.html#618">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>And what about NHibernate for database management/independence (<A HREF="http://www.*">http://www.*</A>
+nhibernate*.org).
+
+I've been using hibernate (for Java) since 2003 in big enterprise projects
+(at work) and if this .NET version works as java's you must not take care
+about database independence no more :-)
+
+Maybe the XML serialization problems (for import/export) could be resolved
+too...
+
+Greetings
+
+
+2007/12/21, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt;:
+&gt;<i>
+</I>&gt;<i> Sean Dague wrote:
+</I>&gt;<i> &gt; On Tue, Dec 11, 2007 at 12:54:31AM +0000, Justin Clark-Casey wrote:
+</I>&gt;<i> &gt;&gt; As MW has outlined, there are two aspects involved in implementing
+</I>&gt;<i> &gt;&gt; persistent prim inventories - persisting them in an avatar's inventory
+</I>&gt;<i> &gt;&gt; and persisting them in a region.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; I propose that in both of these cases we store the prim's inventory as
+</I>&gt;<i> &gt;&gt; part of its XML serialization, which I believe is stored as an asset
+</I>&gt;<i> &gt;&gt; when a prim (or prim group) is taken into an avatar's inventory.
+</I>&gt;<i> &gt;&gt; Metadata about items in the prim's inventory (name, permissions, etc)
+</I>&gt;<i> &gt;&gt; would be stored as part of the serialization
+</I>&gt;<i>
+</I>&gt;<i> &gt;&gt; I believe this will work without too many changes for the avatar
+</I>&gt;<i> &gt;&gt; inventory, since an asset server is already available in both
+</I>&gt;<i> standalone
+</I>&gt;<i> &gt;&gt; and grid modes.  The same asset server is also available locally to a
+</I>&gt;<i> &gt;&gt; region in standalone mode.  However, I expect it would be a bad idea to
+</I>&gt;<i> &gt;&gt; fetch assets from the grid asset server every time a grid mode region
+</I>&gt;<i> &gt;&gt; started up - both in terms of unscalable load and bandwidth costs.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; So I would propose that as part of the implementation of persistent
+</I>&gt;<i> prim
+</I>&gt;<i> &gt;&gt; inventories, we need a local asset server that acts largely as a cache
+</I>&gt;<i> &gt;&gt; for the grid asset server.  When a prim is initially rezzed to a
+</I>&gt;<i> region,
+</I>&gt;<i> &gt;&gt; the only additional data other than that which we should supply already
+</I>&gt;<i> &gt;&gt; (name, description, etc), is the asset id representing the serialized
+</I>&gt;<i> &gt;&gt; parts of the prim. (Actually, I suspect that we're serializing things
+</I>&gt;<i> &gt;&gt; such as name and description which we arguably shouldn't be - as
+</I>&gt;<i> &gt;&gt; evidenced by the fact that if I change the name of a prim in inventory
+</I>&gt;<i> &gt;&gt; and rerez it, it comes back with the name it had when I originally took
+</I>&gt;<i> &gt;&gt; it from the region).
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; On receiving the asset ID, the region immediately makes a request to
+</I>&gt;<i> its
+</I>&gt;<i> &gt;&gt; local server asset cache for the serialized data in order to run any
+</I>&gt;<i> &gt;&gt; scripts in the prim inventory.  If the asset is not found locally, then
+</I>&gt;<i> &gt;&gt; the request goes out to the grid server.  Once the grid server supplies
+</I>&gt;<i> &gt;&gt; the asset, it can be cached persistently locally (as assets never
+</I>&gt;<i> change).
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Once the asset is received by the original region calling code, it's
+</I>&gt;<i> &gt;&gt; deserialized and loaded into memory.  The asset ids contained within
+</I>&gt;<i> the
+</I>&gt;<i> &gt;&gt; prim inventory can be requested as required.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; If any of the metadata for those contents changes, then a new
+</I>&gt;<i> serialized
+</I>&gt;<i> &gt;&gt; asset is stored locally.  If any of the prim contents change (e.g. a
+</I>&gt;<i> &gt;&gt; script is updated), then both the contents information (with the new
+</I>&gt;<i> &gt;&gt; asset id) and the new script asset are stored locally.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; If a user takes the prim into their inventory, we need to pass to the
+</I>&gt;<i> &gt;&gt; grid the asset id holding the serialized aspects of the prim.  If this
+</I>&gt;<i> &gt;&gt; doesn't exist on the grid asset server, the grid will need to make a
+</I>&gt;<i> &gt;&gt; request for that asset to the local region asset server.  It will need
+</I>&gt;<i> &gt;&gt; to deserialize this data and make requests in turn for any of the prim
+</I>&gt;<i> &gt;&gt; inventory asset ids it's missing.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; I believe the major cost of this scheme is that associated with the
+</I>&gt;<i> &gt;&gt; [de]serialization of the prim.  I've thought through a few alternative
+</I>&gt;<i> &gt;&gt; proposals which avoid this by establishing task inventory tables and
+</I>&gt;<i> the
+</I>&gt;<i> &gt;&gt; like, but these all seem to become rapidly quite complicated as one
+</I>&gt;<i> &gt;&gt; tries to account for things such as prims which exist inside themselves
+</I>&gt;<i> &gt;&gt; and the reuse of item inventory entries (so that identical items don't
+</I>&gt;<i> &gt;&gt; end up unnecessarily duplicating inventory structures).  The
+</I>&gt;<i> &gt;&gt; serialization scheme has the wonderful virtue of simplicity (assuming
+</I>&gt;<i> it
+</I>&gt;<i> &gt;&gt; works :-).
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I think that if you specify a parent_id relationship, you can do this
+</I>&gt;<i> &gt; pretty easily and recursively in tables in a reasonable way.  Having a
+</I>&gt;<i> &gt; seperate parent_child inventory table will work reasonably well here as
+</I>&gt;<i> &gt; well.  Perhaps if I have a few examples I can propose table models and
+</I>&gt;<i> &gt; queries that will give you what you want here.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; The inventory normalization (keeping a minimum number of inventory
+</I>&gt;<i> &gt; items) needs to be thought of carefully, because unless they are
+</I>&gt;<i> &gt; no-moddify, you will need to make copies at some point.  Delayed copy
+</I>&gt;<i> &gt; might save some storage, but may make the code much more complicated.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> You may well be right - I was getting seduced by the relative ease of
+</I>&gt;<i> [de]serialization compared to storing data in database tables using our
+</I>&gt;<i> current database coding patterns.  But then if you take this pattern to
+</I>&gt;<i> its extreme, our database tables would consist mainly of tables with
+</I>&gt;<i> only two fields, UUIDs and blobs.  Some of the recent commercial
+</I>&gt;<i> database versions can search within XML but for the open source
+</I>&gt;<i> databases that I think we'll continue to support, this would make the
+</I>&gt;<i> data pretty opaque.  And it does negate some of the benefits of using a
+</I>&gt;<i> database in the first place.
+</I>&gt;<i>
+</I>&gt;<i> So I'm going to go down the path of object inventory tables instead,
+</I>&gt;<i> though if possible I hope to code it in such a way that different
+</I>&gt;<i> persistent strategies can be plugged in.  I had done some initial
+</I>&gt;<i> thinking on this approach (reusing as much existing inventory code as
+</I>&gt;<i> possible).  But rather than trying to think it all out fully in advance,
+</I>&gt;<i> I'm just going to start working with the codebase instead with the
+</I>&gt;<i> occasional mailing list posting.  If anybody feels I should be posting
+</I>&gt;<i> more details (apart from what crops up in the changelogs) please let me
+</I>&gt;<i> know.  All this changes will be marked experimental until 0.5 is released.
+</I>&gt;<i>
+</I>&gt;<i> However, I do want to restate that I think a local persistent asset
+</I>&gt;<i> cache for regions running under grid assets will be important for prim
+</I>&gt;<i> inventory, since I wouldn't anticipate that these would be stored
+</I>&gt;<i> directly in the region persistence in the same way that prim textures
+</I>&gt;<i> are currently stored (i.e. inlined in the XML SceneObjectPart
+</I>&gt;<i> serialization).  This is for the same scalability reasons as stated
+</I>&gt;<i> originally.  Such an implementation shouldn't consist of much more than
+</I>&gt;<i> using the existing asset code to decorate the GridAssetClient
+</I>&gt;<i> IAssetServer interface.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> justincc
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071221/06edf95a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071221/06edf95a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000617.html">[Opensim-dev] Prim (Task) Inventory - initial thoughts for an implementation	in OpenSim 0.6
+</A></li>
+	<LI>Next message: <A HREF="000518.html">[Opensim-dev] My ISP banned from irc.efnet.net???
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#618">[ date ]</a>
+              <a href="thread.html#618">[ thread ]</a>
+              <a href="subject.html#618">[ subject ]</a>
+              <a href="author.html#618">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

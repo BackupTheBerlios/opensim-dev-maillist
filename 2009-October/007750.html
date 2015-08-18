@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Severely%20Decreased%20LSL%20Script%20Performance%20from%200.6.5%0A%20-%3E%200.6.6%20-%3E%200.6.7&In-Reply-To=%3C4ACBB089.4020901%40liferain.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="007749.html">
+   <LINK REL="Next"  HREF="007751.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7</H1>
+    <B>Shack Dougall</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Severely%20Decreased%20LSL%20Script%20Performance%20from%200.6.5%0A%20-%3E%200.6.6%20-%3E%200.6.7&In-Reply-To=%3C4ACBB089.4020901%40liferain.com%3E"
+       TITLE="[Opensim-dev] Severely Decreased LSL Script Performance from 0.6.5 -&gt; 0.6.6 -&gt; 0.6.7">shack at liferain.com
+       </A><BR>
+    <I>Tue Oct  6 23:03:05 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="007749.html">[Opensim-dev] OpenSim 0.6.7 release candidate 1 ready for	testing
+</A></li>
+        <LI>Next message: <A HREF="007751.html">[Opensim-dev] Severely Decreased LSL Script Performance from	0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7750">[ date ]</a>
+              <a href="thread.html#7750">[ thread ]</a>
+              <a href="subject.html#7750">[ subject ]</a>
+              <a href="author.html#7750">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>One part of Prim Composer is an LSL-based rezzing system that creates a 
+build from notecard data.
+<A HREF="http://liferain.com/downloads/primcomposer/">http://liferain.com/downloads/primcomposer/</A>
+
+In OpenSim 0.6.5, this system worked almost as good as in Second Life.  
+Unfortunately, it does not work well in 0.6.6 and is unusable in 0.6.7
+
+*Test Platform*: Standalone, Windows XP, MySQL, ODE Physics, 
+Meshmerizer.  Other than this I use the defaults.
+
+So, the question is &quot;What is causing the problem?&quot;  What has changed 
+since 0.6.5 that causes the LSL rezzer to perform so badly?
+
+I have verified that the script engine defaults have not changed.
+
+*How the rezzer works*
+
+The rezzer contains linksets with various numbers of prims, e.g., 
+Linkset-10 is a linkset with 10 prims in it. 
+
+1. The rezzer reads data out of a notecard. It sees how many prims 
+should be in the next linkset and rezzes a linkset from its inventory 
+with that number of prims.
+2. When the linkset rezzes, the root prim tells the rezzer that it is 
+alive and the rezzer sends it the UUID and line number of a notecard to 
+read via chat.  At this point, the rezzer goes back to Step 1.
+3. The root prim then sends a link message to its children telling them 
+the UUID and a line number to read.
+4.  Each prim in the linkset then reads their data independently from 
+the notecard and then performs llSetPrimitiveParams to transform 
+themselves into the shape determined by the notecard data.
+
+It's actually a lot more complicated than that, but you get the idea.  
+So, lots of prims are being rezzed very quickly via LSL and each prim 
+has a script in it that reads notecard data and sets params.
+
+In 0.6.5, this process runs very smoothly--prims and scripts are created 
+and execute quickly.  In 0.6.6 and above, something is happening that 
+drastically slows this process down.  Either the prims are rezzing 
+slower, or the scripts are starting slower or the scripts are executing 
+slower.
+
+In any event, the difference is extreme.  It is bad in 0.6.6 and seems 
+to be even worse in 0.6.7.
+
+Does anyone have any ideas or suggestions?  Is this a bug?  Is it an 
+inevitable fact of life?  Can it be improved?  What can I do to help 
+with the process?
+
+I'm more than happy to create a video showing the difference.  The LSL 
+scripts are open source.  I can also set you up with some test data and 
+a copy of my maxport utility if anyone wants to try to reproduce it.  It 
+is very easy to do.
+
+Thanks in advance!  --Shack
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="007749.html">[Opensim-dev] OpenSim 0.6.7 release candidate 1 ready for	testing
+</A></li>
+	<LI>Next message: <A HREF="007751.html">[Opensim-dev] Severely Decreased LSL Script Performance from	0.6.5 -&gt; 0.6.6 -&gt; 0.6.7
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7750">[ date ]</a>
+              <a href="thread.html#7750">[ thread ]</a>
+              <a href="subject.html#7750">[ subject ]</a>
+              <a href="author.html#7750">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

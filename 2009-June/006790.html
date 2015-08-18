@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Rethinking inventory
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Rethinking%20inventory&In-Reply-To=%3C4A2CAE43.1010403%40t-data.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006789.html">
+   <LINK REL="Next"  HREF="006791.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Rethinking inventory</H1>
+    <B>Melanie</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Rethinking%20inventory&In-Reply-To=%3C4A2CAE43.1010403%40t-data.com%3E"
+       TITLE="[Opensim-dev] Rethinking inventory">melanie at t-data.com
+       </A><BR>
+    <I>Mon Jun  8 08:22:59 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006789.html">[Opensim-dev] Rethinking inventory
+</A></li>
+        <LI>Next message: <A HREF="006791.html">[Opensim-dev] Rethinking inventory
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6790">[ date ]</a>
+              <a href="thread.html#6790">[ thread ]</a>
+              <a href="subject.html#6790">[ subject ]</a>
+              <a href="author.html#6790">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hello Diva,
+
+to answer your questions:
+
+The inventory skeleton is fetched on login and sent to the client. 
+It contains (or SHOULD contain) the actual folder serial numbers. I 
+believe they may not currently be correct, though. The client 
+decides, on opening a folder, which are out of date (by the serial 
+number) and requests them.
+
+I implemented the serial number thing not too long ago, before then, 
+inventory was always completely reloaded, the client cache was in 
+fact defeated. In part, that is still so (see above).
+
+Inventory was implemented in a rather simplistic manner, sending the 
+entire inventory in a single transaction from the inventory server 
+to the client. This was never really necessary, and often not even 
+useful, since all inventory transactions depend on the root folder, 
+and it can't be loaded without loading all folders.
+
+A better inventory service would load inventory to regions only when 
+it needs to be loaded, and the cases where that is necessary are 
+surprisingly few, and most could get away with just the folder 
+skeleton and individual items.
+
+I believe that I could get away with a function that will fetch only 
+the user's root and system folders' UUIDs, since they are what is 
+needed for inventory gives.
+
+For take and rez, the client already knows the folder IDs. So 
+dropping inventory on a user and scripted gives are the two things a 
+region does with client inventory.
+
+About letting the client talk to the inventory server: It needs to 
+remain possible to do it through a region, as some grids are not 
+willing to expose their inventory (asset, grid, etc) server ports to 
+the internet. The region could, however, just verify the session and 
+pass the request on.
+
+Session_lookup doesn't work. It was an attempt to secure the 
+inventory server that failed because of session caches. If the 
+inventory server needed to be restarted, it all currently logged in 
+users would lose inventory access until relog. It was found 
+architecturally flawed and not salvageable, so was turned off by 
+default and recommended to be kept off. New implementations don't 
+need to support the mechanism.
+
+So, a possible interface could be:
+
+class UserInventory
+{
+	UUID RootFolder;
+	Dictionary&lt;int, IventoryFolderBase&gt; SystemFolders; // System 
+folders by content type
+	List &lt;InventoryItemBase&gt; Items; // Cache for those items a region 
+actually uses
+}
+
+interface IInventoryService
+{
+	UserInventory GetInventoryBase();
+	List&lt;InventoryFolderBase&gt; GetInventorySkel(); // Used by userserver 
+for logins
+	InventoryItemBase GetItem(UUID item);
+	List&lt;InventoryItemBase&gt; GetFolderItems(UUID folderID);
+	bool StoreItem(InventoryItemBase item); // Will overwrite by UUID
+}
+
+GetItem() is needed to push newly acquired items to the client as 
+well as to verify that asset IDs given by the client on rez are 
+correct. We currently don't trust the IDs the client produces, and 
+we shouldn't.
+
+GetInventoryBase is what the &quot;give&quot; class of functions would call on 
+users who are not logged into a region. We may want to call that 
+when a user enters the region, but possibly we can actually get away 
+with not obtaining any inventory information at all unless an object 
+gives something to the user, or another user does.
+
+Note the distinct lack of a &quot;GetAllIventory&quot; type method... it's not 
+needed.
+
+It may need a few more specialized methods, but this should be about 
+the size of it.
+
+Melanie
+
+
+
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+&gt;<i> Also, are there any grid operators out there who run their inventory 
+</I>&gt;<i> servers with the configuration session_lookup = true ? (this is a flag 
+</I>&gt;<i> in InventoryServer_Config.xml)
+</I>&gt;<i> Just curious to know if this is being used.
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006789.html">[Opensim-dev] Rethinking inventory
+</A></li>
+	<LI>Next message: <A HREF="006791.html">[Opensim-dev] Rethinking inventory
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6790">[ date ]</a>
+              <a href="thread.html#6790">[ thread ]</a>
+              <a href="subject.html#6790">[ subject ]</a>
+              <a href="author.html#6790">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] MXPClient?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20MXPClient%3F&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D502638F7%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005321.html">
+   <LINK REL="Next"  HREF="005336.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] MXPClient?</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20MXPClient%3F&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D502638F7%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] MXPClient?">john.hurliman at intel.com
+       </A><BR>
+    <I>Mon Feb 23 21:53:12 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005321.html">[Opensim-dev] MXPClient?
+</A></li>
+        <LI>Next message: <A HREF="005336.html">[Opensim-dev] MXPClient?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5327">[ date ]</a>
+              <a href="thread.html#5327">[ thread ]</a>
+              <a href="subject.html#5327">[ subject ]</a>
+              <a href="author.html#5327">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>The license is LGPL, so I don't know exactly how that works. To avoid any licensing issues, I release the following blurb of code that I designed and wrote by myself to the public domain:
+
+public interface ILogWriter
+{
+    void Debug(object source, string message);
+    void Debug(object source, string message, Exception exception);
+    void Info(object source, string message);
+    void Info(object source, string message, Exception exception);
+    void Warn(object source, string message);
+    void Warn(object source, string message, Exception exception);
+    void Error(object source, string message);
+    void Error(object source, string message, Exception exception);
+    void Fatal(object source, string message);
+    void Fatal(object source, string message, Exception exception);
+}
+
+The implementation for null and console should be straightforward. The only other helpful addition I've found is to use the StackTrace/StackFrame.GetMethod().Name inside an #if DEBUG conditional to print out a full stack trace for anything above info or warn.
+
+John
+
+&gt;<i>-----Original Message-----
+</I>&gt;<i>From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Tommi Laukkanen
+</I>&gt;<i>Sent: Monday, February 23, 2009 11:44 AM
+</I>&gt;<i>To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>Subject: Re: [Opensim-dev] MXPClient?
+</I>&gt;<i>
+</I>&gt;<i>Thanks John, sounds perfect. Is the license such that I can copy their
+</I>&gt;<i>implementation directly?
+</I>&gt;<i>
+</I>&gt;<i>regards,
+</I>&gt;<i>Tommi
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>On Mon, Feb 23, 2009 at 9:38 PM, Hurliman, John
+</I>&gt;<i>&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">john.hurliman at intel.com</A>&gt; wrote:
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>	Take a look at how C# WebServer handles logging (ILogWriter.cs in
+</I>&gt;<i><A HREF="http://www.codeplex.com/webserver/SourceControl/changeset/view/18488">http://www.codeplex.com/webserver/SourceControl/changeset/view/18488</A>). A
+</I>&gt;<i>simple interface is defined for logging, and default console and null
+</I>&gt;<i>loggers are provided. Developers using the library in their own
+</I>&gt;<i>applications can implement the class and hook it up to log4net, .NET
+</I>&gt;<i>trace logging, etc. without MXP.dll having to drag any dependencies
+</I>&gt;<i>around. This is the best balance between ease of use and clean
+</I>&gt;<i>separation of dependencies that I've found for C# logging so far.
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i>	John
+</I>&gt;<i>
+</I>&gt;<i>	&gt;-----Original Message-----
+</I>&gt;<i>	&gt;From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i>
+</I>&gt;<i>	&gt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Tommi Laukkanen
+</I>&gt;<i>	&gt;Sent: Monday, February 23, 2009 11:21 AM
+</I>&gt;<i>	&gt;To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>	&gt;Subject: Re: [Opensim-dev] MXPClient?
+</I>&gt;<i>	&gt;
+</I>&gt;<i>
+</I>&gt;<i>	&gt;I added prebuild support to MXP library so you can build MXP.dll
+</I>&gt;<i>with
+</I>&gt;<i>	&gt;mono and nant now. I also removed Action&lt;&gt; class dependency. I
+</I>&gt;<i>will take
+</I>&gt;<i>	&gt;a look at log4net support next.
+</I>&gt;<i>	&gt;
+</I>&gt;<i>	&gt;
+</I>&gt;<i>
+</I>&gt;<i>	_______________________________________________
+</I>&gt;<i>	Opensim-dev mailing list
+</I>&gt;<i>	<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>	<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+&gt;<i> 
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005321.html">[Opensim-dev] MXPClient?
+</A></li>
+	<LI>Next message: <A HREF="005336.html">[Opensim-dev] MXPClient?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5327">[ date ]</a>
+              <a href="thread.html#5327">[ thread ]</a>
+              <a href="subject.html#5327">[ subject ]</a>
+              <a href="author.html#5327">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

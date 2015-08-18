@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Walk animation doesn't stop
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2012-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Walk%20animation%20doesn%27t%20stop&In-Reply-To=%3C4F86EC1B.7000402%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011095.html">
+   <LINK REL="Next"  HREF="011097.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Walk animation doesn't stop</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Walk%20animation%20doesn%27t%20stop&In-Reply-To=%3C4F86EC1B.7000402%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Walk animation doesn't stop">diva at metaverseink.com
+       </A><BR>
+    <I>Thu Apr 12 16:52:11 CEST 2012</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011095.html">[Opensim-dev] Walk animation doesn't stop
+</A></li>
+        <LI>Next message: <A HREF="011097.html">[Opensim-dev] Plugins for ROBUST
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11096">[ date ]</a>
+              <a href="thread.html#11096">[ thread ]</a>
+              <a href="subject.html#11096">[ subject ]</a>
+              <a href="author.html#11096">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Thanks for finding the bug. I was puzzled with this behavior too when I 
+switched D2 to 0.7.3.
+Someone sent me an animation script that doesn't hit that bug, so I 
+updated the walking animations that come in the D2 library.
+But please do send the patch.
+
+On 4/12/2012 7:44 AM, Oren Hurvitz wrote:
+&gt;<i> I found the problem. The walking script is notified whenever the user presses
+</I>&gt;<i> or releases a movement key, e.g. the Forward key. When that happens, the
+</I>&gt;<i> script checks which movement animation the avatar is currently using, and
+</I>&gt;<i> starts or stops the custom animation according to whether the movement
+</I>&gt;<i> animation is &quot;WALK&quot; or not. There were several problems with this:
+</I>&gt;<i>
+</I>&gt;<i> 1. In ScenePresence, when the client moves, the &quot;control&quot; notification was
+</I>&gt;<i> sent to the scripts before the avatar's animation had been updated, so the
+</I>&gt;<i> walking script was using the wrong animation to make its decisions. Now the
+</I>&gt;<i> scripts are notified only after the animation has been updated.
+</I>&gt;<i>
+</I>&gt;<i> 2. Sometimes multiple threads were trying to update the avatar's movement
+</I>&gt;<i> animation at once, again causing the script to see the wrong animation. I
+</I>&gt;<i> added a lock to prevent threads from interfering with each other.
+</I>&gt;<i>
+</I>&gt;<i> 3. When choosing the avatar's movement animation, if the avatar stopped
+</I>&gt;<i> walking while it was falling (even if the &quot;fall&quot; was really just a tiny bump
+</I>&gt;<i> in the ground) then the avatar animation remained on &quot;WALK&quot;. I changed it to
+</I>&gt;<i> set the animation to &quot;STAND&quot; in this case. (It would have changed to &quot;STAND&quot;
+</I>&gt;<i> soon anyway, but that delay caused the walking script to fail.) Note that
+</I>&gt;<i> this only affects the beginning of a fall; if the fall takes a long time
+</I>&gt;<i> then the avatar switches to the &quot;FALLING&quot; animation, and I didn't change
+</I>&gt;<i> that.
+</I>&gt;<i>
+</I>&gt;<i> The situation is much improved now: I haven't been able to cause the walking
+</I>&gt;<i> animation bug to happen anymore (although it's possible that there are other
+</I>&gt;<i> cases I haven't hit upon). I will submit this patch after I finish updating
+</I>&gt;<i> our system to OpenSim 0.7.3.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> View this message in context: <A HREF="http://opensim-dev.2196679.n2.nabble.com/Walk-animation-doesn-t-stop-tp7453403p7459646.html">http://opensim-dev.2196679.n2.nabble.com/Walk-animation-doesn-t-stop-tp7453403p7459646.html</A>
+</I>&gt;<i> Sent from the opensim-dev mailing list archive at Nabble.com.
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011095.html">[Opensim-dev] Walk animation doesn't stop
+</A></li>
+	<LI>Next message: <A HREF="011097.html">[Opensim-dev] Plugins for ROBUST
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11096">[ date ]</a>
+              <a href="thread.html#11096">[ thread ]</a>
+              <a href="subject.html#11096">[ subject ]</a>
+              <a href="author.html#11096">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

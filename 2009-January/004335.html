@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Regionstore and all changes happening there.
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Regionstore%20and%20all%20changes%20happening%20there.&In-Reply-To=%3C49627193.8070600%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004317.html">
+   <LINK REL="Next"  HREF="004349.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Regionstore and all changes happening there.</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Regionstore%20and%20all%20changes%20happening%20there.&In-Reply-To=%3C49627193.8070600%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Regionstore and all changes happening there.">jjustincc at googlemail.com
+       </A><BR>
+    <I>Mon Jan  5 21:46:11 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004317.html">[Opensim-dev] Regionstore and all changes happening there.
+</A></li>
+        <LI>Next message: <A HREF="004349.html">[Opensim-dev] Regionstore and all changes happening there.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4335">[ date ]</a>
+              <a href="thread.html#4335">[ thread ]</a>
+              <a href="subject.html#4335">[ subject ]</a>
+              <a href="author.html#4335">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Laurent wrote:
+&gt;<i> Hello,
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> in what way is the MySQL rewrite hurting MSSQL?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The two drivers are independent. MySQL now uses low level native
+</I>&gt;&gt;<i> calls, making it much faster.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> Fixes has been done on both MySQLRegionData.cs and SQLiteRegionData.cs at 
+</I>&gt;<i> release 7586. That fix was not applied to MSSQLRegionData.cs.
+</I>&gt;<i> 
+</I>&gt;<i> SVN Log at 7586 :
+</I>&gt;<i> 
+</I>&gt;<i> * Resolve <A HREF="http://opensimulator.org/mantis/view.php?id=2743">http://opensimulator.org/mantis/view.php?id=2743</A> and 
+</I>&gt;<i> <A HREF="http://opensimulator.org/mantis/view.php?id=2739">http://opensimulator.org/mantis/view.php?id=2739</A> by no longer bothering to 
+</I>&gt;<i> store or retrieve the local parentID in
+</I>&gt;<i> the region database
+</I>&gt;<i> * The original issue is that the now randomly generated local ids do not fit 
+</I>&gt;<i> into the int parentID datatype
+</I>&gt;<i> * However, as far as I know it's actually pointless to store this local 
+</I>&gt;<i> parent ID anyway (we already store the groupUUID), especially as we don't 
+</I>&gt;<i> bother to store the localID (as
+</I>&gt;<i> opposed to UUID itself).
+</I>&gt;<i> * Conservatively, the actual column will be removed in a later commit
+</I>&gt;<i> 
+</I>&gt;<i> I am sorry I dont have that much time to help more about it :(
+</I>
+Okay, I made what I think are the matching changes to MSSQL in r7958, as detailed in 
+<A HREF="http://opensimulator.org/mantis/view.php?id=2939.">http://opensimulator.org/mantis/view.php?id=2939.</A>  I tend to be a little hesitant about changing MSSQL since I can't 
+test it, though it would probably have been easier just to go ahead with the blind fix in this case.
+
+&gt;<i> 
+</I>&gt;<i> Laurent
+</I>&gt;<i> --------------------------------------------------
+</I>&gt;<i> From: &quot;Melanie&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">melanie at t-data.com</A>&gt;
+</I>&gt;<i> Sent: Saturday, January 03, 2009 2:26 PM
+</I>&gt;<i> To: &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i> Subject: Re: [Opensim-dev] Regionstore and all changes happening there.
+</I>&gt;<i> 
+</I>&gt;&gt;<i> Hi,
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> in what way is the MySQL rewrite hurting MSSQL?
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The two drivers are independent. MySQL now uses low level native
+</I>&gt;&gt;<i> calls, making it much faster.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Melanie
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Ruud Lathrop wrote:
+</I>&gt;&gt;&gt;<i> In relation to Mantis issue 2939, I see that there has been done a lot of
+</I>&gt;&gt;&gt;<i> work on the RegionStore within the MySQL section. Sadly this is now also
+</I>&gt;&gt;&gt;<i> hurting the MSSQL section. Can we please have some report on what is done
+</I>&gt;&gt;&gt;<i> there, so we can update the MSSQL section?
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Ruud
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> PS and yes I have looked in the repository, but a lot is done and to go
+</I>&gt;&gt;&gt;<i> throw all message is not a option as they are sometimes very short.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004317.html">[Opensim-dev] Regionstore and all changes happening there.
+</A></li>
+	<LI>Next message: <A HREF="004349.html">[Opensim-dev] Regionstore and all changes happening there.
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4335">[ date ]</a>
+              <a href="thread.html#4335">[ thread ]</a>
+              <a href="subject.html#4335">[ subject ]</a>
+              <a href="author.html#4335">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

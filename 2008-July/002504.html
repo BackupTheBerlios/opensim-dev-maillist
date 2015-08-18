@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Archiver issues
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-July/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Archiver%20issues&In-Reply-To=%3CBLU134-W41279B8AD6DEB6EF353C45D5810%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="002503.html">
+   <LINK REL="Next"  HREF="002479.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Archiver issues</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Archiver%20issues&In-Reply-To=%3CBLU134-W41279B8AD6DEB6EF353C45D5810%40phx.gbl%3E"
+       TITLE="[Opensim-dev] Archiver issues">stefan at tribalmedia.se
+       </A><BR>
+    <I>Sat Jul 26 23:42:18 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="002503.html">[Opensim-dev] Archiver issues
+</A></li>
+        <LI>Next message: <A HREF="002479.html">[Opensim-dev] Archiver issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2504">[ date ]</a>
+              <a href="thread.html#2504">[ thread ]</a>
+              <a href="subject.html#2504">[ subject ]</a>
+              <a href="author.html#2504">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Uhh..?
+ 
+I took a look at this code, and it seems rather confused at the moment; the PhysActor code in AbsolutePosition is commented out (r5668) so I don't see what would actually trigger an update of the physics with the new position?
+the set = get currently seem to do two things:
+ 
+1) it does a bounds control, to see if the prim should cross borders (which is way out of line for a property to be doing)
+and
+2) if triggers a copying of the GroupPosition out to the Child Parts.
+ 
+Both these behaviours should be refactored out into separate methods, and the AbsolutePosition property should be split into at least two methods, one for position data manipulation - that won't do physics and boundaries, but will dirty the object, and one for moving an object (MoveObjectToPosition or something) - that will do both.
+Again, we have some confusion arising from the fact that we have no clear separation between data objects (that can be counted on to be passive) and controlled objects (that can be counted on to propagate change thru the system)
+Best regards,Stefan AnderssonTribal Media AB Join the 3d web revolution : <A HREF="http://tribalnet.se/">http://tribalnet.se/</A> 
+
+
+
+Date: Sat, 26 Jul 2008 13:50:32 -0700From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dahliatrimble at gmail.comTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: Re: [Opensim-dev] Archiver issues
+Changing it so only HasGroupChanged = false; is commented out seems to work for physics. I'm not familiar with the archiving so I cant test it. I made this change and committed it as of r5668, so could anyone else can test the archiving part in that version?Anyone with insight care to comment on what AbsolutePosition = AbsolutePosition; does and why it is necessary?
+On Sat, Jul 26, 2008 at 4:18 AM, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+
+Dahlia Trimble wrote:&gt; Sadly I had to revert a portion of r5659 as it was wreaking havok with&gt; the meshing at sim startup. I'm not sure but it may also have been&gt; related to prims not appearing in the viewer after crossing into a&gt; region. I'm not familiar with the archiving so I don't know how to test&gt; whether it's broken again, but I suspect it's adversely affected.&gt;&gt; The part I had to reinstate was ResetChildPrimPhysicsPositions() in&gt; SceneObjectGroup.csHi Dahlia.  As you know, there are only two statements inResetChildPrimPhysicsPositions().        public void ResetChildPrimPhysicsPositions()        {            AbsolutePosition = AbsolutePosition;            HasGroupChanged = false;        }Is there any chance you could tell me whether the problem is caused bythe lack of AbsolutePosition = AbsolutePosition (which is a bizarrelooking thing but does have an actual effect), or HasGroupChanged = false;If it's the AbsolutePosition statement that is important , then theHasGroupChanged can be simply commented out to get archiving workingproperly again.  If it's the HasGroupChanged that is important than Ineed to go and look at the code more closely.Thanks muchly.justincc
+&gt;&gt;<i> -d&gt;&gt; On Fri, Jul 25, 2008 at 2:53 PM, Frisby, Adam &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>
+</I>&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at deepthink.com.au</A>&gt;&gt; wrote:&gt;&gt;     Just a confirmation, this did indeed fix the issue. Thanks.&gt;&gt;     Adam&gt;&gt;      &gt; -----Original Message-----&gt;      &gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>
+</I>&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt; [mailto:opensim-dev-&gt;     &lt;mailto:opensim-dev-&gt;
+</I>&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>&gt;] On&gt;     Behalf Of Justin Clark-Casey&gt;      &gt; Sent: Friday, 25 July 2008 11:06 AM&gt;      &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>
+
+&gt;<i>     &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;&gt;      &gt; Subject: Re: [Opensim-dev] Archiver issues&gt;      &gt;&gt;      &gt; Sean Dague wrote:&gt;      &gt; &gt; On Fri, Jul 25, 2008 at 11:48:14AM +0100, Justin Clark-Casey wrote:&gt;      &gt; &gt; &lt;snip&gt;&gt;      &gt; &gt;&gt; Yeah, there are problems in this area (hence the big 'highly&gt;      &gt; experimental' signs, but I'm sure everyone is aware of that&gt;      &gt; &gt;&gt; ;-).  The archive file would be very helpful for analysis if you&gt;      &gt; could&gt;      &gt; &gt;&gt; make that request for me.&gt;      &gt; &gt;&gt;      &gt; &gt; Working on something related, we found that restoring a large&gt;     number&gt;      &gt; of&gt;      &gt; &gt; items to Scene very quickly overruns the script event queue, as all&gt;      &gt; the&gt;      &gt; &gt; events are fired all at once, and can't be processed fast enough.&gt;      &gt;&gt;      &gt; Yep, I think I've seen the same thing on an archive reload,&gt;     though none&gt;      &gt; of my current files appear&gt;      &gt; to do it.&gt;      &gt;&gt;      &gt; &gt;&gt;      &gt; &gt; I'm not sure if this is the same issue or not, but it might be&gt;      &gt; related.&gt;      &gt;&gt;      &gt; It is unrelated, but if anybody has an example archive where the&gt;     script&gt;      &gt; reload problem happens I&gt;      &gt; would be very happy to take a look at it.&gt;      &gt;&gt;      &gt; --&gt;      &gt; justincc&gt;      &gt; Justin Clark-Casey&gt;      &gt; <A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>&gt;      &gt; _______________________________________________&gt;      &gt; Opensim-dev mailing list&gt;      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>      &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;     _______________________________________________&gt;     Opensim-dev mailing list&gt;     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;<i>     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;&gt;&gt;&gt; ------------------------------------------------------------------------&gt;&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev--">https://lists.berlios.de/mailman/listinfo/opensim-dev--</A>
+</I>
+
+justinccJustin Clark-<A HREF="Caseyhttp://justincc.wordpress.com_______________________________________________Opensim-dev">Caseyhttp://justincc.wordpress.com_______________________________________________Opensim-dev</A> mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.dehttps</A>://lists.berlios.de/mailman/listinfo/opensim-dev
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080726/d751a46f/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080726/d751a46f/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="002503.html">[Opensim-dev] Archiver issues
+</A></li>
+	<LI>Next message: <A HREF="002479.html">[Opensim-dev] Archiver issues
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2504">[ date ]</a>
+              <a href="thread.html#2504">[ thread ]</a>
+              <a href="subject.html#2504">[ subject ]</a>
+              <a href="author.html#2504">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

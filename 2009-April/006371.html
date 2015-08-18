@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving away from grid vs. standalone
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F9C293.1030801%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006372.html">
+   <LINK REL="Next"  HREF="006382.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving away from grid vs. standalone</H1>
+    <B>Michael Cortez</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3C49F9C293.1030801%40gmail.com%3E"
+       TITLE="[Opensim-dev] moving away from grid vs. standalone">mcortez at gmail.com
+       </A><BR>
+    <I>Thu Apr 30 17:24:03 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006372.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+        <LI>Next message: <A HREF="006382.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6371">[ date ]</a>
+              <a href="thread.html#6371">[ thread ]</a>
+              <a href="subject.html#6371">[ subject ]</a>
+              <a href="author.html#6371">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Let me just throw another view point out there.
+
+As some of you may know I am currently working on a groups 
+implementation.  I do not expect it to be &quot;the&quot; groups implementation, 
+and I fully expect it to be replaced later -- but it is _a_ groups 
+implementation.
+
+One of the things I've been trying to strive for is for it to be as 
+loosely coupled to OpenSim as possible, so that as we move forward the 
+server component of groups can support all variations of OpenSim as well 
+as direct access from viewers, web browsers and even from regions in 
+multiple grids.
+
+Now that I've started to actively work on things like internal security 
+to groups and verifying agents prior to committing changes to the 
+group's data-store -- I've started to run into problems due to us having 
+multiple &quot;modes&quot;.
+
+Things that should be simple like providing the group server with an 
+AgentID, Session and a url to verify that against, has to get convoluted 
+with checks to see if it's a local user or a foreign user because you 
+have to get the user service url from two different places.  Local users 
+have a user service, foreign users have a user service, therefore every 
+UserProfile should have a reference to their user service.  However it 
+looks like this isn't currently true, because it wasn't originally 
+conceived that different users would need to carry around different user 
+service urls.
+
+The code also has each of these service urls {user, asset, inventory, 
+etc} -- hard coded -- so you have to modify the UserProfile class to add 
+new ones, rather then each user having a service lookup mechanism {even 
+just a simple Dictionary&lt;ServiceName, URL&gt; would be quite a bit better 
+for supporting new user services that are perhaps added via region 
+modules rather then in the core.  And currently there is absolutely no 
+support for having multiple service urls for a particular service -- 
+which then prevents forward looking designs that may allow an agent to 
+have inventory stored on multiple servers, or be using multiple groups 
+servers.
+
+This is just the tip of the ice burg as it were -- there are numerous 
+places where having separated &quot;stand alone&quot; vs &quot;grid&quot; vs &quot;SA + HG&quot; vs 
+&quot;grid +HG&quot; -- has made things overly complicated.  I say, just make it 
+always be &quot;grid&quot; -- it may be a grid that stands alone, using local 
+services, and is only a single region but always a grid.  All of the 
+user services should always be exposed via remotely accessible protocols 
+{http/xmlrpc/rest/whatever} -- this will allow forward looking client 
+designs where clients can access these services directly, as well as 
+allowing new services {such as groups} to always have a known set of 
+services that it can access remotely.
+
+I highly suspect as we move forward, and we start looking at things like 
+using Jabber or similar services for messaging, we will have an ever 
+growing need to decouple services from the core, and make them 
+accessible &quot;remotely&quot; -- even if it's just another process on the same 
+machine, or within the same private network.
+
+I dunno if that helps or not, but just my 2 cents -- and if it wasn't 
+clear I'm +1 on collapsing the &quot;standalone&quot; vs &quot;grid&quot; -- so that it is 
+always grid, perhaps with a switch that allows direct in process access 
+to services {if available}
+
+--
+Michael Cortez
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006372.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+	<LI>Next message: <A HREF="006382.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6371">[ date ]</a>
+              <a href="thread.html#6371">[ thread ]</a>
+              <a href="subject.html#6371">[ subject ]</a>
+              <a href="author.html#6371">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

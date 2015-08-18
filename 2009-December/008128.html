@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Server based navigation/pathfinding
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Server%20based%20navigation/pathfinding&In-Reply-To=%3C4B32B20D.1030506%40kyperjokki.fi%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008126.html">
+   <LINK REL="Next"  HREF="008127.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Server based navigation/pathfinding</H1>
+    <B>Toni Alatalo</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Server%20based%20navigation/pathfinding&In-Reply-To=%3C4B32B20D.1030506%40kyperjokki.fi%3E"
+       TITLE="[Opensim-dev] Server based navigation/pathfinding">antont at kyperjokki.fi
+       </A><BR>
+    <I>Thu Dec 24 01:13:01 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008126.html">[Opensim-dev] Server based navigation/pathfinding
+</A></li>
+        <LI>Next message: <A HREF="008127.html">[Opensim-dev] OpenSim 0.6.8 source packages now available for	download
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8128">[ date ]</a>
+              <a href="thread.html#8128">[ thread ]</a>
+              <a href="subject.html#8128">[ subject ]</a>
+              <a href="author.html#8128">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Teravus Ovares kirjoitti:
+&gt;<i> stored on the simulator and there's a chance that if you start now, in
+</I>&gt;<i> a month or two, the module will be obsolite because the API changed
+</I>&gt;<i> significantly.     I would wait until about 2 weeks after 0.7 is
+</I>&gt;<i> tagged..     which should be sometime in January.
+</I>&gt;<i>   
+</I>
+That is a valid point, and perhaps good advice, but I still think that 
+you don't necessarily need to wait to proceed with new things like this 
+that use the scene data. I believe that if this was done now, it would 
+be quite simple to port to the new system later. After all, very many 
+things in opensim itself and other modules need to be ported, so the 
+refactoring can't make all those obsolete, 'cause we'd end up with 
+having no functionality at all. The same data remains there, just 
+accessed in a different way which doesn't make much of a difference to 
+an algorithm like A* .. It doesn't change basically anything about the 
+actual work a module like this need to do (generate a waypoint graph, 
+have a a* backed autopilot impl).
+
+So if the original poster wants it quick, can just do it, and the work 
+won't be wasted - just needs some porting later. If is not in a hurry 
+and wants to save the trouble of learning the scene API twice, first the 
+old and then the new, is a good idea to wait indeed.
+
+&gt;<i> 2009/12/23 V.Rovensky &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">v.rovensky at lit.cz</A>&gt;:
+</I>&gt;<i>   
+</I>&gt;&gt;<i> to find the route for my bot. I was thinking I could create an invisible
+</I>&gt;&gt;<i> prim for every waypoint and reimplement the autopilot function so it suits
+</I>&gt;&gt;<i> my needs a little more. To do this I suppose I need to do the following:
+</I>&gt;&gt;<i>     
+</I>
+With these manual markers this seems quite simple. Before noticed this 
+part, was thinking that the navigability of different kind of geoms 
+might be very difficult to deduce from just the visible geometry or even 
+collision data, especially if you'd need to support arbitrary kind of 
+builds by users etc, query the physics code or something etc.
+
+&gt;&gt;<i>     1) Be able to access all the region's prims, their locations and shapes
+</I>&gt;&gt;<i> to create and manage the graph of waypoints
+</I>&gt;&gt;<i>     
+</I>
+How do you get the connections for the graph if you have the points 
+only? And how do you know which of the scene entities are waypoint 
+markers - use simply some naming convention perhaps?
+
+&gt;&gt;<i>     2) Be able to reimplement the autopilot function, so whenever the
+</I>&gt;&gt;<i> client starts autopilot, my method gets called and sends the client along
+</I>&gt;&gt;<i> the computed route.
+</I>&gt;&gt;<i> Could this be done via RegionModules? I'm fairly new to OpenSim development,
+</I>&gt;&gt;<i> so any tips that could point me the right way would be greatly appreciated.
+</I>&gt;&gt;<i>     
+</I>
+Seems like a good fit for region modules to me, 'cause what they get 
+from the sim is a reference to a scene object where you can get all the 
+scene objects (i hate the term 'prim' for them which is just one way to 
+define geometry :p) .. am not sure how you'd go about hooking this to 
+the existing autopilot mechanism, but I'm sure it's possible somehow. 
+And that part (if it relates to scriptengine etc) I guess won't be 
+affected by the sceneobjectgroup/sceneobjectpart refactor (much) at all.
+
+If/as you just need the positions of your custom scene objects to form 
+the graph from those nodes, my guess actually is that the refactor may 
+result in very little code changes to this tool (5-10 lines change 
+perhaps, just the call how to get all entities (of a type?), and then 
+how to read position data from them? is just an ignorant guess, not 
+knowing much of the details of the current impl or the new plans .. i 
+know how a* works in our games though and what the opensim primdata is).
+
+A big idea behind the upcoming refactoring is that the core would 
+support applications having arbitrary data about scenes - for example 
+navigation graphs. In the new model I think a navigation graph like 
+yours could be a component type, which you could register to the system 
+from your module and the core could then store it etc. And perhaps 
+support communicating it to the outside too - we have the same 
+entity-component model in the Naali viewer, and the idea is that we'd 
+then support having custom components both on the viewer and the server 
+and networking to sync the data in between. So that you could just make 
+the graph in the viewer with a custom editor for that, and it'd be 
+synched to the server as well, and you could e.g. do a* on eiher or both 
+depending on needs.
+
+&gt;&gt;<i> V.Rovensky
+</I>&gt;&gt;<i>     
+</I>
+~Toni
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008126.html">[Opensim-dev] Server based navigation/pathfinding
+</A></li>
+	<LI>Next message: <A HREF="008127.html">[Opensim-dev] OpenSim 0.6.8 source packages now available for	download
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8128">[ date ]</a>
+              <a href="thread.html#8128">[ thread ]</a>
+              <a href="subject.html#8128">[ subject ]</a>
+              <a href="author.html#8128">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

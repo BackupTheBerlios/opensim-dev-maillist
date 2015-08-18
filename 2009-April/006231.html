@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] The essence of &quot;grid&quot;
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20The%20essence%20of%20%22grid%22&In-Reply-To=%3C49E80B88.8080104%40gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006227.html">
+   <LINK REL="Next"  HREF="006253.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] The essence of &quot;grid&quot;</H1>
+    <B>Michael Cortez</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20The%20essence%20of%20%22grid%22&In-Reply-To=%3C49E80B88.8080104%40gmail.com%3E"
+       TITLE="[Opensim-dev] The essence of &quot;grid&quot;">mcortez at gmail.com
+       </A><BR>
+    <I>Fri Apr 17 06:54:32 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006227.html">[Opensim-dev] The essence of &quot;grid&quot;
+</A></li>
+        <LI>Next message: <A HREF="006253.html">[Opensim-dev] Cable Beach trust overview
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6231">[ date ]</a>
+              <a href="thread.html#6231">[ thread ]</a>
+              <a href="subject.html#6231">[ subject ]</a>
+              <a href="author.html#6231">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Diva Canto wrote:
+&gt;<i> Right.
+</I>&gt;<i> This whole issue can be formulated in one very simple question:
+</I>&gt;<i> If the client is to delegate authority to the server-side, should it do 
+</I>&gt;<i> it to the specific simulator or to this other server that speaks for a 
+</I>&gt;<i> collection of simulators, aka &quot;grid&quot;?
+</I>&gt;<i>   
+</I>I have not looked closely at the simulator splitting project, but I'm 
+aware that there currently is work being done to split the actual 
+simulation of a 256m^2 region of space between multiple simulators -- 
+thus even in the case where may be attempting to &quot;do it to the specific 
+simulator&quot; -- you may in fact be doing it to multiple simulators.
+
+And what happens when you have a single instance of OpenSim with 
+multiple regions -- do you delegate authority to the instance, and 
+stipulate it's only for 1 of the regions that it's simulating or do you 
+delegate it for use with all the regions it's simulating.
+
+Even under the apache model, or more generally, a &quot;web application&quot; -- 
+the client may be dealing with what looks like a single server, which is 
+in fact a cluster or federation of servers working together but 
+presenting a single face, or point of entry to the client.
+
+&gt;<i> As I said, this is not philosophy. As I'm doing Grider, I need to decide 
+</I>&gt;<i> with which server it interacts for purposes of authority delegation. I 
+</I>&gt;<i> think it should interact with specific simulators. But I just wanted to 
+</I>&gt;<i> shake things a bit and see what's out there in people's minds, 
+</I>&gt;<i> specifically for this concept of what a &quot;grid&quot; is.
+</I>&gt;<i>   
+</I>Personally, in this context -- I think the &quot;Grid&quot; and &quot;Region&quot; and 
+&quot;Simulator&quot; are blurred, and should be merged.
+
+ From my point of view, you have a client, it wants to visit some 
+virtual space -- the client should contact what it believes to be, the 
+server that is the host of that space -- and it should say to that host 
+&quot;Hi there, I would like to visit X that I believe you host, who should I 
+get permission from to do that, and how should I communicate with you?&quot;
+
+The host of that space could then reply with something like the 
+following three bits:
+
+1. You must establish your identify with URI:<A HREF="http://1.2.3.4/Service">http://1.2.3.4/Service</A>  -- 
+the client would then contact that service, which would respond with 
+what types of authentication/identity it'll accept -- be it OpenID, 
+locally registered username &amp; password, some kind of authentication 
+token from OpenID/Google Accounts, or whatever.
+
+2. I can talk to you and provide you with assets using the following 
+protocol(s), LL Protocol, VRML, whatever
+
+3. Assets that you wish to have simulated may be communicated to me via 
+the following list of protocols and servers
+
+If your dealing with a single stand alone instance of OpenSim, 
+simulating a single region of space, all of these &quot;references&quot; could be 
+to itself.
+
+If your dealing with a single instance of OpenSim simulating multiple 
+regions {a mini grid} again, these could all be self-references
+
+If however your dealing with an OpenSim that is, itself delegating some 
+of these activities to another server {traditional grid} -- then those 
+references will perhaps be to a set of services that look a bit like 
+what we currently call &quot;grid services.&quot;
+
+Something similar to this is already in place with the REST and 
+Capabilities interfaces that OpenSim provides and supports.  OpenSim 
+should just be taken a baby step farther, and be made so that it always 
+behaves as a grid, be it a grid of one region, of three regions under 
+the same &quot;instance&quot;, or a dozen regions spread out over multiple 
+instances are running on separate physical hosts.
+
+This is somewhat analogous with traditional web traffic, when visiting a 
+page the server may respond with one or more authentication methods that 
+are permitted, the browser will pick one that supports and believes is 
+best and may present an interface to the user to facilitate it.  The web 
+server may also include information about what level of the http 
+protocol it supports.  The browser is also completely unaware if it's 
+talking to a single entity, or a proxy hiding many entities.
+
+Put differently, if possible, talking to a single instance of OpenSim 
+with a viewer, should be no different then talking to a &quot;grid&quot; of servers.
+
+I dunno,
+--
+Michael Cortez
+
+
+
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006227.html">[Opensim-dev] The essence of &quot;grid&quot;
+</A></li>
+	<LI>Next message: <A HREF="006253.html">[Opensim-dev] Cable Beach trust overview
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6231">[ date ]</a>
+              <a href="thread.html#6231">[ thread ]</a>
+              <a href="subject.html#6231">[ subject ]</a>
+              <a href="author.html#6231">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

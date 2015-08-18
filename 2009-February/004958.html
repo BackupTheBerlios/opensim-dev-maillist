@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] AssetServer Observations and Suggestions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20AssetServer%20Observations%20and%20Suggestions&In-Reply-To=%3C49903B8B.8070603%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004955.html">
+   <LINK REL="Next"  HREF="004959.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] AssetServer Observations and Suggestions</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20AssetServer%20Observations%20and%20Suggestions&In-Reply-To=%3C49903B8B.8070603%40googlemail.com%3E"
+       TITLE="[Opensim-dev] AssetServer Observations and Suggestions">jjustincc at googlemail.com
+       </A><BR>
+    <I>Mon Feb  9 15:19:55 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004955.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+        <LI>Next message: <A HREF="004959.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4958">[ date ]</a>
+              <a href="thread.html#4958">[ thread ]</a>
+              <a href="subject.html#4958">[ subject ]</a>
+              <a href="author.html#4958">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE><A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cmickeyb at gmail.com</A> wrote:
+&gt;<i> The short term solution is to use the &quot;last access&quot; field for each of 
+</I>&gt;<i> the assets and archive ones that haven't been used recently . So long as 
+</I>&gt;<i> inventory is in one place (that is, you aren't splitting inventory 
+</I>&gt;<i> across servers) you should be able to do some &quot;simple&quot; mysql magic to 
+</I>&gt;<i> update the last access on anything referenced in the inventory 
+</I>&gt;<i> (basically update last access time for any asset in the inventory 
+</I>&gt;<i> table). that combination should pick up most everything given that 
+</I>&gt;<i> textures on prims are reloaded from the asset server every 24 hours, 
+</I>&gt;<i> scripts need to be recompiled on server restart... etc.
+</I>
+One would need to carry out deep inspection of inventory contents (e.g. inspecting all the assets used by objects within 
+objects, etc.).  The code for this could be extracted from the archiving module.  However, doing such a sweep could take 
+a long time.
+
+This still doesn't account for objects on regions.  Although perhaps one could start storing assets that relate to 
+object on regions on that region itself.  This might better allow reaping of the central asset server since you no 
+longer have to worry about assets used by objects within objects on a region.
+
+A messier solution which I think has been said already is simply to remove any assets that haven't been accessed since 
+the access_time has been put in place.  As long as you keep a backup of the db before the cleanup, you could still 
+retrieve and reinstate selected assets as necessary.
+
+An even more radical solution would be to switch osgrid to a pure Hypergrid model.  The osgrid UAI services could still 
+act as the home services for many people who don't want to run their own regions, but the responsibilty for maintaining 
+region-side assets would shift to other OpenSim instances (and some people would also use them for their home services 
+instead of osgrid).
+
+&gt;<i> 
+</I>&gt;<i> --mic
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> On Feb 8, 2009 6:18pm, Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+</I>&gt;<i>  &gt; Dear Mike:
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; What you say seems reasonable and I applaud you.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; On the related subject of mutability, I have a tough time imagining 
+</I>&gt;<i> that each edit of the terrain of a region is useful. I would suggest 
+</I>&gt;<i> that only the last &quot;terrainImage&quot; is useful and cannot imagine any 
+</I>&gt;<i> reference to any obsolete terrainImage by any object anywhere.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; There are a significant number of items in OpenSim mysql databases 
+</I>&gt;<i> such as the various edits of a script where we appear to be storing a 
+</I>&gt;<i> new UUID for each edit. In a similar manner, I would think that such 
+</I>&gt;<i> obsolete edits are not useful.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; So, half of the problem is a strategy to slow down the bloat of our 
+</I>&gt;<i> assetServers with perhaps additional references to additional 
+</I>&gt;<i> assetServers and half is to perhaps re-consider all the orphaned items 
+</I>&gt;<i> we are leaving in our
+</I>&gt;<i>  &gt; mysql database and find a way to stop doing that.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Charles
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; From: Mike Mazur <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt;
+</I>&gt;<i>  &gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; Sent: Sunday, February 8, 2009 6:11:46 PM
+</I>&gt;<i>  &gt; Subject: Re: [Opensim-dev] AssetServer Observations and Suggestions
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Hi,
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; On Sun, 8 Feb 2009 10:13:45 -0800 (PST)
+</I>&gt;<i>  &gt; Charles Krinke <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; &gt; We have been studying the assets table on OSGrid as it heads toward
+</I>&gt;<i>  &gt; &gt; the &quot;disk full&quot; stage and I have a couple of observations and am
+</I>&gt;<i>  &gt; &gt; heading towards a suggestion. Maybe this is already accounted for in
+</I>&gt;<i>  &gt; &gt; the &quot;Cable Beach&quot; project, at which point, this will only indicate
+</I>&gt;<i>  &gt; &gt; that I did not read all the exchanges carefully enough.
+</I>&gt;<i>  &gt; &gt;
+</I>&gt;<i>  &gt; &gt; It appears to me that we are storing on the MySQL data store at the
+</I>&gt;<i>  &gt; &gt; assetServer on a grid every edit of every script, terrainImage and
+</I>&gt;<i>  &gt; &gt; clothingItem amongst other things. So, my first observation is that
+</I>&gt;<i>  &gt; &gt; we appear to be storing all the older, obsolete items that can no
+</I>&gt;<i>  &gt; &gt; longer be accessed.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; This ever-expanding asset database is a consequence of how assets are
+</I>&gt;<i>  &gt; handled by
+</I>&gt;<i>  &gt; SL, the SL viewer and, since OpenSim was first developed
+</I>&gt;<i>  &gt; against the SL viewer, by OpenSim as well. The premise is that no asset
+</I>&gt;<i>  &gt; is mutable, because any asset may be referenced by its UUID. The
+</I>&gt;<i>  &gt; reference may exist in a script or on the back of a napkin. There are
+</I>&gt;<i>  &gt; more details (the way I understand them) in a previous email[1] I sent
+</I>&gt;<i>  &gt; to the list.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Cable Beach will not solve this problem.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; &gt; Now, to the beginnings of a suggestion. It seems to me that each
+</I>&gt;<i>  &gt; &gt; avatar will have a &quot;home&quot; region. And that perhaps that is the place
+</I>&gt;<i>  &gt; &gt; to store the items in an avatars inventory. Things like scripts,
+</I>&gt;<i>  &gt; &gt; notecards, textures and the like.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; I'm not sure this is the right way forward. It requires that the user's
+</I>&gt;<i>  &gt; home region is up anytime they wish to use their avatar and access
+</I>&gt;<i>  &gt; their inventory. The user's home region becomes a single point of
+</I>&gt;<i>  &gt; failure.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; &gt; At that point, the assetServer on a grid
+</I>&gt;<i>  &gt; could be used to store only
+</I>&gt;<i>  &gt; &gt; pointers (or URL's) to each avatars inventory on his or her home
+</I>&gt;<i>  &gt; &gt; region.
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; This is a good start, except instead of pointing to the user's home
+</I>&gt;<i>  &gt; region, it could point to the user's own asset server. The asset server
+</I>&gt;<i>  &gt; could be provided by a grid (OSGrid), their own asset server (a Cable
+</I>&gt;<i>  &gt; Beach instance, perhaps), or some other third party that may provide
+</I>&gt;<i>  &gt; asset storage/access in the future (SL, Yahoo!, Google, AOL, etc).
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; Thanks,
+</I>&gt;<i>  &gt; Mike
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt; [1]
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2008-December/004053.html">https://lists.berlios.de/pipermail/opensim-dev/2008-December/004053.html</A>
+</I>&gt;<i>  &gt; _______________________________________________
+</I>&gt;<i>  &gt; Opensim-dev mailing list
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>  &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i>  &gt;
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004955.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+	<LI>Next message: <A HREF="004959.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4958">[ date ]</a>
+              <a href="thread.html#4958">[ thread ]</a>
+              <a href="subject.html#4958">[ subject ]</a>
+              <a href="author.html#4958">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

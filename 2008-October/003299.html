@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Changing GetRegions(uint, uint, uint,	uint) in GridManager
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Changing%20GetRegions%28uint%2C%20uint%2C%20uint%2C%0A%09uint%29%20in%20GridManager&In-Reply-To=%3C20081028165631.12a7d341%40sumo%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003297.html">
+   <LINK REL="Next"  HREF="003300.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Changing GetRegions(uint, uint, uint,	uint) in GridManager</H1>
+    <B>Mike Mazur</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Changing%20GetRegions%28uint%2C%20uint%2C%20uint%2C%0A%09uint%29%20in%20GridManager&In-Reply-To=%3C20081028165631.12a7d341%40sumo%3E"
+       TITLE="[Opensim-dev] Changing GetRegions(uint, uint, uint,	uint) in GridManager">mmazur at gmail.com
+       </A><BR>
+    <I>Tue Oct 28 08:56:31 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003297.html">[Opensim-dev] The HyperGrid
+</A></li>
+        <LI>Next message: <A HREF="003300.html">[Opensim-dev] Changing GetRegions(uint, uint, uint, uint) in GridManager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3299">[ date ]</a>
+              <a href="thread.html#3299">[ thread ]</a>
+              <a href="subject.html#3299">[ subject ]</a>
+              <a href="author.html#3299">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+In OpenSim/Grid/GridServer/GridManager.cs there is a method with the
+following signature:
+
+Dictionary&lt;ulong, RegionProfileData&gt; GetRegions(uint, uint, uint, uint)
+
+This method grabs all the regions currently in the regions table, and
+puts them in a dictionary with the region handle as the key. It's
+invoked in GetSimNeighboursData() and XmlRpcMapBlockMethod().
+
+I would like to modify this method to have the following signature:
+
+List&lt;RegionProfileData&gt; GetRegions(uint, uint, uint, uint)
+
+Note there is another method very similar already in GridManager:
+
+List&lt;RegionProfileData&gt; GetRegions(string, int)
+
+I don't immediately see any place that the region handle is required.
+The dictionary is iterated over, the data from each region extracted
+and passed on.
+
+Why is the region handle required? It's calculated from the region's
+coordinates, so maybe it's used to uniquely identify a region? In that
+case, could the UUID be used instead?
+
+The reason I want to do this is that for our load balancing application
+we have multiple entries in the regions table for the same region;
+different IPs and URIs for the same coordinates and hence same region
+handle. The way the method is currently implemented, only one regions
+table entry for each set of coordinates is returned.
+
+Please find the proposed diff below. Am I introducing any bugs? Is there
+a better way to do this?
+
+If nobody has any issues with this, I'd like to check this in.
+
+Thanks,
+Mike
+
+
+@@ -165,19 +165,15 @@ namespace OpenSim.Grid.GridServer
+             return null;
+         }
+ 
+-        public Dictionary&lt;ulong, RegionProfileData&gt; GetRegions(uint xmin, uint ymin, uint xmax, uint ymax)
++        public List&lt;RegionProfileData&gt; GetRegions(uint xmin, uint ymin, uint xmax, uint ymax)
+         {
+-            Dictionary&lt;ulong, RegionProfileData&gt; regions = new Dictionary&lt;ulong, RegionProfileData&gt;();
++            List&lt;RegionProfileData&gt; regions = new List&lt;RegionProfileData&gt;();
+ 
+             foreach (IGridDataPlugin plugin in _plugins)
+             {
+                 try
+                 {
+-                    RegionProfileData[] neighbours = plugin.GetProfilesInRange(xmin, ymin, xmax, ymax);
+-                    foreach (RegionProfileData neighbour in neighbours)
+-                    {
+-                        regions[neighbour.regionHandle] = neighbour;
+-                    }
++                    regions.AddRange(plugin.GetProfilesInRange(xmin, ymin, xmax, ymax));
+                 }
+                 catch
+                 {
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003297.html">[Opensim-dev] The HyperGrid
+</A></li>
+	<LI>Next message: <A HREF="003300.html">[Opensim-dev] Changing GetRegions(uint, uint, uint, uint) in GridManager
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3299">[ date ]</a>
+              <a href="thread.html#3299">[ thread ]</a>
+              <a href="subject.html#3299">[ subject ]</a>
+              <a href="author.html#3299">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

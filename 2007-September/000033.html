@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] A modest proposal
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20modest%20proposal&In-Reply-To=%3CBAY108-W43BCD86B9CB80D9A016D3D5BA0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000031.html">
+   <LINK REL="Next"  HREF="000038.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] A modest proposal</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20modest%20proposal&In-Reply-To=%3CBAY108-W43BCD86B9CB80D9A016D3D5BA0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] A modest proposal">stefan at tribalmedia.se
+       </A><BR>
+    <I>Thu Sep 20 20:30:18 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000031.html">[Opensim-dev] next steps for 0.5?
+</A></li>
+        <LI>Next message: <A HREF="000038.html">[Opensim-dev] A modest proposal
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#33">[ date ]</a>
+              <a href="thread.html#33">[ thread ]</a>
+              <a href="subject.html#33">[ subject ]</a>
+              <a href="author.html#33">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>After rummaging thru the Connectivity/Scene/Agent/InterRegion code, I have a proposal for a restructuring. Of course, it's quite core, but feel free to comment anyway.
+ 
+I propose that we leave the if( ChildAgent ) model and split the whole core into a Scene and a Region layer, right thru the Agent.
+ 
+The 'Region' layer will be responsible for low-level agent administration; instead of a 'child agent', every agent has a number of 'RegionPresence's - these have no local coord, but merely indicates that certain region-wide operations will be echoed to the RegionPresences corresponding IClientAPI.
+ 
+The 'Scene' layer will handle objects (prims and avatars) and for every connected Viewer, there is a 'ScenePresence' which in turn has one SceneObject, the Avatar - the ScenePresence has two local coords, the Avatar and the Camera and these are used to discern what operations are echoed to the ScenePrescenses corresponding IClientAPI.
+ 
+On every connect, there would be created a RegionPresence but only on MoveAvatarIntoRegion would it get a ScenePresence. That ScenePresence would simply be handed over to another Scene if a regioncrossing occurs within the instance.
+ 
+So, we have two quite different areas of functionality; the Region layer that will organize stuff like region crossing, and the Scene Layer that will handle stuff like physics.
+ 
+The RegionManager administrates all regions within the instance, and the SceneManager all the Scenes.
+ 
+When we're at it, introducing one global PhysicsScene will probably make physics somewhat more cooperative; The mapping back and forth would be fairly straightforward, and it would mean that the creation and destruction of PhysActors would be less cumbersome. This would play well with the notion of a SceneManager.
+ 
+These two restructurings will probably smooth out quite a lot of the bushiness in the code as it stands today.
+ 
+/Stefan
+ 
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20070920/162d0250/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20070920/162d0250/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000031.html">[Opensim-dev] next steps for 0.5?
+</A></li>
+	<LI>Next message: <A HREF="000038.html">[Opensim-dev] A modest proposal
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#33">[ date ]</a>
+              <a href="thread.html#33">[ thread ]</a>
+              <a href="subject.html#33">[ subject ]</a>
+              <a href="author.html#33">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

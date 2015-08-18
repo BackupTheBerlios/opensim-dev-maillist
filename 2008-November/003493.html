@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] A proposal for a viable physical vehicle abstraction	architecture
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20proposal%20for%20a%20viable%20physical%20vehicle%20abstraction%0A%09architecture&In-Reply-To=%3C170fa1780811060618n76e89af3w3acca27ea11a4975%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003494.html">
+   <LINK REL="Next"  HREF="003522.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] A proposal for a viable physical vehicle abstraction	architecture</H1>
+    <B>James Stallings II</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20A%20proposal%20for%20a%20viable%20physical%20vehicle%20abstraction%0A%09architecture&In-Reply-To=%3C170fa1780811060618n76e89af3w3acca27ea11a4975%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] A proposal for a viable physical vehicle abstraction	architecture">james.stallings at gmail.com
+       </A><BR>
+    <I>Thu Nov  6 15:18:14 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003494.html">[Opensim-dev] UGAIM with mysql weird issue
+</A></li>
+        <LI>Next message: <A HREF="003522.html">[Opensim-dev] A proposal for a viable physical vehicle	abstraction architecture
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3493">[ date ]</a>
+              <a href="thread.html#3493">[ thread ]</a>
+              <a href="subject.html#3493">[ subject ]</a>
+              <a href="author.html#3493">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I have recently had some very informative conversations with ckrinke, where
+he related a number of things he has found in the opensim physics code while
+investigating how physical prim properties are represented.
+
+Many things gelled in my mind during our conversation:
+
+- if one uses only the global CFM/ERP to manipulate the collision properties
+of prims, one can simulate at most one material
+- if one uses a per-object CFM/ERP profile one can simulate infinite
+materials, or at least as many as one has objects for
+- if one optimizes on a standard set of CFM/ERP profiles, one can simulate
+classes of materials
+- if one simulates vehicles at the scene level, one is running a machine
+simulation
+
+perhaps the most pertinent to this conversation is the latter observation:
+
+&quot;if one simulates vehicles at the scene level, one is running a machine
+simulation&quot;
+
+this may seem desirable, but is, in fact, not what we do when we employ
+vehicle scripting APIs in SL
+
+the vehicle scripting API in SL represents hooks to a generalized class of
+simple machines in SL as an abstraction; i.e., for a motor, we don't
+simulate the firing of pistons, the work lost to inefficiency of e.g., a
+driveshaft, or friction with the ground based on material type. Instead, we
+say we have a source of torque; it is damped in these axis; and produces a
+net force in all others.
+
+Similarly, we classify the entire vehicle as having certain characteristics
+such as bouyancy and moment along or around some axis, in order to
+characterise the damping that occurs with respect to the motor(s).
+
+Through creative employment of these simple abstractions we create a host of
+physical vehicles that run the gamut from skateboards to boats to airplanes
+to rockets.
+
+I propose that this is a viable approach for us as well. By implementing a
+'sub' physics engine - i.e., one to synthesize the parameters (and perhaps
+others) mentioned above into a final 'product' or 'sum' of
+forces/orientations resulting from these motors and dampers, we can produce
+a physical 'product' or 'sum' that results in a delta for force (vector) and
+orientation (quaternion), that would then be supplied to the scene physics
+for the scene 'object' (prim or linkset) that is the vehicle. Typical scene
+dynamics then update the position and orientation of the object relative to
+the scene.
+
+What's more, is that I can see a clear path to an SL-compatible API in the
+script engine to implement these notions. Being an abstraction, they do not
+necesarily have to reflect engine-specific implementation details or
+features. Also, being an abstraction, they may be implemented over a variety
+of physics engines, given sufficient capability in the target engine.
+
+Any comments? Thoughts? Critiques?
+
+Please, I know very little of the internal operations of the physics engine
+and the scene. Enlighten me where I am in the dark.
+
+Thanks for taking the time to examine my feeble ideas :)
+
+Cheers!
+James
+-- 
+===================================
+The wind
+scours the earth for prayers
+The night obscures them
+
+<A HREF="http://osgrid.org">http://osgrid.org</A>
+<A HREF="http://del.icio.us/SPQR">http://del.icio.us/SPQR</A>
+<A HREF="http://twitter.com/jstallings2">http://twitter.com/jstallings2</A>
+<A HREF="http://www.linkedin.com/pub/5/770/a49">http://www.linkedin.com/pub/5/770/a49</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20081106/f837f638/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20081106/f837f638/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003494.html">[Opensim-dev] UGAIM with mysql weird issue
+</A></li>
+	<LI>Next message: <A HREF="003522.html">[Opensim-dev] A proposal for a viable physical vehicle	abstraction architecture
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3493">[ date ]</a>
+              <a href="thread.html#3493">[ thread ]</a>
+              <a href="subject.html#3493">[ subject ]</a>
+              <a href="author.html#3493">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

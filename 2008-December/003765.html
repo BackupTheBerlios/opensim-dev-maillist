@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Event Queue
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Event%20Queue&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D4A7A0102%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="003766.html">
+   <LINK REL="Next"  HREF="003767.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Event Queue</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Event%20Queue&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D4A7A0102%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Event Queue">john.hurliman at intel.com
+       </A><BR>
+    <I>Wed Dec  3 20:15:44 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="003766.html">[Opensim-dev] Event Queue
+</A></li>
+        <LI>Next message: <A HREF="003767.html">[Opensim-dev] Event Queue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3765">[ date ]</a>
+              <a href="thread.html#3765">[ thread ]</a>
+              <a href="subject.html#3765">[ subject ]</a>
+              <a href="author.html#3765">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev- 
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Cristina Videira Lopes
+</I>&gt;<i> Sent: Wednesday, December 03, 2008 9:40 AM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: [Opensim-dev] Event Queue
+</I>&gt;<i> 
+</I>&gt;<i> Apologies in advance for bringing up everyone's favorite hate topic,
+</I>&gt;<i> but having spent most of yesterday tracking TP/crossing problems
+</I>&gt;<i> (again), I can't help but bringing this up to a wider audience. I know
+</I>&gt;<i> everyone hates the EQ. As it stands, there are several broken elements
+</I>&gt;<i> with the EQ in OpenSim, beyond the obvious bugs caused by its
+</I>&gt;<i> management. I'm just wondering if there is something here that I'm
+</I>&gt;<i> completely missing, or if this is really this bad:
+</I>&gt;<i> 
+</I>&gt;<i> 1) It's implemented as an optional region module (!!!), configurable in
+</I>&gt;<i> OpenSim.ini (!!!). That explains why, for example, I could not reproduce
+</I>&gt;<i> crashes that other people have reported with older viewers. It turns out
+</I>&gt;<i> that those people are not just using older viewers; they are using
+</I>&gt;<i> OpenSim servers configured with EventQueue=false. A complete
+</I>&gt;<i> miscommunication.
+</I>&gt;<i> 
+</I>&gt;<i> 2) It's implemented as an optional region module -- the sequel. It is
+</I>&gt;<i> being considered a [optional] part of the Region Environment,
+</I>&gt;<i> something a region may or may not do. I'm afraid, this is the incorrect model.
+</I>&gt;<i> The server side doesn't have any choice on this, if it wants to
+</I>&gt;<i> interact with the current version of the LL viewer. The EQ should be
+</I>&gt;<i> hand-in-hand with LLClientView. After all, it's the new channel of
+</I>&gt;<i> communications between a server and the LL viewer. Things that used to
+</I>&gt;<i> go over UDP are now sent via the EQ, period, no choice. Region
+</I>&gt;<i> Environment should be completely oblivious to that change. As it is
+</I>&gt;<i> now, this pattern occurs all over Region Environment classes:
+</I>&gt;<i> 
+</I>&gt;<i>             IEventQueue eq =
+</I>&gt;<i>             [scene.]RequestModuleInterface&lt;IEventQueue&gt;(); if (eq !=
+</I>&gt;<i>             null) {
+</I>&gt;<i>                 // send the event over EQ
+</I>&gt;<i>             }
+</I>&gt;<i>             else
+</I>&gt;<i>             {
+</I>&gt;<i>                 // call the right IClientAPI method to send the event
+</I>&gt;<i> [over UDP]
+</I>&gt;<i>             }
+</I>&gt;<i>  This is infecting the server side with things that should be purely
+</I>&gt;<i> client side. It's a horrendous way of getting at the question &quot;what
+</I>&gt;<i> version of the LL viewer are you supporting in your region?&quot;. If there
+</I>&gt;<i> is such a thing as a wrong question to ask, this is one of them. If we
+</I>&gt;<i> want to support viewers with older communication stacks, then let's make
+</I>&gt;<i> that explicit in OpenSim and subclass LLClientView for the N previous
+</I>&gt;<i> versions of the LL viewer's communications stack. Region Environment,
+</I>&gt;<i> and the whole of the OpenSim framework, should be insulated from that
+</I>&gt;<i> mess, that's what the IClientAPI is there for. No OpenSim.ini
+</I>&gt;<i> configuration variables, other than the already existing one:
+</I>&gt;<i> clientstack_plugin=&quot;OpenSim.Region.ClientStack.LindenUDP.dll&quot;
+</I>&gt;<i> 
+</I>&gt;<i> What will happen when Rex comes along? ... what version of the LL
+</I>&gt;<i> viewer is that based on? ...
+</I>&gt;<i> 
+</I>&gt;<i> Sorry for venting! I'm just sending this out to find the answer to
+</I>&gt;<i> these three questions:
+</I>&gt;<i> 
+</I>&gt;<i> a) Am I missing something?
+</I>&gt;<i> 
+</I>&gt;<i> b) Are there any objections to placing EQ under
+</I>&gt;<i> OpenSim.Region.ClientStack.LindenUDP? (besides that name now being
+</I>&gt;<i> somewhat incorrect)
+</I>&gt;<i> 
+</I>&gt;<i> c) Should OpenSim be backwards compatible with viewers forked off from
+</I>&gt;<i> older LL viewers *for the specific aspect of communications*? If so,
+</I>&gt;<i> what design pattern should be used?, subclassing or alternative code
+</I>&gt;<i> paths inside methods?
+</I>&gt;<i> 
+</I>
+
+In light of the security exploits found in the UDP protocol with RegionCrossed and EnableSimulator packets, there's a strong argument to be made for dropping support for insecure clients completely. Any client that has support for the event queue (any client released in the last year and a half I think) can receive packet events from the event queue, and recent clients can *only* receive certain events from the event queue. The event queue has been a fundamental part of the Second Life(tm) protocol for quite a while and IMO should be baked into the client stack right next to the UDP packet handling as a non-optional component.
+
+I share the wider sentiments that doing reverse HTTP to send event messages to clients is a poor design decision. However, time would be better spent designing an improved protocol and modularizing the GPL client or developing a new client where the protocol stack can be manipulated.
+
+John
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="003766.html">[Opensim-dev] Event Queue
+</A></li>
+	<LI>Next message: <A HREF="003767.html">[Opensim-dev] Event Queue
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3765">[ date ]</a>
+              <a href="thread.html#3765">[ thread ]</a>
+              <a href="subject.html#3765">[ subject ]</a>
+              <a href="author.html#3765">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

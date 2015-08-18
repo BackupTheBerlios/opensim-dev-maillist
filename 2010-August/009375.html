@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Global identifiers
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3CAANLkTi%3DUQNgsVjs22BpXa%3DVHh-XMZQaF_WjTOG-OcYCQ%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009373.html">
+   <LINK REL="Next"  HREF="009379.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Global identifiers</H1>
+    <B>Meadhbh Hamrick</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3CAANLkTi%3DUQNgsVjs22BpXa%3DVHh-XMZQaF_WjTOG-OcYCQ%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Global identifiers">ohmeadhbh at gmail.com
+       </A><BR>
+    <I>Mon Aug 30 00:33:14 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009373.html">[Opensim-dev] Global identifiers
+</A></li>
+        <LI>Next message: <A HREF="009379.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9375">[ date ]</a>
+              <a href="thread.html#9375">[ thread ]</a>
+              <a href="subject.html#9375">[ subject ]</a>
+              <a href="author.html#9375">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>mmm... the argument that tacking an identifier onto the end of a URL
+smacks of premature optimization to me. it should be possible for any
+reasonable client to cache the relationship between a display name and
+a URL. in fact, HTTP has some mechanisms to help you with that. so you
+wouldn't have to query the agent service EVERY time you need the name.
+
+at linden i developed a pathological dislike of the <A HREF="secondlife:///">secondlife:///</A> URI
+scheme (more on that later), and making the path of URLs &quot;important&quot;
+sort of smacks of that old URI scheme. i understand why you might want
+to stuff names and other information into URLs, but IMHO, the benefits
+you get from one less query is minimal compared to loss of
+flexibility.
+
+for instance... the reason the VWRAP CALM message exists is because
+jhurliman and i sorta figured out it would be a PITA to support
+multiple revisions of the <A HREF="secondlife:///">secondlife:///</A> URI handling code. john was
+doing some cool stuff with OAuth and OpenID to allow peeps to log into
+a grid via the web. the last part of john's auth process was to
+redirect you to a <A HREF="secondlife:///">secondlife:///</A> URI.
+
+the idea here was that if the second life viewer was installed, then
+it would register itself as a helper app for that URI scheme and &quot;do
+the right thing&quot; of rezzing you at a certain location on the main
+grid.
+
+but
+
+the problem here was that the <A HREF="secondlife:///">secondlife:///</A> URI handling code in the
+viewer would ONLY rez you on linden's main grid. we would have had to
+modify the viewer to handle the addition of a 'loginurl' term. it was
+technically doable, but i was worried about maintaining the URI scheme
+as the defacto way of altering the viewer's startup behavior. i was
+kinda worried that anyone who wanted to experiment with new features
+for the SL viewer would have to perform surgery on the <A HREF="secondlife:///">secondlife:///</A>
+URI handling code (and might become durty with respect to the GPL in
+the process.)
+
+so john and i put our heads together and came up with the CALM idea.
+from a technical perspective it seemed a bit easier to take everything
+that was buried in the <A HREF="secondlife:///">secondlife:///</A> URI and turn it into a LLSD map.
+since we already had LLSD map parsing code, it was pretty
+straightforward to use. it also allowed us to remove the processing of
+startup messages from the GPL'd source, which had been problematic for
+some people.
+
+so why am i hijacking this thread to tell you about the history of a
+VWRAP component? mostly as a parable about making things as flexible
+as possible. had the <A HREF="secondlife:///">secondlife:///</A> URI scheme (and it's
+implementation in the viewer) not been inflexible, we would never have
+had to take the time to build the CALM scheme.
+
+starting with designs that enhance flexibility will payoff in the future.
+
+though seriously, it's not going to be the end of the world if you do
+this &quot;wrong.&quot;
+
+-cheers
+-meadhbh
+--
+meadhbh hamrick * it's pronounced &quot;maeve&quot;
+@OhMeadhbh * <A HREF="http://meadhbh.org/">http://meadhbh.org/</A> * <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">OhMeadhbh at gmail.com</A>
+
+
+
+On Sun, Aug 29, 2010 at 2:51 PM, Steven Westcot &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">tsudico at gmail.com</A>&gt; wrote:
+&gt;<i> Hello,
+</I>&gt;<i> I've been reading the mailing list for a while, but haven't really had much
+</I>&gt;<i> input. &#160;I'd like to give my own opinion on the current matter though. &#160;I
+</I>&gt;<i> like Melanie's format:
+</I>&gt;<i> <A HREF="http://www.avination.net/user/44626b40-13d6-4817-b61b-de5df7b5e7e8/Melanie+Milland">http://www.avination.net/user/44626b40-13d6-4817-b61b-de5df7b5e7e8/Melanie+Milland</A>
+</I>&gt;<i> I think having the avatar name added to the URI would definitely help give
+</I>&gt;<i> attribution and prevent unnecessary polling. &#160;For a hypergrid avatar, IMs
+</I>&gt;<i> and Friends would only need the UUID. &#160;Objects are a different matter
+</I>&gt;<i> though. If the object has left one grid and&#160;traveled&#160;to another, the only
+</I>&gt;<i> way a human readable name can be discerned would either be to poll the
+</I>&gt;<i> original grid's agent service each time the creator's name was needed or to
+</I>&gt;<i> cache the data in the URI itself. &#160;Having the data exist in the URI would
+</I>&gt;<i> help prevent issues if the original grid was temporarily
+</I>&gt;<i> or&#160;permanently&#160;unavailable.
+</I>&gt;<i> The only issue I see with including the extra information is if a grid
+</I>&gt;<i> doesn't conform to the standard first + last naming, but has their own
+</I>&gt;<i> identity format. &#160;In cases such as those, the grid's agent/identity service
+</I>&gt;<i> should be able to create a URI that does give proper attribution(perhaps by
+</I>&gt;<i> using existing escaped characters)
+</I>&gt;<i> Steve W.
+</I>&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Message: 2
+</I>&gt;&gt;<i> Date: Sun, 29 Aug 2010 14:50:08 -0400
+</I>&gt;&gt;<i> From: Mike Dickson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mike.dickson at hp.com</A>&gt;
+</I>&gt;&gt;<i> To: &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&quot; &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Global identifiers
+</I>&gt;&gt;<i> Message-ID: &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">1283107808.13484.104.camel at mdickson-linux</A>&gt;
+</I>&gt;&gt;<i> Content-Type: text/plain; charset=&quot;UTF-8&quot;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Sigh
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The name has absolutely zero value for any sort of attribution. &#160;I can
+</I>&gt;&gt;<i> have the same name someplace else (or on the same grid if the grid owner
+</I>&gt;&gt;<i> allows it an uses some other identifier or mechanism for
+</I>&gt;&gt;<i> authentication). Only UUID is valid to identify a specific agent. &#160;Also,
+</I>&gt;&gt;<i> what if I don't want just anyone to know the full names of my users. &#160;Or
+</I>&gt;&gt;<i> if I use a slightly different mechanism to describe a user (email
+</I>&gt;&gt;<i> addresses for instance).
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> The core developers have said over and over again that OpenSim is a
+</I>&gt;&gt;<i> framework. &#160;That being the case the semantics of &quot;names&quot; can vary across
+</I>&gt;&gt;<i> grids and how could you ever depend on anything like that to do
+</I>&gt;&gt;<i> &quot;attribution&quot;. &#160;Only the Agent service for a grid should be able to
+</I>&gt;&gt;<i> resolve agent id's down to more specific information. &#160;In that way it
+</I>&gt;&gt;<i> can also provide whatever access controls on that information the grid
+</I>&gt;&gt;<i> owner prefers in order to enforce that grid's TOS.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Mike
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009373.html">[Opensim-dev] Global identifiers
+</A></li>
+	<LI>Next message: <A HREF="009379.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9375">[ date ]</a>
+              <a href="thread.html#9375">[ thread ]</a>
+              <a href="subject.html#9375">[ subject ]</a>
+              <a href="author.html#9375">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

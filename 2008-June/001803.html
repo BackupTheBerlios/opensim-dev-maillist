@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] introducing, database migrations
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20introducing%2C%20database%20migrations&In-Reply-To=%3C4850540C.4050504%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001802.html">
+   <LINK REL="Next"  HREF="001804.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] introducing, database migrations</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20introducing%2C%20database%20migrations&In-Reply-To=%3C4850540C.4050504%40googlemail.com%3E"
+       TITLE="[Opensim-dev] introducing, database migrations">jjustincc at googlemail.com
+       </A><BR>
+    <I>Thu Jun 12 00:39:08 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001802.html">[Opensim-dev] introducing, database migrations
+</A></li>
+        <LI>Next message: <A HREF="001804.html">[Opensim-dev] Observations on XMLRPC timeouts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1803">[ date ]</a>
+              <a href="thread.html#1803">[ thread ]</a>
+              <a href="subject.html#1803">[ subject ]</a>
+              <a href="author.html#1803">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>+1, excellent stuff Sean.
+
+Sean Dague wrote:
+&gt;<i> After far too much frustration with our current adhoc database migration
+</I>&gt;<i> model, I've implemented a more generic approach, inspired by the way
+</I>&gt;<i> ruby on rails does this.  The implementation is in
+</I>&gt;<i> OpenSim/Data/Migration.cs for those interested.
+</I>&gt;<i> 
+</I>&gt;<i> From the documentation in that file:
+</I>&gt;<i> 
+</I>&gt;<i>    /// The Migration theory is based on the ruby on rails concept.
+</I>&gt;<i>     /// Each database driver is going to be allowed to have files in
+</I>&gt;<i>     /// Resources that specify the database migrations.  They will be
+</I>&gt;<i>     /// of the form:
+</I>&gt;<i>     ///
+</I>&gt;<i>     ///    001_Users.sql
+</I>&gt;<i>     ///    002_Users.sql
+</I>&gt;<i>     ///    003_Users.sql
+</I>&gt;<i>     ///    001_Prims.sql
+</I>&gt;<i>     ///    002_Prims.sql
+</I>&gt;<i>     ///    ...etc...
+</I>&gt;<i>     ///
+</I>&gt;<i>     /// When a database driver starts up, it specifies a resource that
+</I>&gt;<i>     /// needs to be brought up to the current revision.  For instance:
+</I>&gt;<i>     ///
+</I>&gt;<i>     ///    Migration um = new Migration(Assembly, DbConnection,
+</I>&gt;<i>     &quot;Users&quot;);
+</I>&gt;<i>     ///    um.Upgrade();
+</I>&gt;<i>     ///
+</I>&gt;<i>     /// This works out which version Users is at, and applies all the
+</I>&gt;<i>     /// revisions past it to it.  If there is no users table, all
+</I>&gt;<i>     /// revisions are applied in order.  Consider each future
+</I>&gt;<i>     /// migration to be an incremental roll forward of the tables in
+</I>&gt;<i>     /// question.
+</I>&gt;<i>     ///
+</I>&gt;<i>     /// Assembly must be specifically passed in because otherwise you
+</I>&gt;<i>     /// get the assembly that Migration.cs is part of, and what you
+</I>&gt;<i>     /// really want is the assembly of your database class.
+</I>&gt;<i>     ///
+</I>&gt;<i> 
+</I>&gt;<i> SQLite driver has been converted to this model.  When making a change to
+</I>&gt;<i> the data structure for SQLite for any of the stores, create it as
+</I>&gt;<i> 002_xxx.sql and make it alter table calls, or creation of new tables
+</I>&gt;<i> (unrelated to the existing ones).  Think of it as a series of database
+</I>&gt;<i> patches that roll forward.
+</I>&gt;<i> 
+</I>&gt;<i> I'll do MySQL tomorrow (or at least some of it).  While we move from our
+</I>&gt;<i> current adhoc approach to migrations, there is going to be some legacy
+</I>&gt;<i> code.  I'm declaring changeset 6000 as the cuttoff point where we can
+</I>&gt;<i> remove the legacy.  So trying to jump from 5050 -&gt; 6000 without doing any
+</I>&gt;<i> intermediary revisions isn't going to work.  I suspect there will be &lt; 3
+</I>&gt;<i> people in the world that are trying to do that anyway.
+</I>&gt;<i> 
+</I>&gt;<i> This whole approach makes dealing with database changes much easier,
+</I>&gt;<i> much more consistant, and should reduce hesitation to doing database
+</I>&gt;<i> schema changes.
+</I>&gt;<i> 
+</I>&gt;<i>      -Sean
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001802.html">[Opensim-dev] introducing, database migrations
+</A></li>
+	<LI>Next message: <A HREF="001804.html">[Opensim-dev] Observations on XMLRPC timeouts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1803">[ date ]</a>
+              <a href="thread.html#1803">[ thread ]</a>
+              <a href="subject.html#1803">[ subject ]</a>
+              <a href="author.html#1803">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,246 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Release 0.7 RC1 Test Feedback
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Release%200.7%20RC1%20Test%20Feedback&In-Reply-To=%3C4c1b5aa7.e88cd80a.496c.2bb2%40mx.google.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008766.html">
+   <LINK REL="Next"  HREF="008773.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Release 0.7 RC1 Test Feedback</H1>
+    <B>Ai Austin</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Release%200.7%20RC1%20Test%20Feedback&In-Reply-To=%3C4c1b5aa7.e88cd80a.496c.2bb2%40mx.google.com%3E"
+       TITLE="[Opensim-dev] Release 0.7 RC1 Test Feedback">ai.ai.austin at gmail.com
+       </A><BR>
+    <I>Fri Jun 18 13:38:08 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008766.html">[Opensim-dev] Is Sqlite expected to work in 0.7 RC?
+</A></li>
+        <LI>Next message: <A HREF="008773.html">[Opensim-dev] Release 0.7 RC1 Test Feedback
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8767">[ date ]</a>
+              <a href="thread.html#8767">[ thread ]</a>
+              <a href="subject.html#8767">[ subject ]</a>
+              <a href="author.html#8767">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi folks, I am continuing to do initial tests of 0./7 RC1... and 
+wanted to give some feedback.   I am happy to report anything you 
+think needs logging in mantis. But some items are probably simple 
+issues that Diva and others might be able to point me in the direction of.
+
+I am using Robust.exe -inifile Robust.HG.ini and believe I have the 
+.ini files all set up right for my system (baring mistakes of course)
+
+All attempts to get Robust.exe to do the asset data base migrations 
+have failed.  I spotted quite a number of things and addressed them 
+as I went along.
+
+---------------------------
+The documentation suggesting the values for 4 variables in the 
+[mysqld] section of the MySQL config file have some issues in them 
+(at least for Windows MySQL users).  There was a problem with all 4 
+variables or their values as examples. See details at
+<A HREF="http://dev.mysql.com/doc/refman/5.1/en/server-system-variables.html">http://dev.mysql.com/doc/refman/5.1/en/server-system-variables.html</A> 
+It may  be worth They should be something like:
+
+[mysqld]
+open-files-limit = 20000                   (add -limit on end of name 
+and yes these are hyphens not underscores)
+interactive_timeout = 1000000         (drop a 0 as it was beyond 
+legal upper range)
+wait_timeout = 1000000                 (drop a 0 as it was beyond 
+legal upper range)
+max_connnections = 2000              (connections plural not connection)
+
+I noted these changes, but left Diva's values in for now until we 
+verify these are right at
+<A HREF="http://opensimulator.org/wiki/0.7_Release#Before_you_upgrade">http://opensimulator.org/wiki/0.7_Release#Before_you_upgrade</A>
+
+---------------------------
+
+Even with these corrections in place I still get two Cmd time out 
+errors on the asset table migrations in Robust.exe after about 40 
+seconds.  Note that I was able to do the commands manually in MySQL 
+Command Line Client and the commands took roughly 2 minutes and 1 
+minute (with 10000 or so assets).  I have no idea how to make 
+Robust.exe properly wait for the time required.
+
+2010-06-17 10:26:37,437 INFO  - OpenSim.Server.Base.HttpServerBase 
+[SERVER]: Starting HTTP server on port 8003
+2010-06-17 10:26:37,482 INFO  - OpenSim.Server.Base.HttpServerBase 
+[SERVER]: Requested port 8003
+2010-06-17 10:26:37,482 INFO  - OpenSim.Server.OpenSimServer 
+[SERVER]: Loading AssetServiceConnector
+2010-06-17 10:26:37,744 INFO  - OpenSim.Data.Migration [MIGRATIONS] 
+Upgrading AssetStore to latest revision 8.
+2010-06-17 10:26:37,745 INFO  - OpenSim.Data.Migration [MIGRATIONS] 
+NOTE: this may take a while, don't interupt this process!
+2010-06-17 10:27:08,648 DEBUG - OpenSim.Data.Migration [MIGRATIONS] 
+Cmd was Timeout expired.  The timeout period elapsed prior to 
+completion of the operation or the server is not responding. in SQL: 
+ALTER TABLE assets ADD COLUMN asset_flags INTEGER NOT NULL DEFAULT 0;
+
+2010-06-17 10:27:08,649 DEBUG - OpenSim.Data.Migration [MIGRATIONS]: 
+An error has occurred in the migration. This may mean you could see 
+errors trying to run OpenSim. If you see database related errors, you 
+will need to fix the issue manually. Continuing.
+2010-06-17 10:27:08,650 INFO  - OpenSim.Data.Migration [MIGRATIONS]: 
+Updating AssetStore to version 7
+2010-06-17 10:27:39,632 DEBUG - OpenSim.Data.Migration [MIGRATIONS] 
+Cmd was Timeout expired.  The timeout period elapsed prior to 
+completion of the operation or the server is not responding. in SQL: 
+ALTER TABLE assets ADD COLUMN CreatorID varchar(128) NOT NULL DEFAULT '';
+
+2010-06-17 10:27:40,850 DEBUG - OpenSim.Data.Migration [MIGRATIONS]: 
+An error has occurred in the migration. This may mean you could see 
+errors trying to run OpenSim. If you see database related errors, you 
+will need to fix the issue manually. Continuing.
+2010-06-17 10:27:40,850 INFO  - OpenSim.Data.Migration [MIGRATIONS]: 
+Updating AssetStore to version 8
+
+
+------------------------
+Note also in the log above typo in one of the INFO messages  at 
+2010-06-17 10:26:37,745 &quot;interupt&quot; -&gt; &quot;interrupt&quot;
+
+-----------------------
+
+As I said I manually added in these data base column addition to let 
+me get further.
+Manually doing the following in MySQL command line client
+
+use opensim;
+ALTER TABLE assets ADD COLUMN asset_flags INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE assets ADD COLUMN CreatorID varchar(128) NOT NULL DEFAULT '';
+
+---------------------
+
+I note that in Robust.exe I get this error message early on in the 
+logs.... which I have not yet tracked down.
+
+2010-06-18 09:23:41,375 INFO  - OpenSim.Server.OpenSimServer 
+[SERVER]: Loading XInventoryServiceInConnector
+2010-06-18 09:23:41,375 INFO  - OpenSim.Server.OpenSimServer 
+[SERVER]: Failed to load 
+OpenSim.Server.Handlers.dll:XInventoryServiceInConnector
+
+Note this was NOT shown in red in the log.  Should it be?  Its noted 
+as INFO not an ERROR.
+
+------------------------
+
+After that I have something up and running, and Opensim.ini looks to 
+have started.
+
+-------------------------
+http_loginform.html  and <A HREF="http://.../?method=regionImage">http://.../?method=regionImage</A> served maps 
+on URLs not serving
+
+I tried to look at the region map tiles using the 
+<A HREF="http://.../index.php?method=regionImage&lt;UUID">http://.../index.php?method=regionImage&lt;UUID</A>&gt; served maps on a web page...e.g.
+
+<A HREF="http://virtual.aiai.ed.ac.uk:9000/index.php?method=regionImagebd09a793eba511dc95ff0800200c9a66">http://virtual.aiai.ed.ac.uk:9000/index.php?method=regionImagebd09a793eba511dc95ff0800200c9a66</A>
+and the request come sin to the server, but the map fails to be 
+generated (yellow warning).
+
+
+On trying SL Viewer 1.23 with my usual working 0.6.9 login parameters...
+
+&quot;C:\Program Files\SecondLife\SecondLife.exe&quot; -channel &quot;Opensim&quot; 
+-loginuri <A HREF="http://virtual.aiai.ed.ac.uk:8002/">http://virtual.aiai.ed.ac.uk:8002/</A> -loginpage 
+<A HREF="http://virtual.aiai.ed.ac.uk:8002/?method=login">http://virtual.aiai.ed.ac.uk:8002/?method=login</A>
+
+The splash screen .html file I usually use in 0.6.9 is nt shown, 
+though it is present at D:\VW\Opensim\bin\http_loginform.html  as usual.
+
+Map serving to web also not serving images...
+
+
+<A HREF="http://virtual.aiai.ed.ac.uk:9000/index.php?method=regionImagebd09a793eba511dc95ff0800200c9a66">http://virtual.aiai.ed.ac.uk:9000/index.php?method=regionImagebd09a793eba511dc95ff0800200c9a66</A>
+------------------
+
+I have not understood what port 82 is used for, or how it is meant to 
+be used, and I should be set in opensim.ini to use my working Flotsam 
+groups handling... but groups and port 82 errors are occurring
+
+Opensim.exe - Opensim.log
+
+09:35:38 - [XMLRPC-GROUPS-CONNECTOR]: RequestingAgentUserService ::
+09:35:38 - [XMLRPC-GROUPS-CONNECTOR]: RequestingSessionID :: 
+00000000-0000-0000-0000-000000000000
+09:35:38 - [XMLRPC-GROUPS-CONNECTOR]: WriteKey :: 1234
+09:35:38 - [XMLRPC-GROUPS-CONNECTOR]: AgentID :: 
+e24a9015-f5ca-452b-8c95-d32e34cb9d64
+09:35:38 - [XMLRPC-GROUPS-CONNECTOR]: ReadKey :: 1234
+09:35:38 - [XMLRPC-GROUPS-CONNECTOR]: requestingAgentID :: 
+00000000-0000-0000-0000-000000000000
+09:35:38 - [XMLRPC-GROUPS-CONNECTOR]: An error has occured while 
+attempting to access the XmlRpcGroups server method: 
+groups.getAgentGroupMemberships
+09:35:38 - [XMLRPC-GROUPS-CONNECTOR]: System.Net.WebException: Unable 
+to connect to the remote server ---&gt; 
+System.Net.Sockets.SocketException: No connection could be made 
+because the target machine actively refused it 129.215.219.138:82
+
+09:36:08 - [HG INVENTORY CONNECTOR]: GetFolderContent 
+d82055f9-7ac1-45bd-ab77-341a7a930b7b
+09:36:08 - [XINVENTORY CONNECTOR STUB]: Exception in 
+GetFolderContent: Root element is missing.
+... repeated many times....
+
+
+-----------------------
+
+I also have not got the usual 3 hyperlinked regions put in via 
+link-region - they all failed at startup.  Maybe due to using HG 1.5 
+and the others have to be the same for it to work?
+
+-----------------------
+
+Okay, I am now logged on as my avatar, and I see all the objects i 
+all regions in place, scripts seem to work, etc.  I can move between 
+regions via map teleport. My avatar has the expected UUID (as 
+verified by touching an object whose script shows that).
+
+I seem to not have a home or last location on login.
+
+The avatar though is &quot;Ruth&quot;, and when I look at the inventory, all 
+folders are intact, but there is no content, and I just get &quot;Loading&quot;...&quot;
+
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008766.html">[Opensim-dev] Is Sqlite expected to work in 0.7 RC?
+</A></li>
+	<LI>Next message: <A HREF="008773.html">[Opensim-dev] Release 0.7 RC1 Test Feedback
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8767">[ date ]</a>
+              <a href="thread.html#8767">[ thread ]</a>
+              <a href="subject.html#8767">[ subject ]</a>
+              <a href="author.html#8767">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

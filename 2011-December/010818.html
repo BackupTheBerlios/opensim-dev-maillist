@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] remote admoin wiki page
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2011-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20remote%20admoin%20wiki%20page&In-Reply-To=%3C4EE69626.1050808%40archimuh.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="010817.html">
+   <LINK REL="Next"  HREF="010819.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] remote admoin wiki page</H1>
+    <B>Argus</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20remote%20admoin%20wiki%20page&In-Reply-To=%3C4EE69626.1050808%40archimuh.de%3E"
+       TITLE="[Opensim-dev] remote admoin wiki page">argus at archimuh.de
+       </A><BR>
+    <I>Tue Dec 13 01:02:46 CET 2011</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="010817.html">[Opensim-dev] remote admoin wiki page
+</A></li>
+        <LI>Next message: <A HREF="010819.html">[Opensim-dev] remote admoin wiki page
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10818">[ date ]</a>
+              <a href="thread.html#10818">[ thread ]</a>
+              <a href="subject.html#10818">[ subject ]</a>
+              <a href="author.html#10818">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>1) I agree on renaming the SceneContainsRegion() and already was 
+thinking of CheckRegionParametersInScene() to mach with 
+CheckStringParameters(). I also think adding it after 
+CheckStringParameters() would group them nicely.
+
+2) SceneContainsRegion() is just as clumsy as it was before. Once the 
+variations of region_id is removed it will look slighty leaner, hehe.
+
+3) about 3/4 is using some variation of region_id. In the end its less 
+work for us having all variation allowed for this short timeperiod 
+instead of changing 3/4 twice. Neewbies will start off using region_id 
+while everyone else can change their code whenever they have time for 
+this. Immidiatly changing the very small variations meens one has a 
+deadline with no transitional phase...  and I would be one of those 
+affected by this change ;) If someone wants to use a variation for the 
+time beeing, well, its not our time being wasted.
+
+4) Yes, lots of existing identical text is beeing replaced by identical 
+text. The command functions are however much leaner. On avarage we are 
+replacing 20 lines of identical code with 9 short identical code lines. 
+All together the patch has more code in the end, because not all 
+commands did accept region_id AND region_name, and neither did they 
+return the error parameter. One could add the error parameter and the 
+exeption to SceneContainsRegion() which would shorten it even more, but 
+one can also use SceneContainsRegion() to check if a region does not 
+exist when the exeption is not thrown within SceneContainsRegion(). 
+Another improvement is, that we have equal error messages in all 
+commands when a region is not found.
+
+
+--
+Justin, little off topic... I am working on implementing a bigger number 
+of new commands to RemoteAdmin. Would you prefer 1 big Patch or each 
+command as a seperate Patch? Maybe single Patches for each command which 
+have a predifined step-by-step order each considering the changes from 
+the previous patch? (A small number of commands can be seen on the new 
+wiki Proposal page ;) )
+
+
+
+Am 12.12.2011 22:41, schrieb Justin Clark-Casey:
+&gt;<i> Thanks Michelle.  Commented on the Mantis.  To be honest, I think it 
+</I>&gt;<i> there are variations on region_id that are only used in one spot then 
+</I>&gt;<i> they should just be removed, rather than cluttering up the code and 
+</I>&gt;<i> suddenly accepting multiple variations everywhere.  I think we should 
+</I>&gt;<i> only cater for the major region id parameter variations.
+</I>&gt;<i>
+</I>&gt;<i> On 10/12/11 16:11, Argus wrote:
+</I>&gt;&gt;<i> Justin, could you have a glance at the patched RemoteAdminPlugin.cs I 
+</I>&gt;&gt;<i> posted in Mantis (
+</I>&gt;&gt;<i> <A HREF="http://www.opensimulator.org/mantis/view.php?id=5814">http://www.opensimulator.org/mantis/view.php?id=5814</A> )? I didnt test 
+</I>&gt;&gt;<i> the code yet and there is still some cleaning up to
+</I>&gt;&gt;<i> do, also the summaries need updates...etc...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> For all RA function that check for regions I added a new general 
+</I>&gt;&gt;<i> function SceneContainsRegion(). For now all 5 found
+</I>&gt;&gt;<i> versions of region_id would pass through there and also the 
+</I>&gt;&gt;<i> region_name is then available to all RA functions. I also
+</I>&gt;&gt;<i> added a log warning for those region_id parameter that will be 
+</I>&gt;&gt;<i> deprecated.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Advantage:
+</I>&gt;&gt;<i> - less code
+</I>&gt;&gt;<i> - common error warnings when region not found
+</I>&gt;&gt;<i> - easier to remove deprecated region_id versions
+</I>&gt;&gt;<i> - all RemoteAdmin functions checking scenes use parameters region_id 
+</I>&gt;&gt;<i> _and_ region_name.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Disatvantage:
+</I>&gt;&gt;<i> - a view RA function get a diffrent error message with the same 
+</I>&gt;&gt;<i> meaning when the region is not found
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Before I create a patch, I would like to get some feedback if adding 
+</I>&gt;&gt;<i> the new function is the right direction...
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> NB: I finaly managed to update the RemoteAdmin wiki pages.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Am 10.12.2011 01:46, schrieb Justin Clark-Casey:
+</I>&gt;&gt;&gt;<i> Deprecating the parameters in the wiki is a good idea. 6 months is a 
+</I>&gt;&gt;&gt;<i> reasonable timeframe in my opinion.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On 09/12/11 18:11, Argus wrote:
+</I>&gt;&gt;&gt;&gt;<i> I also prefer the region_id. I will post a patch in mantis this 
+</I>&gt;&gt;&gt;&gt;<i> weekend adding region_id were it was not used...
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Just wondering if one might deprecate the non region_id parameters 
+</I>&gt;&gt;&gt;&gt;<i> in 6 months or so, giving everyone time to adapt. In
+</I>&gt;&gt;&gt;&gt;<i> that case I would also add a notice to the code? As i am not a dev, 
+</I>&gt;&gt;&gt;&gt;<i> i dont know what agreements there are on this
+</I>&gt;&gt;&gt;&gt;<i> subject...
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> Am 09.12.2011 01:17, schrieb Justin Clark-Casey:
+</I>&gt;&gt;&gt;&gt;&gt;<i> In this case, it wouldn't be so hard to add the facility to take 
+</I>&gt;&gt;&gt;&gt;&gt;<i> region_id as well as region_uuid (or vice versa).
+</I>&gt;&gt;&gt;&gt;&gt;<i> Personally, I feel that region_id is better then region_uuid.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> Patches are welcome.
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i> On 08/12/11 21:53, Argus wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> You will find these kind of diffrences everywere in opensim, not 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> only with region uuid. The problem is, that once its
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> implemented its not easy to change because someone will already 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> have developed something that uses it exactly as it
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> was
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> implemented.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Am 08.12.2011 21:56, schrieb R. Gunther:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Hmm, i see its going deep. its also named regionid in the xml 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> files.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Still regionid keeps confusing compared to region_uuid
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> On 2011-12-08 21:18, R. Gunther wrote:
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> There are somethings not the same on the wiki remopte admin page.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> On the remote admin page with many commands you see regionid 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> others use region_uuid
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> It would be nice and more clear to use with all command the 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> same line &quot;region_uuid&quot;
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Or there must be a difference between region_uuid and regionid 
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> i dotn see.
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="010817.html">[Opensim-dev] remote admoin wiki page
+</A></li>
+	<LI>Next message: <A HREF="010819.html">[Opensim-dev] remote admoin wiki page
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#10818">[ date ]</a>
+              <a href="thread.html#10818">[ thread ]</a>
+              <a href="subject.html#10818">[ subject ]</a>
+              <a href="author.html#10818">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

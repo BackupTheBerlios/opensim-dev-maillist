@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Forcing attachments to rezz
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Forcing%20attachments%20to%20rezz&In-Reply-To=%3CAANLkTikw4CXWMMD85-o7Q2NOx0NmCVuMoviO9E_b8vBP%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009781.html">
+   <LINK REL="Next"  HREF="009785.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Forcing attachments to rezz</H1>
+    <B>Neil Canham</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Forcing%20attachments%20to%20rezz&In-Reply-To=%3CAANLkTikw4CXWMMD85-o7Q2NOx0NmCVuMoviO9E_b8vBP%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Forcing attachments to rezz">neil at knowsense.co.uk
+       </A><BR>
+    <I>Thu Nov 25 10:10:51 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009781.html">[Opensim-dev] Forcing attachments to rezz
+</A></li>
+        <LI>Next message: <A HREF="009785.html">[Opensim-dev] [opensim-dev] interfaces to opensim for sensor	network data
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9783">[ date ]</a>
+              <a href="thread.html#9783">[ thread ]</a>
+              <a href="subject.html#9783">[ subject ]</a>
+              <a href="author.html#9783">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Excellent - that works.  Thanks Justin.  I won't be calling the full update
+often - just once on login of each AV if they don't already have the
+relevant attachment, fingers crossed I get no issues.
+
+Neil
+
+On Wed, Nov 24, 2010 at 11:43 PM, Justin Clark-Casey &lt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>&gt; wrote:
+
+&gt;<i> On 24/11/10 19:01, Neil Canham wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> Hi
+</I>&gt;&gt;<i>   I'm writing a region module for managing appearance / outfits.  One
+</I>&gt;&gt;<i> issue I have is that attachments only appear
+</I>&gt;&gt;<i> after a relog.  During the client login I'm using this to attach:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  m_scenes[0].RezSingleAttachment(client, item.ID,
+</I>&gt;&gt;<i> (uint)AttachmentPoint.HUDTop);
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> in 0.6.9 - and I find I have to log out and then back in to see the
+</I>&gt;&gt;<i> attachment, I assume because the client didn't
+</I>&gt;&gt;<i> request the attachment it isn't looking out for it?  Is there any way that
+</I>&gt;&gt;<i> I can force the attachment to happen (I tried
+</I>&gt;&gt;<i> a ScenePresence SendWearables() but that seemed to not know about the
+</I>&gt;&gt;<i> attachment)
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> In 0.7 (I think) and later, it's possible to attach (and move) hud objects
+</I>&gt;<i> with code like
+</I>&gt;<i>
+</I>&gt;<i> &lt;paste&gt;
+</I>&gt;<i> IAttachmentsModule module =
+</I>&gt;<i> client.Scene.RequestModuleInterface&lt;IAttachmentsModule&gt;();
+</I>&gt;<i> UUID sceneObjectId
+</I>&gt;<i>    = module.RezSingleAttachmentFromInventory(client, itemId,
+</I>&gt;<i> (uint)AttachmentPoint.HUDTop);
+</I>&gt;<i> SceneObjectGroup sog = scene.GetSceneObjectPart(sceneObjectId).ParentGroup;
+</I>&gt;<i>
+</I>&gt;<i> // Move HUD
+</I>&gt;<i>
+</I>&gt;<i> // A temporary messy solution to an occasional race where the attached hud
+</I>&gt;<i> sometimes ends up positioned
+</I>&gt;<i> // on the avatar itself and does not show up as attached within inventory.
+</I>&gt;<i> Thread.Sleep(1000);
+</I>&gt;<i>
+</I>&gt;<i> Vector3 newPos = new Vector3(0, 0, -0.1f);
+</I>&gt;<i> m_log.DebugFormat(&quot;[EXAMPLE]: Resetting HUD position to {0}&quot;, newPos);
+</I>&gt;<i> module.UpdateAttachmentPosition(client, sog, newPos);
+</I>&gt;<i> &lt;/paste&gt;
+</I>&gt;<i>
+</I>&gt;<i> However, the attachment code has changed a lot since 0.6.9 (for starters,
+</I>&gt;<i> it had no separate AttachmentsModule).  You might want to try something like
+</I>&gt;<i>
+</I>&gt;<i> sog.HasGroupChanged = true;
+</I>&gt;<i> sog.ScheduleGroupForFullUpdate();
+</I>&gt;<i>
+</I>&gt;<i> to make sure the server sends an object notification to the viewer.
+</I>&gt;<i>  However, don't overuse this, since unnecessary multiple updates can
+</I>&gt;<i> sometimes lead to race conditions and viewer update glitches.
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20101125/e9d45f9c/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20101125/e9d45f9c/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009781.html">[Opensim-dev] Forcing attachments to rezz
+</A></li>
+	<LI>Next message: <A HREF="009785.html">[Opensim-dev] [opensim-dev] interfaces to opensim for sensor	network data
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9783">[ date ]</a>
+              <a href="thread.html#9783">[ thread ]</a>
+              <a href="subject.html#9783">[ subject ]</a>
+              <a href="author.html#9783">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

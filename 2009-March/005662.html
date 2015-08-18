@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] More login refactoring
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20More%20login%20refactoring&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE66473518C94CFC%40winxbeus19.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005660.html">
+   <LINK REL="Next"  HREF="005664.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] More login refactoring</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20More%20login%20refactoring&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE66473518C94CFC%40winxbeus19.exchange.xchg%3E"
+       TITLE="[Opensim-dev] More login refactoring">adam at deepthink.com.au
+       </A><BR>
+    <I>Thu Mar 12 08:23:57 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005660.html">[Opensim-dev] More login refactoring
+</A></li>
+        <LI>Next message: <A HREF="005664.html">[Opensim-dev] More login refactoring
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5662">[ date ]</a>
+              <a href="thread.html#5662">[ thread ]</a>
+              <a href="subject.html#5662">[ subject ]</a>
+              <a href="author.html#5662">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>This is actually more difficult because some clients don't even recognise a 'login'. I believe we should probably abstract this to a simple 'bool CanLogin(AuthDetails, IPEndPoint)', and 'bool Login(IClient)'
+
+First being a check against the userserver or authentication subsystem for login credentials, second being 'I'm coming in, here's my IClientX'. (Similar to Scene.AddNewClient now, but maybe scene generic[?])
+
+Adam
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Diva Canto
+</I>&gt;<i> Sent: Wednesday, 11 March 2009 7:05 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] More login refactoring
+</I>&gt;<i>
+</I>&gt;<i> Actually, it's more than modules pertaining to the User Services. The
+</I>&gt;<i> Grid Services too. Specifically, these two
+</I>&gt;<i>
+</I>&gt;<i>             m_httpServer.AddXmlRPCHandler(&quot;map_block&quot;,
+</I>&gt;<i> XmlRpcMapBlockMethod);
+</I>&gt;<i>             m_httpServer.AddXmlRPCHandler(&quot;search_for_region_by_name&quot;,
+</I>&gt;<i> XmlRpcSearchForRegionMethod);
+</I>&gt;<i>
+</I>&gt;<i> Standalones may also want to provide these services, especially with
+</I>&gt;<i> better clients coming on the horizon.
+</I>&gt;<i>
+</I>&gt;<i> The Hypergrid already has some of those modules for standalones, namely
+</I>&gt;<i> Inventory and Asset, so that inventory of standalone users can be
+</I>&gt;<i> accessed from the outside. But, really, this is not the right way of
+</I>&gt;<i> doing it, because it has a fair amount of code duplication with what's
+</I>&gt;<i> in the corresponding Servers.
+</I>&gt;<i>
+</I>&gt;<i> Any ideas?
+</I>&gt;<i> And apologies if this touches again on the heated discussion between MW
+</I>&gt;<i> and Melanie a couple of weeks ago...
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> Diva Canto wrote:
+</I>&gt;<i> &gt; Lbsa/MW,
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; I know you have been refactoring the login code a bit. I wonder if
+</I>&gt;<i> &gt; you're stopping here or if there's more coming. The reason I ask is
+</I>&gt;<i> this.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; OpenSim.Framework.Communications.LoginResponse is pretty much the
+</I>&gt;<i> Linden
+</I>&gt;<i> &gt; Viewer login response, so it should go somewhere under Linden.Login.
+</I>&gt;<i> You
+</I>&gt;<i> &gt; already did part of this for standalone. But this brings up a bigger
+</I>&gt;<i> &gt; issue: substantial parts of the login code, including this
+</I>&gt;<i> LoginResponse
+</I>&gt;<i> &gt; but not only, are shared between Region (standalone) and
+</I>&gt;<i> &gt; Grid.UserServer. I wonder if there's a way of making them be modules
+</I>&gt;<i> &gt; that both the region server (in standalone mode) and the User server
+</I>&gt;<i> can
+</I>&gt;<i> &gt; load?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Ideally, one would have a collection of Login modules that people can
+</I>&gt;<i> &gt; choose to support on their grids/standalones.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; How far are we from being able to do that?
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; Crista
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005660.html">[Opensim-dev] More login refactoring
+</A></li>
+	<LI>Next message: <A HREF="005664.html">[Opensim-dev] More login refactoring
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5662">[ date ]</a>
+              <a href="thread.html#5662">[ thread ]</a>
+              <a href="subject.html#5662">[ subject ]</a>
+              <a href="author.html#5662">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

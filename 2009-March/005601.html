@@ -1,0 +1,268 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] [WorldOarModule] - A module to serve up OAR files	over http
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BWorldOarModule%5D%20-%20A%20module%20to%20serve%20up%20OAR%20files%0A%09over%20http&In-Reply-To=%3CA2774DC57ED442CABC3331A32CF5D0C2%40lotus%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005588.html">
+   <LINK REL="Next"  HREF="005605.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] [WorldOarModule] - A module to serve up OAR files	over http</H1>
+    <B>logicmoo at gmail.com</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20%5BWorldOarModule%5D%20-%20A%20module%20to%20serve%20up%20OAR%20files%0A%09over%20http&In-Reply-To=%3CA2774DC57ED442CABC3331A32CF5D0C2%40lotus%3E"
+       TITLE="[Opensim-dev] [WorldOarModule] - A module to serve up OAR files	over http">logicmoo at gmail.com
+       </A><BR>
+    <I>Sat Mar  7 08:08:46 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005588.html">[Opensim-dev] critical issue mantis 3247
+</A></li>
+        <LI>Next message: <A HREF="005605.html">[Opensim-dev] [WorldOarModule] - A module to serve up OAR	filesover http
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5601">[ date ]</a>
+              <a href="thread.html#5601">[ thread ]</a>
+              <a href="subject.html#5601">[ subject ]</a>
+              <a href="author.html#5601">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi,
+
+[WorldOarModule] - A module to serve up OAR files over http
+JustinCC wrote a &quot;load oar &lt;fileOrURI&gt;&quot;  that can retrieve a OpenSim .OAR file over Http I banged out a light version of a server 
+below:
+
+So here here are the questions I have:
+
+* Is the password=secrets in the GET request secure enough to make this a module people feel comforatable to run on their servers?
+
+* Might this become a core module for the other end of &quot;load oar&quot; ?
+
+* Is the mime type &quot;application/x-oar&quot; ok?  officially, it's a &quot;application/x-tar-gz&quot;
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Reflection;
+using System.Threading;
+using log4net;
+using Nini.Config;
+using OpenSim.Framework;
+using OpenSim.Framework.Servers;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using System.IO.Compression;
+
+/*
+
+in bin/OpenSim.ini[.example]
+
+[WorldOarModule]
+ ;##
+ ;##  It makes it really easy to 'borrow' your data, so use with care.
+ ;##
+ ;##  Example :
+ ;## [REGION OAR]: Region OAR location: <A HREF="http://71.197.210.170:9000/index.php?method=regionOar160f328fb2524c5f97f3d982788d4a02">http://71.197.210.170:9000/index.php?method=regionOar160f328fb2524c5f97f3d982788d4a02</A>
+ ;##
+ ;## To load the region remotely:
+ ;## load oar <A HREF="http://71.197.210.170:9000/index.php?method=regionOar160f328fb2524c5f97f3d982788d4a02&amp;password=secrets">http://71.197.210.170:9000/index.php?method=regionOar160f328fb2524c5f97f3d982788d4a02&amp;password=secrets</A>
+ enabled = true
+ password = secrets
+
+*/
+
+namespace OpenSim.Region.CoreModules.World.Archiver.WorldOar
+{
+ public class WorldOarModule : IRegionModule {
+  private static readonly ILog m_log =
+  LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+  private IConfig m_config;
+  protected Scene m_scene;
+  protected bool m_Enabled = false;
+  private volatile bool oarFileDone = false;
+  private Exception m_LastException;
+  private string m_Password;
+
+  //private int CacheRegionsDistance = 256;
+
+#region IRegionModule Members
+
+  public virtual void Initialise(Scene scene, IConfigSource config)
+  {
+   m_scene = scene;
+   m_config = config.Configs[&quot;WorldOarModule&quot;];
+   if (m_config != null) {
+    if (m_config.GetBoolean(&quot;enabled&quot;, false)) {
+     m_Password = m_config.GetString(&quot;password&quot;,null);
+     if (m_Password==null) {
+      m_log.Error(&quot;[WorldOarModule] password=(null)&quot;);
+      return;
+     }
+     m_Enabled = true;
+    }
+   }
+  }
+
+  public virtual void PostInitialise()
+  {
+
+   if (m_Enabled)
+    AddHandlers();
+  }
+
+
+  public virtual void Close()
+  {
+  }
+
+  public virtual string Name
+  {
+   get { return &quot;WorldOarModule&quot;;}
+  }
+
+  public bool IsSharedModule
+  {
+   get { return false;}
+  }
+
+#endregion
+
+
+  protected virtual void AddHandlers()
+  {
+   string regionimage = &quot;regionOar&quot; + m_scene.RegionInfo.RegionID.ToString();
+   regionimage = regionimage.Replace(&quot;-&quot;, &quot;&quot;);
+   m_log.Info(&quot;[REGION OAR]: Region OAR location: <A HREF="http://">http://</A>&quot; + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + &quot;:&quot; + 
+m_scene.RegionInfo.HttpPort.ToString() + &quot;/index.php?method=&quot; + regionimage);
+
+   m_scene.CommsManager.HttpServer.AddHTTPHandler(regionimage, OnHTTPGetOarImage);
+   m_scene.EventManager.OnOarFileSaved += OnOarFileSaved;
+  }
+
+
+#region EventHandlers
+  public void OnOarFileSaved(string message) {
+   if (!String.IsNullOrEmpty(message)) {
+    message = &quot;OarFileSaved: &quot; + message;
+    m_log.Debug(message);
+    m_LastException = new ArgumentException(message);
+   }
+   oarFileDone = true;
+  }
+#endregion
+
+
+  public void SaveCurrentSceneToArchive(Stream stream)
+  {
+   IRegionArchiverModule archiver =  m_scene.RequestModuleInterface&lt;IRegionArchiverModule&gt;();
+   if (archiver != null)
+    archiver.ArchiveRegion(stream);
+  }
+
+  public static string Compress(byte[] buffer)
+  {
+   MemoryStream memory = new MemoryStream();
+   using (GZipStream compressor = new GZipStream(memory, CompressionMode.Compress, true))
+   {
+    compressor.Write(buffer, 0, buffer.Length);
+    compressor.Close();
+   }
+   return Convert.ToBase64String(memory.ToArray());
+  }
+
+  public Hashtable OnHTTPGetOarImage(Hashtable keysvals)
+  {
+   if (!keysvals.ContainsKey(&quot;password&quot;)) {
+    m_log.Warn(&quot;[REGION OAR]: Unknown user requested OAR file for region but supplied no password&quot;);
+   }
+   string password = keysvals[&quot;password&quot;];
+   if (password!=m_Password) {
+    m_log.WarnFormat(&quot;[REGION OAR]: User {0} requested OAR file and the password was incorrect: {0}&quot;,password);
+   }
+
+   m_log.Debug(&quot;[REGION OAR]: Sending oar &quot;);
+   Hashtable reply = new Hashtable();
+
+   MemoryStream imgstream = new MemoryStream();
+
+   try {
+    oarFileDone = false;
+    m_LastException = null;
+    SaveCurrentSceneToArchive(imgstream);
+    while (!oarFileDone) {
+     Thread.Sleep(1000);
+    }
+
+    if (m_LastException!=null) {
+     throw m_LastException;
+    }
+    // Write the stream to a byte array for output
+    reply[&quot;str_response_string&quot;] = Compress(imgstream.ToArray());
+    reply[&quot;int_response_code&quot;] = 200;
+    reply[&quot;content_type&quot;] = &quot;application/x-oar&quot;;
+
+   } catch (Exception e) {
+    m_log.Warn(&quot;[REGION OAR]: Unable to generate Oar image &quot; + e);
+    reply[&quot;str_response_string&quot;] = &quot;[REGION OAR]: Unable to generate Oar image &quot; + e;
+    reply[&quot;int_response_code&quot;] = 500;
+    reply[&quot;content_type&quot;] = &quot;text/plain&quot;;
+
+   } finally {
+    //oarTexture.Dispose();
+    // image.Dispose();
+    // Reclaim memory, these are unmanaged resources
+    imgstream.Close();
+    imgstream.Dispose();
+   }
+
+   return reply;
+  }
+ }
+} 
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005588.html">[Opensim-dev] critical issue mantis 3247
+</A></li>
+	<LI>Next message: <A HREF="005605.html">[Opensim-dev] [WorldOarModule] - A module to serve up OAR	filesover http
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5601">[ date ]</a>
+              <a href="thread.html#5601">[ thread ]</a>
+              <a href="subject.html#5601">[ subject ]</a>
+              <a href="author.html#5601">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

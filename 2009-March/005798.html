@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Profiling complex scenes
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Profiling%20complex%20scenes&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD802E8BB61A%40orsmsx502.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005785.html">
+   <LINK REL="Next"  HREF="005799.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Profiling complex scenes</H1>
+    <B>Lake, Dan</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Profiling%20complex%20scenes&In-Reply-To=%3C1DEA2A500941AD41AF9F9A712451BD802E8BB61A%40orsmsx502.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Profiling complex scenes">dan.lake at intel.com
+       </A><BR>
+    <I>Thu Mar 19 14:17:42 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005785.html">[Opensim-dev] Profiling complex scenes
+</A></li>
+        <LI>Next message: <A HREF="005799.html">[Opensim-dev] Couple questions on scripts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5798">[ date ]</a>
+              <a href="thread.html#5798">[ thread ]</a>
+              <a href="subject.html#5798">[ subject ]</a>
+              <a href="author.html#5798">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin,
+   I posted a new version of the SceneGraph dictionaries patch on the ScienceSim wiki. It also includes a new dictionary for managing pending updates to the scene. Previously, this was a linear search to determine if an object needed to be updated, but now it's a dictionary lookup on UUID. With this patch, CPU utilization for 2000 updating objects has been reduced from ~150% to ~5%. It also allowed me to create 5x the qty of scripted updating objects with timers using approximately the original 150% cpu.
+
+<A HREF="http://sciencesim.com/wiki/doku.php/opensim/performance_profiling#update_mar_19._2009">http://sciencesim.com/wiki/doku.php/opensim/performance_profiling#update_mar_19._2009</A>
+
+   I think that someone more familiar with SceneGraph should take a look at my patch before it's committed. I filed a Mantis entry with the patch.
+
+<A HREF="http://opensimulator.org/mantis/view.php?id=3312">http://opensimulator.org/mantis/view.php?id=3312</A>
+
+
+
+Dan lake
+Network Software Engineer
+Network Technology Lab
+Corporate Technology Group
+503.712.8318
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>
+
+-----Original Message-----
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+Sent: Wednesday, March 18, 2009 1:34 PM
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Subject: Re: [Opensim-dev] Profiling complex scenes
+
+Lake, Dan wrote:
+&gt;<i> Justin,
+</I>&gt;<i>   I filed a Mantis entry for the timer_dictionary.patch. 
+</I>&gt;<i> 
+</I>&gt;<i> <A HREF="http://opensimulator.org/mantis/view.php?id=3311">http://opensimulator.org/mantis/view.php?id=3311</A>
+</I>&gt;<i> 
+</I>
+Thanks very much Dan, committed as r8812.
+
+Regarding the localID SceneGraph dictionary, as you've seen in the comments we've pretty much known that the lack of one 
+is pretty bad and your tests certainly confirm it.
+
+Even having one in not quite the right place would be better than not having it at all.  Certainly for myself (and most 
+probably for others), the priority of adding the other necessary bits to your initial starter patch in order to resolve 
+this has been considerably bumped up.
+
+&gt;<i> ~Dan
+</I>&gt;<i> 
+</I>&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>] On Behalf Of Justin Clark-Casey
+</I>&gt;<i> Sent: Wednesday, March 18, 2009 8:29 AM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Profiling complex scenes
+</I>&gt;<i> 
+</I>&gt;<i> Lake, Dan wrote:
+</I>&gt;&gt;<i> I work at Intel for Mic Bowman. He mentioned a while back that we are 
+</I>&gt;&gt;<i> developing some workloads for understanding the scalability bottlenecks 
+</I>&gt;&gt;<i> in OpenSim. I recently created a test which generates 2000 scripted 
+</I>&gt;&gt;<i> objects which rotate and change color at random intervals. The workload 
+</I>&gt;&gt;<i> consumed multiple CPU cores with only a single client viewer connected 
+</I>&gt;&gt;<i> and the frame rate dropped to absolute zero with 10 clients connected. I 
+</I>&gt;&gt;<i> was then able to reduce the CPU utilization by &gt;80% with a few added 
+</I>&gt;&gt;<i> lines of code in SceneGraph.cs and Timer.cs. If you are interested in a 
+</I>&gt;&gt;<i> complete analysis of this workload, please visit the OpenSim profiling 
+</I>&gt;&gt;<i> wiki page at 
+</I>&gt;&gt;<i> <A HREF="http://sciencesim.com/wiki/doku.php/opensim/performance_profiling.">http://sciencesim.com/wiki/doku.php/opensim/performance_profiling.</A> I 
+</I>&gt;&gt;<i> will continue to post interesting profiling results from our workloads 
+</I>&gt;&gt;<i> and ideas about scaling OpenSim based on those results. Your comments or 
+</I>&gt;&gt;<i> feedback are appreciated.
+</I>&gt;<i> 
+</I>&gt;<i> Nice work, Dan, very useful stuff.
+</I>&gt;<i> 
+</I>&gt;<i> Is the scenegraph_dictionary.patch code not already present in EntityManager (albeit possibly unused, I've not looked 
+</I>&gt;<i> closely)?  If not, would it be better incorporated into there and do you plan on extending the patch into a complete 
+</I>&gt;<i> implementation (e.g. localID -&gt; SOP mapping removal as well)?
+</I>&gt;<i> 
+</I>&gt;<i> timer_dictionary.patch on the other hand looks like a complete implementation.  Is this a patch that could usefully be 
+</I>&gt;<i> applied in its current state?
+</I>&gt;<i> 
+</I>&gt;&gt;<i>                                                                                                                                                                                            
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> *Dan lake*
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Network Software Engineer
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Network Technology Lab
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Corporate Technology Group
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ( 503.712.8318
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> * <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dan.lake at intel.com</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>  
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>
+
+-- 
+justincc
+Justin Clark-Casey
+<A HREF="http://justincc.wordpress.com">http://justincc.wordpress.com</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005785.html">[Opensim-dev] Profiling complex scenes
+</A></li>
+	<LI>Next message: <A HREF="005799.html">[Opensim-dev] Couple questions on scripts
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5798">[ date ]</a>
+              <a href="thread.html#5798">[ thread ]</a>
+              <a href="subject.html#5798">[ subject ]</a>
+              <a href="author.html#5798">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

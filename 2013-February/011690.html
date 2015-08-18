@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Dynamic attributes
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2013-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Dynamic%20attributes&In-Reply-To=%3CCAJaF1_GYsbwdY9tTB__U0U%3DgvF6_EdNGzvFHhW%2BinuPmxyFrmg%40mail.gmail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="011687.html">
+   <LINK REL="Next"  HREF="011691.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Dynamic attributes</H1>
+    <B>Mic Bowman</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Dynamic%20attributes&In-Reply-To=%3CCAJaF1_GYsbwdY9tTB__U0U%3DgvF6_EdNGzvFHhW%2BinuPmxyFrmg%40mail.gmail.com%3E"
+       TITLE="[Opensim-dev] Dynamic attributes">cmickeyb at gmail.com
+       </A><BR>
+    <I>Wed Feb  6 22:58:57 CET 2013</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="011687.html">[Opensim-dev] Dynamic attributes
+</A></li>
+        <LI>Next message: <A HREF="011691.html">[Opensim-dev] Dynamic attributes
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11690">[ date ]</a>
+              <a href="thread.html#11690">[ thread ]</a>
+              <a href="subject.html#11690">[ subject ]</a>
+              <a href="author.html#11690">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Justin,
+
+I took a look at the DAMap data structure &amp; have some questions. What's the
+value of explicit methods for the top level of the structure? It is still
+possible to have name space collisions since there is nothing that prevents
+one module from writing into another module's &quot;name space&quot;. Also, whats
+your expectation for locking? The top level accessor locks the structure,
+but modules that share the rest of the structure will have to do their own
+locking anyway. I guess one value of controlling the top level is that *IF*
+modules are making exclusive access to the structure, the locking is
+minimized. Hard to control that, though.
+
+Did you get a chance to look at the JsonStore structure? The path-based
+accessors are very different than providing immediate access to the OSDMap.
+As we discussed, I made that decision to support the synchronization
+operations (take &amp; read) and it removes the exposed OSDMap so that the data
+structure can be replaced. I think the path-based accessor is probably too
+heavyweight for DAMap... well... maybe... given that we dont have any
+examples yet its hard to tell. :-)
+
+--mic
+
+
+On Mon, Feb 4, 2013 at 5:09 PM, Justin Clark-Casey &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">jjustincc at googlemail.com</A>
+&gt;<i> wrote:
+</I>
+&gt;<i> Okay, I have now merged this branch (dynamic-attributes2) to master.
+</I>&gt;<i>  Please report any problems (or fix them :)
+</I>&gt;<i>
+</I>&gt;<i> As this is experimental functionality, if necessary it can be
+</I>&gt;<i> changed/bug-fixed without any attempt to preserve existing data.  Any code
+</I>&gt;<i> using it should handle the 'expected data not found' case anyway.
+</I>&gt;<i>
+</I>&gt;<i> On 26/01/13 19:52, Adams, Robert wrote:
+</I>&gt;<i>
+</I>&gt;&gt;<i> This implementation will work for physics. The physics engine cannot
+</I>&gt;&gt;<i> reference Scene (circular reference madness) so, on creation of the scene's
+</I>&gt;&gt;<i> physics instance, I will pass in the instance of DAMap (since it is defined
+</I>&gt;&gt;<i> in OpenSim.Framework) much the same way the asset request method instance
+</I>&gt;&gt;<i> is passed in.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> I am +2 on this branch's inclusion into master.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -- ra
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> -----Original Message-----
+</I>&gt;&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.</A>**berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;[mailto:
+</I>&gt;&gt;<i> opensim-dev-bounces@**lists.berlios.de&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A>&gt;]
+</I>&gt;&gt;<i> On Behalf Of Justin Clark-Casey
+</I>&gt;&gt;<i> Sent: Friday, January 25, 2013 5:14 PM
+</I>&gt;&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> Subject: Re: [Opensim-dev] Dynamic attributes
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 25/01/13 08:40, Oren Hurvitz wrote:
+</I>&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> Ok, great. I hope all goes well and this will be added to master soon.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> What do you mean by &quot;put the code in for MSSQL&quot;? The code already
+</I>&gt;&gt;&gt;<i> supports MySQL, MSSQL and SQLite.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> Apologies - my brain stored the assumption that only MySQL had been added
+</I>&gt;&gt;<i> since that's the only one I remembered seeing in the commit summaries but I
+</I>&gt;&gt;<i> see that the MSSQL code is there.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> --
+</I>&gt;&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;&gt;<i> OSVW Consulting
+</I>&gt;&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i> ______________________________**_________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> --
+</I>&gt;<i> Justin Clark-Casey (justincc)
+</I>&gt;<i> OSVW Consulting
+</I>&gt;<i> <A HREF="http://justincc.org">http://justincc.org</A>
+</I>&gt;<i> <A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+</I>&gt;<i> ______________________________**_________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/**mailman/listinfo/opensim-dev&lt;https://lists.berlios.de/mailman/listinfo/opensim-dev</A>&gt;
+</I>&gt;<i>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20130206/ef39359e/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20130206/ef39359e/attachment.html</A>&gt;
+</PRE>
+
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="011687.html">[Opensim-dev] Dynamic attributes
+</A></li>
+	<LI>Next message: <A HREF="011691.html">[Opensim-dev] Dynamic attributes
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11690">[ date ]</a>
+              <a href="thread.html#11690">[ thread ]</a>
+              <a href="subject.html#11690">[ subject ]</a>
+              <a href="author.html#11690">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

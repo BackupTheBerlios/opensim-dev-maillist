@@ -1,0 +1,239 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] nhibernate progress, baby steps
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20nhibernate%20progress%2C%20baby%20steps&In-Reply-To=%3C1207326530.15355.18.camel%40localhost.localdomain%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="001333.html">
+   <LINK REL="Next"  HREF="001344.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] nhibernate progress, baby steps</H1>
+    <B>Brian Wolfe</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20nhibernate%20progress%2C%20baby%20steps&In-Reply-To=%3C1207326530.15355.18.camel%40localhost.localdomain%3E"
+       TITLE="[Opensim-dev] nhibernate progress, baby steps">brianw at terrabox.com
+       </A><BR>
+    <I>Fri Apr  4 18:28:50 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="001333.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+        <LI>Next message: <A HREF="001344.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1339">[ date ]</a>
+              <a href="thread.html#1339">[ thread ]</a>
+              <a href="subject.html#1339">[ subject ]</a>
+              <a href="author.html#1339">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+On Fri, 2008-04-04 at 16:10 +0200, Impalah wrote:
+&gt;<i> Well, its learning curve maybe is higher at the beginning than a
+</I>&gt;<i> &quot;propietary&quot; solution based only on SQL because we won't think in SQL,
+</I>&gt;<i> we are working with objects.
+</I>
+SQLMapper leaves the SQL generation up to the individual SQL drivers
+within it. I'm not terribly happy with the complex condition construct
+that I came up with. 8-( WIth a bit more work from alternatively
+thinking minds it could be made to be quite usefull as a generic
+lightweight mapper.
+
+&gt;<i> 
+</I>&gt;<i> Some advantages of hibernate:
+</I>&gt;<i> - Support for around 20 DDBB systems. Nowadays the opensim Data
+</I>&gt;<i> framework is limited to 2 or 3 dbs and this framework had to be built
+</I>&gt;<i> from zero. What if a big business wants to use Oracle for an Opensim
+</I>&gt;<i> Enterprise Hosting? From my experience working in a &quot;multinational&quot;
+</I>&gt;<i> and having hundreds of big clients (including banks, nuclear plants,
+</I>&gt;<i> governments...) I have never seen mysql, sqlite or even prostgresql
+</I>&gt;<i> used as RDBMS (this doesn't mean they are better or worst). This point
+</I>&gt;<i> (compatibility) is a good point to expand OS project to enterprise
+</I>&gt;<i> world (where the money, support and donations are).
+</I>
+&gt;<i>From what I have worked with so far, adding an SQL flavor to SQLMapper
+</I>is fairly simple 2 to 4 hours of work as it stands now.
+
+&gt;<i> - Related with previous: why reinvent the wheel?
+</I>
+Because some wheels have everythign and the kitchen sink, which we
+really dont' need IMHO in OpenSim.
+
+&gt;<i> - Session management, transactions, triggers.... everything is managed
+</I>&gt;<i> from hibernate. If one RDBMS hasn't, for example, transaction
+</I>&gt;<i> management, it doesn't care, it's managed by hibernate (yes, there are
+</I>&gt;<i> limits, but in general is &quot;use me for everything and don't worry about
+</I>&gt;<i> your db&quot;).
+</I>
+I don't see any need for sessions in OpenSim. Maybe a few use examples
+would be usefull here.
+
+&gt;<i> 
+</I>&gt;<i> And etc, etc etc.
+</I>
+fluf, fluf, fluf.... ;)
+
+&gt;<i> 
+</I>&gt;<i> About your worries:
+</I>&gt;<i> - Configuration: there are several ways to configure hibernate. The
+</I>&gt;<i> examples you have seen (from me or from Sean) are 2 ways to do it. And
+</I>&gt;<i> think, you only need to know 2 things, the same to know if using a
+</I>&gt;<i> custom mapper: how to connect to DB and how to store/recover the
+</I>&gt;<i> objects. the only thing is different is the way to instruct the code
+</I>&gt;<i> with that info.
+</I>
+A multitude of configurations is somethign that we're already dealing
+with rather badly. ;-P
+
+&gt;<i> - Changes in object model are not needed. Always is possible to use
+</I>&gt;<i> &quot;passthrough&quot; objects mapping current libsl structures to hibernate
+</I>&gt;<i> objects. Scene objects work with libsl structs, isn't it? When they
+</I>&gt;<i> have to be persisted, just send them for the passthrough, as nowadays
+</I>&gt;<i> is did (Data is a passthrough, converts libsl structs into native
+</I>&gt;<i> SQL).
+</I>
+Sounds more like an argument that nhibernate gains us nothign here to be
+blunt.
+
+&gt;<i> - Another option: uses the structs directly as hibernate objects. It's
+</I>&gt;<i> not forbidden (not recommended, but not forbidden). You will save some
+</I>&gt;<i> microseconds.
+</I>
+SQLMapper can use anything we code it to use. ;)
+
+&gt;<i> - Inter-table dependendencies are unneeded, if you want to maintain
+</I>&gt;<i> the objects isolated, you can. The advantages of foreign keys are for
+</I>&gt;<i> db integrity but if you want to maintain it in the core, do it.
+</I>
+Most systems like NHibernate dont' like having other things manage their
+relationships. Course as you said, nhibernate can have something else do
+it, but is it ging to be supported in the future?
+
+&gt;<i> - Granularity: this is a territory for a good DBA. In the beginning I
+</I>&gt;<i> thought in the way of saving complete objects (avatar, containing
+</I>&gt;<i> attachments, containing prims, containing script, etc etc). Working
+</I>&gt;<i> this way I only needed 3 avies connected to a sim to note that the db
+</I>&gt;<i> overload was higher and higher even doing anything. In this point I
+</I>&gt;<i> agree with you... but hibernate allows to do it this way. It isn't
+</I>&gt;<i> mandatory to establish relationships between objects.
+</I>
+I'm not really clear here what you are talking about. 8-( Maybe a bit
+more detail or explaining it a different way?
+
+&gt;<i> 
+</I>&gt;<i> One thing, I haven't any relationship with hibernate/nhibernate
+</I>&gt;<i> projects, I am only a simple user (and till last year I really hated
+</I>&gt;<i> hibernate because I didn't understand it).
+</I>
+Same here when I started with systems like NHibernate several years
+ago. :)  It can be a really nice tool. However we need to carefully
+weigh the risks vs rewards before picking a layer that goes past the
+I*Data objects in the Data class.
+
+&gt;<i> 
+</I>&gt;<i> Greetings
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> 2008/4/4, Stefan Andersson &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>&gt;:
+</I>&gt;<i>         At this point I must, again, ask 'what is the point of
+</I>&gt;<i>         nhibernate'?
+</I>&gt;<i>          
+</I>&gt;<i>         From just looking at the discussions, it seems 
+</I>&gt;<i>          
+</I>&gt;<i>         * Overly complex (the configuration seem to, in themselves, be
+</I>&gt;<i>         on par with actually coding generic mappers)
+</I>
+Agreed.
+
+&gt;<i>         * Mandating major changes in our object structure (opening up
+</I>&gt;<i>         for encapsulation violations or forcing dependencies on
+</I>&gt;<i>         hibernate)
+</I>&gt;<i>         * Totally invasive (as in, in practice demanding its storage
+</I>&gt;<i>         philosophy to be acommodated for and coded into core objects)
+</I>&gt;<i>          
+</I>&gt;<i>         It has been proven a very bad thing to let objects take care
+</I>&gt;<i>         of their own db serialization. More often than not, the object
+</I>&gt;<i>         cannot be serialized from within its own context (it might not
+</I>&gt;<i>         have data like 'parent' needed for relational storage) - and
+</I>&gt;<i>         the object itself should not know about any given
+</I>&gt;<i>         serialization method.
+</I>&gt;<i>          
+</I>&gt;<i>         It IS a very bad thing to rely on 'storage' as a prime db
+</I>&gt;<i>         serialization concept - you want 'changes': the first thing we
+</I>&gt;<i>         need to do when we get to optimize the db layer, is to
+</I>&gt;<i>         introduce more fine-grained update calls, like 'ChangeOwner'
+</I>&gt;<i>         and 'StoreTextures' instead of 'store object, with prims,
+</I>&gt;<i>         textures and shapes'. I have asked several times how this
+</I>&gt;<i>         would be accomodated in nhibernate, but have got no answers.
+</I>
+Definitely agreed. However this will require a bit more complex objects
+that can track changes made and update just those changes. Doctrine does
+this in a wonderful way by maintaining 2 value tables internally. 1 that
+is filled on create/read, and a second that is filled as values change.
+This does impose a slight overhead during use where it has to check for
+existance in the change table, then the original table before returning
+a value. It could get ugly in RL use.
+
+&gt;<i>          
+</I>&gt;<i>         Now, I've been asking for some kind of overview of the wins
+</I>&gt;<i>         with this and what the drawbacks are, but have so far got none
+</I>&gt;<i>         that gives me any idea of what impact this has on our modular
+</I>&gt;<i>         approach or on performance.
+</I>
+IMHO so far it's a wash between benifits and drawbacks. 8-/
+
+&gt;<i>          
+</I>&gt;<i>         If we're not going to let it 'hibernate' objects, as in 'let
+</I>&gt;<i>         the objects themselves store themselves' and if we have to set
+</I>&gt;<i>         up config files detailing out the mappings, why simply not
+</I>&gt;<i>         just CODE the thing and get the granularity, performance
+</I>&gt;<i>         and customizability (as in, being able to let the objects be
+</I>&gt;<i>         serialized according to their different internal structures)
+</I>&gt;<i>         that comes with it?
+</I>&gt;<i>          
+</I>&gt;<i>         Best,
+</I>&gt;<i>         /Stefan
+</I>&gt;<i>         
+</I>&gt;<i>                 
+</I>&gt;<i>                 ______________________________________________________
+</I>&gt;<i>                 Date: Fri, 4 Apr 2008 10:23:33 +0200
+</I>&gt;<i>                 From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">impalah at gmail.com</A>
+</I>&gt;<i>                 To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i>                 
+</I>&gt;<i>                 Subject: Re: [Opensim-dev] nhibernate progress, baby
+</I>&gt;<i>                 steps
+</I>&lt;SNIP SNIP SNIP&gt;
+&gt;<i> 
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="001333.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+	<LI>Next message: <A HREF="001344.html">[Opensim-dev] nhibernate progress, baby steps
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1339">[ date ]</a>
+              <a href="thread.html#1339">[ thread ]</a>
+              <a href="subject.html#1339">[ subject ]</a>
+              <a href="author.html#1339">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

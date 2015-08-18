@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Creator information preserved + 2 questions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-November/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Creator%20information%20preserved%20%2B%202%20questions&In-Reply-To=%3C4CF026FC.1040900%40googlemail.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009787.html">
+   <LINK REL="Next"  HREF="009790.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Creator information preserved + 2 questions</H1>
+    <B>Justin Clark-Casey</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Creator%20information%20preserved%20%2B%202%20questions&In-Reply-To=%3C4CF026FC.1040900%40googlemail.com%3E"
+       TITLE="[Opensim-dev] Creator information preserved + 2 questions">jjustincc at googlemail.com
+       </A><BR>
+    <I>Fri Nov 26 22:30:36 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009787.html">[Opensim-dev] Creator information preserved + 2 questions
+</A></li>
+        <LI>Next message: <A HREF="009790.html">[Opensim-dev] What does 'offset' value represent when returned by client during sit?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9788">[ date ]</a>
+              <a href="thread.html#9788">[ thread ]</a>
+              <a href="subject.html#9788">[ subject ]</a>
+              <a href="author.html#9788">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On 26/11/10 19:03, Diva Canto wrote:
+&gt;<i> Hi all,
+</I>&gt;<i>
+</I>&gt;<i> I finally have the preservation of creator information working across the board, except for IARs, which I'm still
+</I>&gt;<i> working on. By &quot;preservation of creator information&quot; I mean the ability for preserving the origin grid along with the
+</I>&gt;<i> user ID and name, both on archiving and on HG transfers. Turns out that the main obstacle for this has been the .net
+</I>&gt;<i> serialization that OpenSim has been using. For background and context, see [1] and [2]. This email explains how things
+</I>&gt;<i> have taken shape and asks for input on two technical details (one specifically from Justin).
+</I>
+I'm impressed you found [2], that was written way back in June 2009 when I was thinking about the same problem. 
+Unfortunately, I had to abandon that attempt due to changing priorities.  Congratulations for getting the work done.
+
+&gt;<i>
+</I>&gt;<i> Here's how it works.
+</I>&gt;<i>
+</I>&gt;<i> For OARs, we can now save that information in the OAR files, and, upon importing it somewhere else, the right
+</I>&gt;<i> information about the creator will be displayed -- as opposed to the current behavior of always assigning creator-ship
+</I>&gt;<i> to the estate owner where the OAR is imported. It works like this:
+</I>&gt;<i>
+</I>&gt;<i> $ save -profile=<A HREF="http://foogrid.org/user">http://foogrid.org/user</A> region.oar
+</I>&gt;<i>
+</I>&gt;<i> This saves creator information for all scene objects that have a local creator, that looks like this:
+</I>&gt;<i> &lt;CreatorData&gt;<A HREF="http://foogrid.org/user/uuid;FirstName">http://foogrid.org/user/uuid;FirstName</A> LastName&lt;/CreatorData&gt;
+</I>&gt;<i>
+</I>&gt;<i> Upon import to another grid, this information is associated with each scene object, and stored persistently in the prims
+</I>&gt;<i> table. The URL (in this case, <A HREF="http://foogrid.org/user/uuid">http://foogrid.org/user/uuid</A>) is meant to refer to a valid service endpoint for the user's
+</I>&gt;<i> profile. Even if that endpoint is not operational, the profile URL is useful, as it the basis for displaying the origin
+</I>&gt;<i> of this user: the object's Creator field is shown to other users as FirstName.LastName @foogrid.org.
+</I>&gt;<i>
+</I>&gt;<i> A similar thing happens in HG transfers. (Plus there's a lot more to come on transferring assets over the HG, but they
+</I>&gt;<i> are unrelated to this email)
+</I>
+If you don't put in a profile is the name still preserved?
+
+&gt;<i>
+</I>&gt;<i> The two small technical issues are:
+</I>&gt;<i>
+</I>&gt;<i> 1) First, I'm now working in IARs, and have a question for Justin. I see that UserInventoryItem deserialization is being
+</I>&gt;<i> done with a function that imposes the most restrictive constraints on the external representation. Specifically, it
+</I>&gt;<i> reads the representation sequentially, assuming one and only one set of fields, in exactly one order. Is it ok if I
+</I>&gt;<i> rewrite this as processing machine that is independent of the order and can be extended to handle new fields, similar to
+</I>&gt;<i> what I have done for SOPs? Any other things I should keep in mind, besides backward compatibility?
+</I>
+I think that's fine and makes a lot of sense.
+
+By the way, I'm already writing out an older version of extended creator data in item.CreatorId (the OSP stuff).  But I 
+never got to the point of preserving the user name unless it was already present on the target OpenSim.  I imagine that 
+this should continue to be backward compatible with your improved system if the new data is going in a different field, 
+which would be very cool.
+
+&gt;<i>
+</I>&gt;<i> 2) Second, unfortunately .net serialization of flag fields has a different behavior than .ToString(). If you have 2 flag
+</I>&gt;<i> values, .NET writes them as &quot;F1 F2&quot; while ToString() writes them as &quot;F1, F2&quot;. Enum.Parse() expects commas. I've been
+</I>&gt;<i> debating about whether to continue to drag the .NET behavior or to simply move away from it and use the natural form for
+</I>&gt;<i> ToString and Parse. The tradeoff is wrt the level of backwards compatibility. Although new versions of OpenSim can
+</I>&gt;<i> handle both forms, old versions of OpenSim that still use .NET serialization understand only the expected .NET format
+</I>&gt;<i> without commas. We can generate the old form by giving the command line option -version=0 on save oar.
+</I>&gt;<i>
+</I>&gt;<i> So, technically, there is no issue. This is simply a usability issue, as many people will not pay attention, even though
+</I>&gt;<i> there is a yellow warning sign now on save oars warning people that they need to use -version=0 to produce oars to be
+</I>&gt;<i> imported into older opensims. I'd like to hear people's thoughts on this minor detail that is very annoying: should we
+</I>&gt;<i> drag the .NET behavior into the future just because people will miss the warning message? Or should we get rid of all
+</I>&gt;<i> traces of .NET serialization and be insensitive to the people who don't read the warnings? Any other ideas?
+</I>
+I appreciate the neatness of just using ToString().  However, if we write out the space separated format then people can 
+produce one OAR that can be loaded both on OpenSim 0.7.1 (and take advantage of the extended creator data) but still be 
+loaded on OpenSim 0.7.0.2 and earlier.
+
+Otherwise, the OAR/IAR creator won't need to create 2 copies of everything they produce, one for loading on OpenSim 
+0.7.0.2 and before and one for loading on 0.7.1 (if they want to take advantage of extended creator data).  I expect 
+that people publishing OARs/IARs will do this since they want it to be available to as many people as possible. 
+Naturally, this would be a big hassle.
+
+Equally, I would side with the argument that there would be less confusion over mysterious error messages (since OpenSim 
+0.6.9 and 0.7.0.2 don't check the OAR version before trying to load data).
+
+&gt;<i>
+</I>&gt;<i> Diva / Crista
+</I>&gt;<i>
+</I>&gt;<i> [1] <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2010-October/009592.html">https://lists.berlios.de/pipermail/opensim-dev/2010-October/009592.html</A>
+</I>&gt;<i> [2] <A HREF="http://opensimulator.org/wiki/Explicit_Object_Serialization">http://opensimulator.org/wiki/Explicit_Object_Serialization</A>
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+-- 
+Justin Clark-Casey (justincc)
+<A HREF="http://justincc.org">http://justincc.org</A>
+<A HREF="http://twitter.com/justincc">http://twitter.com/justincc</A>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009787.html">[Opensim-dev] Creator information preserved + 2 questions
+</A></li>
+	<LI>Next message: <A HREF="009790.html">[Opensim-dev] What does 'offset' value represent when returned by client during sit?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9788">[ date ]</a>
+              <a href="thread.html#9788">[ thread ]</a>
+              <a href="subject.html#9788">[ subject ]</a>
+              <a href="author.html#9788">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] .NET DLR Microsoft.Scripting is in alpha (Re: Making	LSL Functions moduled.)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2008-January/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.NET%20DLR%20Microsoft.Scripting%20is%20in%20alpha%20%28Re%3A%0A%20Making%09LSL%20Functions%20moduled.%29&In-Reply-To=%3CBLU134-W18E22154BD31B6AE363679D54C0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000639.html">
+   <LINK REL="Next"  HREF="000632.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] .NET DLR Microsoft.Scripting is in alpha (Re: Making	LSL Functions moduled.)</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20.NET%20DLR%20Microsoft.Scripting%20is%20in%20alpha%20%28Re%3A%0A%20Making%09LSL%20Functions%20moduled.%29&In-Reply-To=%3CBLU134-W18E22154BD31B6AE363679D54C0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] .NET DLR Microsoft.Scripting is in alpha (Re: Making	LSL Functions moduled.)">stefan at tribalmedia.se
+       </A><BR>
+    <I>Fri Jan  4 09:54:16 CET 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000639.html">[Opensim-dev] .NET DLR Microsoft.Scripting is in alpha (Re: Making	LSL Functions moduled.)
+</A></li>
+        <LI>Next message: <A HREF="000632.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#640">[ date ]</a>
+              <a href="thread.html#640">[ thread ]</a>
+              <a href="subject.html#640">[ subject ]</a>
+              <a href="author.html#640">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Toni,
+ 
+your work with IronPython sounds way cool; it also sounds like we all want your feedback on how our 'general scripting environment' should look; ie, what objects, interfaces and functions we should expose to scripts and scripting engines for them to work in a sound and secure manner.I don't believe DLR will do much good for the LSL bit, as LSL doesn't have dynamic typing; it haven't even got classes, just a few base types.
+ 
+But of course, the Microsoft.Script has always been a contender for doing this; the only caveat on 2.0 is that it was notoriously under-documented and somewhat partially implemented in mono; maybe we should have a look at the situation under 3.x
+ 
+When I say 'bastardized' that's my way of saying 'substituted' or 'regexped'; we are doing some voodoo on the original LSL code to turn it into (kind of) syntactical c#, with lots of functionality inherited form an invisible baseclass, then real-time compile it and run it as bytecode in a restricted appdomain. This approach, while maybe not the most elegant, has opened up for us allowing c# code to slip into LSL code. Ugly, but sometimes very handy.
+ 
+'OSSL' as I momentarily coined it, would draw on this as a LSL/c#-hybrid.
+ 
+/Stefan
+
+
+From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">antont at kyperjokki.fiDate</A>: Fri, 4 Jan 2008 07:29:55 +0200To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: [Opensim-dev] .NET DLR Microsoft.Scripting is in alpha (Re: Making LSL Functions moduled.)
+
+
+On Jan 3, 2008, at 11:31 AM, Stefan Andersson wrote:
+Well, if we are going to expand on the lsl, why not go the whole nine yards and create a 'OSSL'?We are using Python for scripting, on OpenSim the .NET IronPython. We have actually two implementations of that now: a separate scripting environment with an own event manager etc. where you can script in py, and a simple region module loader that can load python written region modules, just using the normal .net interface for region modules that OpenSim provides (the c#-written scene object basically). We'll publish those soonish, they are nothing too fancy though, but work.IronPython supports basically everything c# does, but in Python, so it is fully OO (even more than C# in the sense that e.g. classes are objects too and can be passed as arguments etc), while being dynamic as in being interpreted and using dynamic typing. So I don't know why OSSL would be interesting for me/us, but am curious to learn if there is some reason .. restricted execution and efficiency come to mind. I have not looked at how it being 'bastardized c#' actually works. For our company (ex-Kyperjokki , now Playsign) being standard py is more valuable anyway, is we can reuse the code we have for other envs too.With py or not, as long as OpenSim is depending on .NET, I think it would be worthwhile to see if the new/coming .NET scripting stuff would support the scripting needs there well - I am talking about the Dynamic Languages Runtime (DLR) that Microsoft is now working on. If i have understood correctly, the DLR provides means to define scripting functions/objects/methods/datatypes so that any .net script language, the prominent ones being IronPython and IronRuby I guess (and VB?-) can use them. Then there is the basic infrastructure for dealing with the script engines, scopes etc. So I guess one way to implement the Linden script on .net would be to make a IronLinden using Microsoft.Scripting (the DLR is implemented as the Microsoft.Scripting dll). The IronPython 2.0 releases come with a minimal implementation of a dummy language, if someone wants to check an example (I haven't looked at it).Just yesterday they updated the DLR spec, below is a quote from the IronPython list. I've experimented with OpenSim scripting using the IronPython 2.0 alpha series (5 and 6) to get a feel of that new hosting (embedding) API to be able to give feedback to the Microsoft folks before the api is finished. Now would be a good time for anyone interested in scripting on .net to do so.&quot;&quot;&quot;From:     <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">dinov at exchange.microsoft.comSubject</A>:        [IronPython] Updated hosting specDate:   January 3, 2008 9:53:29 PM EETTo:       <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">users at lists.ironpython.comWe</A>&#8217;ve updated the hosting API spec for the DLR and uploaded it to: <A HREF="http://compilerlab.members.winisp.net/">http://compilerlab.members.winisp.net/</A> (as DOC <A HREF="http://compilerlab.members.winisp.net/dlr-spec-hosting.doc">http://compilerlab.members.winisp.net/dlr-spec-hosting.doc</A> or as PDF <A HREF="http://compilerlab.members.winisp.net/dlr-spec-hosting.pdf">http://compilerlab.members.winisp.net/dlr-spec-hosting.pdf</A>).We&#8217;ve been working on updating the code to reflect the spec and you&#8217;ll see some of that in IronPython 2.0 Alpha 7. (...) Our current status is that we have ScriptEngine, ScriptScope, ObjectOperations, and ScriptSource (...) planning going forward is to work on replacing ScriptEnvironment w/ ScriptRuntime, switching to use MBRO objects instead of the interfaces we use today (completing the remoting story), and other small tweaks.  In February we&#8217;ll be looking at finishing up the support for multiple engines in the same app domain, defining and implementing the full set of configuration/options, and general fit-and-finish work.&quot;&quot;&quot;
+Best, /StefanCheers,~Toni
+&gt;<i> Date: Wed, 2 Jan 2008 14:14:56 +0800&gt; From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">adam at gwala.net</A>&gt; To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>&gt; Subject: [Opensim-dev] Making LSL Functions moduled.&gt; &gt; I'm beggining to see a lot of interest in people adding custom LSL &gt; functions -- it's a great idea, but I suspect we will be running into&gt; the situation soon where it would be better if we could abstract these, &gt; and then load them from assemblies.&gt; &gt; Eg, someone suggested adding XMPP functions, and I've been thinking of &gt; adding a MySQL.NET wrapper - both prime candidates for being loaded from&gt; a module rather than embedded into OpenSim's .NET script engine.&gt; &gt; Anyone got an indication on how long that would take to change?&gt; &gt; Regards,&gt; &gt; Adam&gt; _______________________________________________&gt; Opensim-dev mailing list&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev_______________________________________________Opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev_______________________________________________Opensim-dev</A> mailing <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">listOpensim-dev at lists.berlios.dehttps</A>://lists.berlios.de/mailman/listinfo/opensim-dev
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20080104/af585898/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20080104/af585898/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000639.html">[Opensim-dev] .NET DLR Microsoft.Scripting is in alpha (Re: Making	LSL Functions moduled.)
+</A></li>
+	<LI>Next message: <A HREF="000632.html">[Opensim-dev] another little can of worms: attachments :-)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#640">[ date ]</a>
+              <a href="thread.html#640">[ thread ]</a>
+              <a href="subject.html#640">[ subject ]</a>
+              <a href="author.html#640">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

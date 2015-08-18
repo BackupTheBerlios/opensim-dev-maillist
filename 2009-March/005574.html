@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] OGP/Capabilities
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OGP/Capabilities&In-Reply-To=%3CBLU134-W34E69AE5FB687A13D82C05D5A70%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005572.html">
+   <LINK REL="Next"  HREF="005575.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] OGP/Capabilities</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20OGP/Capabilities&In-Reply-To=%3CBLU134-W34E69AE5FB687A13D82C05D5A70%40phx.gbl%3E"
+       TITLE="[Opensim-dev] OGP/Capabilities">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Mar  4 10:38:40 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005572.html">[Opensim-dev] OGP/Capabilities
+</A></li>
+        <LI>Next message: <A HREF="005575.html">[Opensim-dev] Hypergrid meeting tomorrow (Thu) at 10am PST
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5574">[ date ]</a>
+              <a href="thread.html#5574">[ thread ]</a>
+              <a href="subject.html#5574">[ subject ]</a>
+              <a href="author.html#5574">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Diva,
+
+ 
+
+basically, the concept of the EQ is something that pops up in almost any http-based (think AJAX) system to solve two-way communications.
+
+ 
+
+At the bottom level, you can establish an tcp-ip connection. This is established from the client, but once established, it's bidirectional.
+
+ 
+
+Problem is, if you demand continously established sessions with all resources (think distributed asset servers, inventory servers, user server(s) and neighbour regions) the total number of open connections needed for any given resource will eventually bring those systems down.
+
+ 
+
+Also, if a connection is broken, you need to have some kind of resilience built into it, to bring the connection up again, and perhaps doing connection authentication anew.
+
+ 
+
+So, what you can do is to try to 'tear down' and 'build up' the connection regularly, when it's not needed, or when there's been some kind of disturbance, essientially multi-tasking the sockets. This is one of the big wins with the statelessness of http.
+
+ 
+
+Of course, the connection should be abortable from both client and server, as they have their own ideas of when a teardown might be prudent. Most oftenly, the server is authoritative on deciding when the EQ is 'empty', and the client is authoritative on when a 'scene update' is needed (if the window is minimized, that might happen very seldom).
+
+ 
+
+Now, given this link, you can choose any session/request transfer protocol on top of it. Http 1.1 is suitable for this, especially given the 'keep-alive' mode.
+
+ 
+
+Data can flow bi-directionally over a keep-alive link, which is basically only a tcp-ip connection with a http wrapper on top of it.
+
+ 
+
+On top of http, you can choose any data serialization protocol. FORM POST, Xml Serialized, Xml-Rpc.
+
+ 
+
+Even, god forbid, LLSD. And this is where I feel the LL clientstack starts to go west. Luckily, we can supply an EQ bi-directional http socket implementation not tied into the LL stack. (We could probably start with a bi-directional tcp-ip socket implementation, and attach an http 1.1 socket to that)
+
+
+But as a transport solution, I don't think an &quot;EventQueue&quot; is a bad compromise, one just have to be god damn sure one knows what each layer in the chain is supposed to be responsible for, and what the actual resource use issues are.
+
+ 
+
+And of course, think real hard if http (aka the 'holy grail of the 21st century') is the right session management protocol, and what should flow over that http socket.
+
+
+Best regards,
+Stefan Andersson
+Tribal Media AB
+
+
+
+ 
+&gt;<i> Date: Tue, 3 Mar 2009 19:31:32 -0800
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: [Opensim-dev] OGP/Capabilities
+</I>&gt;<i> 
+</I>&gt;<i> Finally Linden Lab produced an interesting document:
+</I>&gt;<i> <A HREF="http://www.ietf.org/internet-drafts/draft-lentczner-ogp-base-00.txt">http://www.ietf.org/internet-drafts/draft-lentczner-ogp-base-00.txt</A>
+</I>&gt;<i> 
+</I>&gt;<i> I think capabilities are the right concept here, and I'm pleased to see 
+</I>&gt;<i> them taking center stage in that document. In particular the hint at 
+</I>&gt;<i> inventory-related capabilities, which will allow secure inventory access.
+</I>&gt;<i> 
+</I>&gt;<i> I'm not sure I buy into some of the details, but the basic combination 
+</I>&gt;<i> HTTP+REST+Capabilities --&gt; +1.
+</I>&gt;<i> 
+</I>&gt;<i> The Event Queue...well... It sucks. I think we need to look at 
+</I>&gt;<i> alternatives for posting things to the client. I can't believe there 
+</I>&gt;<i> aren't any; I think there are, but maybe they all come down to this, 
+</I>&gt;<i> event queues on the server-side, whatever their form.
+</I>&gt;<i> 
+</I>&gt;<i> If there are no better alternatives, then we need at least to rethink 
+</I>&gt;<i> what the EQ is all about. If the EQ CAP is not given to the regions, but 
+</I>&gt;<i> stays within the user's home system, that might work. Also, if there 
+</I>&gt;<i> would be several different *types* of Event Queues that might work well 
+</I>&gt;<i> too; so for example, we might give the social-net-related EQ CAP 
+</I>&gt;<i> (groups, IM, etc) to the social net component without compromising agent 
+</I>&gt;<i> transfers. The more I think about this, the more I'm convinced that 
+</I>&gt;<i> regions have no business in agent transfer activities, other than 
+</I>&gt;<i> negotiating the capabilities when agents come.
+</I>&gt;<i> 
+</I>&gt;<i> I really like that document, I must say, but it's strength is also its 
+</I>&gt;<i> weakness. It's just about the basic levels. It says nothing about how 
+</I>&gt;<i> those things are driven higher up.
+</I>&gt;<i> 
+</I>&gt;<i> Crista
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090304/a3a84471/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090304/a3a84471/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005572.html">[Opensim-dev] OGP/Capabilities
+</A></li>
+	<LI>Next message: <A HREF="005575.html">[Opensim-dev] Hypergrid meeting tomorrow (Thu) at 10am PST
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5574">[ date ]</a>
+              <a href="thread.html#5574">[ thread ]</a>
+              <a href="subject.html#5574">[ subject ]</a>
+              <a href="author.html#5574">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

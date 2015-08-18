@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Designing with reusability in mind
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Designing%20with%20reusability%20in%20mind&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE6647354DBB3127%40winxbeus19.exchange.xchg%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="008078.html">
+   <LINK REL="Next"  HREF="008081.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Designing with reusability in mind</H1>
+    <B>Frisby, Adam</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Designing%20with%20reusability%20in%20mind&In-Reply-To=%3C63FAD4F222230A4EA79DE9E8BE6647354DBB3127%40winxbeus19.exchange.xchg%3E"
+       TITLE="[Opensim-dev] Designing with reusability in mind">adam at deepthink.com.au
+       </A><BR>
+    <I>Thu Dec 10 01:10:22 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="008078.html">[Opensim-dev] Designing with reusability in mind
+</A></li>
+        <LI>Next message: <A HREF="008081.html">[Opensim-dev] Designing with reusability in mind
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8080">[ date ]</a>
+              <a href="thread.html#8080">[ thread ]</a>
+              <a href="subject.html#8080">[ subject ]</a>
+              <a href="author.html#8080">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Re: Library
+
+My thought was to have a directory where we can save .iar files - and the library is built from all the IARs in that directory at time the inventory server is started.
+
+Adam
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> Sent: Wednesday, 9 December 2009 10:39 AM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: [Opensim-dev] Designing with reusability in mind
+</I>&gt;<i> 
+</I>&gt;<i> In the same vein as Teravus' message about designing with
+</I>&gt;<i> instrumentation in mind...
+</I>&gt;<i> 
+</I>&gt;<i> I would like to ask for us to design with reusability in mind. Let's
+</I>&gt;<i> get
+</I>&gt;<i> out of the model that we are developing an application, and always
+</I>&gt;<i> think
+</I>&gt;<i> that we are developing components that can be used both for putting
+</I>&gt;<i> together an application that looks like SL, and for other applications
+</I>&gt;<i> as well.
+</I>&gt;<i> 
+</I>&gt;<i> Case in point: in the sequence of the conversation about free IARs,
+</I>&gt;<i> OARs, etc., I have been putting together a package with freebies. I
+</I>&gt;<i> thought about releasing it as an IAR, like everyone else is doing, but
+</I>&gt;<i> this has a problem: it requires operator access to the server -- not
+</I>&gt;<i> all
+</I>&gt;<i> users can take advantage of this free content.
+</I>&gt;<i> 
+</I>&gt;<i> Solution: let's use the underused OpenSim Library and add more stuff in
+</I>&gt;<i> there. No one has changed that part of OpenSim for ages! There's a good
+</I>&gt;<i> reason for it: adding content to it manually is a huge PITA and
+</I>&gt;<i> extremely error-prone. So, idea: let's take any IAR and write an
+</I>&gt;<i> external tool that converts it into the OpenSim Library format. That
+</I>&gt;<i> way
+</I>&gt;<i> different operators can provide different libraries very easily: just
+</I>&gt;<i> take your favorite IAR and dump it into your OpenSim Library, therefore
+</I>&gt;<i> making it available to all of your users.
+</I>&gt;<i> 
+</I>&gt;<i> This sounds easy enough. Justin has the code for unarchiving IARs...
+</I>&gt;<i> except that it's all tangled up with Scenes. :-/
+</I>&gt;<i> 
+</I>&gt;<i> The rule of thumb for reusability in the context of OpenSim is very
+</I>&gt;<i> easy: the region modules that come in OpenSim.Region.CoreModules.dll
+</I>&gt;<i> should be as thin as possible. They should only have enough meat to
+</I>&gt;<i> bridge between Scenes and whatever it is those modules actually do.
+</I>&gt;<i> &quot;Whatever it is they do&quot;, for the most part, is relatively generic and
+</I>&gt;<i> should be factored out into their own dll, so that it can be reused
+</I>&gt;<i> from
+</I>&gt;<i> elsewhere that has nothing to do with scenes. Example: all the service
+</I>&gt;<i> connectors now can be reused out of the box by other tools to access
+</I>&gt;<i> remote OpenSim servers. (OpenSim.Service.Connectors.dll)
+</I>&gt;<i> 
+</I>&gt;<i> Counter-Example: inventory archiving/dearchiving. From looking at that
+</I>&gt;<i> code, the only reason why the actual worker code needs the Scene object
+</I>&gt;<i> is to be able to get to IInventoryService and IAssetService. So... it
+</I>&gt;<i> should get those instead of Scene, and it should be factored out from
+</I>&gt;<i> Region.CoreModules, because inventory archiving/dearchiving is a lot
+</I>&gt;<i> more generic than a Scene utility.
+</I>&gt;<i> 
+</I>&gt;<i> That way I could write this tool that I want in 4 hours reusing
+</I>&gt;<i> Justin's
+</I>&gt;<i> code as a dll, instead of having to copy-and-paste Justin's code and
+</I>&gt;<i> purge it from all references to Scene. I would simply need to provide
+</I>&gt;<i> my
+</I>&gt;<i> own implementation of IInventoryService and IAssetService that would
+</I>&gt;<i> write things in bin/assets and bin/inventory instead of sending them to
+</I>&gt;<i> a server.
+</I>&gt;<i> 
+</I>&gt;<i> The general request is this: let's not hide useful code under
+</I>&gt;<i> OpenSim.Region.*, which are components that only make sense for the
+</I>&gt;<i> live
+</I>&gt;<i> VW server. There's so many more tools/applications that can be done
+</I>&gt;<i> around it! -- let's not hide good code under there, where it can never
+</I>&gt;<i> be reused.
+</I>&gt;<i> 
+</I>&gt;<i> Crista / Diva
+</I>&gt;<i> 
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="008078.html">[Opensim-dev] Designing with reusability in mind
+</A></li>
+	<LI>Next message: <A HREF="008081.html">[Opensim-dev] Designing with reusability in mind
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8080">[ date ]</a>
+              <a href="thread.html#8080">[ thread ]</a>
+              <a href="subject.html#8080">[ subject ]</a>
+              <a href="author.html#8080">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

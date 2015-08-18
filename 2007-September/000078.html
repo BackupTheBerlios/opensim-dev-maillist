@@ -1,0 +1,224 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] llParticleSystem progress &amp; questions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-September/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20llParticleSystem%20progress%20%26%20questions&In-Reply-To=%3CBAY108-W20859BA3B2D2F5AD16B234D5B00%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000075.html">
+   <LINK REL="Next"  HREF="000079.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] llParticleSystem progress &amp; questions</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20llParticleSystem%20progress%20%26%20questions&In-Reply-To=%3CBAY108-W20859BA3B2D2F5AD16B234D5B00%40phx.gbl%3E"
+       TITLE="[Opensim-dev] llParticleSystem progress &amp; questions">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Sep 26 22:18:49 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000075.html">[Opensim-dev] llParticleSystem progress &amp; questions
+</A></li>
+        <LI>Next message: <A HREF="000079.html">[Opensim-dev] XML-RPC login request semantics
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#78">[ date ]</a>
+              <a href="thread.html#78">[ thread ]</a>
+              <a href="subject.html#78">[ subject ]</a>
+              <a href="author.html#78">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Cfk,
+ 
+good progress; alas, I don't have good answers to your questions; as they are a bit too specific for my knowledge;
+ 
+however, one minor c# tweak; I'd do
+ 
+Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
+for (int i = 0; i &lt; rules.Count; i += 2)
+{
+   PrimitiveRule rule = (PrimitiveRule)rules[i + 1];
+ 
+switch ( rule )
+{
+case PrimitiveRule.PSYS_PART_FLAGS:
+prules.PartFlags = (uint)rules[i + 1];
+break...
+ 
+this is somewhat cleaner; a bit faster (less expensive casts) and will also (not sure, but I think so) explode if there is no corresponding enum for the value (which is good, but you might want to catch that)
+Best regards,
+/Stefan (aka lbsa71)
+ 
+
+
+Date: Wed, 26 Sep 2007 07:39:57 -0700From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.netTo</A>: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.deSubject</A>: [Opensim-dev] llParticleSystem progress &amp; questions
+
+
+
+
+
+
+Dear Tedd &amp; others:
+ 
+Please view the logic below as pseudo-code right now, although it does compile in LSL_BuiltIn_Commands.cs, and most of it is in focus, I am struggling with a few notions that I tried to encapsulate in my 4 questions. And thank you, lbsa and Tedd for getting me this far. Just bear with me as I work through the rest.
+ 
+Questions:
+ 
+1. It is not obvious to me how the CRC is calculated, nor which rule number, if any, it should be. We do have a CRC member in the Primitive.ParticleSystem structure and I assume that the client needs it in order to process the packet.
+ 
+2. I dont see where AngularVelocity is coming from the client, and I do see it defined in libsecondlife.ParticleSystem.cs;GetBytes().
+ 
+3. I see Omega, maybe coming in from the client, but I dont see it defined in libsecondlife.ParticleSystem.cs:GetBytes()
+ 
+4. StartScale and EndScale are two seperate items from the wiki.secondlife.com viewpoiont, that is X &amp; Y, but appear to be one rule from the &quot;www.caligari-designs.com/p4u2' viewpoint.
+ 
+ 
+ 
+
+/* particle system rules should be coming into this routine as doublets, that is
+rule[0] should be an integer from this list and rule[1] should be the arg
+for the same integer. wiki.secondlife.com has most of this mapping, but some
+came from <A HREF="http://www.caligari-designs.com/p4u2">http://www.caligari-designs.com/p4u2</A>
+We iterate through the list for 'Count' elements, incrementing by two for each
+iteration and set the members of Primitive.ParticleSystem, one at a time.
+*/
+public enum PrimitiveRule : int
+{
+PSYS_PART_FLAGS = 0, 
+PSYS_PART_START_COLOR = 1,
+PSYS_PART_START_ALPHA = 2,
+PSYS_PART_END_COLOR = 3,
+PSYS_PART_END_ALPHA = 4,
+PSYS_PART_START_SCALE = 5,
+PSYS_PART_END_SCALE = 6,
+PSYS_PART_MAX_AGE = 7,
+PSYS_SRC_ACCEL = 8,
+PSYS_SRC_PATTERN = 9,
+PSYS_SRC_TEXTURE = 12,
+PSYS_SRC_BURST_RATE = 13,
+PSYS_SRC_BURST_PART_COUNT = 15,
+PSYS_SRC_BURST_RADIUS = 16,
+PSYS_SRC_BURST_SPEED_MIN = 17,
+PSYS_SRC_BURST_SPEED_MAX = 18,
+PSYS_SRC_MAX_AGE = 19,
+PSYS_SRC_TARGET_KEY = 20,
+PSYS_SRC_OMEGA = 21,
+PSYS_SRC_ANGLE_BEGIN = 22,
+PSYS_SRC_ANGLE_END = 23
+}
+public void llParticleSystem(List&lt;Object&gt; rules) 
+{
+Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
+for (int i = 0; i &lt; rules.Count; i += 2)
+{
+switch ( (int)rules[i])
+{
+case (int)PrimitiveRule.PSYS_PART_FLAGS:
+prules.PartFlags = (uint)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_PART_START_COLOR:
+prules.PartStartColor = (LLColor)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_PART_START_ALPHA:
+//what is the cast? prules.PartStartColor = (LLColor)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_PART_END_COLOR:
+prules.PartEndColor = (LLColor)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_PART_END_ALPHA:
+//what is the cast? prules.PartStartColor = (LLColor)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_PART_START_SCALE:
+//what is the cast? prules.PartStartColor = (LLColor)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_PART_END_SCALE:
+//what is the cast? prules.PartStartColor = (LLColor)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_PART_MAX_AGE:
+prules.MaxAge = (float)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_ACCEL:
+//what is the cast? prules.PartStartColor = (LLColor)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_PATTERN:
+//what is the cast? prules.PartStartColor = (LLColor)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_TEXTURE:
+prules.Texture = (LLUUID)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_BURST_RATE:
+prules.BurstRate = (float)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_BURST_PART_COUNT:
+prules.BurstPartCount = (byte)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_BURST_RADIUS:
+prules.BurstRadius = (float)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_BURST_SPEED_MIN:
+prules.BurstSpeedMin = (float)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_BURST_SPEED_MAX:
+prules.BurstSpeedMax = (float)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_MAX_AGE:
+prules.MaxAge = (float)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_TARGET_KEY:
+prules.Target = (LLUUID)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_OMEGA:
+//cast?? prules.MaxAge = (float)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_ANGLE_BEGIN:
+prules.InnerAngle = (float)rules[i + 1];
+break;
+case (int)PrimitiveRule.PSYS_SRC_ANGLE_END:
+prules.OuterAngle = (float)rules[i + 1];
+break;
+}
+}
+// prules.AngularVelocity = (LLVector3)rules[0];
+// prules.CRC = (uint)rules[6];
+// prules.PartAcceleration = (LLVector3)rules[10];
+// prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)rules[11];
+// prules.PartEndScaleX = (float)rules[13];
+// prules.PartEndScaleY = (float)rules[14];
+// prules.PartStartScaleX = (float)rules[18];
+// prules.PartStartScaleY = (float)rules[19];
+// prules.StartAge = (float)rules[21];
+m_host.AddNewParticleSystem( prules );
+}
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20070926/5a38d57a/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20070926/5a38d57a/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000075.html">[Opensim-dev] llParticleSystem progress &amp; questions
+</A></li>
+	<LI>Next message: <A HREF="000079.html">[Opensim-dev] XML-RPC login request semantics
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#78">[ date ]</a>
+              <a href="thread.html#78">[ thread ]</a>
+              <a href="subject.html#78">[ subject ]</a>
+              <a href="author.html#78">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] AssetServer Observations and Suggestions
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-February/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20AssetServer%20Observations%20and%20Suggestions&In-Reply-To=%3C353635.3787.qm%40web82603.mail.mud.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="004953.html">
+   <LINK REL="Next"  HREF="004955.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] AssetServer Observations and Suggestions</H1>
+    <B>Charles Krinke</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20AssetServer%20Observations%20and%20Suggestions&In-Reply-To=%3C353635.3787.qm%40web82603.mail.mud.yahoo.com%3E"
+       TITLE="[Opensim-dev] AssetServer Observations and Suggestions">cfk at pacbell.net
+       </A><BR>
+    <I>Mon Feb  9 03:18:08 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="004953.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+        <LI>Next message: <A HREF="004955.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4954">[ date ]</a>
+              <a href="thread.html#4954">[ thread ]</a>
+              <a href="subject.html#4954">[ subject ]</a>
+              <a href="author.html#4954">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dear Mike:
+
+What you say seems reasonable and I applaud you.
+
+On the related subject of mutability, I have a tough time imagining that each edit of the terrain of a region is useful. I would suggest that only the last &quot;terrainImage&quot; is useful and cannot imagine any reference to any obsolete terrainImage by any object anywhere.
+
+There are a significant number of items in OpenSim mysql databases such as the various edits of a script where we appear to be storing a new UUID for each edit. In a similar manner, I would think that such obsolete edits are not useful.
+
+So, half of the problem is a strategy to slow down the bloat of our assetServers with perhaps additional references to additional assetServers and half is to perhaps re-consider all the orphaned items we are leaving in our mysql database and find a way to stop doing that.
+
+Charles
+
+
+
+
+________________________________
+From: Mike Mazur &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">mmazur at gmail.com</A>&gt;
+To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+Sent: Sunday, February 8, 2009 6:11:46 PM
+Subject: Re: [Opensim-dev] AssetServer Observations and Suggestions
+
+Hi,
+
+On Sun, 8 Feb 2009 10:13:45 -0800 (PST)
+Charles Krinke &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">cfk at pacbell.net</A>&gt; wrote:
+
+&gt;<i> We have been studying the assets table on OSGrid as it heads toward
+</I>&gt;<i> the &quot;disk full&quot; stage and I have a couple of observations and am
+</I>&gt;<i> heading towards a suggestion. Maybe this is already accounted for in
+</I>&gt;<i> the &quot;Cable Beach&quot; project, at which point, this will only indicate
+</I>&gt;<i> that I did not read all the exchanges carefully enough.
+</I>&gt;<i> 
+</I>&gt;<i> It appears to me that we are storing on the MySQL data store at the
+</I>&gt;<i> assetServer on a grid every edit of every script, terrainImage and
+</I>&gt;<i> clothingItem amongst other things. So, my first observation is that
+</I>&gt;<i> we appear to be storing all the older, obsolete items that can no
+</I>&gt;<i> longer be accessed.
+</I>
+This ever-expanding asset database is a consequence of how assets are
+handled by SL, the SL viewer and, since OpenSim was first developed
+against the SL viewer, by OpenSim as well. The premise is that no asset
+is mutable, because any asset may be referenced by its UUID. The
+reference may exist in a script or on the back of a napkin. There are
+more details (the way I understand them) in a previous email[1] I sent
+to the list.
+
+Cable Beach will not solve this problem.
+
+&gt;<i> Now, to the beginnings of a suggestion. It seems to me that each
+</I>&gt;<i> avatar will have a &quot;home&quot; region. And that perhaps that is the place
+</I>&gt;<i> to store the items in an avatars inventory. Things like scripts,
+</I>&gt;<i> notecards, textures and the like. 
+</I>
+I'm not sure this is the right way forward. It requires that the user's
+home region is up anytime they wish to use their avatar and access
+their inventory. The user's home region becomes a single point of
+failure.
+
+&gt;<i> At that point, the assetServer on a grid could be used to store only
+</I>&gt;<i> pointers (or URL's) to each avatars inventory on his or her home
+</I>&gt;<i> region.
+</I>
+This is a good start, except instead of pointing to the user's home
+region, it could point to the user's own asset server. The asset server
+could be provided by a grid (OSGrid), their own asset server (a Cable
+Beach instance, perhaps), or some other third party that may provide
+asset storage/access in the future (SL, Yahoo!, Google, AOL, etc).
+
+Thanks,
+Mike
+
+
+[1]
+<A HREF="https://lists.berlios.de/pipermail/opensim-dev/2008-December/004053.html">https://lists.berlios.de/pipermail/opensim-dev/2008-December/004053.html</A>
+_______________________________________________
+Opensim-dev mailing list
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090208/bc2d9179/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090208/bc2d9179/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="004953.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+	<LI>Next message: <A HREF="004955.html">[Opensim-dev] AssetServer Observations and Suggestions
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4954">[ date ]</a>
+              <a href="thread.html#4954">[ thread ]</a>
+              <a href="subject.html#4954">[ subject ]</a>
+              <a href="author.html#4954">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

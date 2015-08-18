@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Towards 0.5, what's left?
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Towards%200.5%2C%20what%27s%20left%3F&In-Reply-To=%3C20071213183517.GN3469%40dague.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000539.html">
+   <LINK REL="Next"  HREF="000541.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Towards 0.5, what's left?</H1>
+    <B>Sean Dague</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Towards%200.5%2C%20what%27s%20left%3F&In-Reply-To=%3C20071213183517.GN3469%40dague.net%3E"
+       TITLE="[Opensim-dev] Towards 0.5, what's left?">sean at dague.net
+       </A><BR>
+    <I>Thu Dec 13 19:35:17 CET 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000539.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+        <LI>Next message: <A HREF="000541.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#540">[ date ]</a>
+              <a href="thread.html#540">[ thread ]</a>
+              <a href="subject.html#540">[ subject ]</a>
+              <a href="author.html#540">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>On Thu, Dec 13, 2007 at 03:43:04PM +0000, Justin Clark-Casey wrote:
+&gt;<i> So to take up the webpage analogy, the serialization you're talking 
+</I>&gt;<i> about is just the pure 'html'?  The various bits of binary data which 
+</I>&gt;<i> make up the page/prim (e.g. pngs and gifs for webpages, textures, 
+</I>&gt;<i> scripts and sounds for second life), are represented by uris/asset ids 
+</I>&gt;<i> in the exported xml.
+</I>&gt;<i> 
+</I>&gt;<i> Just as in a 'full' webpage format, a full sl export would also export 
+</I>&gt;<i> those resources in a separate 'package'/'region'/'directory' to which 
+</I>&gt;<i> the asset ids could resolve.
+</I>&gt;<i> 
+</I>&gt;<i> Was actual texture data exported in byte[] format before the libsl 
+</I>&gt;<i> change?  I apologise for my ignorance on this point.
+</I>
+Well, two issues.  First off, yes the Texture field is coming out as a
+byte[].  But that is just the texturing description.  The asset
+representing actually used textures is in asset land, and isn't
+exported.
+
+My recent thoughts on the save/load model is the following.
+
+1.  It should be a seperate program, OpenSimDump.exe (or something), so
+    that you can run it while OpenSim is running, or when OpenSim isn't
+    running, and have no fear that OpenSim might alter the data in some
+    way while it is coming up.
+
+2.  It should read OpenSim.ini for the data sources for assets and
+    primstorage.  This would let you use 2 different OpenSim.ini files
+    to dump from sqlite and move everything to mysql (for instance).
+
+3.  It should create what it does in an on disk directory, that would
+    look something like:
+    
+    dump/
+	prims.xml
+	assets.xml
+	UUID-UUID-UUID.jp2
+        UUID-UUID-UUID.xyz
+
+    Basically, appropriate metadata would end up in xml files.  When
+    dealing with binary data we translate back to appropriate binary
+    files named by UUID.
+
+4.  It should support a mode that dumps ALL assets, or one that dumps
+    only assets referenced by prims.
+
+For right now, there will be no guaruntee of compatibility between
+OpenSim revisions.  I think it will take a couple of iterations before
+we get an at rest definition that makes sense.  I really doubt collada
+is that right at rest definition, as it seems pretty heavy for what we
+need (though supporting a collada import in the future would be
+definitely interesting).
+
+I'm going to start hacking on this tomorrow, though it likely won't
+finish prior to me heading away for vacation.  I'll check in stuff daily
+if not more frequently so other folks can look and help if they are
+interested.
+
+	-Sean
+
+-- 
+__________________________________________________________________
+
+Sean Dague                                       Mid-Hudson Valley
+sean at dague dot net                            Linux Users Group
+<A HREF="http://dague.net">http://dague.net</A>                                 <A HREF="http://mhvlug.org">http://mhvlug.org</A>
+
+There is no silver bullet.  Plus, werewolves make better neighbors
+than zombies, and they tend to keep the vampire population down.
+__________________________________________________________________
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20071213/b5a8d798/attachment.pgp">https://lists.berlios.de/pipermail/opensim-dev/attachments/20071213/b5a8d798/attachment.pgp</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000539.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+	<LI>Next message: <A HREF="000541.html">[Opensim-dev] Towards 0.5, what's left?
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#540">[ date ]</a>
+              <a href="thread.html#540">[ thread ]</a>
+              <a href="subject.html#540">[ subject ]</a>
+              <a href="author.html#540">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

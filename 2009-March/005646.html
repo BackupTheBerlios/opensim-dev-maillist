@@ -1,0 +1,184 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-March/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Unit%20tests%20should%20not%20be%20coupled%20%28WAS%3A%20Re%3A%0A%20%5BOpensim-commits%5D%20r8737%20-%20trunk/OpenSim/Framework/Communications/Tests%29&In-Reply-To=%3C1236781649.7885.10.camel%40arthursv-laptop%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="005635.html">
+   <LINK REL="Next"  HREF="005648.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)</H1>
+    <B>Arthur Valadares</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Unit%20tests%20should%20not%20be%20coupled%20%28WAS%3A%20Re%3A%0A%20%5BOpensim-commits%5D%20r8737%20-%20trunk/OpenSim/Framework/Communications/Tests%29&In-Reply-To=%3C1236781649.7885.10.camel%40arthursv-laptop%3E"
+       TITLE="[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)">arthursv at linux.vnet.ibm.com
+       </A><BR>
+    <I>Wed Mar 11 15:27:29 CET 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="005635.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+        <LI>Next message: <A HREF="005648.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5646">[ date ]</a>
+              <a href="thread.html#5646">[ thread ]</a>
+              <a href="subject.html#5646">[ subject ]</a>
+              <a href="author.html#5646">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I think in there lies the confusion, which Stefan mentioned. Our unit
+tests are doing more then testing the object itself. The tests in the
+Data directory are testing data persistence on the database and not just
+the object. Although this might not be considered a unit test (as
+Stephan mentioned), it is actually a needed and important test to make
+sure we aren't breaking the plugin and causing horrible damages to
+existing databases. 
+
+So if you're going to test if data is persisting on the database, you
+must first insert the data to be able to update it. 
+
+Not sure I got this right, but this is what I understood from your
+e-mail. If this is the case, maybe Stefan is right and the tests should
+be divided in unit and integration tests, where a refactoring would be
+needed. 
+
+On Wed, 2009-03-11 at 09:31 +0900, Mike Mazur wrote:
+&gt;<i> Hi,
+</I>&gt;<i> 
+</I>&gt;<i> On Tue, 10 Mar 2009 17:10:42 -0300
+</I>&gt;<i> Arthur Valadares &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">arthursv at linux.vnet.ibm.com</A>&gt; wrote:
+</I>&gt;<i> 
+</I>&gt;<i> &gt; Still some tests must be chained (you can't test an Update without a
+</I>&gt;<i> &gt; Create for example). And for that reason, and also to keep the logic
+</I>&gt;<i> &gt; of whoever reads the test, I feel we should still keep writing tests
+</I>&gt;<i> &gt; with some kind of logical order. 
+</I>&gt;<i> 
+</I>&gt;<i> An update can definitely be tested without testing create first. To test
+</I>&gt;<i> the update, the data would be inserted into the DB by another means
+</I>&gt;<i> first. For example:
+</I>&gt;<i> 
+</I>&gt;<i> // pseudocode
+</I>&gt;<i> [TestFixture]
+</I>&gt;<i> public class MyTest
+</I>&gt;<i> {
+</I>&gt;<i>   UUID m_regionUUID = &lt;some UUID&gt;;
+</I>&gt;<i> 
+</I>&gt;<i>   [SetUp]
+</I>&gt;<i>   public void SetUp()
+</I>&gt;<i>   {
+</I>&gt;<i>     CreateNewDB(&quot;OpenSim&quot;);
+</I>&gt;<i>     sql.execute(&quot;INSERT INTO regions VALUES('My Region',m_regionUUID)&quot;);
+</I>&gt;<i>   }
+</I>&gt;<i> 
+</I>&gt;<i>   [TearDown]
+</I>&gt;<i>   public void TearDown()
+</I>&gt;<i>   {
+</I>&gt;<i>     DropDB(&quot;OpenSim&quot;);
+</I>&gt;<i>   }
+</I>&gt;<i> 
+</I>&gt;<i>   [Test]
+</I>&gt;<i>   public void TestCreate()
+</I>&gt;<i>   {
+</I>&gt;<i>     UUID thisUUID = &lt;another UUID&gt;;
+</I>&gt;<i> 
+</I>&gt;<i>     object_under_test.createRegion(&quot;New Region&quot;, thisUUID)
+</I>&gt;<i> 
+</I>&gt;<i>     Region region = sql.execute(&quot;SELECT FROM regions WHERE
+</I>&gt;<i>     uuid=thisUUID&quot;);
+</I>&gt;<i>     assertEquals(region.UUID, thisUUID);
+</I>&gt;<i>     assertEquals(region.Name, &quot;New Region&quot;);
+</I>&gt;<i>   }
+</I>&gt;<i> 
+</I>&gt;<i>   [Test]
+</I>&gt;<i>   public void TestUpdate()
+</I>&gt;<i>   {
+</I>&gt;<i>     Region updatedRegion = new Region();
+</I>&gt;<i>     updatedRegion.UUID = m_regionUUID;
+</I>&gt;<i>     updatedRegion.Name = &quot;Updated region&quot;;
+</I>&gt;<i> 
+</I>&gt;<i>     object_under_test.updateRegion(m_regionUUID, updatedRegion);
+</I>&gt;<i> 
+</I>&gt;<i>     Region region = sql.execute(&quot;SELECT FROM regions WHERE
+</I>&gt;<i>     uuid=m_regionUUID&quot;);
+</I>&gt;<i>     assertEquals(region.UUID, m_regionUUID);
+</I>&gt;<i>     assertEquals(region.Name, &quot;Updated Region&quot;);
+</I>&gt;<i>   }
+</I>&gt;<i> }
+</I>&gt;<i> 
+</I>&gt;<i> I'm actually trying to show two things here:
+</I>&gt;<i> 
+</I>&gt;<i> 1. The SetUp and TearDown methods are called by the NUnit framework
+</I>&gt;<i>    before and after each test is executed, repsectively. They ensure
+</I>&gt;<i>    that each and every single test starts with the exact same data
+</I>&gt;<i>    populated in the DB. This means each test can be run independently
+</I>&gt;<i>    of any other test and doesn't depend on any other test being
+</I>&gt;<i>    run/succeeding/failing.
+</I>&gt;<i> 
+</I>&gt;<i> 2. The object under test is only used in the tests. In the SetUp,
+</I>&gt;<i>    TearDown, and even verification code, another (known to work) method
+</I>&gt;<i>    is used to interact with the database (in the example, it's raw
+</I>&gt;<i>    SQL). In BasicGridTest.cs I noticed that the object under test
+</I>&gt;<i>    (the GridDataBase class) is being tested, but it's also used to
+</I>&gt;<i>    populate the database, and to verify that the data was indeed
+</I>&gt;<i>    written to the database/disk. This is not good, as I mentioned in
+</I>&gt;<i>    another email[1].
+</I>&gt;<i> 
+</I>&gt;<i> &gt; This will also help debugging some unit tests where you modify
+</I>&gt;<i> &gt; something but has no knowledge that this modification changes your
+</I>&gt;<i> &gt; &quot;expected initial status&quot; of other tests. There are lot's of obscure
+</I>&gt;<i> &gt; relations in OpenSim and a test creator might fail to see the whole
+</I>&gt;<i> &gt; picture.
+</I>&gt;<i> 
+</I>&gt;<i> If a developer makes a change that affects &quot;expected initial status&quot; of
+</I>&gt;<i> many other tests, this is a warning sign that the developer is changing
+</I>&gt;<i> something of importance. If this change is indeed necessary, then all
+</I>&gt;<i> the tests that are affected should be modified to reflect the new state
+</I>&gt;<i> of the source code. If fixtures (SetUp, TearDown) are used properly,
+</I>&gt;<i> the changes will likely be limited to them.
+</I>&gt;<i> 
+</I>&gt;<i> &gt; In summary, I don't see a reason not to organize the tests with TXXX.
+</I>&gt;<i> &gt; I'll keep working them that way, but this is another one of those
+</I>&gt;<i> &gt; discussions with no right and wrong, just hunches of what's more
+</I>&gt;<i> &gt; efficient. :)
+</I>&gt;<i> 
+</I>&gt;<i> Sure.
+</I>&gt;<i> 
+</I>&gt;<i> Mike
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> [1]
+</I>&gt;<i> <A HREF="https://lists.berlios.de/pipermail/opensim-dev/2009-March/005625.html">https://lists.berlios.de/pipermail/opensim-dev/2009-March/005625.html</A>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="005635.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+	<LI>Next message: <A HREF="005648.html">[Opensim-dev] Unit tests should not be coupled (WAS: Re: [Opensim-commits] r8737 - trunk/OpenSim/Framework/Communications/Tests)
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#5646">[ date ]</a>
+              <a href="thread.html#5646">[ thread ]</a>
+              <a href="subject.html#5646">[ subject ]</a>
+              <a href="author.html#5646">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

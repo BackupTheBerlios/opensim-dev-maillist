@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Global identifiers
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-August/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D01264168EE%40rrsmsx506.amr.corp.intel.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009430.html">
+   <LINK REL="Next"  HREF="009426.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Global identifiers</H1>
+    <B>Hurliman, John</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Global%20identifiers&In-Reply-To=%3C62BFE5680C037E4DA0B0A08946C0933D01264168EE%40rrsmsx506.amr.corp.intel.com%3E"
+       TITLE="[Opensim-dev] Global identifiers">john.hurliman at intel.com
+       </A><BR>
+    <I>Tue Aug 31 00:22:23 CEST 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009430.html">[Opensim-dev] Global identifiers
+</A></li>
+        <LI>Next message: <A HREF="009426.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9425">[ date ]</a>
+              <a href="thread.html#9425">[ thread ]</a>
+              <a href="subject.html#9425">[ subject ]</a>
+              <a href="author.html#9425">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>If we are still on the same page, there should never be a case where something could be either a local identifier (UUID) or a global identifier (URL). The context is always clear, where cross-grid communication and exported content uses only global identifiers and all intra-grid communication uses only local identifiers. If a sim wants to resolve the creator of a prim it uses a single path, the UUID-&gt;Profile (aka display name) API call which takes advantage of all the caching and optimizations we've built into OpenSim. There is no ambiguity there or potential for the code to take a slower or less tested path. The discussion is about communication outside of the local grid context, when you are exporting content or moving people or content between grids. In every use case there I think it makes sense to always use global identifiers, or at least a clear path to build a global identifier.
+
+John
+
+&gt;<i> -----Original Message-----
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev-bounces at lists.berlios.de</A> [mailto:opensim-dev-
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">bounces at lists.berlios.de</A>] On Behalf Of Melanie
+</I>&gt;<i> Sent: Monday, August 30, 2010 2:30 PM
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] Global identifiers
+</I>&gt;<i> 
+</I>&gt;<i> I think we already have a perfectly good field, which is a UUID for
+</I>&gt;<i> local users and a URL for remote ones.
+</I>&gt;<i> 
+</I>&gt;<i> Melanie
+</I>&gt;<i> 
+</I>&gt;<i> Serendipity Seraph wrote:
+</I>&gt;<i> &gt;  On 8/30/10 2:09 PM, <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A> wrote:
+</I>&gt;<i> &gt;&gt; Hurliman, John wrote:
+</I>&gt;<i> &gt;&gt;&gt; My interpretation (please correct me if I'm wrong) is that there is
+</I>&gt;<i> &gt;&gt;&gt; rough consensus on the overall strategy, but an open question of
+</I>&gt;<i> how
+</I>&gt;<i> &gt;&gt;&gt; to encode global identities when cross-grid communication (or
+</I>&gt;<i> &gt;&gt;&gt; out-of-grid archiving) happens.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; That's what's going on.
+</I>&gt;<i> &gt;&gt; Up to now, all global identifiers (that already exist) have been
+</I>&gt;<i> &gt;&gt; volatile; nothing has persisted. As I found myself writing code that
+</I>&gt;<i> &gt;&gt; would inject global identifiers into a DB table, I thought we should
+</I>&gt;<i> &gt;&gt; all talk about the form of such identifiers.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt;&gt; There is probably also a hidden question of how to mark a local
+</I>&gt;<i> &gt;&gt;&gt; account as linked to a foreign identity, which may solve the
+</I>&gt;<i> &gt;&gt;&gt; friending issue. If I am friends with your avatar and we are both
+</I>&gt;<i> on
+</I>&gt;<i> &gt;&gt;&gt; grid B but your avatar actually originated from grid A, that link
+</I>&gt;<i> in
+</I>&gt;<i> &gt;&gt;&gt; the profile is what can tip off the presence service to try a
+</I>&gt;<i> remote
+</I>&gt;<i> &gt;&gt;&gt; presence check (assuming the user is not online in the local grid).
+</I>&gt;<i> &gt;&gt;&gt; My only interest in these low level questions like how the global
+</I>&gt;<i> &gt;&gt;&gt; identifiers and profile links look is what the final decision is so
+</I>&gt;<i> I
+</I>&gt;<i> &gt;&gt;&gt; can implement it in the OpenSim SimianGrid connectors.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt;&gt; Well, we distinguish &quot;user accounts&quot; from &quot;grid users&quot; -- these are
+</I>&gt;<i> 2
+</I>&gt;<i> &gt;&gt; different interfaces, although implementers may decide to collapse
+</I>&gt;<i> &gt;&gt; them. But they are different concepts. User accounts are the
+</I>&gt;<i> &gt;&gt; locally-registered users; in some cases, like for example, the UCI
+</I>&gt;<i> &gt;&gt; grid, there's only some people who can get accounts there, namely
+</I>&gt;<i> &gt;&gt; people associated with the university. Grid users are users that are
+</I>&gt;<i> &gt;&gt; referenced by things that happen in the grid. So we already have an
+</I>&gt;<i> &gt;&gt; interface for that, although now I'm thinking that perhaps we need
+</I>&gt;<i> to
+</I>&gt;<i> &gt;&gt; separate its UserID field into 2 things: a local UUID and a
+</I>&gt;<i> reference
+</I>&gt;<i> &gt;&gt; to the external name. And I guess that's my main issue at this
+</I>&gt;<i> point.
+</I>&gt;<i> &gt;&gt;
+</I>&gt;<i> &gt; It seems more reasonable in a distributed system to say that an X is
+</I>&gt;<i> an
+</I>&gt;<i> &gt; X - a User is a User, whether they originally were instantiated on a
+</I>&gt;<i> &gt; local or a remote system.   So I would go for collapsing the two as
+</I>&gt;<i> much
+</I>&gt;<i> &gt; as possible as a matter of policy.  Otherwise freedom to move between
+</I>&gt;<i> &gt; nodes in the system is more limited and there is more special case
+</I>&gt;<i> logic
+</I>&gt;<i> &gt; to deal with.    But that is speaking from a general distributed
+</I>&gt;<i> &gt; computing perspective.  There may be many Opensim details that make
+</I>&gt;<i> that
+</I>&gt;<i> &gt; seemingly ideal position in practice rather naive.
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; - s
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; _______________________________________________
+</I>&gt;<i> &gt; Opensim-dev mailing list
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> &gt; <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt;
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009430.html">[Opensim-dev] Global identifiers
+</A></li>
+	<LI>Next message: <A HREF="009426.html">[Opensim-dev] Global identifiers
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9425">[ date ]</a>
+              <a href="thread.html#9425">[ thread ]</a>
+              <a href="subject.html#9425">[ subject ]</a>
+              <a href="author.html#9425">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] trying to improve OpenSim performance under heavy load
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-June/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20trying%20to%20improve%20OpenSim%20performance%20under%20heavy%0A%20load&In-Reply-To=%3C4A437969.7080706%40cise.ufl.edu%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006900.html">
+   <LINK REL="Next"  HREF="006902.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] trying to improve OpenSim performance under heavy load</H1>
+    <B>Paul Fishwick</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20trying%20to%20improve%20OpenSim%20performance%20under%20heavy%0A%20load&In-Reply-To=%3C4A437969.7080706%40cise.ufl.edu%3E"
+       TITLE="[Opensim-dev] trying to improve OpenSim performance under heavy load">fishwick at cise.ufl.edu
+       </A><BR>
+    <I>Thu Jun 25 15:19:37 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006900.html">[Opensim-dev] trying to improve OpenSim performance under heavy load
+</A></li>
+        <LI>Next message: <A HREF="006902.html">[Opensim-dev] trying to improve OpenSim performance under heavy load
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6901">[ date ]</a>
+              <a href="thread.html#6901">[ thread ]</a>
+              <a href="subject.html#6901">[ subject ]</a>
+              <a href="author.html#6901">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Dirk
+    Let's suppose for the moment that all prims, textures, and assets in
+general were preloaded as they are for most multi-player games.
+If you wanted to go to my island, you would need my island's OAR, or the
+equivalent. Would the same performance issues exist in terms of having,
+say 60 avatars in a region?
+-paul
+
+
+Dirk Husemann wrote:
+&gt;<i> those of you that are following the SVN commit mails on opensim-dev  
+</I>&gt;<i> will have noticed that i just checked in a bunch of patches.
+</I>&gt;<i>
+</I>&gt;<i> we recently did stress tests using (a) a bunch of modified pCampBot 
+</I>&gt;<i> (modified so that they'd request every texture in sight), (b) a group 
+</I>&gt;<i> of volunteers (30-40 clients), (c) an even greedier version of (a).
+</I>&gt;<i>
+</I>&gt;<i> stress test (a) looked fairly good 
+</I>&gt;<i> (<A HREF="http://xyzzyxyzzy.net/2009/06/09/81/">http://xyzzyxyzzy.net/2009/06/09/81/</A>), so we optimistically scheduled 
+</I>&gt;<i> (b).
+</I>&gt;<i>
+</I>&gt;<i> stress test (b) was a big disappointment 
+</I>&gt;<i> (<A HREF="http://xyzzyxyzzy.net/2009/06/19/21/">http://xyzzyxyzzy.net/2009/06/19/21/</A>), so we went back to the drawing 
+</I>&gt;<i> board and worked on the bots to become more like real avatars and also 
+</I>&gt;<i> started looking at how we handle the traffic with the client.
+</I>&gt;<i>
+</I>&gt;<i> the reworked bots allowed us to recreate the scenario where we'd 
+</I>&gt;<i> essentially render the system unusable once we got past the 20 avatar 
+</I>&gt;<i> limit.
+</I>&gt;<i>
+</I>&gt;<i> we've concentrated on the following areas (so far):
+</I>&gt;<i>
+</I>&gt;<i>    1. texture sending
+</I>&gt;<i>    2. LLPacketHandler/LLUDPServer
+</I>&gt;<i>    3. XEngine
+</I>&gt;<i>
+</I>&gt;<i> that last one, XEngine, was an easy fix: the advertised behaviour in 
+</I>&gt;<i> OpenSim.ini.example for idle timeout does not describe what's inside 
+</I>&gt;<i> the can, to quote alan webb:
+</I>&gt;<i>
+</I>&gt;<i>     The XEngine secition of the example ini says that the
+</I>&gt;<i>     timeout for an iden thread is in seconds, and an example value
+</I>&gt;<i>     of 60 is specified. In fact, this is actually resulting in a 60mS
+</I>&gt;<i>     idle timeout, which is not normally enough for a smart thread
+</I>&gt;<i>     to survive. I have added a multiplier to the XEngine constructor
+</I>&gt;<i>     so that the number now matches the published behavior.
+</I>&gt;<i>
+</I>&gt;<i> texture sending was a bit more tricky, again to quote alan:
+</I>&gt;<i>
+</I>&gt;<i>     This change moves texture send processing out of the main packet
+</I>&gt;<i>     processing loop and moves it to a timer based processing cycle.
+</I>&gt;<i>
+</I>&gt;<i>     Texture packets are sent to the client consistently over time. The
+</I>&gt;<i>     timer is discontinued whenever there are no textures to transmit.
+</I>&gt;<i>
+</I>&gt;<i>     The behavior of the texture sending mechanism is controlled by
+</I>&gt;<i>     three variables in the LLCLient section of the config file:
+</I>&gt;<i>
+</I>&gt;<i>      [1] TextureRequestRate (mS) determines how many times per second
+</I>&gt;<i>     texture send processing will occur. The default is 100mS.
+</I>&gt;<i>      [2] TextureSendLimit determines how many different textures will
+</I>&gt;<i>     be considered on each cycle. Textures are selected by priority.
+</I>&gt;<i>     The old mechanism specified a value of 10 for this parameter and
+</I>&gt;<i>     this is the default
+</I>&gt;<i>      [3] TextureDataLimit determines how many packets will be sent for
+</I>&gt;<i>     each of the selected textures. The old mechanism specified a value
+</I>&gt;<i>     of 5, so this is the default.
+</I>&gt;<i>
+</I>&gt;<i>     So the net effect is that TextureSendLimit*TextureDataLimit
+</I>&gt;<i>     packets will be sent every TextureRequestRate mS.
+</I>&gt;<i>
+</I>&gt;<i>     Once we have gotten a reasonable feeling for how these parameters
+</I>&gt;<i>     affect overall processing, it would be nice to automagically
+</I>&gt;<i>     manage these values using information about the current status of
+</I>&gt;<i>     the region and network.
+</I>&gt;<i>
+</I>&gt;<i> finally, LLPacketHandler and LLUDPServer: while looking (staring?) at 
+</I>&gt;<i> the traces we had collected we realized that we might have an issue 
+</I>&gt;<i> with the incoming UDP buffer --- checking the specs of both .NET and 
+</I>&gt;<i> mono we found out that .NET uses a default socket buffer size of 8K 
+</I>&gt;<i> and mono whatever the underlying linux OS was using, which for ubuntu 
+</I>&gt;<i> 08.04 and SLES11 turned out to be 111K. both buffer sizes are not 
+</I>&gt;<i> really that much (.NET's is a bit of a joke, IMHO) and checking the 
+</I>&gt;<i> network stats we did see that the OS was dropping a considerable 
+</I>&gt;<i> number of UDP datagrams. so, we added an option to set the receive 
+</I>&gt;<i> socket buffer size for LLUDPServer (and also changed the max receive 
+</I>&gt;<i> buffer size allowed by the OS via sysctl). setting it to a 
+</I>&gt;<i> sufficiently large value got rid of the dropped UDP datagrams.
+</I>&gt;<i>
+</I>&gt;<i> looking at LLPacketHandler we realized that while we were re-using 
+</I>&gt;<i> packets (via the packet pool) we were still doing a LOT of 
+</I>&gt;<i> List&lt;LLQueItem&gt;(existing List&lt;LLQueItem&gt;) and object copying for stuff 
+</I>&gt;<i> like ack sending/resending, dropping packets, etc. it turns out that 
+</I>&gt;<i> we can in all cases accomplish the task without those List 
+</I>&gt;<i> instantiations and copy operations.
+</I>&gt;<i>
+</I>&gt;<i> going back to our reworked, greedy bots we now got way beyond the 20 
+</I>&gt;<i> avatar mark (repeated 30-40 greedy bots) and, though the system got 
+</I>&gt;<i> laggy and slow, we could still move around with our observer avatars 
+</I>&gt;<i> and use our in-world tools.
+</I>&gt;<i>
+</I>&gt;<i> so, the changes to texture sending, LLUDPServer, and the streamlining 
+</I>&gt;<i> of all those foreach(...) loops seems to be going in the right direction.
+</I>&gt;<i>
+</I>&gt;<i>     cheers,
+</I>&gt;<i>     DrS/dirk
+</I>&gt;<i>
+</I>&gt;<i> -- 
+</I>&gt;<i> dr dirk husemann ---- virtual worlds research ---- ibm zurich research lab
+</I>&gt;<i> SL: dr scofield ---- <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">drscofield at xyzzyxyzzy.net</A> ---- <A HREF="http://xyzzyxyzzy.net/">http://xyzzyxyzzy.net/</A>
+</I>&gt;<i> RL: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">hud at zurich.ibm.com</A> - +41 44 724 8573 - <A HREF="http://www.zurich.ibm.com/~hud/">http://www.zurich.ibm.com/~hud/</A>
+</I>&gt;<i>   
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>   
+</I>
+
+-- 
+Paul Fishwick, PhD
+Professor and Director, Digital Arts and Sciences Programs
+University of Florida
+Computer &amp; Information Science and Eng. Dept.
+Bldg. CSE, Room 301
+P.O. Box 116120
+Gainesville, FL 32611
+Email: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">fishwick at cise.ufl.edu</A>
+Phone: (352) 392-1414
+Fax: (352) 392-1220
+Web: <A HREF="http://www.cise.ufl.edu/~fishwick">http://www.cise.ufl.edu/~fishwick</A>
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006900.html">[Opensim-dev] trying to improve OpenSim performance under heavy load
+</A></li>
+	<LI>Next message: <A HREF="006902.html">[Opensim-dev] trying to improve OpenSim performance under heavy load
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6901">[ date ]</a>
+              <a href="thread.html#6901">[ thread ]</a>
+              <a href="subject.html#6901">[ subject ]</a>
+              <a href="author.html#6901">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

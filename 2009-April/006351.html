@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] moving away from grid vs. standalone
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2009-April/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3CBLU134-W396951460EE84E6736C373D56F0%40phx.gbl%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="006385.html">
+   <LINK REL="Next"  HREF="006335.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] moving away from grid vs. standalone</H1>
+    <B>Stefan Andersson</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20moving%20away%20from%20grid%20vs.%20standalone&In-Reply-To=%3CBLU134-W396951460EE84E6736C373D56F0%40phx.gbl%3E"
+       TITLE="[Opensim-dev] moving away from grid vs. standalone">stefan at tribalmedia.se
+       </A><BR>
+    <I>Wed Apr 29 20:04:09 CEST 2009</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="006385.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+        <LI>Next message: <A HREF="006335.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6351">[ date ]</a>
+              <a href="thread.html#6351">[ thread ]</a>
+              <a href="subject.html#6351">[ subject ]</a>
+              <a href="author.html#6351">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>
+Fair enough. Again, I'm all in favour for actual coding and experimentation over upfront architecture debates.
+
+Best regards,
+Stefan Andersson
+
+
+
+
+&gt;<i> Date: Wed, 29 Apr 2009 09:48:12 -0700
+</I>&gt;<i> From: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;<i> To: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">stefan at tribalmedia.se</A>
+</I>&gt;<i> CC: <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> Subject: Re: [Opensim-dev] moving away from grid vs. standalone
+</I>&gt;<i> 
+</I>&gt;<i> Stefan Andersson wrote:
+</I>&gt;<i> &gt; How about
+</I>&gt;<i> &gt;  
+</I>&gt;<i> &gt; ---
+</I>&gt;<i> &gt; [RegionResourceServices]
+</I>&gt;<i> &gt; ;GridService = OpenSim.Region.Communications.Hypergrid.dll, HGGridServices
+</I>&gt;<i> &gt; ;GridService = OpenSim.Region.Communications.Local.dll, LocalBackEndServices
+</I>&gt;<i> &gt;  
+</I>&gt;<i> &gt; GridService = OpenSim.Region.Communications.OGS1.dll, OGS1GridServices
+</I>&gt;<i> &gt;  
+</I>&gt;<i> &gt; [GridService]
+</I>&gt;<i> &gt; grid_server_url = &quot;<A HREF="http://192.168.1.101:9000">http://192.168.1.101:9000</A>&quot;
+</I>&gt;<i> &gt; grid_send_key = &quot;null&quot;
+</I>&gt;<i> &gt; grid_recv_key = &quot;null&quot;
+</I>&gt;<i> 
+</I>&gt;<i> The problem with specifying dlls *in this particular case* is that these 
+</I>&gt;<i> things aren't entirely orthogonal/different. The Hypergrid dlls are a 
+</I>&gt;<i> mashup of the other two. Therefore from a source code perspective it 
+</I>&gt;<i> makes things a heck of a lot more complicated than they need to be if we 
+</I>&gt;<i> simply merge things and use conditionals on configuration variables. For 
+</I>&gt;<i> example, hyperlinks (part of grid services) is a really simple extension 
+</I>&gt;<i> to LocalGrid services.
+</I>&gt;<i> 
+</I>&gt;<i> The issue of local vs remote services isn't entirely orthogonal either. 
+</I>&gt;<i> Some parts of OGS1 use Local services -- the well know pattern of 
+</I>&gt;<i> trying things locally first and if that doesn't work, proceed for a 
+</I>&gt;<i> remote service call (e.g. OGS1 grid services does that).
+</I>&gt;<i> 
+</I>&gt;<i> I see why you want this, in abstract. If another service comes along, it 
+</I>&gt;<i> can simply be added as a component. Or if someone writes, say, a 
+</I>&gt;<i> completely different inventory service, its interface can be added as dll.
+</I>&gt;<i> 
+</I>&gt;<i> But in this particular case, for the code we already have, I think that 
+</I>&gt;<i> having Local.dll, OGS1.dll and Hypergrid.dll is not working well, even 
+</I>&gt;<i> if the configuration process is the one you suggest. The code is mess; 
+</I>&gt;<i> things are _way_ more complicated than they need to be.
+</I>&gt;<i> 
+</I>&gt;<i> So, maybe, what we can do is merging these two ideas. We'll have only 
+</I>&gt;<i> one dll (OpenSim.Region.ResourceServices.dll), but we'll specify things 
+</I>&gt;<i> in OpenSim.ini the way that you suggest, so that if anyone comes along 
+</I>&gt;<i> and wants to plug in a different inventory service, he can just specify 
+</I>&gt;<i> the  other dll and an entry class name for it.
+</I>&gt;<i> 
+</I>&gt;<i> What do you think?
+</I>&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> &gt; [Security]
+</I>&gt;<i> &gt;  
+</I>&gt;<i> &gt; SessionAuthentication = {True|False}
+</I>&gt;<i> &gt; KeyAuthentication = {True|False}
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; ---
+</I>&gt;<i> &gt;  
+</I>&gt;<i> &gt; The constructor is being fed a config source, so the service can pick 
+</I>&gt;<i> &gt; out whatever it needs.
+</I>&gt;<i> &gt;  
+</I>&gt;<i> &gt; All the shipped grid services could move into one assembly, as we're 
+</I>&gt;<i> &gt; explicitly specifying the implementing calss.
+</I>&gt;<i> &gt;  
+</I>&gt;<i> &gt; I believe this approach would get us improved flexibility.
+</I>&gt;<i> &gt; 
+</I>&gt;<i> &gt; /Stefan
+</I>-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: &lt;<A HREF="https://lists.berlios.de/pipermail/opensim-dev/attachments/20090429/d3e46ea1/attachment.html">https://lists.berlios.de/pipermail/opensim-dev/attachments/20090429/d3e46ea1/attachment.html</A>&gt;
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="006385.html">[Opensim-dev] moving away from grid vs. standalone
+</A></li>
+	<LI>Next message: <A HREF="006335.html">[Opensim-dev] Standardizing OpenSim data formats
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6351">[ date ]</a>
+              <a href="thread.html#6351">[ thread ]</a>
+              <a href="subject.html#6351">[ subject ]</a>
+              <a href="author.html#6351">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

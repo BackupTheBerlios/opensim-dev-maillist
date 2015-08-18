@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] Serving textures in different formats
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2010-December/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Serving%20textures%20in%20different%20formats&In-Reply-To=%3C4D00550D.8020805%40metaverseink.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="009836.html">
+   <LINK REL="Next"  HREF="009828.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] Serving textures in different formats</H1>
+    <B>Diva Canto</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20Serving%20textures%20in%20different%20formats&In-Reply-To=%3C4D00550D.8020805%40metaverseink.com%3E"
+       TITLE="[Opensim-dev] Serving textures in different formats">diva at metaverseink.com
+       </A><BR>
+    <I>Thu Dec  9 05:03:25 CET 2010</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="009836.html">[Opensim-dev] Serving textures in different formats
+</A></li>
+        <LI>Next message: <A HREF="009828.html">[Opensim-dev] Serving textures in different formats
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9838">[ date ]</a>
+              <a href="thread.html#9838">[ thread ]</a>
+              <a href="subject.html#9838">[ subject ]</a>
+              <a href="author.html#9838">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>I pushed the changes that allow clients to request textures in all sorts 
+of mime types. You can do it both with an extra query parameter or with 
+the Accept header, although I haven't tested the Accept header route 
+yet. But the extra parameter is working and it's really easy to test. To 
+test on a web browser do this:
+
+Boot up a sim. Login with the SL viewer. Notice the debug messages 
+related to the GetTexture cap, like this:
+18:45:52 - [GETTEXTURE]: /CAPS/4f56a644-e8ca-4218-bbfc-f4a2eb91facf in 
+region Kali Test
+
+While you're logged in, pull up a web browser and point it to
+<A HREF="http://&lt;wherever">http://&lt;wherever</A>&gt;/CAPS/4f56a644-e8ca-4218-bbfc-f4a2eb91facf/?texture_id=&lt;some 
+valid texture uuid&gt;&amp;format=png
+
+You can grab texture ids from debug messages too.
+Voila!
+
+I'm doing the conversion exactly like the MapModule does it. I'm not 
+entirely knowledgeable of all the options for these conversions, so if 
+someone has better suggestions, let me know.
+
+On 12/8/2010 11:51 AM, Melanie wrote:
+&gt;<i> Then no applicable header (like text/plain is not applicable but
+</I>&gt;<i> could be present!) and no explicit one should be j2c still
+</I>&gt;<i>
+</I>&gt;<i> Melanie
+</I>&gt;<i>
+</I>&gt;<i> Diva Canto wrote:
+</I>&gt;&gt;<i> OK, thanks for the arguments on both options -- they're both valid. I'll
+</I>&gt;&gt;<i> do both, with the query parameter being dominant over the Accept header.
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> On 12/8/2010 11:10 AM, dz wrote:
+</I>&gt;&gt;&gt;<i> Aloha,
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> I thought the whole rationale behind the jp2 processing was that it
+</I>&gt;&gt;&gt;<i> was the only library that promised &quot;progressive&quot; texture quality.  The
+</I>&gt;&gt;&gt;<i> claimed advantage was that viewers would have &quot;something&quot; to display
+</I>&gt;&gt;&gt;<i> after an initial pass at the round robin of asset downloads.  As
+</I>&gt;&gt;&gt;<i> additional packets arrived, the quality of the texture would improve
+</I>&gt;&gt;&gt;<i> for those observing it.  I don't have the working experience to know
+</I>&gt;&gt;&gt;<i> if that benefit was ever realized, and I seem to recall some
+</I>&gt;&gt;&gt;<i> contentious posts in the viewer lists doubting it ever would.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> In the case where users see no benefit to using jp2, and have existing
+</I>&gt;&gt;&gt;<i> catalogs of textures in other formats, I also prefer the solution
+</I>&gt;&gt;&gt;<i> described by (option A)...   an extra parameter the user can specify,
+</I>&gt;&gt;&gt;<i> with a default of the current jp2.   I think Melanies point that
+</I>&gt;&gt;&gt;<i> Accept headers sometimes can't be set or relied upon, combined with
+</I>&gt;&gt;&gt;<i> the easier to debug EXPLICIT type declaration, make (A) the proper
+</I>&gt;&gt;&gt;<i> design decision.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> D
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> On Wed, Dec 8, 2010 at 9:09 AM, Diva Canto&lt;<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>
+</I>&gt;&gt;&gt;<i> &lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">diva at metaverseink.com</A>&gt;&gt;  wrote:
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      Then have your client do that. This doesn't affect the ability for
+</I>&gt;&gt;&gt;<i>      clients to do that in any way: simply omit the extra information.
+</I>&gt;&gt;&gt;<i>      Other clients benefit from the server doing the conversion, and
+</I>&gt;&gt;&gt;<i>      the result of that conversion being cached on the server side, so
+</I>&gt;&gt;&gt;<i>      that future requests get exactly what they need.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      Technically, this conversion does not belong to the simulator; it
+</I>&gt;&gt;&gt;<i>      belongs to the GetTexture service associated with the simulator;
+</I>&gt;&gt;&gt;<i>      this service can execute anywhere.
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>      _______________________________________________
+</I>&gt;&gt;&gt;<i>      Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i>      <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&lt;mailto:<A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>&gt;
+</I>&gt;&gt;&gt;<i>      <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i>
+</I>&gt;&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> ------------------------------------------------------------------------
+</I>&gt;&gt;<i>
+</I>&gt;&gt;<i> _______________________________________________
+</I>&gt;&gt;<i> Opensim-dev mailing list
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i> _______________________________________________
+</I>&gt;<i> Opensim-dev mailing list
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">Opensim-dev at lists.berlios.de</A>
+</I>&gt;<i> <A HREF="https://lists.berlios.de/mailman/listinfo/opensim-dev">https://lists.berlios.de/mailman/listinfo/opensim-dev</A>
+</I>&gt;<i>
+</I>
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="009836.html">[Opensim-dev] Serving textures in different formats
+</A></li>
+	<LI>Next message: <A HREF="009828.html">[Opensim-dev] Serving textures in different formats
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#9838">[ date ]</a>
+              <a href="thread.html#9838">[ thread ]</a>
+              <a href="subject.html#9838">[ subject ]</a>
+              <a href="author.html#9838">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>

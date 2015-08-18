@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Opensim-dev] build issues wrt native libs (redux)
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/opensim-dev/2007-October/index.html" >
+   <LINK REL="made" HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20build%20issues%20wrt%20native%20libs%20%28redux%29&In-Reply-To=%3C703776.27726.qm%40web51310.mail.re2.yahoo.com%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000156.html">
+   <LINK REL="Next"  HREF="000134.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Opensim-dev] build issues wrt native libs (redux)</H1>
+    <B>dan miller</B> 
+    <A HREF="mailto:opensim-dev%40lists.berlios.de?Subject=Re%3A%20%5BOpensim-dev%5D%20build%20issues%20wrt%20native%20libs%20%28redux%29&In-Reply-To=%3C703776.27726.qm%40web51310.mail.re2.yahoo.com%3E"
+       TITLE="[Opensim-dev] build issues wrt native libs (redux)">danbmil99 at yahoo.com
+       </A><BR>
+    <I>Sat Oct  6 20:06:37 CEST 2007</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000156.html">[Opensim-dev] Usage of trimeshes, was: Open Mantis issue,	already incorporated
+</A></li>
+        <LI>Next message: <A HREF="000134.html">[Opensim-dev] server consoles
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#157">[ date ]</a>
+              <a href="thread.html#157">[ thread ]</a>
+              <a href="subject.html#157">[ subject ]</a>
+              <a href="author.html#157">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>&gt;<i> Currently I'm looking for a good geometry library to use for that; my prim
+</I>&gt;<i> candidate is a lib named CGAL.
+</I>
+One thing this brings up is our increasing dependency on outside libraries,
+with different licenses and mostly unmanaged code.  This is a separate
+issue, but at some point we need to just face the fact that for this project
+to move ahead at the fastest pace possible, we need to have an
+infrastructure to easily incorporate native libs, deal with their build
+idiosyncrasies, linkage/installation problems, licensing, versioning,
+platform issues, custom modifications we may introduce, etc.  Just on the
+physics side, we already have ODE, Physx, and a modified build of BulletX. 
+I believe there are similar issues with SQL and JPEG components which I
+don't know much about, but seem to be the same sorts of problems we have
+with ODE.
+
+As a use case, the BulletX library has been hacked into something
+incompatible with the original project, and stuck in a folder called
+/libraries (which I never noticed before!).  It has its own build system,
+and you have to manually copy the .DLL's to /bin, where they get saved by
+subversion, so most people don't think about it.  But this approach has
+caused endless problems with ODE; I just finally figured out that the ODE
+DLL's fail because they depend on certain Visual Studio redistributable
+DLL's that aren't in subversion.
+
+I guess opensim culture dictates that I stop complaining and just fix the
+problem.  Issue is, I've always considered myself something of a build
+idiot; I've never quite grokked makefiles, and I certainly know nothing of
+autogen, configure, etc.  To top it off, we have a non-standard system
+(nant) that seems pretty geared to C# (and yet doesn't satisfy VS users). I
+know Sean D. has been thinking about this problem, and I've certainly had
+enough C/C++ experience to contribute something to the process, but
+apparently the usual suspects (GCC/'nix toolchain) is useless to Windows
+developers unless it produces .sln files, and this has been a sticking
+point.
+
+The last suggestion that made any sense to me was to use Nant as the top
+process (I assume it's a general scripting language in some sense), and have
+it invoke everything else that needs to occur, including calling prebuild to
+generate .sln files.  How to deal with all the 3rd party libs might be the
+big sticking point.  To compile those things on windows often requires
+cygwin, which ppl seem to dislike intensely in this crowd.
+
+Perhaps there is simply another project, opensim-libs, which has *all* the
+source code and a top-level, comprehensive build system (most likely GCC
+config/make) that builds every dll needed, and copies them into bin?  
+Eventually, there could be distribution-specific binary lib releases, ie
+.rpm, .deb, and install-shield for windows.
+
+I think we need to forge a consensus on this issue, agree on toolchains, and
+get to work.  Otherwise we will descend into a deep world of pain, with
+broken builds, frustrated users, and developers spending inordinate amounts
+of time putting out fires.  Better to build a fireproof foundation now,
+methinks.
+
+-danx0r
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000156.html">[Opensim-dev] Usage of trimeshes, was: Open Mantis issue,	already incorporated
+</A></li>
+	<LI>Next message: <A HREF="000134.html">[Opensim-dev] server consoles
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#157">[ date ]</a>
+              <a href="thread.html#157">[ thread ]</a>
+              <a href="subject.html#157">[ subject ]</a>
+              <a href="author.html#157">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/opensim-dev">More information about the Opensim-dev
+mailing list</a><br>
+</body></html>
